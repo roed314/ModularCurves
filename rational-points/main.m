@@ -141,8 +141,8 @@ if #W eq 1 and IsIdentity(W[1]) then
 	if forall{deg: deg in degrees | deg ne 2} then
 		printf "Hence there are no quadratic points on X_0(%o) not coming from pullbacks of rationals.\n", N;
 	else
-		error "TODO";
+		error "TODO: Sieve worked, but we still need to analyze quadratic points (there are some).";
 	end if;
 else 
-	error "TODO";
+	error "TODO: Sieve did not prove what we wanted.";
 end if;
