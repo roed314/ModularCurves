@@ -53,3 +53,23 @@ function rank_J0Nplus(N : Lprec := 30, printlevel := 0)
   end for; // f in ...
   return rank, errors;
 end function;
+
+function TorsionBound(X, BadPrimes : LowerBound := 0, PrimesBound := 20)
+  torsionBound := 0;
+  for p in PrimesUpTo(PrimesBound) do
+    if p in BadPrimes then
+      continue;
+    end if;
+    Fp := GF(p);
+    try
+	    Xp := ChangeRing(X, Fp);
+    catch e
+      continue; 
+    end try;
+    torsionBound := Gcd(torsionBound, #TorsionSubgroup(ClassGroup(Xp)));
+    if torsionBound eq LowerBound then
+      return torsionBound;
+    end if;
+  end for;
+  return torsionBound;
+end function;

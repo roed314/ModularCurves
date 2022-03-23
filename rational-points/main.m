@@ -10,11 +10,11 @@ N := 137;
 C := CuspForms(N);
 printf "Dimension of CuspForms(%o) is: %o\n", N, Dimension(C);
 
-//  Check rk J_0(N)(Q)  = rk J_0(N)^+(Q)
+//  Check rk J_0(N)(Q) = rk J_0(N)^+(Q)
 if not IsRankOfALQuotEqual(N) then
-	error "One needs rk J_0(N)(Q)  = rk J_0(N)^+(Q) for our algorithm to work.";
+	error "One needs rk J_0(N)(Q) = rk J_0(N)^+(Q) for our algorithm to work.";
 else
-	printf "rk J_0(N)(Q)  = rk J_0(N)^+(Q).\n";
+	printf "rk J_0(N)(Q) = rk J_0(N)^+(Q).\n";
 end if;
 
 //we find models for X_0(N) and X_0(N)/w_N
@@ -45,6 +45,9 @@ printf "Genus of X_0(%o) is %o\n", N, Genus(XN);
 printf "Genus of X_0(%o)/w_%o is %o\n", N, N, Dimension(NN);
 
 printf "We have found these points on X_0(%o):\n%o\n", N, XN_Cusps;
+
+// this can be used to compute a multiple of the torsion of J_0(N)(Q)
+// TorsionBound(XN, PrimeDivisors(N));
  
 //Dtor := Divisor(XN_Cusps[1]) - Divisor(XN_Cusps[2]);
 
