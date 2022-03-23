@@ -1,11 +1,10 @@
 SetLogFile("main.log");
-load "Progs/quadPts.m";
 load "X0p_NiceModel.m";
-load "Chabauty_MWSieve_new.m";
 load "auxiliary.m";
+load "Chabauty_MWSieve_new.m";
 SetDebugOnError(true);
 
-N := 137;
+N := 79;
 
 C := CuspForms(N);
 printf "Dimension of CuspForms(%o) is: %o\n", N, Dimension(C);
@@ -49,7 +48,8 @@ printf "We have found these points on X_0(%o):\n%o\n", N, XN_Cusps;
 // this can be used to compute a multiple of the torsion of J_0(N)(Q)
 // TorsionBound(XN, PrimeDivisors(N));
  
-//Dtor := Divisor(XN_Cusps[1]) - Divisor(XN_Cusps[2]);
+/*
+Dtor := Divisor(XN_Cusps[1]) - Divisor(XN_Cusps[2]);
 
 //not needed for prime values of N, torsion is then known
 //for non-prime N, we will need different method of getting torsion
@@ -61,6 +61,7 @@ end while;
 h, Ksub, bas, divsNew := findGenerators(XN, [Place(cusp) : cusp in XN_Cusps], Place(XN_Cusps[1]), p);
 // Ksub == abstract group isomorphic to cuspidal
 // "It also returns a subset divsNew such that [[D-deg(D) P_0] : D in divsNew] generates the same subgroup."
+*/
 
 /*order := 1;
 nDtor := Dtor;
@@ -97,10 +98,12 @@ printf "%o of them are pullbacks of rationals from X_0(%o)/w_%o.\n", #deg2pb, N,
 
 //Finally, we do the sieve.
 //A := AbelianGroup([order]);
-A := Ksub;
+//A := Ksub;
 //divs := [Dtor];
-D := [Divisor(divsNew[i]) - Divisor(XN_Cusps[1]) : i in [1..#divsNew]];
-divs := [&+[coeffs[i] * D[i] : i in [1..#coeffs]] : coeffs in bas];
+//D := [Divisor(divsNew[i]) - Divisor(XN_Cusps[1]) : i in [1..#divsNew]];
+//divs := [&+[coeffs[i] * D[i] : i in [1..#coeffs]] : coeffs in bas];
+
+A, divs := GetTorsion(N, XN, XN_Cusps);
 genusC := Dimension(NN);
 bp := deg2pb[1];
 wNMatrix := Matrix(wN);
@@ -141,8 +144,8 @@ if #W eq 1 and IsIdentity(W[1]) then
 	if forall{deg: deg in degrees | deg ne 2} then
 		printf "Hence there are no quadratic points on X_0(%o) not coming from pullbacks of rationals.\n", N;
 	else
-		error "TODO";
+		error "TODO: Sieve worked, but we still need to analyze quadratic points (there are some).";
 	end if;
 else 
-	error "TODO";
+	error "TODO: Sieve did not prove what we wanted.";
 end if;
