@@ -1,0 +1,19 @@
+// Curves whose quadratic points are computed in Ozman-Siksek 2019 : "QUADRATIC POINTS ON MODULAR CURVES"
+
+Curve label | genus
+
+'X0(34)' | 3
+'X0(38)' | 4
+'X0(42)' | 5
+'X0(44)' | 4
+'X0(45)' | 3
+'X0(51)' | 5
+'X0(52)' | 5
+'X0(54)' | 4
+'X0(55)' | 5
+'X0(56)' | 5
+'X0(63)' | 5
+'X0(64)' | 3
+'X0(72)' | 5
+'X0(75)' | 5
+'X0(81)' | 4
