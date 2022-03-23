@@ -1,0 +1,2571 @@
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimesion of eigenspace lambda = 1 for w_79 is: 1
+Dimesion of eigenspace lambda = -1 for w_79 is: 5
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+order of P1 - P2: 1
+We have found 3 points on X_0(79)^2(Q).
+1 of them are pullbacks of rationals from X_0(79)/w_79.
+In file "main.m", line 94, column 48:
+>> MWSieve(XN, wNMatrix, genusC, primes, A, divs, I, bp, B0, iA0, W0, deg2);
+                                                  ^
+User error: Identifier 'I' has not been declared or assigned
+
+
+In file "main.m", line 97, column 128:
+>> o)[Q - bp] is in a coset of %o represented by an element of %o",  N, N, B, 
+                                                                           ^
+User error: Identifier 'B' has not been declared or assigned
+
+It follows that if there is an unknown Q in X_0(79)^2(Q), then (1 - w_79)[Q - 
+bp] == 0.
+This implies that [Q - bp] is fixed by w_79
+Then Q ~ w_79(Q), which implies that Q = w_79(Q) because X_0(79) is not 
+hyperelliptic.
+Then either Q is a pullback, or it is fixed by w_79 pointwise.
+If P = (X1:X2:X3:X4:X5:X6:X7:X8:X9:X10:X11) is fixed by w_79,
+then either X11 = 0 or P = (0:0:0:0:0:0:0:0:0:1) (not on X_0(79))
+
+We find all such P by imposing condition X11 = 0 and finding points on the 
+scheme:
+
+Scheme over Rational Field defined by
+x[6],
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
+    + 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+All such P are:
+{@ (-2/87*r1^4 - 37/87*r1^3 - 10/29*r1^2 - 13/87*r1 + 74/29 : -7/87*r1^4 + 
+    1/87*r1^3 - 6/29*r1^2 + 85/87*r1 - 31/29 : 17/87*r1^4 + 10/87*r1^3 - 
+    2/29*r1^2 - 107/87*r1 + 38/29 : r1 : 1 : 0), (-2/87*r2^4 - 37/87*r2^3 - 
+    10/29*r2^2 - 13/87*r2 + 74/29 : -7/87*r2^4 + 1/87*r2^3 - 6/29*r2^2 + 
+    85/87*r2 - 31/29 : 17/87*r2^4 + 10/87*r2^3 - 2/29*r2^2 - 107/87*r2 + 38/29 :
+r2 : 1 : 0), (-2/87*r3^4 - 37/87*r3^3 - 10/29*r3^2 - 13/87*r3 + 74/29 : 
+    -7/87*r3^4 + 1/87*r3^3 - 6/29*r3^2 + 85/87*r3 - 31/29 : 17/87*r3^4 + 
+    10/87*r3^3 - 2/29*r3^2 - 107/87*r3 + 38/29 : r3 : 1 : 0), (-2/87*r4^4 - 
+    37/87*r4^3 - 10/29*r4^2 - 13/87*r4 + 74/29 : -7/87*r4^4 + 1/87*r4^3 - 
+    6/29*r4^2 + 85/87*r4 - 31/29 : 17/87*r4^4 + 10/87*r4^3 - 2/29*r4^2 - 
+    107/87*r4 + 38/29 : r4 : 1 : 0), (-2/87*r5^4 - 37/87*r5^3 - 10/29*r5^2 - 
+    13/87*r5 + 74/29 : -7/87*r5^4 + 1/87*r5^3 - 6/29*r5^2 + 85/87*r5 - 31/29 : 
+    17/87*r5^4 + 10/87*r5^3 - 2/29*r5^2 - 107/87*r5 + 38/29 : r5 : 1 : 0), 
+(2*r6^4 - 41/3*r6^3 + 62/3*r6^2 - 13/3*r6 - 2 : -r6^4 + 25/3*r6^3 - 46/3*r6^2 + 
+    17/3*r6 + 1 : -r6^4 + 22/3*r6^3 - 10*r6^2 + 1/3*r6 + 2/3 : r6 : 1 : 0), 
+(2*r7^4 - 41/3*r7^3 + 62/3*r7^2 - 13/3*r7 - 2 : -r7^4 + 25/3*r7^3 - 46/3*r7^2 + 
+    17/3*r7 + 1 : -r7^4 + 22/3*r7^3 - 10*r7^2 + 1/3*r7 + 2/3 : r7 : 1 : 0), 
+(2*r8^4 - 41/3*r8^3 + 62/3*r8^2 - 13/3*r8 - 2 : -r8^4 + 25/3*r8^3 - 46/3*r8^2 + 
+    17/3*r8 + 1 : -r8^4 + 22/3*r8^3 - 10*r8^2 + 1/3*r8 + 2/3 : r8 : 1 : 0), 
+(2*r9^4 - 41/3*r9^3 + 62/3*r9^2 - 13/3*r9 - 2 : -r9^4 + 25/3*r9^3 - 46/3*r9^2 + 
+    17/3*r9 + 1 : -r9^4 + 22/3*r9^3 - 10*r9^2 + 1/3*r9 + 2/3 : r9 : 1 : 0), 
+(2*r10^4 - 41/3*r10^3 + 62/3*r10^2 - 13/3*r10 - 2 : -r10^4 + 25/3*r10^3 - 
+    46/3*r10^2 + 17/3*r10 + 1 : -r10^4 + 22/3*r10^3 - 10*r10^2 + 1/3*r10 + 2/3 :
+r10 : 1 : 0) @}
+
+Clearly, none such points are quadratic.
+Hence there are no quadratic points on X_0(79) not coming from pullbacks of 
+rationals.
+
+Total time: 6.669 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimesion of eigenspace lambda = 1 for w_79 is: 1
+Dimesion of eigenspace lambda = -1 for w_79 is: 5
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+order of P1 - P2: 1
+We have found 3 points on X_0(79)^2(Q).
+1 of them are pullbacks of rationals from X_0(79)/w_79.3
+
+MWSieve(
+    X: X,
+    AtkinLehner: [ 1  0  0  0  0  0] [ 0  1  0  0  0  0] [ 0  0  1  0  0  0] 
+    ...,
+    genusC: 1,
+    primes: [ 3, 5, 7, 11 ],
+    A: Abelian Group of order 1 Defined on 1 generator Relations: A...,
+    divs: [ Divisor 1*Place at (1 : 0 : 0 : 0 : 0 : 1) - 1*Place at (-...,
+    Dpull: Divisor 1*Place at (1 : 0 : 0 : 0 : 0 : 1) + 1*Place at (-1 ...,
+    B0: Abelian Group of order 1 Defined on 1 generator Relations: A...,
+    iA0: Mapping from: GrpAb: A to GrpAb: A,
+    W0: { 0 },
+    deg2: [ Divisor on X, Divisor on X, Divisor on X ]
+)
+ChabautyInfo(
+    X: X,
+    AtkinLehner: [ 1  0  0  0  0  0] [ 0  1  0  0  0  0] [ 0  0  1  0  0  0] 
+    ...,
+    genusC: 1,
+    p: 3,
+    A: Abelian Group of order 1 Defined on 1 generator Relations: A...,
+    divs: [ Divisor 1*Place at (1 : 0 : 0 : 0 : 0 : 1) - 1*Place at (-...,
+    Dpull: Divisor 1*Place at (1 : 0 : 0 : 0 : 0 : 1) + 1*Place at (-1 ...,
+    B: Abelian Group of order 1 Defined on 1 generator Relations: A...,
+    iA: Mapping from: GrpAb: A to GrpAb: A,
+    W: { 0 },
+    deg2: [ Divisor on X, Divisor on X, Divisor on X ]
+)
+In file "Chabauty_MWSieve_new.m", line 16, column 17:
+>>         h := hom<A -> JFp | [(JFp!psi(divp)) : divp in divsp]>;
+                   ^
+Runtime error in hom< ... >: Images given do not define a homomorphism
+
+
+Total time: 7.740 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimension of eigenspace lambda = 1 for w_79 is: 1
+Dimension of eigenspace lambda = -1 for w_79 is: 5
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+order of P1 - P2: 13
+We have found 3 points on X_0(79)^2(Q).
+1 of them are pullbacks of rationals from X_0(79)/w_79.3
+The number of possible cosets unknown points can land in is 7
+5
+The number of possible cosets unknown points can land in is 1
+
+For unknown Q in X_0(79)^2(Q) we have (1 - w_79)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0
+]
+It follows that if there is an unknown Q in X_0(79)^2(Q), then (1 - w_79)[Q - 
+bp] == 0.
+This implies that [Q - bp] is fixed by w_79
+Then Q ~ w_79(Q), which implies that Q = w_79(Q) because X_0(79) is not 
+hyperelliptic.
+Then either Q is a pullback, or it is fixed by w_79 pointwise.
+If P = (X1:X2:X3:X4:X5:X6:X7:X8:X9:X10:X11) is fixed by w_79,
+then either X11 = 0 o= (0:0:0:0:0:0:0:0:0:1) (not on X_0(79))
+
+We find all such P by imposing condition X11 = 0 and finding points on the 
+scheme:
+
+Scheme over Rational Field defined by
+x[6],
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
+    + 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+All such P are:
+{@ (-2/87*r1^4 - 37/87*r1^3 - 10/29*r1^2 - 13/87*r1 + 74/29 : -7/87*r1^4 + 
+    1/87*r1^3 - 6/29*r1^2 + 85/87*r1 - 31/29 : 17/87*r1^4 + 10/87*r1^3 - 
+    2/29*r1^2 - 107/87*r1 + 38/29 : r1 : 1 : 0), (-2/87*r2^4 - 37/87*r2^3 - 
+    10/29*r2^2 - 13/87*r2 + 74/29 : -7/87*r2^4 + 1/87*r2^3 - 6/29*r2^2 + 
+    85/87*r2 - 31/29 : 17/87*r2^4 + 10/87*r2^3 - 2/29*r2^2 - 107/87*r2 + 38/29 :
+r2 : 1 : 0), (-2/87*r3^4 - 37/87*r3^3 - 10/29*r3^2 - 13/87*r3 + 74/29 : 
+    -7/87*r3^4 + 1/87*r3^3 - 6/29*r3^2 + 85/87*r3 - 31/29 : 17/87*r3^4 + 
+    10/87*r3^3 - 2/29*r3^2 - 107/87*r3 + 38/29 : r3 : 1 : 0), (-2/87*r4^4 - 
+    37/87*r4^3 - 10/29*r4^2 - 13/87*r4 + 74/29 : -7/87*r4^4 + 1/87*r4^3 - 
+    6/29*r4^2 + 85/87*r4 - 31/29 : 17/87*r4^4 + 10/87*r4^3 - 2/29*r4^2 - 
+    107/87*r4 + 38/29 : r4 : 1 : 0), (-2/87*r5^4 - 37/87*r5^3 - 10/29*r5^2 - 
+    13/87*r5 + 74/29 : -7/87*r5^4 + 1/87*r5^3 - 6/29*r5^2 + 85/87*r5 - 31/29 : 
+    17/87*r5^4 + 10/87*r5^3 - 2/29*r5^2 - 107/87*r5 + 38/29 : r5 : 1 : 0), 
+(2*r6^4 - 41/3*r6^3 + 62/3*r6^2 - 13/3*r6 - 2 : -r6^4 + 25/3*r6^3 - 46/3*r6^2 + 
+    17/3*r6 + 1 : -r6^4 + 22/3*r6^3 - 10*r6^2 + 1/3*r6 + 2/3 : r6 : 1 : 0), 
+(2*r7^4 - 41/3*r7^3 + 62/3*r7^2 - 13/3*r7 - 2 : -r7^4 + 25/3*r7^3 - 46/3*r7^2 + 
+    17/3*r7 + 1 : -r7^4 + 22/3*r7^3 - 10*r7^2 + 1/3*r7 + 2/3 : r7 : 1 : 0), 
+(2*r8^4 - 41/3*r8^3 + 62/3*r8^2 - 13/3*r8 - 2 : -r8^4 + 25/3*r8^3 - 46/3*r8^2 + 
+    17/3*r8 + 1 : -r8^4 + 22/3*r8^3 - 10*r8^2 + 1/3*r8 + 2/3 : r8 : 1 : 0), 
+(2*r9^4 - 41/3*r9^3 + 62/3*r9^2 - 13/3*r9 - 2 : -r9^4 + 25/3*r9^3 - 46/3*r9^2 + 
+    17/3*r9 + 1 : -r9^4 + 22/3*r9^3 - 10*r9^2 + 1/3*r9 + 2/3 : r9 : 1 : 0), 
+(2*r10^4 - 41/3*r10^3 + 62/3*r10^2 - 13/3*r10 - 2 : -r10^4 + 25/3*r10^3 - 
+    46/3*r10^2 + 17/3*r10 + 1 : -r10^4 + 22/3*r10^3 - 10*r10^2 + 1/3*r10 + 2/3 :
+r10 : 1 : 0) @}
+
+Clearly, none such points are quadratic.
+Hence there are no quadratic points on X_0(79) not coming from pullbacks of 
+rationals.
+
+Total time: 121.840 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+
+In file "Chabauty_MWSieve_new.m", line 75, column 42:
+>>                 printf "p = %o (%o/%o): ": p, i, #primes;
+                                            ^
+User error: bad syntax
+
+Total time: 0.340 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimension of eigenspace lambda = +1 for w_79 is: 1
+Dimension of eigenspace lambda = -1 for w_79 is: 5
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+order of P1 - P2: 13
+We have found 3 points on X_0(79)^2(Q).
+1 of them are pullbacks of rationals from X_0(79)/w_79.
+p = 3 (1/4): (1/13)(2/13)(3/13)(4/13)(5/13)
+[Interrupted]
+
+Total time: 27.629 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimension of eigenspace lambda = +1 for w_79 is: 1
+Dimension of eigenspace lambda = -1 for w_79 is: 5
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+order of P1 - P2: 13
+We have found 3 points on X_0(79)^2(Q).
+1 of them are pullbacks of rationals from X_0(79)/w_79.
+p = 3 (1/4): out of 13: .............The number of possible cosets unknown points can land in is 7.
+p = 5 (2/4): out of 7: .......The number of possible cosets unknown points can land in is 1.
+
+For unknown Q in X_0(79)^2(Q) we have (1 - w_79)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0
+]
+It follows that if there is an unknown Q in X_0(79)^2(Q), then (1 - w_79)[Q - 
+bp] == 0.
+This implies that [Q - bp] is fixed by w_79
+Then Q ~ w_79(Q), which implies that Q = w_79(Q) because X_0(79) is not 
+hyperelliptic.
+Then either Q is a pullback, or it is fixed by w_79 pointwise.
+If P = (X1:X2:X3:X4:X5:X6:X7:X8:X9:X10:X11) is fixed by w_79,
+then either X11 = 0 or P = (0:0:0:0:0:0:0:0:0:1) (not on X_0(79))
+
+We find all such P by imposing condition X11 = 0 and finding points on the 
+scheme:
+
+Scheme over Rational Field defined by
+x[6],
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
+    + 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+All such P are:
+{@ (-2/87*r1^4 - 37/87*r1^3 - 10/29*r1^2 - 13/87*r1 + 74/29 : -7/87*r1^4 + 
+    1/87*r1^3 - 6/29*r1^2 + 85/87*r1 - 31/29 : 17/87*r1^4 + 10/87*r1^3 - 
+    2/29*r1^2 - 107/87*r1 + 38/29 : r1 : 1 : 0), (-2/87*r2^4 - 37/87*r2^3 - 
+    10/29*r2^2 - 13/87*r2 + 74/29 : -7/87*r2^4 + 1/87*r2^3 - 6/29*r2^2 + 
+    85/87*r2 - 31/29 : 17/87*r2^4 + 10/87*r2^3 - 2/29*r2^2 - 107/87*r2 + 38/29 :
+r2 : 1 : 0), (-2/87*r3^4 - 37/87*r3^3 - 10/29*r3^2 - 13/87*r3 + 74/29 : 
+    -7/87*r3^4 + 1/87*r3^3 - 6/29*r3^2 + 85/87*r3 - 31/29 : 17/87*r3^4 + 
+    10/87*r3^3 - 2/29*r3^2 - 107/87*r3 + 38/29 : r3 : 1 : 0), (-2/87*r4^4 - 
+    37/87*r4^3 - 10/29*r4^2 - 13/87*r4 + 74/29 : -7/87*r4^4 + 1/87*r4^3 - 
+    6/29*r4^2 + 85/87*r4 - 31/29 : 17/87*r4^4 + 10/87*r4^3 - 2/29*r4^2 - 
+    107/87*r4 + 38/29 : r4 : 1 : 0), (-2/87*r5^4 - 37/87*r5^3 - 10/29*r5^2 - 
+    13/87*r5 + 74/29 : -7/87*r5^4 + 1/87*r5^3 - 6/29*r5^2 + 85/87*r5 - 31/29 : 
+    17/87*r5^4 + 10/87*r5^3 - 2/29*r5^2 - 107/87*r5 + 38/29 : r5 : 1 : 0), 
+(2*r6^4 - 41/3*r6^3 + 62/3*r6^2 - 13/3*r6 - 2 : -r6^4 + 25/3*r6^3 - 46/3*r6^2 + 
+    17/3*r6 + 1 : -r6^4 + 22/3*r6^3 - 10*r6^2 + 1/3*r6 + 2/3 : r6 : 1 : 0), 
+(2*r7^4 - 41/3*r7^3 + 62/3*r7^2 - 13/3*r7 - 2 : -r7^4 + 25/3*r7^3 - 46/3*r7^2 + 
+    17/3*r7 + 1 : -r7^4 + 22/3*r7^3 - 10*r7^2 + 1/3*r7 + 2/3 : r7 : 1 : 0), 
+(2*r8^4 - 41/3*r8^3 + 62/3*r8^2 - 13/3*r8 - 2 : -r8^4 + 25/3*r8^3 - 46/3*r8^2 + 
+    17/3*r8 + 1 : -r8^4 + 22/3*r8^3 - 10*r8^2 + 1/3*r8 + 2/3 : r8 : 1 : 0), 
+(2*r9^4 - 41/3*r9^3 + 62/3*r9^2 - 13/3*r9 - 2 : -r9^4 + 25/3*r9^3 - 46/3*r9^2 + 
+    17/3*r9 + 1 : -r9^4 + 22/3*r9^3 - 10*r9^2 + 1/3*r9 + 2/3 : r9 : 1 : 0), 
+(2*r10^4 - 41/3*r10^3 + 62/3*r10^2 - 13/3*r10 - 2 : -r10^4 + 25/3*r10^3 - 
+    46/3*r10^2 + 17/3*r10 + 1 : -r10^4 + 22/3*r10^3 - 10*r10^2 + 1/3*r10 + 2/3 :
+r10 : 1 : 0) @}
+
+Clearly, none such points are quadratic.
+Hence there are no quadratic points on X_0(79) not coming from pullbacks of 
+rationals.
+
+Total time: 145.780 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimension of eigenspace lambda = +1 for w_79 is: 1
+Dimension of eigenspace lambda = -1 for w_79 is: 5
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+order of P1 - P2: 13
+We have found 3 points on X_0(79)^2(Q).
+1 of them are pullbacks of rationals from X_0(79)/w_79.
+p = 3 (1/4): out of 13: .............The number of possible cosets unknown points can land in is 7.
+p = 5 (2/4): out of 7: .......The number of possible cosets unknown points can land in is 1.
+
+For unknown Q in X_0(79)^2(Q) we have (1 - w_79)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0
+].
+It follows that if there is an unknown Q in X_0(79)^2(Q), then (1 - w_79)[Q - 
+bp] == 0.
+This implies that [Q - bp] is fixed by w_79
+Then Q ~ w_79(Q), which implies that Q = w_79(Q) because X_0(79) is not 
+hyperelliptic.
+Then either Q is a pullback, or it is fixed by w_79 pointwise.
+If P = (X1:X2:X3:X4:X5:X6:X7:X8:X9:X10:X11) is fixed by w_79,
+then either X11 = 0 or P = (0:0:0:0:0:0:0:0:0:1) (not on X_0(79))
+
+We find all such P by imposing condition X11 = 0 and finding points on the 
+scheme:
+Scheme over Rational Field defined by
+x[6],
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+All such P are:
+{@ (-2/87*r1^4 - 37/87*r1^3 - 10/29*r1^2 - 13/87*r1 + 74/29 : -7/87*r1^4 + 
+1/87*r1^3 - 6/29*r1^2 + 85/87*r1 - 31/29 : 17/87*r1^4 + 10/87*r1^3 - 2/29*r1^2 -
+107/87*r1 + 38/29 : r1 : 1 : 0), (-2/87*r2^4 - 37/87*r2^3 - 10/29*r2^2 - 
+13/87*r2 + 74/29 : -7/87*r2^4 + 1/87*r2^3 - 6/29*r2^2 + 85/87*r2 - 31/29 : 
+17/87*r2^4 + 10/87*r2^3 - 2/29*r2^2 - 107/87*r2 + 38/29 : r2 : 1 : 0), 
+(-2/87*r3^4 - 37/87*r3^3 - 10/29*r3^2 - 13/87*r3 + 74/29 : -7/87*r3^4 + 
+1/87*r3^3 - 6/29*r3^2 + 85/87*r3 - 31/29 : 17/87*r3^4 + 10/87*r3^3 - 2/29*r3^2 -
+107/87*r3 + 38/29 : r3 : 1 : 0), (-2/87*r4^4 - 37/87*r4^3 - 10/29*r4^2 - 
+13/87*r4 + 74/29 : -7/87*r4^4 + 1/87*r4^3 - 6/29*r4^2 + 85/87*r4 - 31/29 : 
+17/87*r4^4 + 10/87*r4^3 - 2/29*r4^2 - 107/87*r4 + 38/29 : r4 : 1 : 0), 
+(-2/87*r5^4 - 37/87*r5^3 - 10/29*r5^2 - 13/87*r5 + 74/29 : -7/87*r5^4 + 
+1/87*r5^3 - 6/29*r5^2 + 85/87*r5 - 31/29 : 17/87*r5^4 + 10/87*r5^3 - 2/29*r5^2 -
+107/87*r5 + 38/29 : r5 : 1 : 0), (2*r6^4 - 41/3*r6^3 + 62/3*r6^2 - 13/3*r6 - 2 :
+-r6^4 + 25/3*r6^3 - 46/3*r6^2 + 17/3*r6 + 1 : -r6^4 + 22/3*r6^3 - 10*r6^2 + 
+1/3*r6 + 2/3 : r6 : 1 : 0), (2*r7^4 - 41/3*r7^3 + 62/3*r7^2 - 13/3*r7 - 2 : 
+-r7^4 + 25/3*r7^3 - 46/3*r7^2 + 17/3*r7 + 1 : -r7^4 + 22/3*r7^3 - 10*r7^2 + 
+1/3*r7 + 2/3 : r7 : 1 : 0), (2*r8^4 - 41/3*r8^3 + 62/3*r8^2 - 13/3*r8 - 2 : 
+-r8^4 + 25/3*r8^3 - 46/3*r8^2 + 17/3*r8 + 1 : -r8^4 + 22/3*r8^3 - 10*r8^2 + 
+1/3*r8 + 2/3 : r8 : 1 : 0), (2*r9^4 - 41/3*r9^3 + 62/3*r9^2 - 13/3*r9 - 2 : 
+-r9^4 + 25/3*r9^3 - 46/3*r9^2 + 17/3*r9 + 1 : -r9^4 + 22/3*r9^3 - 10*r9^2 + 
+1/3*r9 + 2/3 : r9 : 1 : 0), (2*r10^4 - 41/3*r10^3 + 62/3*r10^2 - 13/3*r10 - 2 : 
+-r10^4 + 25/3*r10^3 - 46/3*r10^2 + 17/3*r10 + 1 : -r10^4 + 22/3*r10^3 - 10*r10^2
++ 1/3*r10 + 2/3 : r10 : 1 : 0) @}
+Clearly, none such points are quadratic.
+Hence there are no quadratic points on X_0(79) not coming from pullbacks of 
+rationals.
+
+Total time: 133.969 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimension of eigenspace lambda = +1 for w_79 is: 1
+Dimension of eigenspace lambda = -1 for w_79 is: 5
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+order of P1 - P2: 13
+We have found 3 points on X_0(79)^2(Q).
+1 of them are pullbacks of rationals from X_0(79)/w_79.
+p = 3 (1/4): out of 13: .............The number of possible cosets unknown points can land in is 7.
+p = 5 (2/4): out of 7: .......The number of possible cosets unknown points can land in is 1.
+
+For unknown Q in X_0(79)^2(Q) we have (1 - w_79)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0
+].
+It follows that if there is an unknown Q in X_0(79)^2(Q), then (1 - w_79)[Q - 
+bp] == 0.
+This implies that [Q - bp] is fixed by w_79
+Then Q ~ w_79(Q), which implies that Q = w_79(Q) because X_0(79) is not 
+hyperelliptic.
+Then either Q is a pullback, or it is fixed by w_79 pointwise.
+If P = (X1:X2:X3:X4:X5:X6:X7:X8:X9:X10:X11) is fixed by w_79,
+then either X11 = 0 or P = (0:0:0:0:0:0:0:0:0:1) (not on X_0(79))
+
+We find all such P by imposing condition X11 = 0 and finding points on the 
+scheme:
+Scheme over Rational Field defined by
+x[6],
+x[1],
+x[2],
+x[3],
+x[4],
+x[5],
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+All such P are:
+{@ @}
+Clearly, none such points are quadratic.
+Hence there are no quadratic points on X_0(79) not coming from pullbacks of 
+rationals.
+> J1;
+Ideal of Polynomial ring of rank 6 over Rational Field
+Order: Lexicographical
+Variables: x[1], x[2], x[3], x[4], x[5], x[6]
+Homogeneous
+Basis:
+[
+    x[6]
+]
+> J2;
+Ideal of Polynomial ring of rank 6 over Rational Field
+Order: Lexicographical
+Variables: x[1], x[2], x[3], x[4], x[5], x[6]
+Homogeneous
+Basis:
+[
+    x[1],
+    x[2],
+    x[3],
+    x[4],
+    x[5]
+]
+> Union;
+Intrinsic 'Union'
+
+Signatures:
+
+    (G::GrphDir, H::GrphDir) -> GrphDir, GrphVertSet, GrphEdgeSet
+    (G::GrphMultDir, H::GrphMultDir) -> GrphMultDir, GrphVertSet, GrphEdgeSet
+    (G::GrphMultUnd, H::GrphMultUnd) -> GrphMultUnd, GrphVertSet, GrphEdgeSet
+    (G::GrphNet, H::GrphNet) -> GrphNet, GrphVertSet, GrphEdgeSet
+    (G::GrphUnd, H::GrphUnd) -> GrphUnd, GrphVertSet, GrphEdgeSet
+
+        The union of graphs G and H.
+
+    (D::Inc, E::Inc) -> Inc
+
+        The union of incidence structures D and E.
+
+    (S1::Sch, S2::Sch) -> Sch
+
+        The union of the schemes.
+
+
+
+Total time: 106.429 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimension of eigenspace lambda = +1 for w_79 is: 1
+Dimension of eigenspace lambda = -1 for w_79 is: 5
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+order of P1 - P2: 13
+We have found 3 points on X_0(79)^2(Q).
+1 of them are pullbacks of rationals from X_0(79)/w_79.
+p = 3 (1/4): out of 13: .............The number of possible cosets unknown points can land in is 7.
+p = 5 (2/4): out of 7: .......The number of possible cosets unknown points can land in is 1.
+
+For unknown Q in X_0(79)^2(Q) we have (1 - w_79)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0
+].
+It follows that if there is an unknown Q in X_0(79)^2(Q), then (1 - w_79)[Q - 
+bp] == 0.
+This implies that [Q - bp] is fixed by w_79
+Then Q ~ w_79(Q), which implies that Q = w_79(Q) because X_0(79) is not 
+hyperelliptic.
+Then either Q is a pullback, or it is fixed by w_79 pointwise.
+If P = (X1:X2:X3:X4:X5:X6:X7:X8:X9:X10:X11) is fixed by w_79,
+then either X11 = 0 or P = (0:0:0:0:0:0:0:0:0:her X11 = 0 or P = 
+(0:0:0:0:0:0:0:0:0:1) (not on X_0(79))
+
+We find all such P by imposing condition X11 = 0 and finding points on the 
+scheme:
+Scheme over Rational Field defined by
+x[1]*x[2]*x[5]^2 - 1/2*x[1]*x[3]*x[5]^2 - 7/2*x[1]*x[4]*x[5]^2 - 5/2*x[1]*x[5]^3
+- 8*x[2]*x[5]^3 - 5/2*x[3]*x[5]^3 - 3/2*x[4]^4 - 5/2*x[4]^3*x[5] - 
+9/2*x[4]^2*x[5]^2 + 12*x[4]*x[5]^3 + 8*x[5]^4,
+x[1]*x[3]*x[5] - x[1]*x[4]^2 + 2*x[1]*x[4]*x[5] + 2*x[2]*x[5]^2 + 3*x[3]*x[5]^2 
++ x[4]*x[5]^2 - 3*x[5]^3,
+x[1]^2 - 2*x[1]*x[2] - x[1]*x[3] - 3*x[1]*x[5] - 11*x[2]*x[5] - 9*x[3]*x[5] - 
+3*x[4]^2 + 6*x[4]*x[5] + x[5]^2,
+x[1]*x[3] - x[2]^2 + 3*x[2]*x[5] + 2*x[3]*x[5] + x[4]^2 - x[4]*x[5] - 2*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[2]*x[5] + 2*x[3]*x[5] + x[4]^2 - 3*x[5]^2,
+x[1]*x[5] + 2*x[2]*x[5] - x[3]^2 + 3*x[3]*x[5] + x[4]^2 - x[4]*x[5] - 2*x[5]^2,
+x[1]*x[5] - x[2]*x[4] + 2*x[2]*x[5] + x[3]*x[5] + x[4]^2 - x[4]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2,
+x[1]*x[6],
+x[2]*x[6],
+x[3]*x[6],
+x[4]*x[6],
+x[5]*x[6],
+x[6]^2
+
+All such P are:
+{@ (-2/87*r1^4 - 37/87*r1^3 - 10/29*r1^2 - 13/87*r1 + 74/29 : -7/87*r1^4 + 
+1/87*r1^3 - 6/29*r1^2 + 85/87*r1 - 31/29 : 17/87*r1^4 + 10/87*r1^3 - 2/29*r1^2 -
+107/87*r1 + 38/29 : r1 : 1 : 0), (-2/87*r2^4 - 37/87*r2^3 - 10/29*r2^2 - 
+13/87*r2 + 74/29 : -7/87*r2^4 + 1/87*r2^3 - 6/29*r2^2 + 85/87*r2 - 31/29 : 
+17/87*r2^4 + 10/87*r2^3 - 2/29*r2^2 - 107/87*r2 + 38/29 : r2 : 1 : 0), 
+(-2/87*r3^4 - 37/87*r3^3 - 10/29*r3^2 - 13/87*r3 + 74/29 : -7/87*r3^4 + 
+1/87*r3^3 - 6/29*r3^2 + 85/87*r3 - 31/29 : 17/87*r3^4 + 10/87*r3^3 - 2/29*r3^2 -
+107/87*r3 + 38/29 : r3 : 1 : 0), (-2/87*r4^4 - 37/87*r4^3 - 10/29*r4^2 - 
+13/87*r4 + 74/29 : -7/87*r4^4 + 1/87*r4^3 - 6/29*r4^2 + 85/87*r4 - 31/29 : 
+17/87*r4^4 + 10/87*r4^3 - 2/29*r4^2 - 107/87*r4 + 38/29 : r4 : 1 : 0), 
+(-2/87*r5^4 - 37/87*r5^3 - 10/29*r5^2 - 13/87*r5 + 74/29 : -7/87*r5^4 + 
+1/87*r5^3 - 6/29*r5^2 + 85/87*r5 - 31/29 : 17/87*r5^4 + 10/87*r5^3 - 2/29*r5^2 -
+107/87*r5 + 38/29 : r5 : 1 : 0), (2*r6^4 - 41/3*r6^3 + 62/3*r6^2 - 13/3*r6 - 2 :
+-r6^4 + 25/3*r6^3 - 46/3*r6^2 + 17/3*r6 + 1 : -r6^4 + 22/3*r6^3 - 10*r6^2 + 
+1/3*r6 + 2/3 : r6 : 1 : 0), (2*r7^4 - 41/3*r7^3 + 62/3*r7^2 - 13/3*r7 - 2 : 
+-r7^4 + 25/3*r7^3 - 46/3*r7^2 + 17/3*r7 + 1 : -r7^4 + 22/3*r7^3 - 10*r7^2 + 
+1/3*r7 + 2/3 : r7 : 1 : 0), (2*r8^4 - 41/3*r8^3 + 62/3*r8^2 - 13/3*r8 - 2 : 
+-r8^4 + 25/3*r8^3 - 46/3*r8^2 + 17/3*r8 + 1 : -r8^4 + 22/3*r8^3 - 10*r8^2 + 
+1/3*r8 + 2/3 : r8 : 1 : 0), (2*r9^4 - 41/3*r9^3 + 62/3*r9^2 - 13/3*r9 - 2 : 
+-r9^4 + 25/3*r9^3 - 46/3*r9^2 + 17/3*r9 + 1 : -r9^4 + 22/3*r9^3 - 10*r9^2 + 
+1/3*r9 + 2/3 : r9 : 1 : 0), (2*r10^4 - 41/3*r10^3 + 62/3*r10^2 - 13/3*r10 - 2 : 
+-r10^4 + 25/3*r10^3 - 46/3*r10^2 + 17/3*r10 + 1 : -r10^4 + 22/3*r10^3 - 10*r10^2
++ 1/3*r10 + 2/3 : r10 : 1 : 0) @}
+Clearly, none such points are quadratic.
+Hence there are no quadratic points on X_0(79) not coming from pullbacks of 
+rationals.
+
+In file "main.m", line 124, column 1:
+>> else 
+   ^
+User error: bad syntax
+> FieldOfDefinition;
+Intrinsic 'FieldOfDefinition'
+
+Signatures:
+
+    (H::HomModAbVar) -> ModAbVar
+
+        A field over which all homomorphisms in H are defined.
+
+    (phi::MapModAbVar) -> ModAbVar
+
+        A field of definition of phi.
+
+    (A::ModAbVar) -> Fld
+
+        The best known field of definition of A.
+
+    (x::ModAbVarElt) -> ModTupFldElt
+
+        A field that x is defined over, which need not be minimal.
+
+    (G::ModAbVarSubGrp) -> Fld
+
+        A field over which the group G is defined (this is not guaranteed to be 
+        minimal!).
+
+
+
+Total time: 158.169 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimension of eigenspace lambda = +1 for w_79 is: 1
+Dimension of eigenspace lambda = -1 for w_79 is: 5
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+order of P1 - P2: 13
+We have found 3 points on X_0(79)^2(Q).
+1 of them are pullbacks of rationals from X_0(79)/w_79.
+p = 3 (1/4): out of 13: .............The number of possible cosets unknown points can land in is 7.
+p = 5 (2/4): out of 7: .......The number of possible cosets unknown points can land in is 1.
+
+For unknown Q in X_0(79)^2(Q) we have (1 - w_79)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0
+].
+
+In file "main.m", line 101, column 22:
+>> if #W eq 1 and IsZero(W[1]) then
+                        ^
+Runtime error in 'IsZero': Bad argument types
+Argument types given: GrpAbElt
+
+> W;
+[
+    0
+]
+> Type(W[1]);
+GrpAbElt
+> IsIdentity(W[1]);
+true
+
+Total time: 113.799 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimension of eigenspace lambda = +1 for w_79 is: 1
+Dimension of eigenspace lambda = -1 for w_79 is: 5
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+order of P1 - P2: 13
+We have found 3 points on X_0(79)^2(Q).
+1 of them are pullbacks of rationals from X_0(79)/w_79.
+p = 3 (1/4): out of 13: .............The number of possible cosets unknown points can land in is 7.
+p = 5 (2/4): out of 7: .......The number of possible cosets unknown points can land in is 1.
+
+For unknown Q in X_0(79)^2(Q) we have (1 - w_79)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0
+].
+It follows that if there is an unknown Q in X_0(79)^2(Q), then (1 - w_79)[Q - 
+bp] == 0.
+This implies that [Q - bp] is fixed by w_79
+Then Q ~ w_79(Q), which implies that Q = w_79(Q) because X_0(79) is not 
+hyperelliptic.
+Then either Q is a pullback, or it is fixed by w_79 pointwise.
+If P = (X_i) is fixed by w_79,
+either the first 1 coordinates are 0 or the last 5 coordinates are 0
+
+We find all such P by imposing these conditions and finding points on the 
+scheme:
+Scheme over Rational Field defined by
+x[1]*x[2]*x[5]^2 - 1/2*x[1]*x[3]*x[5]^2 - 7/2*x[1]*x[4]*x[5]^2 - 5/2*x[1]*x[5]^3
+- 8*x[2]*x[5]^3 - 5/2*x[3]*x[5]^3 - 3/2*x[4]^4 - 5/2*x[4]^3*x[5] - 
+9/2*x[4]^2*x[5]^2 + 12*x[4]*x[5]^3 + 8*x[5]^4,
+x[1]*x[3]*x[5] - x[1]*x[4]^2 + 2*x[1]*x[4]*x[5] + 2*x[2]*x[5]^2 + 3*x[3]*x[5]^2 
++ x[4]*x[5]^2 - 3*x[5]^3,
+x[1]^2 - 2*x[1]*x[2] - x[1]*x[3] - 3*x[1]*x[5] - 11*x[2]*x[5] - 9*x[3]*x[5] - 
+3*x[4]^2 + 6*x[4]*x[5] + x[5]^2,
+x[1]*x[3] - x[2]^2 + 3*x[2]*x[5] + 2*x[3]*x[5] + x[4]^2 - x[4]*x[5] - 2*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[2]*x[5] + 2*x[3]*x[5] + x[4]^2 - 3*x[5]^2,
+x[1]*x[5] + 2*x[2]*x[5] - x[3]^2 + 3*x[3]*x[5] + x[4]^2 - x[4]*x[5] - 2*x[5]^2,
+x[1]*x[5] - x[2]*x[4] + 2*x[2]*x[5] + x[3]*x[5] + x[4]^2 - x[4]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2,
+x[1]*x[6],
+x[2]*x[6],
+x[3]*x[6],
+x[4]*x[6],
+x[5]*x[6],
+x[6]^2
+
+All such P are:
+{@ (-2/87*r1^4 - 37/87*r1^3 - 10/29*r1^2 - 13/87*r1 + 74/29 : -7/87*r1^4 + 
+1/87*r1^3 - 6/29*r1^2 + 85/87*r1 - 31/29 : 17/87*r1^4 + 10/87*r1^3 - 2/29*r1^2 -
+107/87*r1 + 38/29 : r1 : 1 : 0), (-2/87*r2^4 - 37/87*r2^3 - 10/29*r2^2 - 
+13/87*r2 + 74/29 : -7/87*r2^4 + 1/87*r2^3 - 6/29*r2^2 + 85/87*r2 - 31/29 : 
+17/87*r2^4 + 10/87*r2^3 - 2/29*r2^2 - 107/87*r2 + 38/29 : r2 : 1 : 0), 
+(-2/87*r3^4 - 37/87*r3^3 - 10/29*r3^2 - 13/87*r3 + 74/29 : -7/87*r3^4 + 
+1/87*r3^3 - 6/29*r3^2 + 85/87*r3 - 31/29 : 17/87*r3^4 + 10/87*r3^3 - 2/29*r3^2 -
+107/87*r3 + 38/29 : r3 : 1 : 0), (-2/87*r4^4 - 37/87*r4^3 - 10/29*r4^2 - 
+13/87*r4 + 74/29 : -7/87*r4^4 + 1/87*r4^3 - 6/29*r4^2 + 85/87*r4 - 31/29 : 
+17/87*r4^4 + 10/87*r4^3 - 2/29*r4^2 - 107/87*r4 + 38/29 : r4 : 1 : 0), 
+(-2/87*r5^4 - 37/87*r5^3 - 10/29*r5^2 - 13/87*r5 + 74/29 : -7/87*r5^4 + 
+1/87*r5^3 - 6/29*r5^2 + 85/87*r5 - 31/29 : 17/87*r5^4 + 10/87*r5^3 - 2/29*r5^2 -
+107/87*r5 + 38/29 : r5 : 1 : 0), (2*r6^4 - 41/3*r6^3 + 62/3*r6^2 - 13/3*r6 - 2 :
+-r6^4 + 25/3*r6^3 - 46/3*r6^2 + 17/3*r6 + 1 : -r6^4 + 22/3*r6^3 - 10*r6^2 + 
+1/3*r6 + 2/3 : r6 : 1 : 0), (2*r7^4 - 41/3*r7^3 + 62/3*r7^2 - 13/3*r7 - 2 : 
+-r7^4 + 25/3*r7^3 - 46/3*r7^2 + 17/3*r7 + 1 : -r7^4 + 22/3*r7^3 - 10*r7^2 + 
+1/3*r7 + 2/3 : r7 : 1 : 0), (2*r8^4 - 41/3*r8^3 + 62/3*r8^2 - 13/3*r8 - 2 : 
+-r8^4 + 25/3*r8^3 - 46/3*r8^2 + 17/3*r8 + 1 : -r8^4 + 22/3*r8^3 - 10*r8^2 + 
+1/3*r8 + 2/3 : r8 : 1 : 0), (2*r9^4 - 41/3*r9^3 + 62/3*r9^2 - 13/3*r9 - 2 : 
+-r9^4 + 25/3*r9^3 - 46/3*r9^2 + 17/3*r9 + 1 : -r9^4 + 22/3*r9^3 - 10*r9^2 + 
+1/3*r9 + 2/3 : r9 : 1 : 0), (2*r10^4 - 41/3*r10^3 + 62/3*r10^2 - 13/3*r10 - 2 : 
+-r10^4 + 25/3*r10^3 - 46/3*r10^2 + 17/3*r10 + 1 : -r10^4 + 22/3*r10^3 - 10*r10^2
++ 1/3*r10 + 2/3 : r10 : 1 : 0) @}
+
+In file "main.m", line 122, column 27:
+>>         degrees := [Degree(P) : P in pts];
+                             ^
+Runtime error in 'Degree': Bad argument types
+Argument types given: Pt[FldAC]
+
+> pts;
+{@ (-2/87*r1^4 - 37/87*r1^3 - 10/29*r1^2 - 13/87*r1 + 74/29 : -7/87*r1^4 + 
+    1/87*r1^3 - 6/29*r1^2 + 85/87*r1 - 31/29 : 17/87*r1^4 + 10/87*r1^3 - 
+    2/29*r1^2 - 107/87*r1 + 38/29 : r1 : 1 : 0), (-2/87*r2^4 - 37/87*r2^3 - 
+    10/29*r2^2 - 13/87*r2 + 74/29 : -7/87*r2^4 + 1/87*r2^3 - 6/29*r2^2 + 
+    85/87*r2 - 31/29 : 17/87*r2^4 + 10/87*r2^3 - 2/29*r2^2 - 107/87*r2 + 38/29 :
+r2 : 1 : 0), (-2/87*r3^4 - 37/87*r3^3 - 10/29*r3^2 - 13/87*r3 + 74/29 : 
+    -7/87*r3^4 + 1/87*r3^3 - 6/29*r3^2 + 85/87*r3 - 31/29 : 17/87*r3^4 + 
+    10/87*r3^3 - 2/29*r3^2 - 107/87*r3 + 38/29 : r3 : 1 : 0), (-2/87*r4^4 - 
+    37/87*r4^3 - 10/29*r4^2 - 13/87*r4 + 74/29 : -7/87*r4^4 + 1/87*r4^3 - 
+    6/29*r4^2 + 85/87*r4 - 31/29 : 17/87*r4^4 + 10/87*r4^3 - 2/29*r4^2 - 
+    107/87*r4 + 38/29 : r4 : 1 : 0), (-2/87*r5^4 - 37/87*r5^3 - 10/29*r5^2 - 
+    13/87*r5 + 74/29 : -7/87*r5^4 + 1/87*r5^3 - 6/29*r5^2 + 85/87*r5 - 31/29 : 
+    17/87*r5^4 + 10/87*r5^3 - 2/29*r5^2 - 107/87*r5 + 38/29 : r5 : 1 : 0), 
+(2*r6^4 - 41/3*r6^3 + 62/3*r6^2 - 13/3*r6 - 2 : -r6^4 + 25/3*r6^3 - 46/3*r6^2 + 
+    17/3*r6 + 1 : -r6^4 + 22/3*r6^3 - 10*r6^2 + 1/3*r6 + 2/3 : r6 : 1 : 0), 
+(2*r7^4 - 41/3*r7^3 + 62/3*r7^2 - 13/3*r7 - 2 : -r7^4 + 25/3*r7^3 - 46/3*r7^2 + 
+    17/3*r7 + 1 : -r7^4 + 22/3*r7^3 - 10*r7^2 + 1/3*r7 + 2/3 : r7 : 1 : 0), 
+(2*r8^4 - 41/3*r8^3 + 62/3*r8^2 - 13/3*r8 - 2 : -r8^4 + 25/3*r8^3 - 46/3*r8^2 + 
+    17/3*r8 + 1 : -r8^4 + 22/3*r8^3 - 10*r8^2 + 1/3*r8 + 2/3 : r8 : 1 : 0), 
+(2*r9^4 - 41/3*r9^3 + 62/3*r9^2 - 13/3*r9 - 2 : -r9^4 + 25/3*r9^3 - 46/3*r9^2 + 
+    17/3*r9 + 1 : -r9^4 + 22/3*r9^3 - 10*r9^2 + 1/3*r9 + 2/3 : r9 : 1 : 0), 
+(2*r10^4 - 41/3*r10^3 + 62/3*r10^2 - 13/3*r10 - 2 : -r10^4 + 25/3*r10^3 - 
+    46/3*r10^2 + 17/3*r10 + 1 : -r10^4 + 22/3*r10^3 - 10*r10^2 + 1/3*r10 + 2/3 :
+r10 : 1 : 0) @}
+> #pts;
+10
+> P := pts[1];
+> P;
+(-2/87*r1^4 - 37/87*r1^3 - 10/29*r1^2 - 13/87*r1 + 74/29 : -7/87*r1^4 + 
+    1/87*r1^3 - 6/29*r1^2 + 85/87*r1 - 31/29 : 17/87*r1^4 + 10/87*r1^3 - 
+    2/29*r1^2 - 107/87*r1 + 38/29 : r1 : 1 : 0)
+> Cluster(Z, P);
+Cluster over Rational Field defined by
+x[1]*x[3] - x[1]*x[5] + x[2]*x[5] - x[5]^2,
+x[1]*x[4] - 1/2*x[1]*x[5] - 3/2*x[2]*x[5] + 3/2*x[3]*x[5] + 1/2*x[4]*x[5] - 
+    5/2*x[5]^2,
+-x[1]*x[5]^3 + 3*x[2]*x[5]^3 - 4*x[3]*x[5]^3 + x[4]^4 - 8*x[4]*x[5]^3 + 
+    11*x[5]^4,
+2*x[1]*x[5]^2 - 3*x[2]*x[5]^2 - x[3]*x[5]^2 + x[4]^3 + 2*x[4]*x[5]^2 - 7*x[5]^3,
+x[1]*x[2] - 1/2*x[1]*x[3] - 7/2*x[1]*x[4] + 13/4*x[1]*x[5] + 19/4*x[2]*x[5] - 
+    17/4*x[3]*x[5] - 7/4*x[4]*x[5] + 37/4*x[5]^2,
+1/2*x[1]*x[5] + 7/2*x[2]*x[5] + 3/2*x[3]*x[5] + x[4]^2 - 3/2*x[4]*x[5] + 
+    1/2*x[5]^2,
+-x[1]*x[3]*x[5] + x[1]*x[4]^2 - 2*x[1]*x[4]*x[5] - 2*x[2]*x[5]^2 - 3*x[3]*x[5]^2
+    - x[4]*x[5]^2 + 3*x[5]^3,
+x[1]^2 - 2*x[1]*x[2] - x[1]*x[3] - 3*x[1]*x[5] - 11*x[2]*x[5] - 9*x[3]*x[5] - 
+    3*x[4]^2 + 6*x[4]*x[5] + x[5]^2,
+-x[1]*x[3] + x[2]^2 - 3*x[2]*x[5] - 2*x[3]*x[5] - x[4]^2 + x[4]*x[5] + 2*x[5]^2,
+-x[1]*x[4] + x[2]*x[3] - 2*x[2]*x[5] - 2*x[3]*x[5] - x[4]^2 + 3*x[5]^2,
+-x[1]*x[5] - 2*x[2]*x[5] + x[3]^2 - 3*x[3]*x[5] - x[4]^2 + x[4]*x[5] + 2*x[5]^2,
+-x[1]*x[5] + x[2]*x[4] - 2*x[2]*x[5] - x[3]*x[5] - x[4]^2 + x[4]*x[5] + x[5]^2,
+-x[2]*x[5] + x[3]*x[4] - x[3]*x[5] - x[4]^2 + 2*x[5]^2,
+x[6],
+x[1]*x[2]*x[5]^2 - 1/2*x[1]*x[3]*x[5]^2 - 7/2*x[1]*x[4]*x[5]^2 - 5/2*x[1]*x[5]^3
+    - 8*x[2]*x[5]^3 - 5/2*x[3]*x[5]^3 - 3/2*x[4]^4 - 5/2*x[4]^3*x[5] - 
+    9/2*x[4]^2*x[5]^2 + 12*x[4]*x[5]^3 + 8*x[5]^4,
+x[1]*x[3]*x[5] - x[1]*x[4]^2 + 2*x[1]*x[4]*x[5] + 2*x[2]*x[5]^2 + 3*x[3]*x[5]^2 
+    + x[4]*x[5]^2 - 3*x[5]^3,
+x[1]^2 - 2*x[1]*x[2] - x[1]*x[3] - 3*x[1]*x[5] - 11*x[2]*x[5] - 9*x[3]*x[5] - 
+    3*x[4]^2 + 6*x[4]*x[5] + x[5]^2,
+x[1]*x[3] - x[2]^2 + 3*x[2]*x[5] + 2*x[3]*x[5] + x[4]^2 - x[4]*x[5] - 2*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[2]*x[5] + 2*x[3]*x[5] + x[4]^2 - 3*x[5]^2,
+x[1]*x[5] + 2*x[2]*x[5] - x[3]^2 + 3*x[3]*x[5] + x[4]^2 - x[4]*x[5] - 2*x[5]^2,
+x[1]*x[5] - x[2]*x[4] + 2*x[2]*x[5] + x[3]*x[5] + x[4]^2 - x[4]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2,
+x[1]*x[6],
+x[2]*x[6],
+x[3]*x[6],
+x[4]*x[6],
+x[5]*x[6],
+x[6]^2
+> Degree($1);
+5
+
+Total time: 131.689 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimension of eigenspace lambda = +1 for w_79 is: 1
+Dimension of eigenspace lambda = -1 for w_79 is: 5
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+order of P1 - P2: 13
+We have found 3 points on X_0(79)^2(Q).
+1 of them are pullbacks of rationals from X_0(79)/w_79.
+p = 3 (1/4): out of 13: .............The number of possible cosets unknown points can land in is 7.
+p = 5 (2/4): out of 7: .......The number of possible cosets unknown points can land in is 1.
+
+For unknown Q in X_0(79)^2(Q) we have (1 - w_79)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0
+].
+It follows that if there is an unknown Q in X_0(79)^2(Q), then (1 - w_79)[Q - 
+bp] == 0.
+This implies that [Q - bp] is fixed by w_79
+Then Q ~ w_79(Q), which implies that Q = w_79(Q) because X_0(79) is not 
+hyperelliptic.
+Then either Q is a pullback, or it is fixed by w_79 pointwise.
+If P = (X_i) is fixed by w_79,
+either the first 1 coordinates are 0 or the last 5 coordinates are 0
+
+We find all such P by imposing these conditions and finding points on the 
+scheme:
+Scheme over Rational Field defined by
+x[1]*x[2]*x[5]^2 - 1/2*x[1]*x[3]*x[5]^2 - 7/2*x[1]*x[4]*x[5]^2 - 5/2*x[1]*x[5]^3
+- 8*x[2]*x[5]^3 - 5/2*x[3]*x[5]^3 - 3/2*x[4]^4 - 5/2*x[4]^3*x[5] - 
+9/2*x[4]^2*x[5]^2 + 12*x[4]*x[5]^3 + 8*x[5]^4,
+x[1]*x[3]*x[5] - x[1]*x[4]^2 + 2*x[1]*x[4]*x[5] + 2*x[2]*x[5]^2 + 3*x[3]*x[5]^2 
++ x[4]*x[5]^2 - 3*x[5]^3,
+x[1]^2 - 2*x[1]*x[2] - x[1]*x[3] - 3*x[1]*x[5] - 11*x[2]*x[5] - 9*x[3]*x[5] - 
+3*x[4]^2 + 6*x[4]*x[5] + x[5]^2,
+x[1]*x[3] - x[2]^2 + 3*x[2]*x[5] + 2*x[3]*x[5] + x[4]^2 - x[4]*x[5] - 2*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[2]*x[5] + 2*x[3]*x[5] + x[4]^2 - 3*x[5]^2,
+x[1]*x[5] + 2*x[2]*x[5] - x[3]^2 + 3*x[3]*x[5] + x[4]^2 - x[4]*x[5] - 2*x[5]^2,
+x[1]*x[5] - x[2]*x[4] + 2*x[2]*x[5] + x[3]*x[5] + x[4]^2 - x[4]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2,
+x[1]*x[6],
+x[2]*x[6],
+x[3]*x[6],
+x[4]*x[6],
+x[5]*x[6],
+x[6]^2
+
+All such P are:
+{@ (-2/87*r1^4 - 37/87*r1^3 - 10/29*r1^2 - 13/87*r1 + 74/29 : -7/87*r1^4 + 
+1/87*r1^3 - 6/29*r1^2 + 85/87*r1 - 31/29 : 17/87*r1^4 + 10/87*r1^3 - 2/29*r1^2 -
+107/87*r1 + 38/29 : r1 : 1 : 0), (-2/87*r2^4 - 37/87*r2^3 - 10/29*r2^2 - 
+13/87*r2 + 74/29 : -7/87*r2^4 + 1/87*r2^3 - 6/29*r2^2 + 85/87*r2 - 31/29 : 
+17/87*r2^4 + 10/87*r2^3 - 2/29*r2^2 - 107/87*r2 + 38/29 : r2 : 1 : 0), 
+(-2/87*r3^4 - 37/87*r3^3 - 10/29*r3^2 - 13/87*r3 + 74/29 : -7/87*r3^4 + 
+1/87*r3^3 - 6/29*r3^2 + 85/87*r3 - 31/29 : 17/87*r3^4 + 10/87*r3^3 - 2/29*r3^2 -
+107/87*r3 + 38/29 : r3 : 1 : 0), (-2/87*r4^4 - 37/87*r4^3 - 10/29*r4^2 - 
+13/87*r4 + 74/29 : -7/87*r4^4 + 1/87*r4^3 - 6/29*r4^2 + 85/87*r4 - 31/29 : 
+17/87*r4^4 + 10/87*r4^3 - 2/29*r4^2 - 107/87*r4 + 38/29 : r4 : 1 : 0), 
+(-2/87*r5^4 - 37/87*r5^3 - 10/29*r5^2 - 13/87*r5 + 74/29 : -7/87*r5^4 + 
+1/87*r5^3 - 6/29*r5^2 + 85/87*r5 - 31/29 : 17/87*r5^4 + 10/87*r5^3 - 2/29*r5^2 -
+107/87*r5 + 38/29 : r5 : 1 : 0), (2*r6^4 - 41/3*r6^3 + 62/3*r6^2 - 13/3*r6 - 2 :
+-r6^4 + 25/3*r6^3 - 46/3*r6^2 + 17/3*r6 + 1 : -r6^4 + 22/3*r6^3 - 10*r6^2 + 
+1/3*r6 + 2/3 : r6 : 1 : 0), (2*r7^4 - 41/3*r7^3 + 62/3*r7^2 - 13/3*r7 - 2 : 
+-r7^4 + 25/3*r7^3 - 46/3*r7^2 + 17/3*r7 + 1 : -r7^4 + 22/3*r7^3 - 10*r7^2 + 
+1/3*r7 + 2/3 : r7 : 1 : 0), (2*r8^4 - 41/3*r8^3 + 62/3*r8^2 - 13/3*r8 - 2 : 
+-r8^4 + 25/3*r8^3 - 46/3*r8^2 + 17/3*r8 + 1 : -r8^4 + 22/3*r8^3 - 10*r8^2 + 
+1/3*r8 + 2/3 : r8 : 1 : 0), (2*r9^4 - 41/3*r9^3 + 62/3*r9^2 - 13/3*r9 - 2 : 
+-r9^4 + 25/3*r9^3 - 46/3*r9^2 + 17/3*r9 + 1 : -r9^4 + 22/3*r9^3 - 10*r9^2 + 
+1/3*r9 + 2/3 : r9 : 1 : 0), (2*r10^4 - 41/3*r10^3 + 62/3*r10^2 - 13/3*r10 - 2 : 
+-r10^4 + 25/3*r10^3 - 46/3*r10^2 + 17/3*r10 + 1 : -r10^4 + 22/3*r10^3 - 10*r10^2
++ 1/3*r10 + 2/3 : r10 : 1 : 0) @}
+The degrees of these points are [ 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 ].
+Hence there are no quadratic points on X_0(79) not coming from pullbacks of 
+rationals.
+
+Total time: 130.520 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimension of eigenspace lambda = +1 for w_79 is: 1
+Dimension of eigenspace lambda = -1 for w_79 is: 5
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+order of P1 - P2: 13
+We have found 3 points on X_0(79)^2(Q).
+1 of them are pullbacks of rationals from X_0(79)/w_79.
+p = 3 (1/4): out of 13: .............The number of possible cosets unknown points can land in is 7.
+p = 5 (2/4): out of 7: .......The number of possible cosets unknown points can land in is 1.
+
+For unknown Q in X_0(79)^2(Q) we have (1 - w_79)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0
+].
+It follows that if there is an unknown Q in X_0(79)^2(Q), then (1 - w_79)[Q - 
+bp] == 0.
+This implies that [Q - bp] is fixed by w_79
+Then Q ~ w_79(Q), which implies that Q = w_79(Q) because X_0(79) is not 
+hyperelliptic.
+Then either Q is a pullback, or it is fixed by w_79 pointwise.
+If P = (X_i) is fixed by w_79,
+either the first 1 coordinates are 0 or the last 5 coordinates are 0
+
+We find all such P by imposing these conditions and finding points on the 
+scheme:
+Scheme over Rational Field defined by
+x[1]*x[2]*x[5]^2 - 1/2*x[1]*x[3]*x[5]^2 - 7/2*x[1]*x[4]*x[5]^2 - 5/2*x[1]*x[5]^3
+- 8*x[2]*x[5]^3 - 5/2*x[3]*x[5]^3 - 3/2*x[4]^4 - 5/2*x[4]^3*x[5] - 
+9/2*x[4]^2*x[5]^2 + 12*x[4]*x[5]^3 + 8*x[5]^4,
+x[1]*x[3]*x[5] - x[1]*x[4]^2 + 2*x[1]*x[4]*x[5] + 2*x[2]*x[5]^2 + 3*x[3]*x[5]^2 
++ x[4]*x[5]^2 - 3*x[5]^3,
+x[1]^2 - 2*x[1]*x[2] - x[1]*x[3] - 3*x[1]*x[5] - 11*x[2]*x[5] - 9*x[3]*x[5] - 
+3*x[4]^2 + 6*x[4]*x[5] + x[5]^2,
+x[1]*x[3] - x[2]^2 + 3*x[2]*x[5] + 2*x[3]*x[5] + x[4]^2 - x[4]*x[5] - 2*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[2]*x[5] + 2*x[3]*x[5] + x[4]^2 - 3*x[5]^2,
+x[1]*x[5] + 2*x[2]*x[5] - x[3]^2 + 3*x[3]*x[5] + x[4]^2 - x[4]*x[5] - 2*x[5]^2,
+x[1]*x[5] - x[2]*x[4] + 2*x[2]*x[5] + x[3]*x[5] + x[4]^2 - x[4]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2,
+x[1]*x[6],
+x[2]*x[6],
+x[3]*x[6],
+x[4]*x[6],
+x[5]*x[6],
+x[6]^2
+
+All such P are:
+{@ (-2/87*r1^4 - 37/87*r1^3 - 10/29*r1^2 - 13/87*r1 + 74/29 : -7/87*r1^4 + 
+1/87*r1^3 - 6/29*r1^2 + 85/87*r1 - 31/29 : 17/87*r1^4 + 10/87*r1^3 - 2/29*r1^2 -
+107/87*r1 + 38/29 : r1 : 1 : 0), (-2/87*r2^4 - 37/87*r2^3 - 10/29*r2^2 - 
+13/87*r2 + 74/29 : -7/87*r2^4 + 1/87*r2^3 - 6/29*r2^2 + 85/87*r2 - 31/29 : 
+17/87*r2^4 + 10/87*r2^3 - 2/29*r2^2 - 107/87*r2 + 38/29 : r2 : 1 : 0), 
+(-2/87*r3^4 - 37/87*r3^3 - 10/29*r3^2 - 13/87*r3 + 74/29 : -7/87*r3^4 + 
+1/87*r3^3 - 6/29*r3^2 + 85/87*r3 - 31/29 : 17/87*r3^4 + 10/87*r3^3 - 2/29*r3^2 -
+107/87*r3 + 38/29 : r3 : 1 : 0), (-2/87*r4^4 - 37/87*r4^3 - 10/29*r4^2 - 
+13/87*r4 + 74/29 : -7/87*r4^4 + 1/87*r4^3 - 6/29*r4^2 + 85/87*r4 - 31/29 : 
+17/87*r4^4 + 10/87*r4^3 - 2/29*r4^2 - 107/87*r4 + 38/29 : r4 : 1 : 0), 
+(-2/87*r5^4 - 37/87*r5^3 - 10/29*r5^2 - 13/87*r5 + 74/29 : -7/87*r5^4 + 
+1/87*r5^3 - 6/29*r5^2 + 85/87*r5 - 31/29 : 17/87*r5^4 + 10/87*r5^3 - 2/29*r5^2 -
+107/87*r5 + 38/29 : r5 : 1 : 0), (2*r6^4 - 41/3*r6^3 + 62/3*r6^2 - 13/3*r6 - 2 :
+-r6^4 + 25/3*r6^3 - 46/3*r6^2 + 17/3*r6 + 1 : -r6^4 + 22/3*r6^3 - 10*r6^2 + 
+1/3*r6 + 2/3 : r6 : 1 : 0), (2*r7^4 - 41/3*r7^3 + 62/3*r7^2 - 13/3*r7 - 2 : 
+-r7^4 + 25/3*r7^3 - 46/3*r7^2 + 17/3*r7 + 1 : -r7^4 + 22/3*r7^3 - 10*r7^2 + 
+1/3*r7 + 2/3 : r7 : 1 : 0), (2*r8^4 - 41/3*r8^3 + 62/3*r8^2 - 13/3*r8 - 2 : 
+-r8^4 + 25/3*r8^3 - 46/3*r8^2 + 17/3*r8 + 1 : -r8^4 + 22/3*r8^3 - 10*r8^2 + 
+1/3*r8 + 2/3 : r8 : 1 : 0), (2*r9^4 - 41/3*r9^3 + 62/3*r9^2 - 13/3*r9 - 2 : 
+-r9^4 + 25/3*r9^3 - 46/3*r9^2 + 17/3*r9 + 1 : -r9^4 + 22/3*r9^3 - 10*r9^2 + 
+1/3*r9 + 2/3 : r9 : 1 : 0), (2*r10^4 - 41/3*r10^3 + 62/3*r10^2 - 13/3*r10 - 2 : 
+-r10^4 + 25/3*r10^3 - 46/3*r10^2 + 17/3*r10 + 1 : -r10^4 + 22/3*r10^3 - 10*r10^2
++ 1/3*r10 + 2/3 : r10 : 1 : 0) @}
+The degrees of these points are [] (or > 2).
+Hence there are no quadratic points on X_0(79) not coming from pullbacks of 
+rationals.
+
+Total time: 66.559 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(35) is: 3
+Dimension of eigenspace lambda = +1 for w_35 is: 0
+Dimension of eigenspace lambda = -1 for w_35 is: 3
+
+[Interrupted]
+
+Total time: 39.320 seconds, Total memory usage: 93.62MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimension of eigenspace lambda = +1 for w_79 is: 1
+Dimension of eigenspace lambda = -1 for w_79 is: 5
+basis of cusp forms:
+[
+2*q - 2*q^2 - 2*q^3 - 2*q^4 - 6*q^5 + 2*q^6 - 2*q^7 + 6*q^8 - 4*q^9 + 6*q^10 - 
+4*q^11 + O(q^12)
+]
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+order of P1 - P2: 13
+We have found 3 points on X_0(79)^2(Q).
+1 of them are pullbacks of rationals from X_0(79)/w_79.
+p = 3 (1/4): 
+[Interrupted]
+
+Total time: 3.010 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(79) is: 6
+Dimension of eigenspace lambda = +1 for w_79 is: 1
+Dimension of eigenspace lambda = -1 for w_79 is: 5
+basis of cusp forms:
+[
+2*q - 2*q^2 - 2*q^3 - 2*q^4 - 6*q^5 + 2*q^6 - 2*q^7 + 6*q^8 - 4*q^9 + 6*q^10 - 
+4*q^11 + O(q^12)
+]
+[
+2*q + 8*q^6 - 4*q^8 + 2*q^9 - 10*q^10 + 10*q^11 + O(q^12),
+2*q^2 - 4*q^6 - 4*q^9 + 6*q^10 - 4*q^11 + O(q^12),
+2*q^3 - 6*q^6 - 2*q^7 + 2*q^8 + 2*q^9 + 4*q^10 - 4*q^11 + O(q^12),
+2*q^4 - 4*q^6 - 4*q^7 + 2*q^8 + 4*q^9 + 2*q^10 + O(q^12),
+2*q^5 - 4*q^6 + 2*q^8 + 4*q^10 - 6*q^11 + O(q^12)
+]
+Nice model for X_0(79) is: Curve over Rational Field defined by
+x[1]^2 - 2*x[1]*x[2] - x[2]^2 - 3*x[3]^2 - 2*x[3]*x[4] + 4*x[3]*x[5] + 3*x[4]^2 
++ 2*x[4]*x[5] - 11*x[5]^2 - x[6]^2,
+x[1]*x[3] - x[2]^2 + 3*x[3]*x[4] - x[3]*x[5] - 2*x[4]^2 - x[4]*x[5] + 4*x[5]^2,
+x[1]*x[4] - x[2]*x[3] + 2*x[3]*x[4] - x[4]^2 + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] + x[3]*x[5] - x[4]^2 - x[4]*x[5] + 2*x[5]^2,
+x[2]*x[4] - x[3]^2 + 2*x[3]*x[5] - x[5]^2,
+x[2]*x[5] - x[3]*x[4] + x[3]*x[5] + x[4]^2 - 2*x[5]^2
+
+w_79 on X79 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+Genus of X_0(79) is 6
+Genus of X_0(79)/w_79 is 1
+We have found these points on X_0(79):
+[ (1 : 0 : 0 : 0 : 0 : 1), (-1 : 0 : 0 : 0 : 0 : 1) ]
+
+[Interrupted]
+
+Total time: 1.280 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(91) is: 7
+Dimension of eigenspace lambda = +1 for w_91 is: 2
+Dimension of eigenspace lambda = -1 for w_91 is: 5
+basis of cusp forms:
+[
+2*q - 4*q^3 - 4*q^4 - 6*q^5 + 2*q^7 + 2*q^9 + O(q^12),
+2*q^2 - 2*q^3 - 4*q^4 + 2*q^7 + 4*q^9 - 6*q^10 + 6*q^11 + O(q^12)
+]
+[
+2*q + 8*q^6 - 4*q^7 + 10*q^9 - 8*q^10 + O(q^12),
+2*q^2 - 2*q^6 - 2*q^8 - 2*q^9 + 4*q^10 - 4*q^11 + O(q^12),
+2*q^3 - 6*q^6 + 2*q^7 + 2*q^8 - 6*q^9 + 2*q^10 + 2*q^11 + O(q^12),
+2*q^4 - 6*q^6 + 2*q^7 + 4*q^8 - 6*q^9 + 4*q^11 + O(q^12),
+2*q^5 - 4*q^6 + 2*q^7 - 4*q^9 + 4*q^10 + O(q^12)
+]
+Nice model for X_0(91) is: Curve over Rational Field defined by
+x[1]^2 - 12*x[2]*x[3] + 4*x[2]*x[5] - 14*x[3]^2 + 12*x[3]*x[4] + 24*x[3]*x[5] - 
+14*x[4]^2 + 16*x[4]*x[5] - 23*x[5]^2 - x[6]^2 - 4*x[7]^2,
+x[1]*x[2] - 6*x[2]*x[3] + 6*x[2]*x[5] - 3*x[3]^2 + 2*x[3]*x[4] + 7*x[3]*x[5] - 
+5*x[4]^2 + 8*x[4]*x[5] - 7*x[5]^2 - x[6]*x[7] - x[7]^2,
+x[1]*x[3] - 2*x[2]*x[3] + x[2]*x[5] - 3*x[3]^2 + 6*x[3]*x[4] + 4*x[3]*x[5] - 
+5*x[4]^2 + 4*x[4]*x[5] - 3*x[5]^2 - x[7]^2,
+x[1]*x[4] - x[2]*x[3] + x[2]*x[5] + 2*x[3]*x[4] - x[3]*x[5] - x[4]^2 + x[4]*x[5]
++ x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] - x[4]^2 + 2*x[5]^2,
+x[1]*x[7] - x[2]*x[6] + x[3]*x[6] + x[5]*x[7],
+x[2]^2 - 2*x[2]*x[3] - 3*x[3]^2 + 4*x[3]*x[4] + 4*x[3]*x[5] - 4*x[4]^2 + 
+4*x[4]*x[5] - 4*x[5]^2 - x[7]^2,
+x[2]*x[4] - x[2]*x[5] - x[3]^2 + x[3]*x[4] + x[3]*x[5] - x[4]*x[5],
+x[2]*x[7] - x[3]*x[6] + x[4]*x[6],
+x[3]*x[7] - x[4]*x[6] + x[5]*x[6] - x[5]*x[7]
+
+w_91 on X91 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+Genus of X_0(91) is 7
+Genus of X_0(91)/w_91 is 2
+
+In file "main.m", line 42, column 9:
+>> P1 := XN!([1] cat [0 : i in [2..Dimension(AmbientSpace(XN))]] cat [1]);
+           ^
+Runtime error in '!': Point does not lie in scheme
+
+
+> Cusps;
+Intrinsic 'Cusps'
+
+Signatures:
+
+    () -> SetCsp
+
+        The set of cusps in the upper half plane; consists of the rational 
+        numbers together with infinity.
+
+    (G::GrpPSL2) -> SeqEnum
+
+        returns a list of coset representatives of G in PSL2(Z); only defined 
+        for G a subgroup of PSL2(Z).
+
+    (M::ModSym) -> SeqEnum
+
+        The cusps of X_0(N). The weight must be two and the character trivial.
+
+    (FS::SymFry) -> SeqEnum
+
+        Returns the list of cusps of a Farey Symbol.
+
+
+> Cusps(ModularSymbol(91));
+
+>> Cusps(ModularSymbol(91));
+                      ^
+Runtime error in 'ModularSymbol': Bad argument types
+Argument types given: RngIntElt
+
+> Cusps(ModularSymbols(91));
+[
+    0,
+    oo,
+    -1/7,
+    -1/39
+]
+
+Total time: 1.250 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(91) is: 7
+Dimension of eigenspace lambda = +1 for w_91 is: 2
+Dimension of eigenspace lambda = -1 for w_91 is: 5
+basis of cusp forms:
+[
+2*q - 4*q^3 - 4*q^4 - 6*q^5 + 2*q^7 + 2*q^9 + O(q^12),
+2*q^2 - 2*q^3 - 4*q^4 + 2*q^7 + 4*q^9 - 6*q^10 + 6*q^11 + O(q^12)
+]
+[
+2*q + 8*q^6 - 4*q^7 + 10*q^9 - 8*q^10 + O(q^12),
+2*q^2 - 2*q^6 - 2*q^8 - 2*q^9 + 4*q^10 - 4*q^11 + O(q^12),
+2*q^3 - 6*q^6 + 2*q^7 + 2*q^8 - 6*q^9 + 2*q^10 + 2*q^11 + O(q^12),
+2*q^4 - 6*q^6 + 2*q^7 + 4*q^8 - 6*q^9 + 4*q^11 + O(q^12),
+2*q^5 - 4*q^6 + 2*q^7 - 4*q^9 + 4*q^10 + O(q^12)
+]
+Using divN:  13
+Nice model for X_0(91) is: Curve over Rational Field defined by
+x[1]^2 - 12*x[2]*x[3] + 4*x[2]*x[5] - 14*x[3]^2 + 12*x[3]*x[4] + 24*x[3]*x[5] - 
+14*x[4]^2 + 16*x[4]*x[5] - 23*x[5]^2 - x[6]^2 - 4*x[7]^2,
+x[1]*x[2] - 6*x[2]*x[3] + 6*x[2]*x[5] - 3*x[3]^2 + 2*x[3]*x[4] + 7*x[3]*x[5] - 
+5*x[4]^2 + 8*x[4]*x[5] - 7*x[5]^2 - x[6]*x[7] - x[7]^2,
+x[1]*x[3] - 2*x[2]*x[3] + x[2]*x[5] - 3*x[3]^2 + 6*x[3]*x[4] + 4*x[3]*x[5] - 
+5*x[4]^2 + 4*x[4]*x[5] - 3*x[5]^2 - x[7]^2,
+x[1]*x[4] - x[2]*x[3] + x[2]*x[5] + 2*x[3]*x[4] - x[3]*x[5] - x[4]^2 + x[4]*x[5]
++ x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] - x[4]^2 + 2*x[5]^2,
+x[1]*x[7] - x[2]*x[6] + x[3]*x[6] + x[5]*x[7],
+x[2]^2 - 2*x[2]*x[3] - 3*x[3]^2 + 4*x[3]*x[4] + 4*x[3]*x[5] - 4*x[4]^2 + 
+4*x[4]*x[5] - 4*x[5]^2 - x[7]^2,
+x[2]*x[4] - x[2]*x[5] - x[3]^2 + x[3]*x[4] + x[3]*x[5] - x[4]*x[5],
+x[2]*x[7] - x[3]*x[6] + x[4]*x[6],
+x[3]*x[7] - x[4]*x[6] + x[5]*x[6] - x[5]*x[7]
+
+w_91 on X91 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+Genus of X_0(91) is 7
+Genus of X_0(91)/w_91 is 2
+We have found these points on X_0(91):
+[ (-2 : 0 : 1 : 1 : 1 : 1 : 1), (2 : 0 : -1 : -1 : -1 : 1 : 1), (-1 : 0 : 0 : 0 
+: 0 : 1 : 0), (1 : 0 : 0 : 0 : 0 : 1 : 0) ]
+order of P1 - P2: 56
+We have found 3 points on X_0(91)^2(Q).
+1 of them are pullbacks of rationals from X_0(91)/w_91.
+p = 3 (1/4): out of 56: .......................
+[Interrupted]
+
+Total time: 1053.860 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Progs/quadPts.m"
+
+In file "Progs/quadPts.m", line 3, column 1:
+>> load "modEqns.m";  // For the equations of modular curves.
+   ^
+User error: Could not open file "modEqns.m" (No such file or directory)
+
+In file "Progs/quadPts.m", line 738, column 36:
+>>         X,Z,phi,jinvN,al,numdenom:=modeqns(N,n); // This command is from the file "modEqns.m";
+                                      ^
+User error: Identifier 'modeqns' has not been declared or assigned
+Dimension of CuspForms(91) is: 7
+Dimension of eigenspace lambda = +1 for w_91 is: 2
+Dimension of eigenspace lambda = -1 for w_91 is: 5
+
+[Interrupted]
+
+Total time: 2.770 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Dimension of CuspForms(91) is: 7
+Dimension of eigenspace lambda = +1 for w_91 is: 2
+Dimension of eigenspace lambda = -1 for w_91 is: 5
+Using divN:  13
+Nice model for X_0(91) is: Curve over Rational Field defined by
+x[1]^2 - 12*x[2]*x[3] + 4*x[2]*x[5] - 14*x[3]^2 + 12*x[3]*x[4] + 24*x[3]*x[5] - 
+14*x[4]^2 + 16*x[4]*x[5] - 23*x[5]^2 - x[6]^2 - 4*x[7]^2,
+x[1]*x[2] - 6*x[2]*x[3] + 6*x[2]*x[5] - 3*x[3]^2 + 2*x[3]*x[4] + 7*x[3]*x[5] - 
+5*x[4]^2 + 8*x[4]*x[5] - 7*x[5]^2 - x[6]*x[7] - x[7]^2,
+x[1]*x[3] - 2*x[2]*x[3] + x[2]*x[5] - 3*x[3]^2 + 6*x[3]*x[4] + 4*x[3]*x[5] - 
+5*x[4]^2 + 4*x[4]*x[5] - 3*x[5]^2 - x[7]^2,
+x[1]*x[4] - x[2]*x[3] + x[2]*x[5] + 2*x[3]*x[4] - x[3]*x[5] - x[4]^2 + x[4]*x[5]
++ x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] - x[4]^2 + 2*x[5]^2,
+x[1]*x[7] - x[2]*x[6] + x[3]*x[6] + x[5]*x[7],
+x[2]^2 - 2*x[2]*x[3] - 3*x[3]^2 + 4*x[3]*x[4] + 4*x[3]*x[5] - 4*x[4]^2 + 
+4*x[4]*x[5] - 4*x[5]^2 - x[7]^2,
+x[2]*x[4] - x[2]*x[5] - x[3]^2 + x[3]*x[4] + x[3]*x[5] - x[4]*x[5],
+x[2]*x[7] - x[3]*x[6] + x[4]*x[6],
+x[3]*x[7] - x[4]*x[6] + x[5]*x[6] - x[5]*x[7]
+
+w_91 on X91 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+Genus of X_0(91) is 7
+Genus of X_0(91)/w_91 is 2
+We have found these points on X_0(91):
+[ (-2 : 0 : 1 : 1 : 1 : 1 : 1), (2 : 0 : -1 : -1 : -1 : 1 : 1), (-1 : 0 : 0 : 0 
+: 0 : 1 : 0), (1 : 0 : 0 : 0 : 0 : 1 : 0) ]
+
+findGenerators(
+    X: X,
+    divs: [ Divisor on X, Divisor on X, Divisor on X, Divisor on X, Di...,
+    P0: (-2 : 0 : 1 : 1 : 1 : 1 : 1),
+    p: [ 3, 5, 11, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, ...
+)
+In file "Progs/quadPts.m", line 273, column 23:
+>>         assert IsPrime(p);
+                         ^
+Runtime error in 'IsPrime': Bad argument types
+Argument types given: SeqEnum[RngIntElt]
+
+
+Total time: 103.580 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Dimension of CuspForms(91) is: 7
+Dimension of eigenspace lambda = +1 for w_91 is: 2
+Dimension of eigenspace lambda = -1 for w_91 is: 5
+
+[Interrupted]
+
+Total time: 3.510 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Dimension of CuspForms(91) is: 7
+Dimension of eigenspace lambda = +1 for w_91 is: 2
+Dimension of eigenspace lambda = -1 for w_91 is: 5
+
+[Interrupted]
+
+Total time: 3.670 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Dimension of CuspForms(91) is: 7
+Dimension of eigenspace lambda = +1 for w_91 is: 2
+Dimension of eigenspace lambda = -1 for w_91 is: 5
+Using divN:  13
+Nice model for X_0(91) is: Curve over Rational Field defined by
+x[1]^2 - 12*x[2]*x[3] + 4*x[2]*x[5] - 14*x[3]^2 + 12*x[3]*x[4] + 24*x[3]*x[5] - 
+14*x[4]^2 + 16*x[4]*x[5] - 23*x[5]^2 - x[6]^2 - 4*x[7]^2,
+x[1]*x[2] - 6*x[2]*x[3] + 6*x[2]*x[5] - 3*x[3]^2 + 2*x[3]*x[4] + 7*x[3]*x[5] - 
+5*x[4]^2 + 8*x[4]*x[5] - 7*x[5]^2 - x[6]*x[7] - x[7]^2,
+x[1]*x[3] - 2*x[2]*x[3] + x[2]*x[5] - 3*x[3]^2 + 6*x[3]*x[4] + 4*x[3]*x[5] - 
+5*x[4]^2 + 4*x[4]*x[5] - 3*x[5]^2 - x[7]^2,
+x[1]*x[4] - x[2]*x[3] + x[2]*x[5] + 2*x[3]*x[4] - x[3]*x[5] - x[4]^2 + x[4]*x[5]
++ x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] - x[4]^2 + 2*x[5]^2,
+x[1]*x[7] - x[2]*x[6] + x[3]*x[6] + x[5]*x[7],
+x[2]^2 - 2*x[2]*x[3] - 3*x[3]^2 + 4*x[3]*x[4] + 4*x[3]*x[5] - 4*x[4]^2 + 
+4*x[4]*x[5] - 4*x[5]^2 - x[7]^2,
+x[2]*x[4] - x[2]*x[5] - x[3]^2 + x[3]*x[4] + x[3]*x[5] - x[4]*x[5],
+x[2]*x[7] - x[3]*x[6] + x[4]*x[6],
+x[3]*x[7] - x[4]*x[6] + x[5]*x[6] - x[5]*x[7]
+
+w_91 on X91 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+Genus of X_0(91) is 7
+Genus of X_0(91)/w_91 is 2
+We have found these points on X_0(91):
+[ (-2 : 0 : 1 : 1 : 1 : 1 : 1), (2 : 0 : -1 : -1 : -1 : 1 : 1), (-1 : 0 : 0 : 0 
+: 0 : 1 : 0), (1 : 0 : 0 : 0 : 0 : 1 : 0) ]
+Mapping from: Abelian Group isomorphic to Z + Z
+Defined on 2 generators (free) to Abelian Group isomorphic to Z/2 + Z/168
+Defined on 2 generators in supergroup:
+    $.1 = $.1
+    $.2 = 2*$.3 + 10*$.4
+Relations:
+    2*$.1 = 0
+    168*$.2 = 0
+
+Abelian Group isomorphic to Z/2 + Z/168
+Defined on 2 generators in supergroup:
+    $.1 = $.1
+    $.2 = 2*$.3 + 10*$.4
+Relations:
+    2*$.1 = 0
+    168*$.2 = 0
+[
+    [ -35, 3 ],
+    [ -969, 2 ]
+]
+[
+    Place at (2 : 0 : -1 : -1 : -1 : 1 : 1),
+    Place at (-1 : 0 : 0 : 0 : 0 : 1 : 0)
+]
+We have found 3 points on X_0(91)^2(Q).
+1 of them are pullbacks of rationals from X_0(91)/w_91.
+
+In file "main.m", line 86, column 20:
+>> A := AbelianGroup([order]);
+                      ^
+User error: Identifier 'order' has not been declared or assigned
+
+In file "main.m", line 93, column 16:
+>> B0, iA0 := sub<A | A.1>;
+                  ^
+User error: Identifier 'A' has not been declared or assigned
+
+In file "main.m", line 94, column 10:
+>> W0 := {0*A.1};
+            ^
+User error: Identifier 'A' has not been declared or assigned
+
+In file "main.m", line 96, column 51:
+>> B, iA, W := MWSieve(XN, wNMatrix, genusC, primes, A, divs, bp, B0, iA0, W0,
+                                                     ^
+User error: Identifier 'A' has not been declared or assigned
+
+In file "main.m", line 99, column 132:
+>> ent of %o.\n", N, N, B, W;
+                        ^
+User error: Identifier 'B' has not been declared or assigned
+
+In file "main.m", line 100, column 5:
+>> if #W eq 1 and IsIdentity(W[1]) then
+       ^
+User error: Identifier 'W' has not been declared or assigned
+
+Total time: 79.480 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Dimension of CuspForms(91) is: 7
+Dimension of eigenspace lambda = +1 for w_91 is: 2
+Dimension of eigenspace lambda = -1 for w_91 is: 5
+Using divN:  13
+Nice model for X_0(91) is: Curve over Rational Field defined by
+x[1]^2 - 12*x[2]*x[3] + 4*x[2]*x[5] - 14*x[3]^2 + 12*x[3]*x[4] + 24*x[3]*x[5] - 
+14*x[4]^2 + 16*x[4]*x[5] - 23*x[5]^2 - x[6]^2 - 4*x[7]^2,
+x[1]*x[2] - 6*x[2]*x[3] + 6*x[2]*x[5] - 3*x[3]^2 + 2*x[3]*x[4] + 7*x[3]*x[5] - 
+5*x[4]^2 + 8*x[4]*x[5] - 7*x[5]^2 - x[6]*x[7] - x[7]^2,
+x[1]*x[3] - 2*x[2]*x[3] + x[2]*x[5] - 3*x[3]^2 + 6*x[3]*x[4] + 4*x[3]*x[5] - 
+5*x[4]^2 + 4*x[4]*x[5] - 3*x[5]^2 - x[7]^2,
+x[1]*x[4] - x[2]*x[3] + x[2]*x[5] + 2*x[3]*x[4] - x[3]*x[5] - x[4]^2 + x[4]*x[5]
++ x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] - x[4]^2 + 2*x[5]^2,
+x[1]*x[7] - x[2]*x[6] + x[3]*x[6] + x[5]*x[7],
+x[2]^2 - 2*x[2]*x[3] - 3*x[3]^2 + 4*x[3]*x[4] + 4*x[3]*x[5] - 4*x[4]^2 + 
+4*x[4]*x[5] - 4*x[5]^2 - x[7]^2,
+x[2]*x[4] - x[2]*x[5] - x[3]^2 + x[3]*x[4] + x[3]*x[5] - x[4]*x[5],
+x[2]*x[7] - x[3]*x[6] + x[4]*x[6],
+x[3]*x[7] - x[4]*x[6] + x[5]*x[6] - x[5]*x[7]
+
+w_91 on X91 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+Genus of X_0(91) is 7
+Genus of X_0(91)/w_91 is 2
+We have found these points on X_0(91):
+[ (-2 : 0 : 1 : 1 : 1 : 1 : 1), (2 : 0 : -1 : -1 : -1 : 1 : 1), (-1 : 0 : 0 : 0 
+: 0 : 1 : 0), (1 : 0 : 0 : 0 : 0 : 1 : 0) ]
+We have found 10 points on X_0(91)^2(Q).
+2 of them are pullbacks of rationals from X_0(91)/w_91.
+
+In file "main.m", line 87, column 20:
+>> A := AbelianGroup([order]);
+                      ^
+User error: Identifier 'order' has not been declared or assigned
+
+In file "main.m", line 88, column 10:
+>> divs := [Dtor];
+            ^
+User error: Identifier 'Dtor' has not been declared or assigned
+
+In file "main.m", line 94, column 16:
+>> B0, iA0 := sub<A | A.1>;
+                  ^
+User error: Identifier 'A' has not been declared or assigned
+
+In file "main.m", line 95, column 10:
+>> W0 := {0*A.1};
+            ^
+User error: Identifier 'A' has not been declared or assigned
+
+In file "main.m", line 97, column 51:
+>> B, iA, W := MWSieve(XN, wNMatrix, genusC, primes, A, divs, bp, B0, iA0, W0,
+                                                     ^
+User error: Identifier 'A' has not been declared or assigned
+
+In file "main.m", line 100, column 132:
+>> ent of %o.\n", N, N, B, W;
+                        ^
+User error: Identifier 'B' has not been declared or assigned
+
+In file "main.m", line 101, column 5:
+>> if #W eq 1 and IsIdentity(W[1]) then
+       ^
+User error: Identifier 'W' has not been declared or assigned
+> h;
+Mapping from: Abelian Group isomorphic to Z + Z
+Defined on 2 generators (free) to GrpAb: Ksub
+> Ksub;
+Abelian Group isomorphic to Z/2 + Z/168
+Defined on 2 generators in supergroup:
+    Ksub.1 = $.1
+    Ksub.2 = 2*$.3 + 10*$.4
+Relations:
+    2*Ksub.1 = 0
+    168*Ksub.2 = 0
+> bas;
+[
+    [ -35, 3 ],
+    [ -969, 2 ]
+]
+> divsNew;
+[
+    Place at (2 : 0 : -1 : -1 : -1 : 1 : 1),
+    Place at (-1 : 0 : 0 : 0 : 0 : 1 : 0)
+]
+> Ksub.1@h;
+
+>> Ksub.1@h;
+         ^
+Runtime error in map application: Element is not in the domain of the map
+
+> h;
+Mapping from: Abelian Group isomorphic to Z + Z
+Defined on 2 generators (free) to GrpAb: Ksub
+> Ksub.1@@h;
+-35*$.1 + 3*$.2
+> Ksub.2@@h;
+-969*$.1 + 2*$.2
+> divsNew[1] - XN_Cusps[1];
+
+>> divsNew[1] - XN_Cusps[1];
+              ^
+Runtime error in '-': Bad argument types
+Argument types given: PlcCrvElt, Pt[FldRat]
+
+> Divisor(divsNew[1]) - Divisor(XN_Cusps[1]);
+Divisor 1*Place at (2 : 0 : -1 : -1 : -1 : 1 : 1) - 1*Place at (-2 : 0 : 1 : 1 :
+1 : 1 : 1)
+> D := $1;
+> IsPrincipal(2*D);
+false
+> IsPrincipal(2*(Divisor(divsNew[]) - Divisor(XN_Cusps[1])));
+
+>> IsPrincipal(2*(Divisor(divsNew[]) - Divisor(XN_Cusps[1])));
+                                  ^
+User error: bad syntax
+> IsPrincipal(2*(Divisor(divsNew[]) - Divisor(XN_Cusps[1])));
+
+>> IsPrincipal(2*(Divisor(divsNew[]) - Divisor(XN_Cusps[1])));
+                                  ^
+User error: bad syntax
+> IsPrincipal(2*(Divisor(divsNew[2]) - Divisor(XN_Cusps[1])));
+false
+> D1 :=Divisor(divsNew[1]) - Divisor(XN_Cusps[1]);
+> D2 :=Divisor(divsNew[2]) - Divisor(XN_Cusps[1]);
+> -35*D1 + 3*D2;
+Divisor on Curve over Rational Field defined by
+x[1]^2 - 12*x[2]*x[3] + 4*x[2]*x[5] - 14*x[3]^2 + 12*x[3]*x[4] + 24*x[3]*x[5] - 
+    14*x[4]^2 + 16*x[4]*x[5] - 23*x[5]^2 - x[6]^2 - 4*x[7]^2,
+x[1]*x[2] - 6*x[2]*x[3] + 6*x[2]*x[5] - 3*x[3]^2 + 2*x[3]*x[4] + 7*x[3]*x[5] - 
+    5*x[4]^2 + 8*x[4]*x[5] - 7*x[5]^2 - x[6]*x[7] - x[7]^2,
+x[1]*x[3] - 2*x[2]*x[3] + x[2]*x[5] - 3*x[3]^2 + 6*x[3]*x[4] + 4*x[3]*x[5] - 
+    5*x[4]^2 + 4*x[4]*x[5] - 3*x[5]^2 - x[7]^2,
+x[1]*x[4] - x[2]*x[3] + x[2]*x[5] + 2*x[3]*x[4] - x[3]*x[5] - x[4]^2 + x[4]*x[5]
+    + x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] - x[4]^2 + 2*x[5]^2,
+x[1]*x[7] - x[2]*x[6] + x[3]*x[6] + x[5]*x[7],
+x[2]^2 - 2*x[2]*x[3] - 3*x[3]^2 + 4*x[3]*x[4] + 4*x[3]*x[5] - 4*x[4]^2 + 
+    4*x[4]*x[5] - 4*x[5]^2 - x[7]^2,
+x[2]*x[4] - x[2]*x[5] - x[3]^2 + x[3]*x[4] + x[3]*x[5] - x[4]*x[5],
+x[2]*x[7] - x[3]*x[6] + x[4]*x[6],
+x[3]*x[7] - x[4]*x[6] + x[5]*x[6] - x[5]*x[7]
+> IsPrincipal(2*(-35*D1 + 3*D2));
+true (-433512750098961*$.1^78 + 34536515757883893*$.1^77 - 
+    1352993293058857281*$.1^76 + 34753416637183406487*$.1^75 - 
+    658463235703838224821*$.1^74 + 9815462236472477936913*$.1^73 - 
+    119905156311949626571089*$.1^72 + 1234556688470223846502179*$.1^71 - 
+    10935505710915492900592125*$.1^70 + 84645631551183171535890144*$.1^69 - 
+    579611058056097816421643661*$.1^68 + 3545870483744024295203290485*$.1^67 - 
+    19537933275294523629184482201*$.1^66 + 97617810650262312960119513655*$.1^65 
+    - 444770771456414741560558991316*$.1^64 + 
+    1856908381809809849604225088842*$.1^63 - 
+    7133084960180246295891781496409*$.1^62 + 
+    25300427898732030327294419765913*$.1^61 - 
+    83110445017045827237351957223539*$.1^60 + 
+    253504465424973503570125213474275*$.1^59 - 
+    719573977968882510760702703602272*$.1^58 + 
+    1904280024636679686234941967000237*$.1^57 - 
+    4705612728774642115392414539178972*$.1^56 + 
+    10870786879420851003117766707995427*$.1^55 - 
+    23499641431729595785984981335479943*$.1^54 + 
+    47563773176117363697735030081535311*$.1^53 - 
+    90161185301828988281314523773680843*$.1^52 + 
+    160044798667762054093933150655982777*$.1^51 - 
+    265889445924114036459714588749024112*$.1^50 + 
+    412971546742947639296421169989692439*$.1^49 - 
+    598563218800088351362799537010312195*$.1^48 + 
+    807327490997655076052019533393241243*$.1^47 - 
+    1008960606117613438422561388319907654*$.1^46 + 
+    1160597948621868749606941670346203985*$.1^45 - 
+    1215448530916946081568762282849203679*$.1^44 + 
+    1136646811924379320806314606524850244*$.1^43 - 
+    912226005282866872204150320849970554*$.1^42 + 
+    565040750739025522796244664280240184*$.1^41 - 
+    152028026265548475315756276674227308*$.1^40 - 
+    249095624490835014410674786302275538*$.1^39 + 
+    562067869984792415605238389389021015*$.1^38 - 
+    735017764891069670946039913503927924*$.1^37 + 
+    754920033584281679010607686216762840*$.1^36 - 
+    647929627618142749186588967309893635*$.1^35 + 
+    466307922082520286509636867656323798*$.1^34 - 
+    268421047511867398273368320421279525*$.1^33 + 
+    100495274414095317760350813807813864*$.1^32 + 
+    13338544702678353708526461142678500*$.1^31 - 
+    70984740944841147897972428148712866*$.1^30 + 
+    85143484231873028874744747148159938*$.1^29 - 
+    73846077736055165662472388367226847*$.1^28 + 
+    53000499031976893959207342951463134*$.1^27 - 
+    32834711053132564757400758922640380*$.1^26 + 
+    17822548874123815414224641623132518*$.1^25 - 
+    8488937964277919300596346562390990*$.1^24 + 
+    3512880158541504103090524672479583*$.1^23 - 
+    1228310291870754835815020493571077*$.1^22 + 
+    336879591773863953381610023184509*$.1^21 - 
+    53513740794725772713250550479216*$.1^20 - 
+    10499047465417759576676623408299*$.1^19 + 
+    13618124343200931472508510906937*$.1^18 - 
+    7217106065814363883788160538109*$.1^17 + 
+    2833980435541662232727989304586*$.1^16 - 
+    913006978616240279807490654714*$.1^15 + 
+    249442619453724642642767596563*$.1^14 - 58446629672411140256962891314*$.1^13
+    + 11754828486886778264767423716*$.1^12 - 2017001652530592041993221596*$.1^11
+    + 291576829150275465243719880*$.1^10 - 34775973222766858226902374*$.1^9 + 
+    3307530203842320052110738*$.1^8 - 236484992445677587146942*$.1^7 + 
+    11325339699479543249460*$.1^6 - 285571328645348140626*$.1^5 + 
+    9022030548635873961*$.1^4 - 2266381816107900633*$.1^3 + 
+    267338345941274724*$.1^2 - 14509223911710873*$.1 + 
+    318969865176075)/(943815633024714870784*$.1^77 - 
+    71729988109878330179584*$.1^76 + 2683267844689264377638912*$.1^75 - 
+    65867005397528801402273792*$.1^74 + 1193465249931715225969946624*$.1^73 - 
+    17023787560730854968445681664*$.1^72 + 199098127695606096750449692672*$.1^71
+    - 1963369735421958604324720467968*$.1^70 + 
+    16662284137074989311892606599168*$.1^69 - 
+    123599490902081528290768463282176*$.1^68 + 
+    811241969076125823532005989400576*$.1^67 - 
+    4757749195202650615995886984470528*$.1^66 + 
+    25134453009074111364244747364974592*$.1^65 - 
+    120412069147768467120571347569344512*$.1^64 + 
+    526095333935188617364451366917013504*$.1^63 - 
+    2106455201602959305401140849634115584*$.1^62 + 
+    7761403063247433265400167989407301632*$.1^61 - 
+    26411623122565214376833051893423341568*$.1^60 + 
+    83269040292187246397749951997644259328*$.1^59 - 
+    243895829595317989098422922326792339456*$.1^58 + 
+    665294113881884410844916702542508015616*$.1^57 - 
+    1693736164269413622368890341769353166848*$.1^56 + 
+    4032090199393717587924764050579479642112*$.1^55 - 
+    8990973117930140585884474894064373891072*$.1^54 + 
+    18807775409326983234033918306776412094464*$.1^53 - 
+    36958890280913871252924678411680574406656*$.1^52 + 
+    68311317067608211925940734435247302344704*$.1^51 - 
+    118892839087473017791916649722289705549824*$.1^50 + 
+    195061502543410826526938295051877314166784*$.1^49 - 
+    301982618858707354763377781563868231630848*$.1^48 + 
+    441590481146112498149419576521788013641728*$.1^47 - 
+    610553428575715035979602804034719405113344*$.1^46 + 
+    799016309236777179817542858263533147611136*$.1^45 - 
+    990876504013269354780908680403749944590336*$.1^44 + 
+    1165956400966090743330531924525884849201152*$.1^43 - 
+    1303752568281722898022304305577622979837952*$.1^42 + 
+    1387751904310594443922341087575054390829056*$.1^41 - 
+    1408960140521383051457519261815172429021184*$.1^40 + 
+    1367506903520356835679303739075853108404224*$.1^39 - 
+    1271906512146839965405896218589202573508608*$.1^38 + 
+    1136425985922531855812670888768378425376768*$.1^37 - 
+    977621132328565254954155658763864149950464*$.1^36 + 
+    811190711431431749331396768640374032039936*$.1^35 - 
+    649908090115791720562156808151328652640256*$.1^34 + 
+    502799187183277930134766867599969136934912*$.1^33 - 
+    375267133599775587195831940317548200722432*$.1^32 + 
+    269693964707327162125086346243918933098496*$.1^31 - 
+    186146558095264575212794093589525686452224*$.1^30 + 
+    123017960725710747660269533620120103993344*$.1^29 - 
+    77591180369942646111358801204570798358528*$.1^28 + 
+    46558548912336279632847401221616829480960*$.1^27 - 
+    26497714990111428026335409685682644320256*$.1^26 + 
+    14262813728339556652346116250961967398912*$.1^25 - 
+    7241700694278628775596891091242293460992*$.1^24 + 
+    3459655239721535544284274132291092660224*$.1^23 - 
+    1551466709092674144039888469929380184064*$.1^22 + 
+    651543475819308345196588783823047196672*$.1^21 - 
+    255619087160185055661464277464036999168*$.1^20 + 
+    93455252833071219139238724788659847168*$.1^19 - 
+    31754869142196523727915657812171390976*$.1^18 + 
+    9998655516968858974114810592682213376*$.1^17 - 
+    2907938587093072654861202463529238528*$.1^16 + 
+    778305021730130892025822394409582592*$.1^15 - 
+    190906019284621557244088413347315712*$.1^14 + 
+    42706924399287247238150790874927104*$.1^13 - 
+    8664373487804836155667088956637184*$.1^12 + 
+    1583579798671395194578021013368832*$.1^11 - 
+    258661985398247565277726605754368*$.1^10 + 
+    37392039772193080205389485436928*$.1^9 - 
+    4726192160356448013863096467456*$.1^8 + 514297076759109262708602146816*$.1^7
+    - 47212132648486028639006875648*$.1^6 + 3555606432193751541828698112*$.1^5 -
+    210950344506087971339190272*$.1^4 + 9245617941110106874200064*$.1^3 - 
+    266156008512969593561088*$.1^2 + 3775262532098859483136*$.1)*$.5^3 + 
+    (-523135896738003*$.1^75 + 34181951158755513*$.1^74 - 
+    1086251060817505305*$.1^73 + 22487408935097738040*$.1^72 - 
+    343498109107655022345*$.1^71 + 4168680494707985642856*$.1^70 - 
+    42360583646711359572129*$.1^69 + 375255384262498749419352*$.1^68 - 
+    2985997558865475771392733*$.1^67 + 21747293695409277686034861*$.1^66 - 
+    146139340532267539728738405*$.1^65 + 906402780639616427429754582*$.1^64 - 
+    5172653119990257705105145062*$.1^63 + 27072589385724821368185384738*$.1^62 -
+    129709987225149812455747930068*$.1^61 + 
+    568808899173054706445234578368*$.1^60 - 
+    2285562716239394439322945999362*$.1^59 + 
+    8431210229521795059759477570747*$.1^58 - 
+    28619816918667165023592387121092*$.1^57 + 
+    89615193405372223338789041177079*$.1^56 - 
+    259452399451889547705871826249751*$.1^55 + 
+    696039555094755048245466877588929*$.1^54 - 
+    1733544876823975113545748783208239*$.1^53 + 
+    4014708400112037858606678490274652*$.1^52 - 
+    8656449171599344630650814432461051*$.1^51 + 
+    17393532208569369030885475636242882*$.1^50 - 
+    32585763040000507883003152367523789*$.1^49 + 
+    56925617940760833607353754480057260*$.1^48 - 
+    92697279834619747424310067125138177*$.1^47 + 
+    140571255552273992926764246699613692*$.1^46 - 
+    198186060982208462456690626096769910*$.1^45 + 
+    259090283380047082850283363450742788*$.1^44 - 
+    312806817729549304115108013370764972*$.1^43 + 
+    346612590407004070093180129398924567*$.1^42 - 
+    348999065408225834383011989798886831*$.1^41 + 
+    313865178309422151488916101633644974*$.1^40 - 
+    243758895374578799555440927907977350*$.1^39 + 
+    150463020500073630805218341649185205*$.1^38 - 
+    52154993650115574962633210141622537*$.1^37 - 
+    32070338474215254906656337208539804*$.1^36 + 
+    88157679939664346596949565742111671*$.1^35 - 
+    111024955884044066667096061499584707*$.1^34 + 
+    104925141734555180191888629217397682*$.1^33 - 
+    80426254587406820222311644880338216*$.1^32 + 
+    49723450987098125717591677362982719*$.1^31 - 
+    22483294049748272807306684219993091*$.1^30 + 
+    3739342127465042948099236608268119*$.1^29 + 
+    5918979147666060101816850316550127*$.1^28 - 
+    8689423058379145661581830365632629*$.1^27 + 
+    7614192371482269956432211145473465*$.1^26 - 
+    5214802897760101001870542434189045*$.1^25 + 
+    2968802166424695901516865264583537*$.1^24 - 
+    1421282826637676161935412849805853*$.1^23 + 
+    560100281277769744270798591922709*$.1^22 - 
+    166828732688807360090623862757756*$.1^21 + 
+    24114401133770183218288690831938*$.1^20 + 
+    11464947884595398008424367721068*$.1^19 - 
+    12398768930003400702286146077193*$.1^18 + 
+    7013100933772983168938798910480*$.1^17 - 
+    3039021373578567721323885595431*$.1^16 + 
+    1096167238212626519478133684653*$.1^15 - 
+    339058131027068857112366622363*$.1^14 + 91000252235892217169225570427*$.1^13
+    - 21262403302431787971202821255*$.1^12 + 4316479104168045812593718568*$.1^11
+    - 756626336802270611445221901*$.1^10 + 113288020704630877934811267*$.1^9 - 
+    14247068124895891886279862*$.1^8 + 1465250538640438278374931*$.1^7 - 
+    117630571667109962421519*$.1^6 + 6665899517301207253392*$.1^5 - 
+    183688841397728649591*$.1^4 - 7538299162226721774*$.1^3 + 
+    1083346723888439274*$.1^2 - 50386082752652211*$.1 + 
+    941610459265641)/(943815633024714870784*$.1^77 - 
+    71729988109878330179584*$.1^76 + 2683267844689264377638912*$.1^75 - 
+    65867005397528801402273792*$.1^74 + 1193465249931715225969946624*$.1^73 - 
+    17023787560730854968445681664*$.1^72 + 199098127695606096750449692672*$.1^71
+    - 1963369735421958604324720467968*$.1^70 + 
+    16662284137074989311892606599168*$.1^69 - 
+    123599490902081528290768463282176*$.1^68 + 
+    811241969076125823532005989400576*$.1^67 - 
+    4757749195202650615995886984470528*$.1^66 + 
+    25134453009074111364244747364974592*$.1^65 - 
+    120412069147768467120571347569344512*$.1^64 + 
+    526095333935188617364451366917013504*$.1^63 - 
+    2106455201602959305401140849634115584*$.1^62 + 
+    7761403063247433265400167989407301632*$.1^61 - 
+    26411623122565214376833051893423341568*$.1^60 + 
+    83269040292187246397749951997644259328*$.1^59 - 
+    243895829595317989098422922326792339456*$.1^58 + 
+    665294113881884410844916702542508015616*$.1^57 - 
+    1693736164269413622368890341769353166848*$.1^56 + 
+    4032090199393717587924764050579479642112*$.1^55 - 
+    8990973117930140585884474894064373891072*$.1^54 + 
+    18807775409326983234033918306776412094464*$.1^53 - 
+    36958890280913871252924678411680574406656*$.1^52 + 
+    68311317067608211925940734435247302344704*$.1^51 - 
+    118892839087473017791916649722289705549824*$.1^50 + 
+    195061502543410826526938295051877314166784*$.1^49 - 
+    301982618858707354763377781563868231630848*$.1^48 + 
+    441590481146112498149419576521788013641728*$.1^47 - 
+    610553428575715035979602804034719405113344*$.1^46 + 
+    799016309236777179817542858263533147611136*$.1^45 - 
+    990876504013269354780908680403749944590336*$.1^44 + 
+    1165956400966090743330531924525884849201152*$.1^43 - 
+    1303752568281722898022304305577622979837952*$.1^42 + 
+    1387751904310594443922341087575054390829056*$.1^41 - 
+    1408960140521383051457519261815172429021184*$.1^40 + 
+    1367506903520356835679303739075853108404224*$.1^39 - 
+    1271906512146839965405896218589202573508608*$.1^38 + 
+    1136425985922531855812670888768378425376768*$.1^37 - 
+    977621132328565254954155658763864149950464*$.1^36 + 
+    811190711431431749331396768640374032039936*$.1^35 - 
+    649908090115791720562156808151328652640256*$.1^34 + 
+    502799187183277930134766867599969136934912*$.1^33 - 
+    375267133599775587195831940317548200722432*$.1^32 + 
+    269693964707327162125086346243918933098496*$.1^31 - 
+    186146558095264575212794093589525686452224*$.1^30 + 
+    123017960725710747660269533620120103993344*$.1^29 - 
+    77591180369942646111358801204570798358528*$.1^28 + 
+    46558548912336279632847401221616829480960*$.1^27 - 
+    26497714990111428026335409685682644320256*$.1^26 + 
+    14262813728339556652346116250961967398912*$.1^25 - 
+    7241700694278628775596891091242293460992*$.1^24 + 
+    3459655239721535544284274132291092660224*$.1^23 - 
+    1551466709092674144039888469929380184064*$.1^22 + 
+    651543475819308345196588783823047196672*$.1^21 - 
+    255619087160185055661464277464036999168*$.1^20 + 
+    93455252833071219139238724788659847168*$.1^19 - 
+    31754869142196523727915657812171390976*$.1^18 + 
+    9998655516968858974114810592682213376*$.1^17 - 
+    2907938587093072654861202463529238528*$.1^16 + 
+    778305021730130892025822394409582592*$.1^15 - 
+    190906019284621557244088413347315712*$.1^14 + 
+    42706924399287247238150790874927104*$.1^13 - 
+    8664373487804836155667088956637184*$.1^12 + 
+    1583579798671395194578021013368832*$.1^11 - 
+    258661985398247565277726605754368*$.1^10 + 
+    37392039772193080205389485436928*$.1^9 - 
+    4726192160356448013863096467456*$.1^8 + 514297076759109262708602146816*$.1^7
+    - 47212132648486028639006875648*$.1^6 + 3555606432193751541828698112*$.1^5 -
+    210950344506087971339190272*$.1^4 + 9245617941110106874200064*$.1^3 - 
+    266156008512969593561088*$.1^2 + 3775262532098859483136*$.1)*$.5^2 + 
+    (-144504250032987*$.1^76 + 11126827252539999*$.1^75 - 
+    420362863345959183*$.1^74 + 10388555039121468417*$.1^73 - 
+    188922399920876643021*$.1^72 + 2696471414765792467011*$.1^71 - 
+    31460799536062384734288*$.1^70 + 308588408732615567406831*$.1^69 - 
+    2597236385464866565568961*$.1^68 + 19051429931900127556873812*$.1^67 - 
+    123292709781090777670061952*$.1^66 + 710905634569842562971643833*$.1^65 - 
+    3681742127016895216582157577*$.1^64 + 17241608885891306940586396800*$.1^63 -
+    73424990598455748753298902294*$.1^62 + 285723287696286221395379711418*$.1^61
+    - 1020189115603776896335557428238*$.1^60 + 
+    3354299843180177430883543859613*$.1^59 - 
+    10187234050887915015537950378589*$.1^58 + 
+    28655957356761873828322722654540*$.1^57 - 
+    74833364298226162803793898476689*$.1^56 + 
+    181793227391660291002156493799408*$.1^55 - 
+    411544321594892526818498420033424*$.1^54 + 
+    869453758814257558147410777658968*$.1^53 - 
+    1716258075222422892275240348186685*$.1^52 + 
+    3168222151068084605297791333016421*$.1^51 - 
+    5472665104531032899471370452415444*$.1^50 + 
+    8847599964867958485446665157696517*$.1^49 - 
+    13384182397481057665463167213243677*$.1^48 + 
+    18929552752630613373075776816012475*$.1^47 - 
+    24990168195482264865699894003826854*$.1^46 + 
+    30710443626737821924804210792385565*$.1^45 - 
+    34975083297471783688795129340882274*$.1^44 + 
+    36648448967394345959818189493525199*$.1^43 - 
+    34906884268114198964008426579679691*$.1^42 + 
+    29562034912825618706523590398578732*$.1^41 - 
+    21245349071417520629520057076357113*$.1^40 + 
+    11350062730255503996791923654246284*$.1^39 - 
+    1708499369305159716480362863974180*$.1^38 - 
+    5908867961214365908902587134062729*$.1^37 + 
+    10299807139427800311293246221660674*$.1^36 - 
+    11152159831324314488613879458227188*$.1^35 + 
+    9059817084303903572220865259023044*$.1^34 - 
+    5238577794478028612263791110484102*$.1^33 + 
+    1071768468676467250119302798137506*$.1^32 + 
+    2325038198716874035773492982289514*$.1^31 - 
+    4362471519954163377084980279498439*$.1^30 + 
+    4999989562446812757098317652403252*$.1^29 - 
+    4582056720395103089787630381643767*$.1^28 + 
+    3600585113526207431726790054712977*$.1^27 - 
+    2493725281877461516523946052826562*$.1^26 + 
+    1540760286310794521030591171685225*$.1^25 - 
+    853020936910639011474240683630409*$.1^24 + 
+    422897206081178124812551950189396*$.1^23 - 
+    186717515717103227980136881735824*$.1^22 + 
+    72545588792875593280371035486871*$.1^21 - 
+    24214275288217125714233621572416*$.1^20 + 
+    6576273349934325974409413392560*$.1^19 - 
+    1224547621655114390991475101309*$.1^18 + 935612822484636317612851590*$.1^17 
+    + 127192815366363302775731993061*$.1^16 - 
+    70923153264092874514106092287*$.1^15 + 26685253267199398170126817326*$.1^14 
+    - 7988825397889868958528540102*$.1^13 + 1993683674735050753360162260*$.1^12 
+    - 421302399746644727807022819*$.1^11 + 75612647669574051574973091*$.1^10 - 
+    11479788173667248937145629*$.1^9 + 1461742430665387859093547*$.1^8 - 
+    154301834141943660908838*$.1^7 + 13349786205549075969726*$.1^6 - 
+    943815001989102998985*$.1^5 + 55801508285139938055*$.1^4 - 
+    2930453578851031179*$.1^3 + 140547513340978614*$.1^2 - 5312104310803599*$.1 
+    + 106323288392025)/(943815633024714870784*$.1^73 - 
+    67954725577779470696448*$.1^72 + 2405786048579998205628416*$.1^71 - 
+    55832357587210032896098304*$.1^70 + 955428340573450962554126336*$.1^69 - 
+    12857388953993893148559376384*$.1^68 + 141710266619792398251097407488*$.1^67
+    - 1315506789498944638545861976064*$.1^66 + 
+    10497610395203907344645782618112*$.1^65 - 
+    73136310128839067594757211947008*$.1^64 + 
+    450307328764930538132667900592128*$.1^63 - 
+    2474396070999579483879543117971456*$.1^62 + 
+    12231981901575650022206892859129856*$.1^61 - 
+    54763399490279828908341088610680832*$.1^60 + 
+    223301952951852153124194814947033088*$.1^59 - 
+    833264669176569539881607943627407360*$.1^58 + 
+    2857247088967347221472996077913620480*$.1^57 - 
+    9035075540338719810246299571605602304*$.1^56 + 
+    26428894967370153515276150654283464704*$.1^55 - 
+    71707543458759097750066930024742977536*$.1^54 + 
+    180893020992304872290533884153499287552*$.1^53 - 
+    425168164137820212835002322818158690304*$.1^52 + 
+    932800348086200958326007583632593780736*$.1^51 - 
+    1913483113330436888658228155986306498560*$.1^50 + 
+    3675475189944444205814417005609489367040*$.1^49 - 
+    6619721284670849051578608795976244133888*$.1^48 + 
+    11192847987850201971780877010107569831936*$.1^47 - 
+    17787735554938901883405592727577697452032*$.1^46 + 
+    26599112067926166750501809891406639464448*$.1^45 - 
+    37468644021297619522234868796368965599232*$.1^44 + 
+    49777442445759210052065994067453954818048*$.1^43 - 
+    62447610838248909752516782693485536935936*$.1^42 + 
+    74087523056109635655638478007984769097728*$.1^41 - 
+    83262332955002893912755227144712861712384*$.1^40 + 
+    88814045010666504683547023057728685203456*$.1^39 - 
+    90124687446352063436514155753006455422976*$.1^38 + 
+    87232029585065950768342939629820241969152*$.1^37 - 
+    80765384505337955118119249402225126080512*$.1^36 + 
+    71740393192534552167165457618276645371904*$.1^35 - 
+    61299826558058159518632977430457812238336*$.1^34 + 
+    50490752928674133494326296098166557900800*$.1^33 - 
+    40132203990043600078271529913119337349120*$.1^32 + 
+    30777678474445357810655505058789440913408*$.1^31 - 
+    22741314004993995353967446614330821050368*$.1^30 + 
+    16148291427781268047551635039265299955712*$.1^29 - 
+    10983165970861511560927170326224973594624*$.1^28 + 
+    7128617762772168369542563187314513870848*$.1^27 - 
+    4398611502887764824886832111525768527872*$.1^26 + 
+    2570852826299363852206509705964752322560*$.1^25 - 
+    1418463025468416714114346636074148823040*$.1^24 + 
+    736516078343201994061064808114132271104*$.1^23 - 
+    358849715842899531692199701396444479488*$.1^22 + 
+    163613466735715852547032346430048239616*$.1^21 - 
+    69621193437143484896957628612755718144*$.1^20 + 
+    27574723843866368584385925559870160896*$.1^19 - 
+    10137070308584818440269908896727793664*$.1^18 + 
+    3448611037481067794330733995843944448*$.1^17 - 
+    1082132346142914608020557248058097664*$.1^16 + 
+    312052145407511595706530674582454272*$.1^15 - 
+    82352025199900079373346745389416448*$.1^14 + 
+    19794121671462855969276575553486848*$.1^13 - 
+    4309021434859763897335742590877696*$.1^12 + 
+    843959754802787420902314585030656*$.1^11 - 
+    147539770500320926011651858563072*$.1^10 + 
+    22799377567327450070750013493248*$.1^9 - 
+    3076900462687218369176820285440*$.1^8 + 357094612610495727891631984640*$.1^7
+    - 34923402051545856447243567104*$.1^6 + 2799070247598864793424625664*$.1^5 -
+    176553927576135262588338176*$.1^4 + 8218746532379217094787072*$.1^3 - 
+    251054958384574155628544*$.1^2 + 3775262532098859483136*$.1)*$.5 + 
+    (-144504250032987*$.1^73 + 10837818752474025*$.1^72 - 
+    399120738591110094*$.1^71 + 9622249001196538356*$.1^70 - 
+    170832490876247132439*$.1^69 + 2382118314286532877081*$.1^68 - 
+    27172043693491896164781*$.1^67 + 260741467593646325986518*$.1^66 - 
+    2148323832120917745231165*$.1^65 + 15436140036899840468156493*$.1^64 - 
+    97908373648942990289197686*$.1^63 + 553598925424934729398806708*$.1^62 - 
+    2812842842915991749244306453*$.1^61 + 12928912948220693452579921140*$.1^60 -
+    54059899695375888227901498453*$.1^59 + 206607732843383335891935975249*$.1^58
+    - 724663497086277888076818059907*$.1^57 + 
+    2340748667910347417364446630934*$.1^56 - 
+    6983933541232386973433014291284*$.1^55 + 
+    19296926608817913518665824509817*$.1^54 - 
+    49485096555117592726390289959899*$.1^53 + 
+    117996899904638371054976397179760*$.1^52 - 
+    262033144416197027977429762662438*$.1^51 + 
+    542608015345342840734535927049031*$.1^50 - 
+    1048803412191573765548468673384939*$.1^49 + 
+    1893612892868302428046288560185757*$.1^48 - 
+    3194926204281634791893181263674356*$.1^47 + 
+    5037865364092930891011838736872920*$.1^46 - 
+    7422200863418430510003995528028429*$.1^45 + 
+    10209719148881877815413130934431265*$.1^44 - 
+    13096268761582893098612037681060327*$.1^43 + 
+    15634431056692208539597385285792496*$.1^42 - 
+    17319651508311986431256637980316798*$.1^41 + 
+    17726376595975897409106642344927196*$.1^40 - 
+    16651731027313467964114925277311712*$.1^39 + 
+    14208784056240948687105414309919716*$.1^38 - 
+    10822346407304097429577252012707303*$.1^37 + 
+    7117347685457003219169494206302720*$.1^36 - 
+    3737067652408054044131960018307210*$.1^35 + 
+    1161310350828175291089400629141540*$.1^34 + 
+    405522849362460538763457323303688*$.1^33 - 
+    1040157177115274397506623866790320*$.1^32 + 
+    1012447073772584930169491039260299*$.1^31 - 
+    653935037799955483833247998257418*$.1^30 + 
+    242098584373844634655938368930436*$.1^29 + 
+    60636166305419708074410362942103*$.1^28 - 
+    207330778864611608449368391799292*$.1^27 + 
+    227548536230098654865335043289306*$.1^26 - 
+    179075018401177194686937962536911*$.1^25 + 
+    112719400857502037213482976163615*$.1^24 - 
+    57683325270080723405635226396547*$.1^23 + 
+    22959064914878629388454889965750*$.1^22 - 
+    5702200945425181079100881651502*$.1^21 - 
+    695111232200101435063319351949*$.1^20 + 
+    1950252340301478031866814423377*$.1^19 - 
+    1488107065746120189536205464589*$.1^18 + 
+    816637273948298744940803279445*$.1^17 - 
+    366272712284296599729605449089*$.1^16 + 
+    140007987127094424963819140484*$.1^15 - 46394693992482821009455861593*$.1^14
+    + 13414873801685031118499113557*$.1^13 - 3387186377981273668238867097*$.1^12
+    + 744394333081304435366950335*$.1^11 - 141413028508953376070511483*$.1^10 + 
+    22969908263594055699533682*$.1^9 - 3138392983942482583140738*$.1^8 + 
+    351749123256659341889601*$.1^7 - 31010114711143198740483*$.1^6 + 
+    1976391895000358408049*$.1^5 - 70241525601846528375*$.1^4 - 
+    1073941232435793306*$.1^3 + 291037899909468852*$.1^2 - 15438143791073349*$.1
+    + 313870153088547)/(943815633024714870784*$.1^73 - 
+    67954725577779470696448*$.1^72 + 2405786048579998205628416*$.1^71 - 
+    55832357587210032896098304*$.1^70 + 955428340573450962554126336*$.1^69 - 
+    12857388953993893148559376384*$.1^68 + 141710266619792398251097407488*$.1^67
+    - 1315506789498944638545861976064*$.1^66 + 
+    10497610395203907344645782618112*$.1^65 - 
+    73136310128839067594757211947008*$.1^64 + 
+    450307328764930538132667900592128*$.1^63 - 
+    2474396070999579483879543117971456*$.1^62 + 
+    12231981901575650022206892859129856*$.1^61 - 
+    54763399490279828908341088610680832*$.1^60 + 
+    223301952951852153124194814947033088*$.1^59 - 
+    833264669176569539881607943627407360*$.1^58 + 
+    2857247088967347221472996077913620480*$.1^57 - 
+    9035075540338719810246299571605602304*$.1^56 + 
+    26428894967370153515276150654283464704*$.1^55 - 
+    71707543458759097750066930024742977536*$.1^54 + 
+    180893020992304872290533884153499287552*$.1^53 - 
+    425168164137820212835002322818158690304*$.1^52 + 
+    932800348086200958326007583632593780736*$.1^51 - 
+    1913483113330436888658228155986306498560*$.1^50 + 
+    3675475189944444205814417005609489367040*$.1^49 - 
+    6619721284670849051578608795976244133888*$.1^48 + 
+    11192847987850201971780877010107569831936*$.1^47 - 
+    17787735554938901883405592727577697452032*$.1^46 + 
+    26599112067926166750501809891406639464448*$.1^45 - 
+    37468644021297619522234868796368965599232*$.1^44 + 
+    49777442445759210052065994067453954818048*$.1^43 - 
+    62447610838248909752516782693485536935936*$.1^42 + 
+    74087523056109635655638478007984769097728*$.1^41 - 
+    83262332955002893912755227144712861712384*$.1^40 + 
+    88814045010666504683547023057728685203456*$.1^39 - 
+    90124687446352063436514155753006455422976*$.1^38 + 
+    87232029585065950768342939629820241969152*$.1^37 - 
+    80765384505337955118119249402225126080512*$.1^36 + 
+    71740393192534552167165457618276645371904*$.1^35 - 
+    61299826558058159518632977430457812238336*$.1^34 + 
+    50490752928674133494326296098166557900800*$.1^33 - 
+    40132203990043600078271529913119337349120*$.1^32 + 
+    30777678474445357810655505058789440913408*$.1^31 - 
+    22741314004993995353967446614330821050368*$.1^30 + 
+    16148291427781268047551635039265299955712*$.1^29 - 
+    10983165970861511560927170326224973594624*$.1^28 + 
+    7128617762772168369542563187314513870848*$.1^27 - 
+    4398611502887764824886832111525768527872*$.1^26 + 
+    2570852826299363852206509705964752322560*$.1^25 - 
+    1418463025468416714114346636074148823040*$.1^24 + 
+    736516078343201994061064808114132271104*$.1^23 - 
+    358849715842899531692199701396444479488*$.1^22 + 
+    163613466735715852547032346430048239616*$.1^21 - 
+    69621193437143484896957628612755718144*$.1^20 + 
+    27574723843866368584385925559870160896*$.1^19 - 
+    10137070308584818440269908896727793664*$.1^18 + 
+    3448611037481067794330733995843944448*$.1^17 - 
+    1082132346142914608020557248058097664*$.1^16 + 
+    312052145407511595706530674582454272*$.1^15 - 
+    82352025199900079373346745389416448*$.1^14 + 
+    19794121671462855969276575553486848*$.1^13 - 
+    4309021434859763897335742590877696*$.1^12 + 
+    843959754802787420902314585030656*$.1^11 - 
+    147539770500320926011651858563072*$.1^10 + 
+    22799377567327450070750013493248*$.1^9 - 
+    3076900462687218369176820285440*$.1^8 + 357094612610495727891631984640*$.1^7
+    - 34923402051545856447243567104*$.1^6 + 2799070247598864793424625664*$.1^5 -
+    176553927576135262588338176*$.1^4 + 8218746532379217094787072*$.1^3 - 
+    251054958384574155628544*$.1^2 + 3775262532098859483136*$.1)
+
+Total time: 70.290 seconds, Total memory usage: 74.88MB
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Dimension of CuspForms(91) is: 7
+Dimension of eigenspace lambda = +1 for w_91 is: 2
+Dimension of eigenspace lambda = -1 for w_91 is: 5
+Using divN:  13
+Nice model for X_0(91) is: Curve over Rational Field defined by
+x[1]^2 - 12*x[2]*x[3] + 4*x[2]*x[5] - 14*x[3]^2 + 12*x[3]*x[4] + 24*x[3]*x[5] - 
+14*x[4]^2 + 16*x[4]*x[5] - 23*x[5]^2 - x[6]^2 - 4*x[7]^2,
+x[1]*x[2] - 6*x[2]*x[3] + 6*x[2]*x[5] - 3*x[3]^2 + 2*x[3]*x[4] + 7*x[3]*x[5] - 
+5*x[4]^2 + 8*x[4]*x[5] - 7*x[5]^2 - x[6]*x[7] - x[7]^2,
+x[1]*x[3] - 2*x[2]*x[3] + x[2]*x[5] - 3*x[3]^2 + 6*x[3]*x[4] + 4*x[3]*x[5] - 
+5*x[4]^2 + 4*x[4]*x[5] - 3*x[5]^2 - x[7]^2,
+x[1]*x[4] - x[2]*x[3] + x[2]*x[5] + 2*x[3]*x[4] - x[3]*x[5] - x[4]^2 + x[4]*x[5]
++ x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] - x[4]^2 + 2*x[5]^2,
+x[1]*x[7] - x[2]*x[6] + x[3]*x[6] + x[5]*x[7],
+x[2]^2 - 2*x[2]*x[3] - 3*x[3]^2 + 4*x[3]*x[4] + 4*x[3]*x[5] - 4*x[4]^2 + 
+4*x[4]*x[5] - 4*x[5]^2 - x[7]^2,
+x[2]*x[4] - x[2]*x[5] - x[3]^2 + x[3]*x[4] + x[3]*x[5] - x[4]*x[5],
+x[2]*x[7] - x[3]*x[6] + x[4]*x[6],
+x[3]*x[7] - x[4]*x[6] + x[5]*x[6] - x[5]*x[7]
+
+w_91 on X91 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+Genus of X_0(91) is 7
+Genus of X_0(91)/w_91 is 2
+We have found these points on X_0(91):
+[ (-2 : 0 : 1 : 1 : 1 : 1 : 1), (2 : 0 : -1 : -1 : -1 : 1 : 1), (-1 : 0 : 0 : 0 
+: 0 : 1 : 0), (1 : 0 : 0 : 0 : 0 : 1 : 0) ]
+We have found 10 points on X_0(91)^2(Q).
+2 of them are pullbacks of rationals from X_0(91)/w_91.
+
+In file "main.m", line 101, column 20:
+>> B, iA, W := MWSieve(XN, wNMatrix, genusC, primes, A, divs, bp, B0, iA0, W0,
+                      ^
+Runtime error: Number of arguments (11) does not equal expected number of 
+arguments (9)
+
+> D;
+[
+    Divisor on Curve over Rational Field defined by
+    x[1]^2 - 12*x[2]*x[3] + 4*x[2]*x[5] - 14*x[3]^2 + 12*x[3]*x[4] + 
+        24*x[3]*x[5] - 14*x[4]^2 + 16*x[4]*x[5] - 23*x[5]^2 - x[6]^2 - 4*x[7]^2,
+    x[1]*x[2] - 6*x[2]*x[3] + 6*x[2]*x[5] - 3*x[3]^2 + 2*x[3]*x[4] + 7*x[3]*x[5]
+        - 5*x[4]^2 + 8*x[4]*x[5] - 7*x[5]^2 - x[6]*x[7] - x[7]^2,
+    x[1]*x[3] - 2*x[2]*x[3] + x[2]*x[5] - 3*x[3]^2 + 6*x[3]*x[4] + 4*x[3]*x[5] -
+        5*x[4]^2 + 4*x[4]*x[5] - 3*x[5]^2 - x[7]^2,
+    x[1]*x[4] - x[2]*x[3] + x[2]*x[5] + 2*x[3]*x[4] - x[3]*x[5] - x[4]^2 + 
+        x[4]*x[5] + x[5]^2,
+    x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] - x[4]^2 + 2*x[5]^2,
+    x[1]*x[7] - x[2]*x[6] + x[3]*x[6] + x[5]*x[7],
+    x[2]^2 - 2*x[2]*x[3] - 3*x[3]^2 + 4*x[3]*x[4] + 4*x[3]*x[5] - 4*x[4]^2 + 
+        4*x[4]*x[5] - 4*x[5]^2 - x[7]^2,
+    x[2]*x[4] - x[2]*x[5] - x[3]^2 + x[3]*x[4] + x[3]*x[5] - x[4]*x[5],
+    x[2]*x[7] - x[3]*x[6] + x[4]*x[6],
+    x[3]*x[7] - x[4]*x[6] + x[5]*x[6] - x[5]*x[7],
+    Divisor on Curve over Rational Field defined by
+    x[1]^2 - 12*x[2]*x[3] + 4*x[2]*x[5] - 14*x[3]^2 + 12*x[3]*x[4] + 
+        24*x[3]*x[5] - 14*x[4]^2 + 16*x[4]*x[5] - 23*x[5]^2 - x[6]^2 - 4*x[7]^2,
+    x[1]*x[2] - 6*x[2]*x[3] + 6*x[2]*x[5] - 3*x[3]^2 + 2*x[3]*x[4] + 7*x[3]*x[5]
+        - 5*x[4]^2 + 8*x[4]*x[5] - 7*x[5]^2 - x[6]*x[7] - x[7]^2,
+    x[1]*x[3] - 2*x[2]*x[3] + x[2]*x[5] - 3*x[3]^2 + 6*x[3]*x[4] + 4*x[3]*x[5] -
+        5*x[4]^2 + 4*x[4]*x[5] - 3*x[5]^2 - x[7]^2,
+    x[1]*x[4] - x[2]*x[3] + x[2]*x[5] + 2*x[3]*x[4] - x[3]*x[5] - x[4]^2 + 
+        x[4]*x[5] + x[5]^2,
+    x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] - x[4]^2 + 2*x[5]^2,
+    x[1]*x[7] - x[2]*x[6] + x[3]*x[6] + x[5]*x[7],
+    x[2]^2 - 2*x[2]*x[3] - 3*x[3]^2 + 4*x[3]*x[4] + 4*x[3]*x[5] - 4*x[4]^2 + 
+        4*x[4]*x[5] - 4*x[5]^2 - x[7]^2,
+    x[2]*x[4] - x[2]*x[5] - x[3]^2 + x[3]*x[4] + x[3]*x[5] - x[4]*x[5],
+    x[2]*x[7] - x[3]*x[6] + x[4]*x[6],
+    x[3]*x[7] - x[4]*x[6] + x[5]*x[6] - x[5]*x[7]
+]
+> divs;
+[
+    Divisor on Curve over Rational Field defined by
+    x[1]^2 - 12*x[2]*x[3] + 4*x[2]*x[5] - 14*x[3]^2 + 12*x[3]*x[4] + 
+        24*x[3]*x[5] - 14*x[4]^2 + 16*x[4]*x[5] - 23*x[5]^2 - x[6]^2 - 4*x[7]^2,
+    x[1]*x[2] - 6*x[2]*x[3] + 6*x[2]*x[5] - 3*x[3]^2 + 2*x[3]*x[4] + 7*x[3]*x[5]
+        - 5*x[4]^2 + 8*x[4]*x[5] - 7*x[5]^2 - x[6]*x[7] - x[7]^2,
+    x[1]*x[3] - 2*x[2]*x[3] + x[2]*x[5] - 3*x[3]^2 + 6*x[3]*x[4] + 4*x[3]*x[5] -
+        5*x[4]^2 + 4*x[4]*x[5] - 3*x[5]^2 - x[7]^2,
+    x[1]*x[4] - x[2]*x[3] + x[2]*x[5] + 2*x[3]*x[4] - x[3]*x[5] - x[4]^2 + 
+        x[4]*x[5] + x[5]^2,
+    x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] - x[4]^2 + 2*x[5]^2,
+    x[1]*x[7] - x[2]*x[6] + x[3]*x[6] + x[5]*x[7],
+    x[2]^2 - 2*x[2]*x[3] - 3*x[3]^2 + 4*x[3]*x[4] + 4*x[3]*x[5] - 4*x[4]^2 + 
+        4*x[4]*x[5] - 4*x[5]^2 - x[7]^2,
+    x[2]*x[4] - x[2]*x[5] - x[3]^2 + x[3]*x[4] + x[3]*x[5] - x[4]*x[5],
+    x[2]*x[7] - x[3]*x[6] + x[4]*x[6],
+    x[3]*x[7] - x[4]*x[6] + x[5]*x[6] - x[5]*x[7],
+    Divisor on Curve over Rational Field defined by
+    x[1]^2 - 12*x[2]*x[3] + 4*x[2]*x[5] - 14*x[3]^2 + 12*x[3]*x[4] + 
+        24*x[3]*x[5] - 14*x[4]^2 + 16*x[4]*x[5] - 23*x[5]^2 - x[6]^2 - 4*x[7]^2,
+    x[1]*x[2] - 6*x[2]*x[3] + 6*x[2]*x[5] - 3*x[3]^2 + 2*x[3]*x[4] + 7*x[3]*x[5]
+        - 5*x[4]^2 + 8*x[4]*x[5] - 7*x[5]^2 - x[6]*x[7] - x[7]^2,
+    x[1]*x[3] - 2*x[2]*x[3] + x[2]*x[5] - 3*x[3]^2 + 6*x[3]*x[4] + 4*x[3]*x[5] -
+        5*x[4]^2 + 4*x[4]*x[5] - 3*x[5]^2 - x[7]^2,
+    x[1]*x[4] - x[2]*x[3] + x[2]*x[5] + 2*x[3]*x[4] - x[3]*x[5] - x[4]^2 + 
+        x[4]*x[5] + x[5]^2,
+    x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] - x[4]^2 + 2*x[5]^2,
+    x[1]*x[7] - x[2]*x[6] + x[3]*x[6] + x[5]*x[7],
+    x[2]^2 - 2*x[2]*x[3] - 3*x[3]^2 + 4*x[3]*x[4] + 4*x[3]*x[5] - 4*x[4]^2 + 
+        4*x[4]*x[5] - 4*x[5]^2 - x[7]^2,
+    x[2]*x[4] - x[2]*x[5] - x[3]^2 + x[3]*x[4] + x[3]*x[5] - x[4]*x[5],
+    x[2]*x[7] - x[3]*x[6] + x[4]*x[6],
+    x[3]*x[7] - x[4]*x[6] + x[5]*x[6] - x[5]*x[7]
+]
+
+Total time: 68.840 seconds, Total memory usage: 64.12MB
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Loading "X0p_NiceModel.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Dimension of CuspForms(91) is: 7
+Dimension of eigenspace lambda = +1 for w_91 is: 2
+Dimension of eigenspace lambda = -1 for w_91 is: 5
+Using divN:  13
+Nice model for X_0(91) is: Curve over Rational Field defined by
+x[1]^2 - 12*x[2]*x[3] + 4*x[2]*x[5] - 14*x[3]^2 + 12*x[3]*x[4] + 24*x[3]*x[5] - 
+14*x[4]^2 + 16*x[4]*x[5] - 23*x[5]^2 - x[6]^2 - 4*x[7]^2,
+x[1]*x[2] - 6*x[2]*x[3] + 6*x[2]*x[5] - 3*x[3]^2 + 2*x[3]*x[4] + 7*x[3]*x[5] - 
+5*x[4]^2 + 8*x[4]*x[5] - 7*x[5]^2 - x[6]*x[7] - x[7]^2,
+x[1]*x[3] - 2*x[2]*x[3] + x[2]*x[5] - 3*x[3]^2 + 6*x[3]*x[4] + 4*x[3]*x[5] - 
+5*x[4]^2 + 4*x[4]*x[5] - 3*x[5]^2 - x[7]^2,
+x[1]*x[4] - x[2]*x[3] + x[2]*x[5] + 2*x[3]*x[4] - x[3]*x[5] - x[4]^2 + x[4]*x[5]
++ x[5]^2,
+x[1]*x[5] - x[3]^2 + 2*x[3]*x[4] - x[4]^2 + 2*x[5]^2,
+x[1]*x[7] - x[2]*x[6] + x[3]*x[6] + x[5]*x[7],
+x[2]^2 - 2*x[2]*x[3] - 3*x[3]^2 + 4*x[3]*x[4] + 4*x[3]*x[5] - 4*x[4]^2 + 
+4*x[4]*x[5] - 4*x[5]^2 - x[7]^2,
+x[2]*x[4] - x[2]*x[5] - x[3]^2 + x[3]*x[4] + x[3]*x[5] - x[4]*x[5],
+x[2]*x[7] - x[3]*x[6] + x[4]*x[6],
+x[3]*x[7] - x[4]*x[6] + x[5]*x[6] - x[5]*x[7]
+
+w_91 on X91 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+and inverse
+u[1]
+u[2]
+u[3]
+u[4]
+u[5]
+-u[6]
+-u[7]
+Genus of X_0(91) is 7
+Genus of X_0(91)/w_91 is 2
+We have found these points on X_0(91):
+[ (-2 : 0 : 1 : 1 : 1 : 1 : 1), (2 : 0 : -1 : -1 : -1 : 1 : 1), (-1 : 0 : 0 : 0 
+: 0 : 1 : 0), (1 : 0 : 0 : 0 : 0 : 1 : 0) ]
+We have found 10 points on X_0(91)^2(Q).
+2 of them are pullbacks of rationals from X_0(91)/w_91.
+p = 3 (1/4): out of 56: .....
+[Interrupted]
+
+Total time: 239.119 seconds, Total memory usage: 64.12MB
