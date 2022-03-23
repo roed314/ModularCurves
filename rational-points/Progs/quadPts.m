@@ -570,6 +570,7 @@ end function;
 // such that if D is a degree 2 rational divisor on X not 
 // belonging to deg2 (i.e. an unknown degree 2 divisor)
 // then I*D is linearly equivalent to one of these divisors.
+/*
 MWSieve:=function(X,deg2,divs,P0,h,Ksub,bas,prms,I);
 	miss:={k : k in Ksub};
 	for p in prms do
@@ -978,5 +979,5 @@ quadPts:=function(N,n,UB : vb:=true, mw:=[], search:=true);
 	return X,jinvN,I,Ksub,quos,cusps,deg2,degtwoI,pls1,pls2;
 end function;	
 
-
+*/
 

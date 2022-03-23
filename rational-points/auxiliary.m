@@ -1,3 +1,5 @@
+load "Progs/quadPts.m";
+
 //the following function checks if rank J0(N)(Q) = rank J0(N)+(Q) as suggested by Philippe
 IsRankOfALQuotEqual := function(N)
   J := JZero(N);
@@ -53,3 +55,42 @@ function rank_J0Nplus(N : Lprec := 30, printlevel := 0)
   end for; // f in ...
   return rank, errors;
 end function;
+
+
+//...
+function GetTorsion(N, XN, XN_Cusps)
+
+	if IsPrime(N) then
+		// sanity check
+		assert #XN_Cusps eq 2;
+
+		Dtor := Divisor(XN_Cusps[1]) - Divisor(XN_Cusps[2]);
+		order := Integers()!((N - 1) / GCD(N - 1, 12));
+		
+		A := AbelianGroup([order]);
+		divs := [Dtor];
+
+	else
+		p := 3;
+		while IsDivisibleBy(N, p) do
+			p := NextPrime(p);
+		end while;
+
+		// compute the cuspidal torsion subgroup (= J(Q)_tors assuming the generalized Ogg conjecture)
+		h, Ksub, bas, divsNew := findGenerators(XN, [Place(cusp) : cusp in XN_Cusps], Place(XN_Cusps[1]), p);
+
+		// Ksub == abstract group isomorphic to cuspidal
+		// "It also returns a subset divsNew such that [[D-deg(D) P_0] : D in divsNew] generates the same subgroup."
+
+		A := Ksub;
+
+		D := [Divisor(divsNew[i]) - Divisor(XN_Cusps[1]) : i in [1..#divsNew]];
+		divs := [&+[coeffs[i] * D[i] : i in [1..#coeffs]] : coeffs in bas];
+	end if;
+
+	return A, divs;
+
+end function;
+
+
+

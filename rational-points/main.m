@@ -1,20 +1,19 @@
 SetLogFile("main.log");
-load "Progs/quadPts.m";
 load "X0p_NiceModel.m";
 load "Chabauty_MWSieve_new.m";
 load "auxiliary.m";
 SetDebugOnError(true);
-//comment
+
 N := 137;
 
 C := CuspForms(N);
 printf "Dimension of CuspForms(%o) is: %o\n", N, Dimension(C);
 
-//  Check rk J_0(N)(Q)  = rk J_0(N)^+(Q)
+//  Check rk J_0(N)(Q) = rk J_0(N)^+(Q)
 if not IsRankOfALQuotEqual(N) then
-	error "One needs rk J_0(N)(Q)  = rk J_0(N)^+(Q) for our algorithm to work.";
+	error "One needs rk J_0(N)(Q) = rk J_0(N)^+(Q) for our algorithm to work.";
 else
-	printf "rk J_0(N)(Q)  = rk J_0(N)^+(Q).\n";
+	printf "rk J_0(N)(Q) = rk J_0(N)^+(Q).\n";
 end if;
 
 //we find models for X_0(N) and X_0(N)/w_N
@@ -46,7 +45,8 @@ printf "Genus of X_0(%o)/w_%o is %o\n", N, N, Dimension(NN);
 
 printf "We have found these points on X_0(%o):\n%o\n", N, XN_Cusps;
  
-//Dtor := Divisor(XN_Cusps[1]) - Divisor(XN_Cusps[2]);
+/*
+Dtor := Divisor(XN_Cusps[1]) - Divisor(XN_Cusps[2]);
 
 //not needed for prime values of N, torsion is then known
 //for non-prime N, we will need different method of getting torsion
@@ -58,6 +58,7 @@ end while;
 h, Ksub, bas, divsNew := findGenerators(XN, [Place(cusp) : cusp in XN_Cusps], Place(XN_Cusps[1]), p);
 // Ksub == abstract group isomorphic to cuspidal
 // "It also returns a subset divsNew such that [[D-deg(D) P_0] : D in divsNew] generates the same subgroup."
+*/
 
 /*order := 1;
 nDtor := Dtor;
@@ -94,10 +95,12 @@ printf "%o of them are pullbacks of rationals from X_0(%o)/w_%o.\n", #deg2pb, N,
 
 //Finally, we do the sieve.
 //A := AbelianGroup([order]);
-A := Ksub;
+//A := Ksub;
 //divs := [Dtor];
-D := [Divisor(divsNew[i]) - Divisor(XN_Cusps[1]) : i in [1..#divsNew]];
-divs := [&+[coeffs[i] * D[i] : i in [1..#coeffs]] : coeffs in bas];
+//D := [Divisor(divsNew[i]) - Divisor(XN_Cusps[1]) : i in [1..#divsNew]];
+//divs := [&+[coeffs[i] * D[i] : i in [1..#coeffs]] : coeffs in bas];
+
+A, divs := GetTorsion(N, XN, XN_Cusps);
 genusC := Dimension(NN);
 bp := deg2pb[1];
 wNMatrix := Matrix(wN);
