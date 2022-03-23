@@ -1,0 +1,15 @@
+// Curves whose quadratic points are computed in Najman-Vukorepa-2021 : "QUADRATIC POINTS ON BIELLIPTIC MODULAR CURVES"
+
+'X0(60)'
+'X0(62)'
+'X0(69)'
+'X0(79)'
+'X0(83)'
+'X0(89)'
+'X0(92)'
+'X0(94)'
+'X0(95)'
+'X0(101)'
+'X0(119)'
+'X0(131)'
+
