@@ -4,7 +4,7 @@ load "auxiliary.m";
 load "Chabauty_MWSieve_new.m";
 SetDebugOnError(true);
 
-N := 137;
+N := 79;
 
 C := CuspForms(N);
 printf "Dimension of CuspForms(%o) is: %o\n", N, Dimension(C);
