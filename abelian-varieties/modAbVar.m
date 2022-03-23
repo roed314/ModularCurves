@@ -5,19 +5,17 @@ function GetCurve(N : prec := 80, ncoeffs := 10000)
     Hs := [];
     for A in Decomposition(JZero(N)) do
         if Dimension(A) ne 2 then continue; end if;
-        print A;
-        Pi := Matrix(Periods(A, ncoeffs)); // no control over precision really, instead use Eran's code
-        print "Periods computed";
+        P := Matrix(Periods(A, ncoeffs)); // no control over precision really, instead use Eran's code
         // Change convention
-        Pi := Transpose(ChangeRing(Pi, C));
-        g := #Rows(Pi);
-        P1 := Submatrix(Pi,1,1,g,g);
-        P2 := Submatrix(Pi,1,g+1,g,g);
-        Pi := HorizontalJoin(P2,P1);
-        _, pol := SomePrincipalPolarization(Pi); pol;
+        P := Transpose(ChangeRing(P, C));
+        g := #Rows(P);
+        P1 := Submatrix(P,1,1,g,g);
+        P2 := Submatrix(P,1,g+1,g,g);
+        P := HorizontalJoin(P2,P1);
+        _, pol := SomePrincipalPolarization(P); pol;
         print "Principal polarization found";
-        E, F := FrobeniusFormAlternating(Matrix(Integers(), pol)); E,F;
-        H := ReconstructCurve(Pi*Transpose(ChangeRing(F, C)), Q);
+        E, F := FrobeniusFormAlternating(Matrix(Integers(), pol));
+        H := ReconstructCurve(P*Transpose(ChangeRing(F, C)), Q);
         // TODO can we twist it, yes we can
         print "Curve found";
         print H;
@@ -31,28 +29,26 @@ function GetPeriodMatrices(N : prec := 80, ncoeffs := 10000)
     SetDefaultRealFieldPrecision(prec + 10);
     C:=ComplexFieldExtra(prec);
     Q:=RationalsExtra(prec);
-    Pis := [* *];
+    Ps := [* *];
     for A in Decomposition(JZero(N)) do
         if Dimension(A) ne 2 then continue; end if;
-        print A;
-        Pi := Matrix(Periods(A, ncoeffs)); // no control over precision really, instead use Eran's code
-        print "Periods computed";
+        P := Matrix(Periods(A, ncoeffs)); // no control over precision really, instead use Eran's code
         // Change convention
-        Pi := Transpose(ChangeRing(Pi, C));
-        g := #Rows(Pi);
-        P1 := Submatrix(Pi,1,1,g,g);
-        P2 := Submatrix(Pi,1,g+1,g,g);
-        Pi = HorizontalJoin(P2,P1);
-        Append(~Pis, <Newform(A), Pi>);
+        P := Transpose(ChangeRing(P, C));
+        g := #Rows(P);
+        P1 := Submatrix(P,1,1,g,g);
+        P2 := Submatrix(P,1,g+1,g,g);
+        P := HorizontalJoin(P2,P1);
+        Append(~Ps, <Newform(A), P>);
     end for;
-    return Pis;
+    return Ps;
 end function;
 
-function GenerateFullEndos(Pi)
-    //Given a period matrix Pi for a dim 2 modular forms space with trivial character
+function GenerateFullEndos(P)
+    //Given a period matrix P for a dim 2 modular forms space with trivial character
     //such that the coefficient ring index is > 1, return a period matrix for an isogenous abelian variety
     //such that the isogenous abelian variety has endomorphism ring equal to the maximal order
-    GeoRep := GeometricEndomorphismRepresentation(Pi, Rationals());
+    GeoRep := GeometricEndomorphismRepresentation(P, Rationals());
     one := GeoRep[1][2];
     gen := GeoRep[2][2];
     assert one eq 1;
@@ -63,18 +59,20 @@ function GenerateFullEndos(Pi)
     sqrtDpoly := x^2 - D;
     rts := Roots(sqrtDpoly, K);
     rt := rts[1][1];
-    sqrtD := &+[c*gen^i : i->c in Eltseq(rt)];
-    DpSqrtD := D*one+ sqrtD;
-    CC := BaseRing(Pi);
-    AuxPi := Transpose(Matrix(Rows(Transpose(2*Pi)) cat Rows(Transpose(Pi*Matrix(CC, D*one+ sqrtD)))));
-    kernel, bool := IntegralRightKernel(AuxPi);
+    sqrtD := &+[c*gen^(i-1) : i->c in Eltseq(rt)];
+    DpSqrtD := D*one + sqrtD;
+    CC := BaseRing(P);
+    AuxP := Transpose(Matrix(Rows(Transpose(2*P)) cat Rows(Transpose(P*Matrix(CC, DpSqrtD)))));
+    kernel, bool := IntegralRightKernel(AuxP);
     assert bool;
     S, P, Q := SmithForm(Matrix(Integers(), kernel));
-    E := Transpose(Submatrix(P^-1, 1,1, 4, 8));
-    Pi2 := AuxPi*Matrix(CC, E);
-    GeoRep2 := GeometricEndomorphismRepresentation(Pi2, Rationals());
-    assert MinimalPolynomial(GeoRep2[2][2]) eq MinimalPolynomial((D+ rt)/2);
-    return Pi2;
+    P2 := Submatrix(AuxP*Matrix(CC, P^-1), 1, 5, 2, 4);
+    GeoRep2 := GeometricEndomorphismRepresentation(P2, Rationals());
+    comp := MinimalPolynomial(GeoRep2[2][2]);
+    exp := MinimalPolynomial(Integers(K).2);
+    exp2 := MinimalPolynomial(-Integers(K).2);
+    assert comp in {exp, exp2};
+    return P2, GeoRep2;
 end function;
 
 
