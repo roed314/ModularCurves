@@ -82,9 +82,9 @@ deg2pb:=[];
 
 for i in [1..#pls1] do
 	for j in [i..#pls1] do
-		deg2 := Append(deg2, 1*pls1[i] + 1*pls1[j]);
+		Append(~deg2, 1*pls1[i] + 1*pls1[j]);
 		if wN(RepresentativePoint(pls1[i])) eq RepresentativePoint(pls1[j]) then
-			deg2pb := Append(deg2pb, 1*pls1[i] + 1*pls1[j]);
+			Append(~deg2pb, 1*pls1[i] + 1*pls1[j]);
 		end if;
 	end for;
 end for;
