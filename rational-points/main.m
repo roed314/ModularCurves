@@ -1,7 +1,7 @@
 SetLogFile("main.log");
 load "X0p_NiceModel.m";
-load "Chabauty_MWSieve_new.m";
 load "auxiliary.m";
+load "Chabauty_MWSieve_new.m";
 SetDebugOnError(true);
 
 N := 137;
