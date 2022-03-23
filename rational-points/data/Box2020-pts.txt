@@ -1,0 +1,2 @@
+// Data from Box 2020, "Quadratic points on modular curves with infinite Mordell-Weil group"
+
