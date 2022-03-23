@@ -73,7 +73,7 @@ function GenerateFullEndos(Pi)
     E := Transpose(Submatrix(P^-1, 1,1, 4, 8));
     Pi2 := AuxPi*Matrix(CC, E);
     GeoRep2 := GeometricEndomorphismRepresentation(Pi2, Rationals());
-    assert MinimalPolynomial(GeoRep2[2][2]) eq MinPoly((D+ rt)/2);
+    assert MinimalPolynomial(GeoRep2[2][2]) eq MinimalPolynomial((D+ rt)/2);
     return Pi2;
 end function;
 
