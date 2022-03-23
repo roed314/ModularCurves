@@ -2,9 +2,10 @@ SetLogFile("main.log");
 load "X0p_NiceModel.m";
 load "auxiliary.m";
 load "Chabauty_MWSieve_new.m";
+load "Saturation.m";
 SetDebugOnError(true);
 
-N := 79;
+N := 43;
 
 C := CuspForms(N);
 printf "Dimension of CuspForms(%o) is: %o\n", N, Dimension(C);
@@ -47,33 +48,16 @@ printf "We have found these points on X_0(%o):\n%o\n", N, XN_Cusps;
 
 // this can be used to compute a multiple of the torsion of J_0(N)(Q)
 // TorsionBound(XN, PrimeDivisors(N));
- 
-/*
-Dtor := Divisor(XN_Cusps[1]) - Divisor(XN_Cusps[2]);
 
-//not needed for prime values of N, torsion is then known
-//for non-prime N, we will need different method of getting torsion
-p := 3;
-while IsDivisibleBy(N, p) do
-	p := NextPrime(p);
-end while;
-// compute the cuspidal torsion subgroup (= J(Q)_tors assuming the generalized Ogg conjecture)
-h, Ksub, bas, divsNew := findGenerators(XN, [Place(cusp) : cusp in XN_Cusps], Place(XN_Cusps[1]), p);
-// Ksub == abstract group isomorphic to cuspidal
-// "It also returns a subset divsNew such that [[D-deg(D) P_0] : D in divsNew] generates the same subgroup."
-*/
-
-/*order := 1;
-nDtor := Dtor;
-repeat
-    nDtor +:= Dtor;
-    b, ff := IsPrincipal(nDtor);
-    order +:= 1;
-until b;
-printf "order of P1 - P2: %o\n", order;
-//printf "equals the order of J_0(%o)_tors: %o\n", N, nDtor eq TorsionBound(Jacobian(XN), 200);
-//printf "Is Dtor := XN_Cusps[1] - XN_Cusps[2] a generator for J_0(%o)(Q)_tors?\n", N; //, b and not(IsPrincipal(5*Dtor)) and not(IsPrincipal(13*Dtor));
-*/
+l := 3;
+r := rank_J0Nplus(N);
+printf "rk J_0(N)^+(Q) = %o\n", r;
+gens := [Divisor(c1) - Divisor(c2) : c1,c2 in XN_Cusps | c1 ne c2];
+ptsQ := RationalPoints(XN : Bound := 100);
+pts := [pt : pt in ptsQ | pt notin XN_Cusps]; // non-cuspidal Q-points
+Append(~gens, Divisor(pts[1]) - Divisor(XN_Cusps[1]));
+// or use NonCuspidalQRationalPoints(SmallModularCurve(43),43); for small N
+printf "%o divides the index: %o\n", l, FindIntegerCoprimeToIndex(XN, l, r, gens : pprimes := PrimesUpTo(30));
 
 //known degree 1 places
 pls1 := [Place(XN_Cusps[i]) : i in [1..#XN_Cusps]];
