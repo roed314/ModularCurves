@@ -14,7 +14,7 @@ function GetPeriodMatrices(N : prec := 80, ncoeffs := 10000)
         g := #Rows(Pi);
         P1 := Submatrix(Pi,1,1,g,g);
         P2 := Submatrix(Pi,1,g+1,g,g);
-        Pi = HorizontalJoin(P2,P1);
+        Pi := HorizontalJoin(P2,P1);
         Append(~Pis, <Newform(A), Pi>);
     end for;
     return Pis;
@@ -25,7 +25,7 @@ GeoRep := GeometricEndomorphismRepresentation(Pi, Rationals());
 sqrt5 := GeoRep[2][2];
 one := GeoRep[1][2];
 CC := BaseRing(Pi);
-SupPi := Transpose(Matrix(Rows(Transpose(2*Pi)) cat Rows(Transpose(PiWeCare*Matrix(CC, one + sqrt5)))));
+SupPi := Transpose(Matrix(Rows(Transpose(2*Pi)) cat Rows(Transpose(Pi*Matrix(CC, one + sqrt5)))));
 kernel, bool := IntegralRightKernel(SupPi);
 assert bool;
 S, P, Q := SmithForm(Matrix(Integers(), kernel));
