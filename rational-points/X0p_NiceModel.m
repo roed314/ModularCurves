@@ -5,7 +5,8 @@
 //N is N for which we want the model for X0(N)
 //divN is a divisor of N, used only for jMap, divN = 1 is allowed
 
-modformeqns:=function(B, N, prec, jMapProof)
+modformeqns:=function(Bminus, Bplus, N, prec, jMapProof)
+B := Bminus cat Bplus;
 dim:=#B;
 L<q>:=LaurentSeriesRing(Rationals(),prec);
 R<[x]>:=PolynomialRing(Rationals(),dim);
@@ -157,8 +158,8 @@ eqns:=[R | ];
 		return X, Cusps;
 	end if;
 
-	P1 := X!([1] cat [0 : i in [2..Dimension(AmbientSpace(X))]] cat [1]);
-	P2 := X!([-1] cat [0 : i in [2..Dimension(AmbientSpace(X))]] cat [1]);
+	P1 := X!([+1] cat [0 : i in [2..#Bminus]] cat [+1] cat [0 : i in [2..#Bplus]]);
+	P2 := X!([-1] cat [0 : i in [2..#Bminus]] cat [+1] cat [0 : i in [2..#Bplus]]);
 	Cusps := [P1, P2];
 
 	return X, Cusps;

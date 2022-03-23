@@ -5,7 +5,7 @@ load "Chabauty_MWSieve_new.m";
 load "auxiliary.m";
 SetDebugOnError(true);
 
-N := 91;
+N := 137;
 
 C := CuspForms(N);
 printf "Dimension of CuspForms(%o) is: %o\n", N, Dimension(C);
@@ -13,6 +13,8 @@ printf "Dimension of CuspForms(%o) is: %o\n", N, Dimension(C);
 //  Check rk J_0(N)(Q)  = rk J_0(N)^+(Q)
 if not IsRankOfALQuotEqual(N) then
 	error "One needs rk J_0(N)(Q)  = rk J_0(N)^+(Q) for our algorithm to work.";
+else
+	printf "rk J_0(N)(Q)  = rk J_0(N)^+(Q).\n";
 end if;
 
 //we find models for X_0(N) and X_0(N)/w_N
@@ -29,7 +31,7 @@ printf "Dimension of eigenspace lambda = -1 for w_%o is: %o\n", N, Dimension(NNc
 BN  := [&+[(Integers()!(2*Eltseq(Basis(NN )[i])[j]))*C.j : j in [1..Dimension(C)]] : i in [1..Dimension(NN)]];
 BNc := [&+[(Integers()!(2*Eltseq(Basis(NNc)[i])[j]))*C.j : j in [1..Dimension(C)]] : i in [1..Dimension(NNc)]];
 
-XN, XN_Cusps := modformeqns(BNc cat BN, N, 500, false);
+XN, XN_Cusps := modformeqns(BNc, BN, N, 500, false);
 printf "Nice model for X_0(%o) is: %o\n\n", N, XN;
 RR<[u]> := CoordinateRing(AmbientSpace(XN));
 n := Dimension(AmbientSpace(XN));

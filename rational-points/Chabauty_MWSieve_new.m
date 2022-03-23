@@ -64,11 +64,15 @@ ChabautyInfo := function(X, AtkinLehner, genusC, p, A, divs, Dpull, B, iA, W, de
 	//We try to eliminate z as described in the article.
 	//If we can't eliminate at least one z such that (1 - w)*z = x, we keep x.
 	printf "out of %o: ", #imW;
+	gensJFp := OrderedGenerators(JFp);
+	table := [Decomposition(phi(g)) : g in gensJFp];
 	for x in imW do
 		printf ".";
     		z := x@@mI;
-    		if &or[Dimension(phi(z + k) + Dpull_p) gt 0 and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
-			Append(~jposP, x);
+    		//if &or[Dimension(phi(z + k) + Dpull_p) gt 0 and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
+			if &or[Dimension(BetterPhi(z + k, gensJFp, table, JFp) + Dpull_p) gt 0
+					 and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
+				Append(~jposP, x);
     		end if;
 	end for;
 
