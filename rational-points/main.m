@@ -2,16 +2,20 @@ SetLogFile("main.log");
 load "Progs/quadPts.m";
 load "X0p_NiceModel.m";
 load "Chabauty_MWSieve_new.m";
+load "auxiliary.m";
 SetDebugOnError(true);
-
-//we find models for X_0(N) and X_0(N)/w_N
 
 N := 91;
 
 C := CuspForms(N);
 printf "Dimension of CuspForms(%o) is: %o\n", N, Dimension(C);
 
-// TODO: Check rk(J(Q)) = rk(J^{w_N}(Q))
+//  Check rk J_0(N)(Q)  = rk J_0(N)^+(Q)
+if not IsRankOfALQuotEqual(N) then
+	error "One needs rk J_0(N)(Q)  = rk J_0(N)^+(Q) for our algorithm to work.";
+end if;
+
+//we find models for X_0(N) and X_0(N)/w_N
 
 ALN := AtkinLehnerOperator(C, N);
 NN := Nullspace(Matrix(ALN - 1));
