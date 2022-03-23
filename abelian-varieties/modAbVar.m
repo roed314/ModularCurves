@@ -13,7 +13,7 @@ function GetCurve(N : prec := 80, ncoeffs := 10000)
         g := #Rows(Pi);
         P1 := Submatrix(Pi,1,1,g,g);
         P2 := Submatrix(Pi,1,g+1,g,g);
-        Pi = HorizontalJoin(P2,P1);
+        Pi := HorizontalJoin(P2,P1);
         _, pol := SomePrincipalPolarization(Pi); pol;
         print "Principal polarization found";
         E, F := FrobeniusFormAlternating(Matrix(Integers(), pol)); E,F;
