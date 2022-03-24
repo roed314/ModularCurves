@@ -39,7 +39,7 @@ The following is a complete list of the congruence subgroups of genus 0 up to co
 Cummin-Pauli name given. See http://www.uncg.edu/mat/faculty/pauli/congruence/congruence.html
 */
 
-load "Required Functions.m";
+load "Required functions.m";
 
 
 CPlist:=AssociativeArray();     
