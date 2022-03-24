@@ -2156,18 +2156,6 @@ procedure testBox(grps_by_name : Proof := false,
 
     for name in working_examples do
 	vprintf ModularCurves, 1 : "Working on group %o\n", name;
-	/*
-	genus := grps_by_name[name]`genus;
-	PG := createPSL2(grps_by_name[name]);
-	prec, max_deg := precisionForCurve(PG : Proof := Proof);
-	fs := qExpansionBasisPSL2(name, grps_by_name : Precision := prec,
-						       Normalizers := Normalizers);
-	X<[x]>, fs := getCurveFromForms(fs, prec, max_deg, genus);
-	vprintf ModularCurves, 1 : "Canonical curve is %o\n", X;
-	if WriteFiles then
-	    write_qexps(name, fs, X);
-	end if;
-       */
 	testBoxSingle(grps_by_name, name : Proof := Proof,
 					   Normalizers := Normalizers,
 					   WriteFile := WriteFiles);
