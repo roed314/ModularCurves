@@ -1,5 +1,6 @@
 // Data from Ozman-Siksek-2019 : "QUADRATIC POINTS ON MODULAR CURVES"
 // This contains all non-cuspidal non-rational quadratic points, upto Galois conjugacy.
+// For the j-inv the labeling of LMFDB is used 
 // Curve label | genus | field of defn of point | j-invariant | Q(j) | CM | Discriminant of the CM order | Quotient information
 'X0(34)' | 3 | '2.0.4.1'  | [287496] | '1.1.1.1' | 'Yes' | -16 | [17]
 'X0(34)' | 3 | '2.0.4.1'  | [1728]   | '1.1.1.1' | 'Yes' | -4 | [17]
