@@ -1,5 +1,6 @@
 
 function NormalizedPeriods(A : ncoeffs:=10000, prec:=80)
+        SetDefaultRealFieldPrecision(prec + 10);
         C:=ComplexFieldExtra(prec);
         P := Matrix(Periods(A, ncoeffs)); // no control over precision really, instead use Eran's code
         P := Transpose(ChangeRing(P, C));
@@ -38,7 +39,7 @@ function GetCurve(N : prec := 80, ncoeffs := 10000)
 end function;
 
 //AttachSpec("~/projects/CHIMP/CHIMP.spec")
-function GetPeriodMatrices(N : prec := 80, ncoeffs := 10000)
+function GetPeriodMatrices(N : prec := 100, ncoeffs := 10000)
     SetDefaultRealFieldPrecision(prec + 10);
     C:=ComplexFieldExtra(prec);
     Q:=RationalsExtra(prec);
