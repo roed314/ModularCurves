@@ -2186,7 +2186,7 @@ function qExpansionBasisBox(A, prec : M_val := 0)
     assert A eq CuspidalSubspace(AmbientSpace(A));
     G := ImageInLevelGL(LevelSubgroup(A));
     // what about the character?
-    fs := BoxMethod(G, prec : Chars := [DirichletCharacter(A)], M := M_val);
+    fs := BoxMethod(G, prec : Chars := [DirichletCharacter(A)], M := M_val, wt := Weight(A));
     if IsEmpty(fs) then return fs; end if;
     K := BaseRing(Universe(fs));
     _<q> := PowerSeriesRing(K);
