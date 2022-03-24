@@ -2,6 +2,7 @@ SetLogFile("main.log");
 load "X0p_NiceModel.m";
 load "auxiliary.m";
 load "Chabauty_MWSieve_new.m";
+load "Chabauty_MWSieve_PrimeSelector.m";
 load "Saturation.m";
 SetDebugOnError(true);
 
@@ -92,7 +93,7 @@ genusC := Dimension(NN);
 bp := deg2pb[1];
 wNMatrix := Matrix(wN);
 
-primes := [3, 5, 7, 11]; // TODO: find suitable primes
+primes := PrimesInInterval(3,50); // TODO: find suitable primes
 B0, iA0 := sub<A | Generators(A)>;
 W0 := {0*A.1};
 

@@ -81,6 +81,31 @@ ChabautyInfo := function(X, AtkinLehner, genusC, p, A, divs, Dpull, B, iA, W, de
 	return W, B, iA; 
 end function;
 
+PrimeSelector:=function(B,iA,primes,exclprimes,jacs,divlist,X)
+    ratios:=[];
+    remprimes:=[j : j in [1..#primes] | not primes[j] in exclprimes]; 
+    //Indices of remaining primes
+
+    for i in remprimes do //We first rebuild the mod p divisors from their sequences.
+        p:=primes[i];
+        Ji:=jacs[i];
+        divspseq:=[divlist[j][i] : j in [1..#divlist]];
+        divsp:=[];
+        for k in [1..#divlist] do
+            ik:=Maximum([j : j in [1..100] | not divspseq[k][j] eq 0]);
+            Dkp:=&+[divspseq[k][j]*Ji.j : j in [1..ik]];
+            Append(~divsp,Dkp);
+        end for;
+        h:=hom<Codomain(iA) -> Ji | divsp>; //This is the reduction map A->J(X)(\Fp). 
+        phi:=iA*h;
+        ppts:=Points(ChangeRing(X,GF(p^2))); //Replace p^2 by p^d when sieving for degree d pts. In particular take d=1 for rational points.
+        Append(~ratios,Rationals()!(Index(Domain(phi),Kernel(phi))*(#ppts/#Ji)));
+        // Each step in the sieve, the size of W gets multiplied by approximately
+        // [B : B \cap Bp]*#Wp/[A : Bp]. We approximate #Wp/[A:Bp] by #X(\F_{p^d})/#Ji.
+    end for;
+    m,k:=Min(ratios); //We select the prime that minimizes this ratio.
+    return remprimes[k]; //and return its index in the set primes.
+end function;
 
 // INPUT:
 // model 'X' for projective curve X/\Q;
@@ -100,9 +125,41 @@ MWSieve := function(X, AtkinLehner, genusC, primes, A, divs, Dpull, B0, iA0, W0,
 	// Together, B+W \subset A consists of the possible images of unknown (rational)
 	// points in A. The map X^(2)(\Q) \to A is composition of X^(2)(\Q) \to J(X)(\Q) and
 	// multiplication by (1-Atkinlehner) such that (1-Atkinlehner)*J(X)(\Q) \subset A.
-	
-	for i -> p in primes do
-		printf "p = %o (%o/%o): ", p, i, #primes;
+
+	// We first compute the information we will need at every prime, to avoid double work.
+	// This info is needed in the PrimeSelector function.
+	jacs:=[]; // This will be a list of J(X)(\F_p) for p in primes.
+	divlist:=[[]: i in [1..#divs]]; // divlist[i] is a list of the divisors reduce(X,Xp,div[i]).
+    for p in primes do
+        try
+            p;
+            Fp:=GF(p);
+            Xpp:=ChangeRing(X,Fp);
+            CGp,phi,psi:=ClassGroup(Xpp);
+            /*Z:=FreeAbelianGroup(1);
+            degr:=hom<CGp->Z | [ Degree(phi(a))*Z.1 : a in OrderedGenerators(CGp)]>;
+            JFp:=Kernel(degr); // This is isomorphic to J_X(\F_p).*/
+			JFp := TorsionSubgroup(GGp);
+        catch e;
+            Exclude(~primes,p);
+            continue;
+        end try;
+		Append(~jacs,JFp); 
+		for i in [1..#divs] do
+			Dip:=JFp!psi(reduce(X,Xpp,divs[i])); 
+			Dipseq:=Eltseq(Dip);
+			Dipseq:=Dipseq cat [0*i : i in [1..(100-#Dipseq)]]; //We convert divisors into a sequence of length 100 in order to save them in a list
+			Append(~divlist[i],Dipseq);
+		end for;
+	end for;
+
+	exclprimes:=[]; // The set of primes we have considered.
+
+	while not Seqset(exclprimes) eq Seqset(primes) do
+		ind:=PrimeSelector(B,iA,primes,exclprimes,jacs,divlist,X); 
+		p:=primes[ind]; // We select the next prime.
+		Append(~exclprimes,p);
+		printf "p = %o (%o/%o): ", p, #exclprimes, #primes;
 		W, B, iA := ChabautyInfo(X, AtkinLehner, genusC, p, A, divs, Dpull, B, iA, W, deg2);
 
 		// We get B<=A and W a set of B-coset representatives such that
@@ -118,8 +175,7 @@ MWSieve := function(X, AtkinLehner, genusC, primes, A, divs, Dpull, B0, iA0, W0,
 		if #W eq 1 and IsIdentity(W[1]) then
 			return B, iA, W;
 		end if;
-
-
-	end for;
+	end while;
 	return B, iA, W;
 end function;
+
