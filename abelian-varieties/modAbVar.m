@@ -1,3 +1,16 @@
+
+function NormalizedPeriods(A : ncoeffs:=10000, prec:=80)
+        C:=ComplexFieldExtra(prec);
+        P := Matrix(Periods(A, ncoeffs)); // no control over precision really, instead use Eran's code
+        P := Transpose(ChangeRing(P, C));
+        g := #Rows(P);
+        P1 := Submatrix(P,1,1,g,g);
+        P2 := Submatrix(P,1,g+1,g,g);
+        P := HorizontalJoin(P2,P1);
+        return P;
+end function;
+
+
 function GetCurve(N : prec := 80, ncoeffs := 10000)
     SetDefaultRealFieldPrecision(prec + 10);
     C:=ComplexFieldExtra(prec);
