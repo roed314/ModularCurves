@@ -1,6 +1,6 @@
 // Data from Bruin-Najman 2019, "Hyperelliptic modular curves X0(N) and isogenies of elliptic curves over quadratic fields"
 // This includes only non-cuspidal rational or (conjugacy classes of) sporadic quadratic points
-Curve label | genus | field of defn of point | j-invariant | Q(j) | CM | Discriminant of the CM order | Quotient information
+// Curve label | genus | field of defn of point | j-invariant | Q(j) | CM | Discriminant of the CM order | Quotient information
 '22.36.2.1' | 2 | '2.0.7.1' | [1083/2, 89/4] | '2.0.7.1' | 'No' | 0 | []
 '22.36.2.1' | 2 | '2.0.7.1' | [-2972535935/2097152, -3965857499/4194304] | '2.0.7.1' | 'No' | 0 | []
 '22.36.2.1' | 2 | '2.0.7.1' | [4634, -267/2] | '2.0.7.1' | 'No' | 0 | []
