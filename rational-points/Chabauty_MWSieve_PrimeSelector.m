@@ -69,9 +69,9 @@ ChabautyInfo := function(X, AtkinLehner, genusC, p, A, divs, Dpull, B, iA, W, de
 	for x in imW do
 		printf ".";
     		z := x@@mI;
-    		//if &or[Dimension(phi(z + k) + Dpull_p) gt 0 and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
-			if &or[Dimension(BetterPhi(z + k, gensJFp, table, JFp) + Dpull_p) gt 0
-					 and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
+    		if &or[Dimension(phi(z + k) + Dpull_p) gt 0 and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
+			//if &or[Dimension(BetterPhi(z + k, gensJFp, table, JFp) + Dpull_p) gt 0
+					 //and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
 				Append(~jposP, x);
     		end if;
 	end for;
