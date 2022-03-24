@@ -28,6 +28,8 @@ CongSubgroup := recformat<N:RngIntElt, label:MonStgElt, gens:SeqEnum, index:RngI
 Warning(1) : Except 6J \subset 6A every other subgroup listed is normal and 6J is a subgroup of 6A upto conjugation.
 
 Warning(2) : 11A,14A,15A,21A have no genus 0 congruence subgroup.
+Warning(3) : The hauptmodul for 11A is not computed in this file. It can be computed if needed, but for our applications it is not necessary 
+	     as there is no genus 0 subgroup G such that G \intersect SL_2(Z) is conjugate to 11A. 
 */
    
 
