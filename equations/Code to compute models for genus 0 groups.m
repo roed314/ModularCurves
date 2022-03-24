@@ -63,7 +63,7 @@ Q := ChangeRing(Q,Rationals());  // Q is our conic.
 
 boolean,_:=HasRationalPoint(Q); 
             if boolean eq false then return Q; end if;
-            if boolean eq true 
+            if boolean eq true then
                 B := (Transpose(ParametrizationMatrix(Q)))^(-1); //Transpose to make it left action 
                 
                 C := (m2(B*Amatrix,L))^(-1); 
