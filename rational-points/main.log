@@ -2569,3 +2569,756 @@ p = 3 (1/4): out of 56: .....
 [Interrupted]
 
 Total time: 239.119 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "auxiliary.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Chabauty_MWSieve_PrimeSelector.m"
+Loading "ChabautyHelp.m"
+
+In file "Chabauty_MWSieve_PrimeSelector.m", line 180, column 13:
+>>         end for;
+               ^
+User error: bad syntax
+
+Total time: 0.660 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "auxiliary.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Chabauty_MWSieve_PrimeSelector.m"
+Loading "ChabautyHelp.m"
+Loading "Saturation.m"
+Dimension of CuspForms(43) is: 3
+rk J_0(N)(Q) = rk J_0(N)^+(Q).
+Dimension of eigenspace lambda = +1 for w_43 is: 1
+Dimension of eigenspace lambda = -1 for w_43 is: 2
+Nice model for X_0(43) is: Curve over Rational Field defined by
+x[1]^4 - 8/3*x[1]^3*x[2] - 16/3*x[1]^2*x[2]^2 - 2/3*x[1]^2*x[3]^2 - 
+16*x[1]*x[2]^3 - 8/3*x[1]*x[2]*x[3]^2 - 64/3*x[2]^4 - 16/3*x[2]^2*x[3]^2 - 
+1/3*x[3]^4
+
+w_43 on X43 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+-u[3]
+and inverse
+u[1]
+u[2]
+-u[3]
+Genus of X_0(43) is 3
+Genus of X_0(43)/w_43 is 1
+We have found these points on X_0(43):
+[ (1 : 0 : 1), (-1 : 0 : 1) ]
+rk J_0(N)^+(Q) = 1
+3 divides the index: false
+We have found 3 points on X_0(43)^2(Q).
+1 of them are pullbacks of rationals from X_0(43)/w_43.
+Curve over GF(5) defined by
+$.1^4 + 4*$.1^3*$.2 + 3*$.1^2*$.2^2 + $.1^2*$.3^2 + 4*$.1*$.2^3 + 
+    4*$.1*$.2*$.3^2 + 2*$.2^4 + 3*$.2^2*$.3^2 + 3*$.3^4
+Curve over GF(7) defined by
+$.1^4 + 2*$.1^3*$.2 + 4*$.1^2*$.2^2 + 4*$.1^2*$.3^2 + 5*$.1*$.2^3 + 
+    2*$.1*$.2*$.3^2 + 2*$.2^4 + 4*$.2^2*$.3^2 + 2*$.3^4
+Curve over GF(11) defined by
+$.1^4 + $.1^3*$.2 + 2*$.1^2*$.2^2 + 3*$.1^2*$.3^2 + 6*$.1*$.2^3 + $.1*$.2*$.3^2 
+    + 8*$.2^4 + 2*$.2^2*$.3^2 + 7*$.3^4
+5
+7
+11
+p = 7 (1/3): out of 7: .......The number of possible cosets unknown points can land in is 7.
+p = 11 (2/3): out of 7: .......The number of possible cosets unknown points can land in is 5.
+p = 5 (3/3): out of 5: .....The number of possible cosets unknown points can land in is 5.
+
+For unknown Q in X_0(43)^2(Q) we have (1 - w_43)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0,
+A.1,
+2*A.1,
+5*A.1,
+6*A.1
+].
+Runtime error: TODO: Sieve did not prove what we wanted.
+
+Total time: 6.129 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "auxiliary.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Chabauty_MWSieve_PrimeSelector.m"
+Loading "ChabautyHelp.m"
+Loading "Saturation.m"
+Dimension of CuspForms(43) is: 3
+rk J_0(N)(Q) = rk J_0(N)^+(Q).
+Dimension of eigenspace lambda = +1 for w_43 is: 1
+Dimension of eigenspace lambda = -1 for w_43 is: 2
+Nice model for X_0(43) is: Curve over Rational Field defined by
+x[1]^4 - 8/3*x[1]^3*x[2] - 16/3*x[1]^2*x[2]^2 - 2/3*x[1]^2*x[3]^2 - 
+16*x[1]*x[2]^3 - 8/3*x[1]*x[2]*x[3]^2 - 64/3*x[2]^4 - 16/3*x[2]^2*x[3]^2 - 
+1/3*x[3]^4
+
+w_43 on X43 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+-u[3]
+and inverse
+u[1]
+u[2]
+-u[3]
+Genus of X_0(43) is 3
+Genus of X_0(43)/w_43 is 1
+We have found these points on X_0(43):
+[ (1 : 0 : 1), (-1 : 0 : 1) ]
+rk J_0(N)^+(Q) = 1
+3 divides the index: false
+We have found 3 points on X_0(43)^2(Q).
+1 of them are pullbacks of rationals from X_0(43)/w_43.
+Curve over GF(2) defined by
+$.1^4 + $.3^4
+Curve over GF(5) defined by
+$.1^4 + 4*$.1^3*$.2 + 3*$.1^2*$.2^2 + $.1^2*$.3^2 + 4*$.1*$.2^3 + 
+    4*$.1*$.2*$.3^2 + 2*$.2^4 + 3*$.2^2*$.3^2 + 3*$.3^4
+Curve over GF(7) defined by
+$.1^4 + 2*$.1^3*$.2 + 4*$.1^2*$.2^2 + 4*$.1^2*$.3^2 + 5*$.1*$.2^3 + 
+    2*$.1*$.2*$.3^2 + 2*$.2^4 + 4*$.2^2*$.3^2 + 2*$.3^4
+Curve over GF(11) defined by
+$.1^4 + $.1^3*$.2 + 2*$.1^2*$.2^2 + 3*$.1^2*$.3^2 + 6*$.1*$.2^3 + $.1*$.2*$.3^2 
+    + 8*$.2^4 + 2*$.2^2*$.3^2 + 7*$.3^4
+Curve over GF(13) defined by
+$.1^4 + 6*$.1^3*$.2 + 12*$.1^2*$.2^2 + 8*$.1^2*$.3^2 + 10*$.1*$.2^3 + 
+    6*$.1*$.2*$.3^2 + 9*$.2^4 + 12*$.2^2*$.3^2 + 4*$.3^4
+Curve over GF(17) defined by
+$.1^4 + 3*$.1^3*$.2 + 6*$.1^2*$.2^2 + 5*$.1^2*$.3^2 + $.1*$.2^3 + 
+    3*$.1*$.2*$.3^2 + 7*$.2^4 + 6*$.2^2*$.3^2 + 11*$.3^4
+Curve over GF(19) defined by
+$.1^4 + 10*$.1^3*$.2 + $.1^2*$.2^2 + 12*$.1^2*$.3^2 + 3*$.1*$.2^3 + 
+    10*$.1*$.2*$.3^2 + 4*$.2^4 + $.2^2*$.3^2 + 6*$.3^4
+Curve over GF(23) defined by
+$.1^4 + 5*$.1^3*$.2 + 10*$.1^2*$.2^2 + 7*$.1^2*$.3^2 + 7*$.1*$.2^3 + 
+    5*$.1*$.2*$.3^2 + 17*$.2^4 + 10*$.2^2*$.3^2 + 15*$.3^4
+Curve over GF(29) defined by
+$.1^4 + 7*$.1^3*$.2 + 14*$.1^2*$.2^2 + 9*$.1^2*$.3^2 + 13*$.1*$.2^3 + 
+    7*$.1*$.2*$.3^2 + 27*$.2^4 + 14*$.2^2*$.3^2 + 19*$.3^4
+Curve over GF(31) defined by
+$.1^4 + 18*$.1^3*$.2 + 5*$.1^2*$.2^2 + 20*$.1^2*$.3^2 + 15*$.1*$.2^3 + 
+    18*$.1*$.2*$.3^2 + 20*$.2^4 + 5*$.2^2*$.3^2 + 10*$.3^4
+Curve over GF(37) defined by
+$.1^4 + 22*$.1^3*$.2 + 7*$.1^2*$.2^2 + 24*$.1^2*$.3^2 + 21*$.1*$.2^3 + 
+    22*$.1*$.2*$.3^2 + 28*$.2^4 + 7*$.2^2*$.3^2 + 12*$.3^4
+Curve over GF(41) defined by
+$.1^4 + 11*$.1^3*$.2 + 22*$.1^2*$.2^2 + 13*$.1^2*$.3^2 + 25*$.1*$.2^3 + 
+    11*$.1*$.2*$.3^2 + 6*$.2^4 + 22*$.2^2*$.3^2 + 27*$.3^4
+Curve over GF(43) defined by
+$.1^4 + 26*$.1^3*$.2 + 9*$.1^2*$.2^2 + 28*$.1^2*$.3^2 + 27*$.1*$.2^3 + 
+    26*$.1*$.2*$.3^2 + 36*$.2^4 + 9*$.2^2*$.3^2 + 14*$.3^4
+Curve over GF(47) defined by
+$.1^4 + 13*$.1^3*$.2 + 26*$.1^2*$.2^2 + 15*$.1^2*$.3^2 + 31*$.1*$.2^3 + 
+    13*$.1*$.2*$.3^2 + 10*$.2^4 + 26*$.2^2*$.3^2 + 31*$.3^4
+2
+
+MWSieve(
+    X: Curve over Rational Field defined by u[1]^4 - 8/3*u[1]^3*u[2...,
+    AtkinLehner: [ 1  0  0] [ 0  1  0] [ 0  0 -1],
+    genusC: 1,
+    primes: [ 2, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47 ],
+    A: Abelian Group isomorphic to Z/7 Defined on 1 generator Relat...,
+    divs: [ Divisor on Curve over Rational Field defined by u[1]^4 - 8...,
+    Dpull: Divisor on Curve over Rational Field defined by u[1]^4 - 8/3...,
+    B0: Abelian Group isomorphic to Z/7 Defined on 1 generator Relat...,
+    iA0: Mapping from: Abelian Group isomorphic to Z/7 Defined on 1 g...,
+    W0: { 0 },
+    deg2: [ Divisor on Curve over Rational Field defined by u[1]^4 - 8...
+)
+ClassGroup(
+    C: C
+)
+In file "/usr/local/magma/package/Geometry/Crv/class_group.m", line 11, column 
+23:
+>>     F := FunctionField(C);
+                         ^
+Runtime error in 'FunctionField': Scheme must be defined by an irreducible 
+polynomial
+
+
+Total time: 1.290 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "auxiliary.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Chabauty_MWSieve_PrimeSelector.m"
+Loading "ChabautyHelp.m"
+Loading "Saturation.m"
+Dimension of CuspForms(43) is: 3
+rk J_0(N)(Q) = rk J_0(N)^+(Q).
+Dimension of eigenspace lambda = +1 for w_43 is: 1
+Dimension of eigenspace lambda = -1 for w_43 is: 2
+Nice model for X_0(43) is: Curve over Rational Field defined by
+x[1]^4 - 8/3*x[1]^3*x[2] - 16/3*x[1]^2*x[2]^2 - 2/3*x[1]^2*x[3]^2 - 
+16*x[1]*x[2]^3 - 8/3*x[1]*x[2]*x[3]^2 - 64/3*x[2]^4 - 16/3*x[2]^2*x[3]^2 - 
+1/3*x[3]^4
+
+w_43 on X43 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+-u[3]
+and inverse
+u[1]
+u[2]
+-u[3]
+Genus of X_0(43) is 3
+Genus of X_0(43)/w_43 is 1
+We have found these points on X_0(43):
+[ (1 : 0 : 1), (-1 : 0 : 1) ]
+rk J_0(N)^+(Q) = 1
+3 divides the index: false
+We have found 3 points on X_0(43)^2(Q).
+1 of them are pullbacks of rationals from X_0(43)/w_43.
+Curve over GF(2) defined by
+$.1^4 + $.3^4
+Curve over GF(5) defined by
+$.1^4 + 4*$.1^3*$.2 + 3*$.1^2*$.2^2 + $.1^2*$.3^2 + 4*$.1*$.2^3 + 
+    4*$.1*$.2*$.3^2 + 2*$.2^4 + 3*$.2^2*$.3^2 + 3*$.3^4
+Curve over GF(7) defined by
+$.1^4 + 2*$.1^3*$.2 + 4*$.1^2*$.2^2 + 4*$.1^2*$.3^2 + 5*$.1*$.2^3 + 
+    2*$.1*$.2*$.3^2 + 2*$.2^4 + 4*$.2^2*$.3^2 + 2*$.3^4
+Curve over GF(11) defined by
+$.1^4 + $.1^3*$.2 + 2*$.1^2*$.2^2 + 3*$.1^2*$.3^2 + 6*$.1*$.2^3 + $.1*$.2*$.3^2 
+    + 8*$.2^4 + 2*$.2^2*$.3^2 + 7*$.3^4
+Curve over GF(13) defined by
+$.1^4 + 6*$.1^3*$.2 + 12*$.1^2*$.2^2 + 8*$.1^2*$.3^2 + 10*$.1*$.2^3 + 
+    6*$.1*$.2*$.3^2 + 9*$.2^4 + 12*$.2^2*$.3^2 + 4*$.3^4
+Curve over GF(17) defined by
+$.1^4 + 3*$.1^3*$.2 + 6*$.1^2*$.2^2 + 5*$.1^2*$.3^2 + $.1*$.2^3 + 
+    3*$.1*$.2*$.3^2 + 7*$.2^4 + 6*$.2^2*$.3^2 + 11*$.3^4
+Curve over GF(19) defined by
+$.1^4 + 10*$.1^3*$.2 + $.1^2*$.2^2 + 12*$.1^2*$.3^2 + 3*$.1*$.2^3 + 
+    10*$.1*$.2*$.3^2 + 4*$.2^4 + $.2^2*$.3^2 + 6*$.3^4
+Curve over GF(23) defined by
+$.1^4 + 5*$.1^3*$.2 + 10*$.1^2*$.2^2 + 7*$.1^2*$.3^2 + 7*$.1*$.2^3 + 
+    5*$.1*$.2*$.3^2 + 17*$.2^4 + 10*$.2^2*$.3^2 + 15*$.3^4
+Curve over GF(29) defined by
+$.1^4 + 7*$.1^3*$.2 + 14*$.1^2*$.2^2 + 9*$.1^2*$.3^2 + 13*$.1*$.2^3 + 
+    7*$.1*$.2*$.3^2 + 27*$.2^4 + 14*$.2^2*$.3^2 + 19*$.3^4
+2
+
+MWSieve(
+    X: Curve over Rational Field defined by u[1]^4 - 8/3*u[1]^3*u[2...,
+    AtkinLehner: [ 1  0  0] [ 0  1  0] [ 0  0 -1],
+    genusC: 1,
+    primes: [ 2, 5, 7, 11, 13, 17, 19, 23, 29 ],
+    A: Abelian Group isomorphic to Z/7 Defined on 1 generator Relat...,
+    divs: [ Divisor on Curve over Rational Field defined by u[1]^4 - 8...,
+    Dpull: Divisor on Curve over Rational Field defined by u[1]^4 - 8/3...,
+    B0: Abelian Group isomorphic to Z/7 Defined on 1 generator Relat...,
+    iA0: Mapping from: Abelian Group isomorphic to Z/7 Defined on 1 g...,
+    W0: { 0 },
+    deg2: [ Divisor on Curve over Rational Field defined by u[1]^4 - 8...
+)
+ClassGroup(
+    C: C
+)
+In file "/usr/local/magma/package/Geometry/Crv/class_group.m", line 11, column 
+23:
+>>     F := FunctionField(C);
+                         ^
+Runtime error in 'FunctionField': Scheme must be defined by an irreducible 
+polynomial
+
+> PrimesInInterval(3,30);
+[ 3, 5, 7, 11, 13, 17, 19, 23, 29 ]
+
+Total time: 1.280 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "auxiliary.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Chabauty_MWSieve_PrimeSelector.m"
+Loading "ChabautyHelp.m"
+Loading "Saturation.m"
+Dimension of CuspForms(43) is: 3
+rk J_0(N)(Q) = rk J_0(N)^+(Q).
+Dimension of eigenspace lambda = +1 for w_43 is: 1
+Dimension of eigenspace lambda = -1 for w_43 is: 2
+Nice model for X_0(43) is: Curve over Rational Field defined by
+x[1]^4 - 8/3*x[1]^3*x[2] - 16/3*x[1]^2*x[2]^2 - 2/3*x[1]^2*x[3]^2 - 
+16*x[1]*x[2]^3 - 8/3*x[1]*x[2]*x[3]^2 - 64/3*x[2]^4 - 16/3*x[2]^2*x[3]^2 - 
+1/3*x[3]^4
+
+w_43 on X43 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+-u[3]
+and inverse
+u[1]
+u[2]
+-u[3]
+Genus of X_0(43) is 3
+Genus of X_0(43)/w_43 is 1
+We have found these points on X_0(43):
+[ (1 : 0 : 1), (-1 : 0 : 1) ]
+rk J_0(N)^+(Q) = 1
+3 divides the index: false
+We have found 3 points on X_0(43)^2(Q).
+1 of them are pullbacks of rationals from X_0(43)/w_43.
+Curve over GF(5) defined by
+$.1^4 + 4*$.1^3*$.2 + 3*$.1^2*$.2^2 + $.1^2*$.3^2 + 4*$.1*$.2^3 + 
+    4*$.1*$.2*$.3^2 + 2*$.2^4 + 3*$.2^2*$.3^2 + 3*$.3^4
+Curve over GF(7) defined by
+$.1^4 + 2*$.1^3*$.2 + 4*$.1^2*$.2^2 + 4*$.1^2*$.3^2 + 5*$.1*$.2^3 + 
+    2*$.1*$.2*$.3^2 + 2*$.2^4 + 4*$.2^2*$.3^2 + 2*$.3^4
+Curve over GF(11) defined by
+$.1^4 + $.1^3*$.2 + 2*$.1^2*$.2^2 + 3*$.1^2*$.3^2 + 6*$.1*$.2^3 + $.1*$.2*$.3^2 
+    + 8*$.2^4 + 2*$.2^2*$.3^2 + 7*$.3^4
+Curve over GF(13) defined by
+$.1^4 + 6*$.1^3*$.2 + 12*$.1^2*$.2^2 + 8*$.1^2*$.3^2 + 10*$.1*$.2^3 + 
+    6*$.1*$.2*$.3^2 + 9*$.2^4 + 12*$.2^2*$.3^2 + 4*$.3^4
+Curve over GF(17) defined by
+$.1^4 + 3*$.1^3*$.2 + 6*$.1^2*$.2^2 + 5*$.1^2*$.3^2 + $.1*$.2^3 + 
+    3*$.1*$.2*$.3^2 + 7*$.2^4 + 6*$.2^2*$.3^2 + 11*$.3^4
+Curve over GF(19) defined by
+$.1^4 + 10*$.1^3*$.2 + $.1^2*$.2^2 + 12*$.1^2*$.3^2 + 3*$.1*$.2^3 + 
+    10*$.1*$.2*$.3^2 + 4*$.2^4 + $.2^2*$.3^2 + 6*$.3^4
+Curve over GF(23) defined by
+$.1^4 + 5*$.1^3*$.2 + 10*$.1^2*$.2^2 + 7*$.1^2*$.3^2 + 7*$.1*$.2^3 + 
+    5*$.1*$.2*$.3^2 + 17*$.2^4 + 10*$.2^2*$.3^2 + 15*$.3^4
+Curve over GF(29) defined by
+$.1^4 + 7*$.1^3*$.2 + 14*$.1^2*$.2^2 + 9*$.1^2*$.3^2 + 13*$.1*$.2^3 + 
+    7*$.1*$.2*$.3^2 + 27*$.2^4 + 14*$.2^2*$.3^2 + 19*$.3^4
+5
+7
+11
+13
+17
+19
+23
+29
+p = 29 (1/8): out of 7: .......The number of possible cosets unknown points can land in is 7.
+p = 19 (2/8): out of 7: .......The number of possible cosets unknown points can land in is 7.
+p = 23 (3/8): out of 7: .......The number of possible cosets unknown points can land in is 5.
+p = 13 (4/8): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 17 (5/8): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 7 (6/8): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 11 (7/8): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 5 (8/8): out of 5: .....The number of possible cosets unknown points can land in is 5.
+
+For unknown Q in X_0(43)^2(Q) we have (1 - w_43)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0,
+A.1,
+2*A.1,
+5*A.1,
+6*A.1
+].
+Runtime error: TODO: Sieve did not prove what we wanted.
+
+Total time: 28.880 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "auxiliary.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Chabauty_MWSieve_PrimeSelector.m"
+Loading "ChabautyHelp.m"
+Loading "Saturation.m"
+Dimension of CuspForms(43) is: 3
+rk J_0(N)(Q) = rk J_0(N)^+(Q).
+Dimension of eigenspace lambda = +1 for w_43 is: 1
+Dimension of eigenspace lambda = -1 for w_43 is: 2
+Nice model for X_0(43) is: Curve over Rational Field defined by
+x[1]^4 - 8/3*x[1]^3*x[2] - 16/3*x[1]^2*x[2]^2 - 2/3*x[1]^2*x[3]^2 - 
+16*x[1]*x[2]^3 - 8/3*x[1]*x[2]*x[3]^2 - 64/3*x[2]^4 - 16/3*x[2]^2*x[3]^2 - 
+1/3*x[3]^4
+
+w_43 on X43 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+-u[3]
+and inverse
+u[1]
+u[2]
+-u[3]
+Genus of X_0(43) is 3
+Genus of X_0(43)/w_43 is 1
+We have found these points on X_0(43):
+[ (1 : 0 : 1), (-1 : 0 : 1) ]
+rk J_0(N)^+(Q) = 1
+3 divides the index: false
+We have found 3 points on X_0(43)^2(Q).
+1 of them are pullbacks of rationals from X_0(43)/w_43.
+Curve over GF(5) defined by
+$.1^4 + 4*$.1^3*$.2 + 3*$.1^2*$.2^2 + $.1^2*$.3^2 + 4*$.1*$.2^3 + 
+    4*$.1*$.2*$.3^2 + 2*$.2^4 + 3*$.2^2*$.3^2 + 3*$.3^4
+Curve over GF(7) defined by
+$.1^4 + 2*$.1^3*$.2 + 4*$.1^2*$.2^2 + 4*$.1^2*$.3^2 + 5*$.1*$.2^3 + 
+    2*$.1*$.2*$.3^2 + 2*$.2^4 + 4*$.2^2*$.3^2 + 2*$.3^4
+Curve over GF(11) defined by
+$.1^4 + $.1^3*$.2 + 2*$.1^2*$.2^2 + 3*$.1^2*$.3^2 + 6*$.1*$.2^3 + $.1*$.2*$.3^2 
+    + 8*$.2^4 + 2*$.2^2*$.3^2 + 7*$.3^4
+Curve over GF(13) defined by
+$.1^4 + 6*$.1^3*$.2 + 12*$.1^2*$.2^2 + 8*$.1^2*$.3^2 + 10*$.1*$.2^3 + 
+    6*$.1*$.2*$.3^2 + 9*$.2^4 + 12*$.2^2*$.3^2 + 4*$.3^4
+Curve over GF(17) defined by
+$.1^4 + 3*$.1^3*$.2 + 6*$.1^2*$.2^2 + 5*$.1^2*$.3^2 + $.1*$.2^3 + 
+    3*$.1*$.2*$.3^2 + 7*$.2^4 + 6*$.2^2*$.3^2 + 11*$.3^4
+Curve over GF(19) defined by
+$.1^4 + 10*$.1^3*$.2 + $.1^2*$.2^2 + 12*$.1^2*$.3^2 + 3*$.1*$.2^3 + 
+    10*$.1*$.2*$.3^2 + 4*$.2^4 + $.2^2*$.3^2 + 6*$.3^4
+Curve over GF(23) defined by
+$.1^4 + 5*$.1^3*$.2 + 10*$.1^2*$.2^2 + 7*$.1^2*$.3^2 + 7*$.1*$.2^3 + 
+    5*$.1*$.2*$.3^2 + 17*$.2^4 + 10*$.2^2*$.3^2 + 15*$.3^4
+Curve over GF(29) defined by
+$.1^4 + 7*$.1^3*$.2 + 14*$.1^2*$.2^2 + 9*$.1^2*$.3^2 + 13*$.1*$.2^3 + 
+    7*$.1*$.2*$.3^2 + 27*$.2^4 + 14*$.2^2*$.3^2 + 19*$.3^4
+Curve over GF(31) defined by
+$.1^4 + 18*$.1^3*$.2 + 5*$.1^2*$.2^2 + 20*$.1^2*$.3^2 + 15*$.1*$.2^3 + 
+    18*$.1*$.2*$.3^2 + 20*$.2^4 + 5*$.2^2*$.3^2 + 10*$.3^4
+Curve over GF(37) defined by
+$.1^4 + 22*$.1^3*$.2 + 7*$.1^2*$.2^2 + 24*$.1^2*$.3^2 + 21*$.1*$.2^3 + 
+    22*$.1*$.2*$.3^2 + 28*$.2^4 + 7*$.2^2*$.3^2 + 12*$.3^4
+Curve over GF(41) defined by
+$.1^4 + 11*$.1^3*$.2 + 22*$.1^2*$.2^2 + 13*$.1^2*$.3^2 + 25*$.1*$.2^3 + 
+    11*$.1*$.2*$.3^2 + 6*$.2^4 + 22*$.2^2*$.3^2 + 27*$.3^4
+Curve over GF(43) defined by
+$.1^4 + 26*$.1^3*$.2 + 9*$.1^2*$.2^2 + 28*$.1^2*$.3^2 + 27*$.1*$.2^3 + 
+    26*$.1*$.2*$.3^2 + 36*$.2^4 + 9*$.2^2*$.3^2 + 14*$.3^4
+Curve over GF(47) defined by
+$.1^4 + 13*$.1^3*$.2 + 26*$.1^2*$.2^2 + 15*$.1^2*$.3^2 + 31*$.1*$.2^3 + 
+    13*$.1*$.2*$.3^2 + 10*$.2^4 + 26*$.2^2*$.3^2 + 31*$.3^4
+5
+7
+11
+13
+17
+19
+23
+29
+31
+37
+41
+43
+
+MWSieve(
+    X: Curve over Rational Field defined by x[1]^4 - 8/3*x[1]^3*x[2...,
+    AtkinLehner: [ 1  0  0] [ 0  1  0] [ 0  0 -1],
+    genusC: 1,
+    primes: [ 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47 ],
+    A: Abelian Group isomorphic to Z/7 Defined on 1 generator Relat...,
+    divs: [ Divisor 1*Place at (1 : 0 : 1) - 1*Place at (-1 : 0 : 1) ],
+    Dpull: Divisor on Curve over Rational Field defined by x[1]^4 - 8/3...,
+    B0: Abelian Group isomorphic to Z/7 Defined on 1 generator Relat...,
+    iA0: Mapping from: Abelian Group isomorphic to Z/7 Defined on 1 g...,
+    W0: { 0 },
+    deg2: [ Divisor on Curve over Rational Field defined by x[1]^4 - 8...
+)
+ClassGroup(
+    C: C
+)
+In file "/usr/local/magma/package/Geometry/Crv/class_group.m", line 11, column 
+23:
+>>     F := FunctionField(C);
+                         ^
+Runtime error in 'FunctionField': Scheme must be defined by an irreducible 
+polynomial
+
+debug> X;
+Unknown command "X;"
+debug> XN;
+Unknown command "XN;"
+> XN;
+Curve over Rational Field defined by
+x[1]^4 - 8/3*x[1]^3*x[2] - 16/3*x[1]^2*x[2]^2 - 2/3*x[1]^2*x[3]^2 - 
+    16*x[1]*x[2]^3 - 8/3*x[1]*x[2]*x[3]^2 - 64/3*x[2]^4 - 16/3*x[2]^2*x[3]^2 - 
+    1/3*x[3]^4
+> p;
+
+>> p;
+   ^
+User error: Identifier 'p' has not been declared or assigned
+> p;
+
+>> p;
+   ^
+User error: Identifier 'p' has not been declared or assigned
+> p := 47;
+>               Fp:=GF(p);
+>               Xpp:=ChangeRing(X,Fp);
+
+>>                 Xpp:=ChangeRing(X,Fp);
+                                   ^
+User error: Identifier 'X' has not been declared or assigned
+>               CGp,phi,psi:=ClassGroup(Xpp);
+
+>>                 CGp,phi,psi:=ClassGroup(Xpp);
+                                           ^
+User error: Identifier 'Xpp' has not been declared or assigned
+>               Xpp:=ChangeRing(XN,Fp);
+> Xpp;
+Curve over GF(47) defined by
+$.1^4 + 13*$.1^3*$.2 + 26*$.1^2*$.2^2 + 15*$.1^2*$.3^2 + 31*$.1*$.2^3 + 
+    13*$.1*$.2*$.3^2 + 10*$.2^4 + 26*$.2^2*$.3^2 + 31*$.3^4
+>               CGp,phi,psi:=ClassGroup(Xpp);
+> #jacs;
+
+>> #jacs;
+    ^
+User error: Identifier 'jacs' has not been declared or assigned
+>               Z:=FreeAbelianGroup(1);
+>               degr:=hom<CGp->Z | [ Degree(phi(a))*Z.1 : a in OrderedGenerato\
+rs(CGp)]>;
+>               JFp:=Kernel(degr); // This is isomorphic to J_X(\F_p).
+> JFp;
+Abelian Group isomorphic to Z/84 + Z/924
+Defined on 2 generators in supergroup CGp:
+    JFp.1 = CGp.1
+    JFp.2 = CGp.2
+Relations:
+    84*JFp.1 = 0
+    924*JFp.2 = 0
+> 
+> 
+> p := 43;
+>               Fp:=GF(p);
+>               Xpp:=ChangeRing(XN,Fp);
+>               CGp,phi,psi:=ClassGroup(Xpp);
+
+ClassGroup(
+    C: C
+)
+In file "/usr/local/magma/package/Geometry/Crv/class_group.m", line 11, column 
+23:
+>>     F := FunctionField(C);
+                         ^
+Runtime error in 'FunctionField': Scheme must be defined by an irreducible 
+polynomial
+
+
+> Xpp;
+Curve over GF(43) defined by
+$.1^4 + 26*$.1^3*$.2 + 9*$.1^2*$.2^2 + 28*$.1^2*$.3^2 + 27*$.1*$.2^3 + 
+    26*$.1*$.2*$.3^2 + 36*$.2^4 + 9*$.2^2*$.3^2 + 14*$.3^4
+> IsIrreducible(DefiningPolynomial(Xpp));
+false
+
+Total time: 6.349 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "auxiliary.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Chabauty_MWSieve_PrimeSelector.m"
+Loading "ChabautyHelp.m"
+Loading "Saturation.m"
+Dimension of CuspForms(43) is: 3
+rk J_0(N)(Q) = rk J_0(N)^+(Q).
+Dimension of eigenspace lambda = +1 for w_43 is: 1
+Dimension of eigenspace lambda = -1 for w_43 is: 2
+Nice model for X_0(43) is: Curve over Rational Field defined by
+x[1]^4 - 8/3*x[1]^3*x[2] - 16/3*x[1]^2*x[2]^2 - 2/3*x[1]^2*x[3]^2 - 
+16*x[1]*x[2]^3 - 8/3*x[1]*x[2]*x[3]^2 - 64/3*x[2]^4 - 16/3*x[2]^2*x[3]^2 - 
+1/3*x[3]^4
+
+w_43 on X43 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+-u[3]
+and inverse
+u[1]
+u[2]
+-u[3]
+Genus of X_0(43) is 3
+Genus of X_0(43)/w_43 is 1
+We have found these points on X_0(43):
+[ (1 : 0 : 1), (-1 : 0 : 1) ]
+rk J_0(N)^+(Q) = 1
+3 divides the index: false
+We have found 3 points on X_0(43)^2(Q).
+1 of them are pullbacks of rationals from X_0(43)/w_43.
+5
+7
+11
+13
+17
+19
+23
+29
+31
+37
+41
+47
+p = 41 (1/12): out of 7: .......The number of possible cosets unknown points can land in is 5.
+p = 37 (2/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 31 (3/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 29 (4/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 47 (5/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 19 (6/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 23 (7/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 13 (8/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 17 (9/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 7 (10/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 11 (11/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 5 (12/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+
+For unknown Q in X_0(43)^2(Q) we have (1 - w_43)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0,
+A.1,
+2*A.1,
+5*A.1,
+6*A.1
+].
+Runtime error: TODO: Sieve did not prove what we wanted.
+> XN;
+Curve over Rational Field defined by
+x[1]^4 - 8/3*x[1]^3*x[2] - 16/3*x[1]^2*x[2]^2 - 2/3*x[1]^2*x[3]^2 - 
+    16*x[1]*x[2]^3 - 8/3*x[1]*x[2]*x[3]^2 - 64/3*x[2]^4 - 16/3*x[2]^2*x[3]^2 - 
+    1/3*x[3]^4
+
+Total time: 71.969 seconds, Total memory usage: 64.12MB
+Loading "X0p_NiceModel.m"
+Loading "auxiliary.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Chabauty_MWSieve_PrimeSelector.m"
+Loading "ChabautyHelp.m"
+Loading "Saturation.m"
+Dimension of CuspForms(43) is: 3
+rk J_0(N)(Q) = rk J_0(N)^+(Q).
+Dimension of eigenspace lambda = +1 for w_43 is: 1
+Dimension of eigenspace lambda = -1 for w_43 is: 2
+Nice model for X_0(43) is: Curve over Rational Field defined by
+x[1]^4 - 8/3*x[1]^3*x[2] - 16/3*x[1]^2*x[2]^2 - 2/3*x[1]^2*x[3]^2 - 
+16*x[1]*x[2]^3 - 8/3*x[1]*x[2]*x[3]^2 - 64/3*x[2]^4 - 16/3*x[2]^2*x[3]^2 - 
+1/3*x[3]^4
+
+w_43 on X43 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+-u[3]
+and inverse
+u[1]
+u[2]
+-u[3]
+Genus of X_0(43) is 3
+Genus of X_0(43)/w_43 is 1
+We have found these points on X_0(43):
+[ (1 : 0 : 1), (-1 : 0 : 1) ]
+rk J_0(N)^+(Q) = 1
+3 divides the index: false
+We have found 3 points on X_0(43)^2(Q).
+1 of them are pullbacks of rationals from X_0(43)/w_43.
+3
+
+MWSieve(
+    X: X,
+    AtkinLehner: [ 1  0  0] [ 0  1  0] [ 0  0 -1],
+    genusC: 1,
+    primes: [ 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47 ],
+    A: Abelian Group isomorphic to Z/7 Defined on 1 generator Relat...,
+    divs: [ Divisor on X ],
+    Dpull: Divisor on X,
+    B0: Abelian Group isomorphic to Z/7 Defined on 1 generator Relat...,
+    iA0: Mapping from: GrpAb: A to GrpAb: A,
+    W0: { 0 },
+    deg2: [ Divisor on X, Divisor on X, Divisor on X ]
+)
+In file "Chabauty_MWSieve_PrimeSelector.m", line 145, column 30:
+>>                 Append(~jacs,JFp); 
+                                ^
+Runtime error: Variable 'JFp' has not been initialized
+
+
+Total time: 1.290 seconds, Total memory usage: 32.09MB
+Loading "X0p_NiceModel.m"
+Loading "auxiliary.m"
+Loading "Progs/quadPts.m"
+Loading "Progs/modEqns.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "Chabauty_MWSieve_PrimeSelector.m"
+Loading "ChabautyHelp.m"
+Loading "Saturation.m"
+Dimension of CuspForms(43) is: 3
+rk J_0(N)(Q) = rk J_0(N)^+(Q).
+Dimension of eigenspace lambda = +1 for w_43 is: 1
+Dimension of eigenspace lambda = -1 for w_43 is: 2
+Nice model for X_0(43) is: Curve over Rational Field defined by
+x[1]^4 - 8/3*x[1]^3*x[2] - 16/3*x[1]^2*x[2]^2 - 2/3*x[1]^2*x[3]^2 - 
+16*x[1]*x[2]^3 - 8/3*x[1]*x[2]*x[3]^2 - 64/3*x[2]^4 - 16/3*x[2]^2*x[3]^2 - 
+1/3*x[3]^4
+
+w_43 on X43 is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+u[1]
+u[2]
+-u[3]
+and inverse
+u[1]
+u[2]
+-u[3]
+Genus of X_0(43) is 3
+Genus of X_0(43)/w_43 is 1
+We have found these points on X_0(43):
+[ (1 : 0 : 1), (-1 : 0 : 1) ]
+rk J_0(N)^+(Q) = 1
+3 divides the index: false
+We have found 3 points on X_0(43)^2(Q).
+1 of them are pullbacks of rationals from X_0(43)/w_43.
+3
+5
+7
+11
+13
+17
+19
+23
+29
+31
+37
+41
+43
+47
+p = 41 (1/12): out of 7: .......The number of possible cosets unknown points can land in is 5.
+p = 37 (2/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 31 (3/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 29 (4/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 47 (5/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 19 (6/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 23 (7/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 13 (8/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 17 (9/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 7 (10/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 11 (11/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+p = 5 (12/12): out of 5: .....The number of possible cosets unknown points can land in is 5.
+
+For unknown Q in X_0(43)^2(Q) we have (1 - w_43)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0,
+A.1,
+2*A.1,
+5*A.1,
+6*A.1
+].
+Runtime error: TODO: Sieve did not prove what we wanted.
+
+Total time: 67.629 seconds, Total memory usage: 64.12MB
