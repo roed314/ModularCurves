@@ -10,6 +10,9 @@ gens : A set of Generators for G in GL_2(Z/NZ)*/
 
 Gamma:=rec<G0group | N := M, gens := Ggens join {-Identity(GL(2,Integers(M)))}>;
 G:=sub<GL(2,Integers(M))|[g: g in Gamma`gens]>;
+
+/* Trying to find genus 0 congruence subgroup H such that G \intersect SL_2(Z) is conjugate to H. Once we find H, we conjugate generators of G so that
+G \intersect \SL_2(Z)=H. */
 for k in Keys(CPlist) do
     if k eq "1A" then 
                continue k;
@@ -26,6 +29,9 @@ for k in Keys(CPlist) do
          else 
                Gconj:=Conjugate(G,Aconj);Gamma`sl2label:=k;break;end if;
  end for;
+ 
+ // We now construct cocycle that gives X_G as a twist of X_H; here H = G \intersect \SL_2(Z).
+ 
  L<z> := CyclotomicField(M); 
  P<t> := FunctionField(L); 
  R<q>:=PuiseuxSeriesRing(L);
@@ -52,8 +58,8 @@ phi := map<Gal -> MatrixRing(L,3) | [g -> m1([Evaluate(Numerator(Cocycle[g])-Eva
 Amatrix := H90(3,L,Rationals(),Gal,sigma,phi);  
 D := Matrix(3,3,[0,0,-1/2,0,1,0,-1/2,0,0]);  
 Q0 := Conic(D); 
-Q,_ := Conic(Transpose(Amatrix^(-1))*D*Amatrix^(-1)); 
-Q := ChangeRing(Q,Rationals());  
+Q,_ := Conic(Transpose(Amatrix^(-1))*D*Amatrix^(-1));  // Transpose because MAGMA uses right action.
+Q := ChangeRing(Q,Rationals());  // Q is our conic.
 
 boolean,_:=HasRationalPoint(Q); 
             if boolean eq false then return Q; end if;
