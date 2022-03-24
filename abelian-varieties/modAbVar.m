@@ -1,8 +1,12 @@
+function PeriodsFromModSymb(f: ncoeffs:=10000)
+    pi_f := PeriodMapping(f, ncoeffs);
+    P:= [pi_f(b) : b in Basis(f)];
+    return Matrix(P);
+end function;
 
-function NormalizedPeriods(A : ncoeffs:=10000, prec:=80)
+function NormalizedPeriods(P : prec:=80)
         SetDefaultRealFieldPrecision(prec + 10);
         C:=ComplexFieldExtra(prec);
-        P := Matrix(Periods(A, ncoeffs)); // no control over precision really, instead use Eran's code
         P := Transpose(ChangeRing(P, C));
         g := #Rows(P);
         P1 := Submatrix(P,1,1,g,g);
