@@ -7,7 +7,7 @@ gens := [StringToInteger(x) : x in Split(gens, ",")];
 assert #gens mod 4 eq 0;
 gens := [gens[4*(i-1)+1..4*i] : i in [1..#gens div 4]];
 G := sub<GL(2, Integers(StringToInteger(level))) | gens>;
-PG := PSL2Subgroup(G);
+PG := PSL2Subgroup(GetRealConjugate(G));
 // This code only works for groups that are of real type
 assert IsOfRealType(PG);
 // This code only works for groups of genus at least 2
