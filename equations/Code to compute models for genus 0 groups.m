@@ -76,6 +76,5 @@ boolean,_:=HasRationalPoint(Q);
 end if;
 
 
-end if;
-end for;
+
 end function;
