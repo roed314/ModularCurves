@@ -90,15 +90,37 @@ SvnPts:=PointSearch(XNSplus13,100);
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-
 pinsieve:=[3,5,31,43,53,61,73];  // Primes to be used in sieve 
 
 M:=3^10*5^10*13^10*29^10;
-A:=AbelianGroup([0,0,0]); 
+A:=AbelianGroup([0,0,0]);
+
+//add known quadratic places, takes a minute or two, don't know why so slow...
+
+TQ<x> := PolynomialRing(Integers());
+
+Discriminants := [11, 67, 7, 2, 19, 163, 7];       
+flds := [NumberField(x^2 + discriminant) : discriminant in Discriminants];   
+
+pts := [];
+
+"Adding qudratic places...";
+   
+pts := Append(pts, Place(NX(flds[1])![-5/13*flds[1].1, 2/13*flds[1].1, 3/13*flds[1].1, 0, -1, -2, 1, 1]));
+pts := Append(pts, Place(NX(flds[2])![-3/13*flds[2].1, -4/13*flds[2].1, -6/13*flds[2].1, 0, 4, -4, -2, 1]));
+pts := Append(pts, Place(NX(flds[3])![-7/13*flds[3].1, -5/13*flds[3].1, -1/13*flds[3].1, -1, 0, -1, 1, 1]));
+pts := Append(pts, Place(NX(flds[4])![4/13*flds[4].1, 1/13*flds[4].1, -5/13*flds[4].1, 0, 0, 1, 0, 0]));
+pts := Append(pts, Place(NX(flds[5])![-1/13*flds[5].1, 3/13*flds[5].1, -2/13*flds[5].1, 1, 1, 1, 0, 1]));
+pts := Append(pts, Place(NX(flds[6])![-3/13*flds[6].1, -2/91*flds[6].1, -3/91*flds[6].1, -12/7, -5/7, -10/7, 25/7, 1]));
+pts := Append(pts, Place(NX(flds[7])![-1/13*flds[7].1, 3/13*flds[7].1, 11/13*flds[7].1, 1, 0, -3, -1, 1]));
+
+"Known quadratic places are: ", pts;
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-MWSieveFiniteIndex := function(X, QuotientX, WMatrix, MWPrimes)
+MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, MWPrimes)
+	"Started sieve function...";
 
 	Ws:=[**]; 
 	Bs:=[**];
@@ -116,13 +138,13 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, MWPrimes)
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
 
-		for i in [1..7] do     
+		for i in [1..#QuadraticPts] do     
 		
-			Ds := [11, 67, 7, 2, 19, 163, 7];       
-			K := NumberField(x^2 + Ds[i]);   
+			//Ds := [11, 67, 7, 2, 19, 163, 7];       
+			//K := NumberField(x^2 + Ds[i]);   
 			
 			// Base change everything to new field
-			XK := ChangeRing(X, K);           
+			//XK := ChangeRing(X, K);           
 			
 			// these are not being used
 			//XplK := ChangeRing(QuotientX, K); 
@@ -130,7 +152,13 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, MWPrimes)
 
 			// Manually enter new points (compare with Sieve_OldMagma.m)
         
-			if i eq 1 then 
+			Qa := Coordinates(RepresentativePoint(QuadraticPts[i]));
+			Aut := Automorphisms(Fields[i]);
+			Qb := [Aut[2](crd) : crd in Qa];
+
+			//"Qa and Qb are: ", Qa, " ", Qb;
+
+			/*if i eq 1 then 
 			   Qa := [-5/13*K.1, 2/13*K.1,3/13*K.1,0,-1,-2,1,1]; //XK ! Qa;
 			   Qb := [5/13*K.1, -2/13*K.1,-3/13*K.1,0,-1,-2,1,1]; //XK ! Qb;
 			end if;
@@ -157,11 +185,12 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, MWPrimes)
 			if i eq 7 then 
 			   Qa := [-1/13*K.1, 3/13*K.1,11/13*K.1,1,0,-3,-1,1]; //XK ! Qa;
 			   Qb := [1/13*K.1, -3/13*K.1,-11/13*K.1,1,0,-3,-1,1]; //XK ! Qb;
-			end if;
+			end if;*/
            
 			// Code now continues in same way as Sieve_OldMagma.m
                                 
-			OK := RingOfIntegers(K);
+			//OK := RingOfIntegers(K);
+			OK := RingOfIntegers(Fields[i]);
 			dec := Factorization(p*OK);        
 			pp := dec[1][1];                   // A prime above the rational prime p
 			f := InertiaDegree(pp);            
@@ -318,4 +347,4 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, MWPrimes)
 	end if; // This means we have found all the quadratic points! 
 end function;
 
-MWSieveFiniteIndex(NX, XNSplus13, Matrix(Nw), pinsieve);
+MWSieveFiniteIndex(NX, XNSplus13, Matrix(Nw), pts, flds, pinsieve);
