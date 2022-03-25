@@ -11,6 +11,67 @@
 // 2. rank J_0(N)(Q) = rank J_0(N)^+(Q)
 
 
+//This function computes the discriminant of the field a place is defined over.
+discQuadPlace := function(P);
+    assert Degree(P) eq 2;
+    
+	K := ResidueClassField(P);
+    D := Discriminant(MaximalOrder(K));
+    
+	if IsDivisibleBy(D, 4) then
+       D := D div 4;
+    end if;
+    
+	return D;
+end function;
+
+// This code assumes that X/\Q is a non-hyperelliptic
+// curve (genus \ge 3) with Mordell-Weil rank 0.
+// X is a projective curve over rationals,
+// p prime of good reduction,
+// D divisor on X,
+// This reduces to a divisor on X/F_p.
+NewReduce := function(X, Xp, D);
+
+	if Type(D) eq DivCrvElt then
+		decomp := Decomposition(D);
+		return &+[pr[2]*$$(X, Xp, pr[1]) : pr in decomp]; // Reduce the problem to reducing places.
+	end if;
+
+	Fp := BaseRing(Xp);
+	p := Characteristic(Fp);
+
+	Qa := Coordinates(RepresentativePoint(D));
+	K := Parent(Qa[1]);
+	
+	if IsIsomorphic(K, Rationals()) then
+		K := RationalsAsNumberField();
+	end if;
+
+	OK := RingOfIntegers(K);
+	dec := Factorization(p * OK);
+	ret := Zero(DivisorGroup(Xp));
+
+	for factor in dec do
+		pp := factor[1];                   // A prime above the rational prime p
+		assert factor[2] eq 1;
+
+		f := InertiaDegree(pp);            
+		Fpp<t> := ResidueClassField(pp); 
+		Xpp := ChangeRing(X,Fpp);
+
+		unif := UniformizingElement(pp);   // Use to reduce point modulo p
+		m := Minimum([Valuation(K!a, pp) : a in Qa | not a eq 0]);  
+		Qared := [unif^(-m)*(K!a) : a in Qa]; 
+		Qtaa := Xpp![Evaluate(a,Place(pp)) : a in Qared]; // Reduction of point to Xpp
+		Qta := Xp(Fpp) ! Eltseq(Qtaa);      
+
+		ret := ret + 1*Place(Qta);
+  	end for;
+
+	return ret;
+end function;
+
 //This function computes J_X(F_p) for curve X
 JacobianFp := function(X);
 	CC, phi, psi := ClassGroup(X); //Algorithm of Hess
