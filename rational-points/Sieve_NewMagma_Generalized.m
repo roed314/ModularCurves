@@ -272,9 +272,10 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, MWPr
 		degr2 := {1*pl1 + 1*pl2 : pl1 in pls1p, pl2 in pls1p} join {1*pl : pl in pls2p}; 
 		
 		time C, phi, psi := ClassGroup(Xp); 
-		Z := FreeAbelianGroup(1);
+		/*Z := FreeAbelianGroup(1);
 		degr := hom<C -> Z | [ Degree(phi(a))*Z.1 : a in OrderedGenerators(C)]>;  
-		JFp := Kernel(degr);     // This is isomorphic to J_X(\F_p)
+		JFp := Kernel(degr);     // This is isomorphic to J_X(\F_p)*/
+		JFp := TorsionSubgroup(C);
 
 		JFpmodM, pi := quo<JFp | M*JFp>; 
 
