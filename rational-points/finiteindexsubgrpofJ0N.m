@@ -354,13 +354,19 @@ finiteindexsubgrpofJ0N := function(N);
 	Xplus_pts := PointSearch(Xplus,100);
 	printf "Found %o small rational points on X_0(%o)^+\n", #Xplus_pts, N;
 	printf "They are:\n%o\n", Xplus_pts;
-	assert exists(bp){c : c in cusps | Type(c) eq Pt};
-	bp := Divisor(bp);
-	bp_plus := Pushforward(pi,bp);
 	divsplus := [Divisor(pt) : pt in Xplus_pts];
 	divs := [Pullback(pi,D) : D in divsplus];
 
-	rels := relations_divs(X,divs,bp);
+	bp_plus := Divisor(Xplus_pts[1]);
+	bp := Pullback(pi,bp_plus);
+
+/*
+	assert exists(bp){c : c in cusps | Type(c) eq Pt};
+	bp := Divisor(bp);
+	bp_plus := Pushforward(pi,bp);
+*/
+
+	rels := relations_divs(Xplus,divsplus,bp_plus);
 	for r in rels do
 		D := &+[r[i]*divsplus[i] : i in [1..#divsplus]] - &+[r[i] : i in [1..#divsplus]]*bp_plus;
 		assert IsPrincipal(D);
@@ -370,6 +376,7 @@ finiteindexsubgrpofJ0N := function(N);
 	Lquot, quot := L / Lsub;
 
 /*
+TODO: need to change JZero to JZero^+ in this block
 	b, tors := TorsionSubgroup(JZero(N));
 	assert b;
 	n := #AbelianInvariants(tors);
@@ -377,12 +384,12 @@ finiteindexsubgrpofJ0N := function(N);
 	assert AbelianInvariants(Lquot) eq AbelianInvariants(tors) cat [0 : i in [1..r]];
 */
 	abinvsLquot := AbelianInvariants(Lquot);
-	n := Maximum([Index(abinvsLquot,i) : i in abinvsLquot | i ne 0])
+	n := Maximum([0] cat [Index(abinvsLquot,i) : i in abinvsLquot | i ne 0]);
 	Lquot_basis := [Lquot.i @@ quot : i in [n+1..#Generators(Lquot)]];
 	divsplus_sub := [&+[v[i]*divsplus[i] : i in [1..#divsplus]] - sumv*bp_plus where sumv is &+[v[i] : i in [1..#divsplus]]: v in Lquot_basis];
-	divs_sub := [&+[v[i]*divs[i] : i in [1..#divs]] - 2*sumv*bp where sumv is &+[v[i] : i in [1..#divsplus]] : v in Lquot_basis]; //TODO: need to be careful. Is bp the pullback of a divisor of Xplus?
-	return X, Xplus, pi, cusps, bp, Xplus_pts, divs_sub;
+	divs_sub := [&+[v[i]*divs[i] : i in [1..#divs]] - sumv*bp where sumv is &+[v[i] : i in [1..#divsplus]] : v in Lquot_basis];
+	return X, Xplus, pi, cusps, bp, Xplus_pts, bp_plus, divs_sub;
 end function;
 
 N := 137;
-X, Xplus, pi, cusps, bp, Xplus_pts, divsX := finiteindexsubgrpofJ0N(N);
+X, Xplus, pi, cusps, bp, Xplus_pts, bp_plus, divsX := finiteindexsubgrpofJ0N(N);
