@@ -86,7 +86,7 @@ end function;
 // This is done by reducing the divisors modulo a bunch of primes p,
 // finding the relations between the reduced divisors in the Jacobian of X mod p,
 // and intersecting the space of relations found for the various primes.
-relations_divs := function(X, divs, bp : primes := PrimesUpTo(15));
+relations_divs := function(X, divs, bp : primes := PrimesUpTo(15), bd := 25);
     fullrelsspace := FreeAbelianGroup(#divs);
 	relsspace := fullrelsspace;
     for p in primes do
@@ -117,7 +117,7 @@ relations_divs := function(X, divs, bp : primes := PrimesUpTo(15));
     end for;
     L := Lattice(#divs,&cat[Eltseq(fullrelsspace ! relsspace.i) : i in [1..#divs]]);
 	Lprime, T := LLL(L);
-	small_rels := [Eltseq(Lprime.i) : i in [1..#divs] | Norm(Lprime.i) lt 100];
+	small_rels := [Eltseq(Lprime.i) : i in [1..#divs] | Norm(Lprime.i) lt bd*#divs];
 	return small_rels;
 end function;
 
