@@ -1,0 +1,41 @@
+Loading "gl2data.m"
+Loading "magma_gl2zhat.txt"
+Loading "modcurve.m"
+Loading "GL2Operations.m"
+Computing weight 3 modular forms for H.
+Done.
+Call to ratfuncrep with deg = 12.
+Building last 13 rows of the matrix.
+Using coefficients 0 to 25/7.
+Time taken was 0.010.
+Building the first 13 rows of the matrix.
+Time taken was 0.000.
+Solving the linear system of size 26x26.
+Time taken was 0.000.
+Null space has dimension 1.
+Success! The linear system worked.
+The result was (t^10 - 8*t^9 - 10*t^8 + 86*t^7 + 239*t^6 + 242*t^5 + 107*t^4 + 
+18*t^3 + t^2)/(t^12 - 6*t^11 - 15*t^10 + 46*t^9 + 174*t^8 + 222*t^7 + 273*t^6 + 
+486*t^5 + 570*t^4 + 354*t^3 + 117*t^2 + 18*t + 1).
+Call to ratfuncrep with deg = 24.
+Building last 25 rows of the matrix.
+Using coefficients -1 to 6.
+Time taken was 0.030.
+Building the first 25 rows of the matrix.
+Time taken was 0.010.
+Solving the linear system of size 50x50.
+Time taken was 0.010.
+Null space has dimension 1.
+Success! The linear system worked.
+The result was (t^24 - 12*t^23 + 6*t^22 + 272*t^21 + 21*t^20 - 3024*t^19 - 
+5222*t^18 + 8772*t^17 + 41274*t^16 + 43644*t^15 - 51570*t^14 - 213528*t^13 - 
+268723*t^12 - 61824*t^11 + 337398*t^10 + 663932*t^9 + 715290*t^8 + 525828*t^7 + 
+276738*t^6 + 104328*t^5 + 27573*t^4 + 4920*t^3 + 558*t^2 + 36*t + 1)/(t^17 + 
+2*t^16 - 22*t^15 - 127*t^14 - 315*t^13 - 455*t^12 - 413*t^11 - 237*t^10 - 82*t^9
+- 15*t^8 - t^7).
+Universal elliptic curve is y^2 = x^3 + (-27*t^8 + 108*t^7 + 378*t^6 - 945*t^4 -
+1512*t^3 - 1134*t^2 - 324*t - 27)*x + 54*t^12 - 324*t^11 - 810*t^10 + 2484*t^9 +
+9396*t^8 + 11988*t^7 + 14742*t^6 + 26244*t^5 + 30780*t^4 + 19116*t^3 + 6318*t^2 
++ 972*t + 54.
+
+Total time: 60.549 seconds, Total memory usage: 131.44MB
