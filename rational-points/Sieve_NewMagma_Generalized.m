@@ -119,7 +119,7 @@ pts := Append(pts, Place(NX(flds[7])![-1/13*flds[7].1, 3/13*flds[7].1, 11/13*fld
 
 "Known quadratic places are: ", pts;
 
-gens := [1*pts[1], 1*pts[2], 1*pts[3]];
+gens := [1*pts[1] - 1*pts[4], 1*pts[2] - 1*pts[4], 1*pts[3] - 1*pts[4]];
 basePoint := 1*pts[4];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -231,7 +231,7 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 
 		JFpmodM, pi := quo<JFp | M*JFp>; 
 
-		imGhat := sub<JFpmodM | [pi(JFp!psi(divp - bpp)) : divp in divsp]>; // Image of G in JFpmodM
+		imGhat := sub<JFpmodM | [pi(JFp!psi(divp)) : divp in divsp]>; // Image of G in JFpmodM
 		poshat := {DD : DD in degr2 |pi((JFp!(psi(DD - bpp)))) in imGhat};  // Set S_{p,M}
 		posP := {DD : DD in poshat | not DD in redpL};   // Remove reductions of all known points,
 		
@@ -244,7 +244,7 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 		// posP is now T_{p,M}
 		jposP := Setseq({pi(JFp!(psi(DD - bpp))) : DD in posP});  // The set iota_{p,M}(T_{p,M}).
 
-		h := hom<A -> JFpmodM | [pi(JFp!psi(divp - bpp)) : divp in divsp]>; // The map phi_{p,M}.
+		h := hom<A -> JFpmodM | [pi(JFp!psi(divp)) : divp in divsp]>; // The map phi_{p,M}.
 		Bp := Kernel(h);  
 		Bp, iAp := sub<A|Bp>; 
 		"Index of Bp in A: ", Index(A, Bp);
@@ -301,3 +301,6 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 end function;
 
 MWSieveFiniteIndex(NX, XNSplus13, Matrix(Nw), pts, flds, gens, basePoint, pinsieve);
+
+N := 137;
+X, Xplus, pi, cusps, bp, Xplus_pts, bp_plus, divsX := finiteindexsubgrpofJ0N(N);
