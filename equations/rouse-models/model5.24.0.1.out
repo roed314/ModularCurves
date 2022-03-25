@@ -1,0 +1,50 @@
+Loading "gl2data.m"
+Loading "magma_gl2zhat.txt"
+Loading "modcurve.m"
+Loading "GL2Operations.m"
+Computing weight 3 modular forms for H.
+Done.
+Call to ratfuncrep with deg = 6.
+Building last 7 rows of the matrix.
+Using coefficients 0 to 13/5.
+Time taken was 0.000.
+Building the first 7 rows of the matrix.
+Time taken was 0.010.
+Solving the linear system of size 14x14.
+Time taken was 0.000.
+Null space has dimension 1.
+Success! The linear system worked.
+The result was (4*t^4 - 4*t^3 + t^2)/(t^6 - 18*t^5 + 75*t^4 + 75*t^2 + 18*t + 
+1).
+Call to ratfuncrep with deg = 12.
+Building last 13 rows of the matrix.
+Using coefficients -1 to 4.
+Time taken was 0.000.
+Building the first 13 rows of the matrix.
+Time taken was 0.010.
+Solving the linear system of size 26x26.
+Time taken was 0.000.
+Null space has dimension 1.
+Success! The linear system worked.
+The result was (t^12 - 36*t^11 + 474*t^10 - 2700*t^9 + 5775*t^8 - 936*t^7 - 
+8404*t^6 + 936*t^5 + 5775*t^4 + 2700*t^3 + 474*t^2 + 36*t + 1)/(t^7 - 11*t^6 - 
+t^5).
+Universal elliptic curve is y^2 = x^3 + (-27*t^4 + 324*t^3 - 378*t^2 - 324*t - 
+27)*x + 54*t^6 - 972*t^5 + 4050*t^4 + 4050*t^2 + 972*t + 54.
+> E := EllipticCurve([0,0,0,A,B]);
+> E;
+Elliptic Curve defined by y^2 = x^3 + (-27*t^4 + 324*t^3 - 378*t^2 - 324*t - 
+    27)*x + (54*t^6 - 972*t^5 + 4050*t^4 + 4050*t^2 + 972*t + 54) over 
+Univariate rational function field over Rational Field
+> TorsionSubgroup(E);
+Abelian Group isomorphic to Z/5
+Defined on 1 generator
+Relations:
+    5*$.1 = 0
+Mapping from: Abelian Group isomorphic to Z/5
+Defined on 1 generator
+Relations:
+    5*$.1 = 0 to CrvEll: E given by a rule [no inverse]
+> quit;
+
+Total time: 90.439 seconds, Total memory usage: 131.44MB
