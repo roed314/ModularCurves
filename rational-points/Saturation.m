@@ -12,9 +12,10 @@ function FindIntegerCoprimeToIndex(C, l, r, gens : pprimes := [2,3,5,7,11,13,17,
         catch e 
             continue;
         end try;        
-        Z:=FreeAbelianGroup(1);
+        /*Z:=FreeAbelianGroup(1);
         degr:=hom<CpGrp->Z | [ Degree(phi(a))*Z.1 : a in OrderedGenerators(CpGrp)]>;  
-        JFp:=Kernel(degr); // Jacobian mod p as an abelian group
+        JFp:=Kernel(degr); // Jacobian mod p as an abelian group*/
+        JFp := TorsionSubgroup(CpGrp);
         JFpmodl,pi:=quo<JFp | l*JFp>;   
 
         pil:=hom<Zlr->JFpmodl | [pi(psi(redp(pt))) : pt in gens]>; 

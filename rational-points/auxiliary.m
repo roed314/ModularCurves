@@ -69,6 +69,7 @@ function TorsionBound(X, BadPrimes : LowerBound := 0, PrimesBound := 20)
       continue; 
     end try;
     torsionBound := Gcd(torsionBound, #TorsionSubgroup(ClassGroup(Xp)));
+    // TODO: one can optimize this exploiting the group structure
     if torsionBound eq LowerBound then
       return torsionBound;
     end if;

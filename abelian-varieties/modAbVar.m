@@ -1,3 +1,21 @@
+function PeriodsFromModSymb(f: ncoeffs:=10000)
+    pi_f := PeriodMapping(f, ncoeffs);
+    P:= [pi_f(b) : b in Basis(f)];
+    return Matrix(P);
+end function;
+
+function NormalizedPeriods(P : prec:=80)
+        SetDefaultRealFieldPrecision(prec + 10);
+        C:=ComplexFieldExtra(prec);
+        P := Transpose(ChangeRing(P, C));
+        g := #Rows(P);
+        P1 := Submatrix(P,1,1,g,g);
+        P2 := Submatrix(P,1,g+1,g,g);
+        P := HorizontalJoin(P2,P1);
+        return P;
+end function;
+
+
 function GetCurve(N : prec := 80, ncoeffs := 10000)
     SetDefaultRealFieldPrecision(prec + 10);
     C:=ComplexFieldExtra(prec);
@@ -25,7 +43,7 @@ function GetCurve(N : prec := 80, ncoeffs := 10000)
 end function;
 
 //AttachSpec("~/projects/CHIMP/CHIMP.spec")
-function GetPeriodMatrices(N : prec := 80, ncoeffs := 10000)
+function GetPeriodMatrices(N : prec := 100, ncoeffs := 10000)
     SetDefaultRealFieldPrecision(prec + 10);
     C:=ComplexFieldExtra(prec);
     Q:=RationalsExtra(prec);

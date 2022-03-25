@@ -1,9 +1,7 @@
 // Data from Najman-Vukorepa-2021 : "QUADRATIC POINTS ON BIELLIPTIC MODULAR CURVES"
 // This contains all non-cuspidal exceptional quadratic points, upto Galois conjugacy.
 // TODO: need to verify quotient information
-
-Curve label | genus | field of defn of point | j-invariant | Q(j) | CM | Discriminant of the CM order | Quotient information
-
+// Curve label | genus | field of defn of point | j-invariant | Q(j) | CM | Discriminant of the CM order | Quotient information
 'X0(62)' | 7 | '2.0.3.1' | [0] | '1.1.1.1' | 'Yes' | -3 | []
 'X0(62)' | 7 | '2.0.3.1' | [54000] | '1.1.1.1' | 'Yes' | -12 | []
 'X0(69)' | 7 | '2.0.11.1' | [-32768] | '1.1.1.1' | 'Yes' | -11 | []
@@ -12,4 +10,3 @@ Curve label | genus | field of defn of point | j-invariant | Q(j) | CM | Discrim
 'X0(95)' | 9 | '2.0.19.1' | [-884736] | '1.1.1.1' | 'Yes' | -19 | []
 'X0(119)' | 11 | '2.0.19.1' | [-884736] | '1.1.1.1' | 'Yes' | -19 | []
 'X0(119)' | 11 | '2.0.19.1' | [-884736] | '1.1.1.1' | 'Yes' | -19 | []
-
