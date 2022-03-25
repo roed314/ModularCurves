@@ -5,6 +5,9 @@
 // This code runs on Magma-2.26-2, whereas the file Sieve_OldMagma.m runs on Magma-2.25-3.
 
 // First recreate the new model 
+
+load "finiteindexsubgrpofJ0N.m";
+
 R<x_1,x_2,x_3,x_4,x_5,x_6,x_7,x_8>:=PolynomialRing(Rationals(),8); 
 Eq1:=x_1^2 - x_1*x_3 - x_1*x_4 - x_1*x_7 + x_1*x_8 + x_2*x_4 + x_2*x_5 + 2*x_3*x_4 
 - 2*x_3*x_5 - x_3*x_8 + 2*x_4*x_5 +x_4*x_7 + x_5*x_8 - x_7^2 + x_7*x_8; 
@@ -116,10 +119,12 @@ pts := Append(pts, Place(NX(flds[7])![-1/13*flds[7].1, 3/13*flds[7].1, 11/13*fld
 
 "Known quadratic places are: ", pts;
 
+gens := [1*pts[1] - 1*pts[4], 1*pts[2] - 1*pts[4], 1*pts[3] - 1*pts[4]];
+basePoint := 1*pts[4];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, MWPrimes)
+MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Generators, BasePoint, MWPrimes)
 	"Started sieve function...";
 
 	Ws:=[**]; 
@@ -139,57 +144,11 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, MWPr
 	///////////////////////////////////////////////////////////////////////////////////////////////
 
 		for i in [1..#QuadraticPts] do     
-		
-			//Ds := [11, 67, 7, 2, 19, 163, 7];       
-			//K := NumberField(x^2 + Ds[i]);   
-			
-			// Base change everything to new field
-			//XK := ChangeRing(X, K);           
-			
-			// these are not being used
-			//XplK := ChangeRing(QuotientX, K); 
-			//phiK := map< XK -> XplK| Nphis >;   
-
-			// Manually enter new points (compare with Sieve_OldMagma.m)
         
 			Qa := Coordinates(RepresentativePoint(QuadraticPts[i]));
 			Aut := Automorphisms(Fields[i]);
 			Qb := [Aut[2](crd) : crd in Qa];
 
-			//"Qa and Qb are: ", Qa, " ", Qb;
-
-			/*if i eq 1 then 
-			   Qa := [-5/13*K.1, 2/13*K.1,3/13*K.1,0,-1,-2,1,1]; //XK ! Qa;
-			   Qb := [5/13*K.1, -2/13*K.1,-3/13*K.1,0,-1,-2,1,1]; //XK ! Qb;
-			end if;
-			if i eq 2 then 
-			   Qa := [-3/13*K.1,-4/13*K.1,-6/13*K.1,0,4,-4,-2,1]; //XK ! Qa;
-			   Qb := [3/13*K.1,4/13*K.1,6/13*K.1,0,4,-4,-2,1]; //XK ! Qb;
-			end if;
-			if i eq 3 then 
-			   Qa := [-7/13*K.1,-5/13*K.1,-1/13*K.1,-1,0,-1,1,1]; //XK ! Qa;
-			   Qb := [7/13*K.1,5/13*K.1,1/13*K.1,-1,0,-1,1,1]; //XK ! Qb;
-			end if;
-			if i eq 4 then 
-			   Qa := [4/13*K.1, 1/13*K.1,-5/13*K.1,0,0,1,0,0]; //XK ! Qa;
-			   Qb := [-4/13*K.1, -1/13*K.1,5/13*K.1,0,0,1,0,0]; //XK ! Qb;
-			end if;
-			if i eq 5 then 
-			   Qa := [-1/13*K.1, 3/13*K.1,-2/13*K.1,1,1,1,0,1]; //XK ! Qa;
-			   Qb := [1/13*K.1, -3/13*K.1,2/13*K.1,1,1,1,0,1]; //XK ! Qb;
-			end if;
-			if i eq 6 then 
-			   Qa := [-3/13*K.1,-2/91*K.1,-3/91*K.1,-12/7,-5/7,-10/7,25/7,1]; //XK ! Qa;
-			   Qb := [3/13*K.1,2/91*K.1,3/91*K.1,-12/7,-5/7,-10/7,25/7,1]; //XK ! Qb;
-			end if;
-			if i eq 7 then 
-			   Qa := [-1/13*K.1, 3/13*K.1,11/13*K.1,1,0,-3,-1,1]; //XK ! Qa;
-			   Qb := [1/13*K.1, -3/13*K.1,-11/13*K.1,1,0,-3,-1,1]; //XK ! Qb;
-			end if;*/
-           
-			// Code now continues in same way as Sieve_OldMagma.m
-                                
-			//OK := RingOfIntegers(K);
 			OK := RingOfIntegers(Fields[i]);
 			dec := Factorization(p*OK);        
 			pp := dec[1][1];                   // A prime above the rational prime p
@@ -215,8 +174,6 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, MWPr
 	////////////////////////////////////////////////////////////////////////////////
 
 	// Checking if there are exceptional points in residue disc of the point
-			//wpp := map< Xpp->Xpp | [x_1, x_2, x_3, -x_4, -x_5, -x_6, -x_7, -x_8] >; // Modular involution
-
 			AmbientDim := Dimension(AmbientSpace(X)); //Assuming X is given in projective space
 			CoordRing<[u]>:=CoordinateRing(AmbientSpace(Xpp));
 
@@ -253,15 +210,10 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, MWPr
 			end if;
 
 			redpL := redpL join {DivQ};    // Include  divisors in the reductions of our known points
+		end for;  // End of loop
 
-			if i in [1..3] then          // Reductions of generators for our subgroup G
-			   divsp := divsp cat [DivQ];
-			end if;
-
-			if i eq 4 then               
-			   bpp := DivQ;                // Reduction of our base point
-			end if;
-		end for;  // End of loop for i = 1 to 7
+		divsp := [NewReduce(X, Xp, genDiv) : genDiv in Generators];
+		bpp := NewReduce(X, Xp, BasePoint);
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -272,17 +224,18 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, MWPr
 		degr2 := {1*pl1 + 1*pl2 : pl1 in pls1p, pl2 in pls1p} join {1*pl : pl in pls2p}; 
 		
 		time C, phi, psi := ClassGroup(Xp); 
-		Z := FreeAbelianGroup(1);
+		/*Z := FreeAbelianGroup(1);
 		degr := hom<C -> Z | [ Degree(phi(a))*Z.1 : a in OrderedGenerators(C)]>;  
-		JFp := Kernel(degr);     // This is isomorphic to J_X(\F_p)
+		JFp := Kernel(degr);     // This is isomorphic to J_X(\F_p)*/
+		JFp := TorsionSubgroup(C);
 
 		JFpmodM, pi := quo<JFp | M*JFp>; 
 
-		imGhat := sub<JFpmodM | [pi(JFp!psi(divp - bpp)) : divp in divsp]>; // Image of G in JFpmodM
+		imGhat := sub<JFpmodM | [pi(JFp!psi(divp)) : divp in divsp]>; // Image of G in JFpmodM
 		poshat := {DD : DD in degr2 |pi((JFp!(psi(DD - bpp)))) in imGhat};  // Set S_{p,M}
 		posP := {DD : DD in poshat | not DD in redpL};   // Remove reductions of all known points,
 		
-		for i in [1..7] do  // then add back in those that don't pass the Chabuaty test
+		for i in [1..#QuadraticPts] do  // then add back in those that don't pass the Chabuaty test
 			if Rks[i] eq 0 then
 				posP := posP join {redpL[i]};
 			end if; 
@@ -291,12 +244,12 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, MWPr
 		// posP is now T_{p,M}
 		jposP := Setseq({pi(JFp!(psi(DD - bpp))) : DD in posP});  // The set iota_{p,M}(T_{p,M}).
 
-		h := hom<A -> JFpmodM | [pi(JFp!psi(divp - bpp)) : divp in divsp]>; // The map phi_{p,M}.
+		h := hom<A -> JFpmodM | [pi(JFp!psi(divp)) : divp in divsp]>; // The map phi_{p,M}.
 		Bp := Kernel(h);  
 		Bp, iAp := sub<A|Bp>; 
-		Index(A, Bp);
+		"Index of Bp in A: ", Index(A, Bp);
 		Wp := {x@@h : x in jposP}; 
-		#Wp;
+		"#Wp is: ", #Wp;
 		Ws := Ws cat [* Wp *];  
 		Bs := Bs cat [* Bp *];
 		print "Calculations completed for p =", p;  
@@ -328,10 +281,10 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, MWPr
 		pip := pi0*pi0p;
 		
 		W := {x@@pi0 : x in {(pi1(y))@@pi01 + k : y in W, k in Kernel(pi01)} | pi0p(x) in pip(Ws[i])};
-		#W;
+		"#W is: ", #W;
 		
 		B := Bnew;
-		Index(A, B);
+		"Index of B in A: ", Index(A, B);
 		iA := iAnew;
 		
 		if W eq {} then
@@ -347,4 +300,7 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, MWPr
 	end if; // This means we have found all the quadratic points! 
 end function;
 
-MWSieveFiniteIndex(NX, XNSplus13, Matrix(Nw), pts, flds, pinsieve);
+MWSieveFiniteIndex(NX, XNSplus13, Matrix(Nw), pts, flds, gens, basePoint, pinsieve);
+
+/*N := 137;
+X, Xplus, pi, cusps, bp, Xplus_pts, bp_plus, divsX := finiteindexsubgrpofJ0N(N);*/

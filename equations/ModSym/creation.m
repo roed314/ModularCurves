@@ -9,6 +9,21 @@ freeze;
 import "core.m" : CosetReduce, ManinSymbolGenList;
 import "misc.m" : NormalizerGrpMat;
 
+intrinsic GetRealConjugate(H::GrpMat) -> GrpMat
+{Returns a conjugate group in GL(N) that is of real type. (conjugated by [1,0,0,-1])}
+  GL_N := GL(2, BaseRing(H));
+  N_H := NormalizerGrpMat(GL_N, H);
+  N_H_conjs := Conjugates(GL_N, N_H);
+  eta := GL_N![-1,0,0,1];
+  real := exists(real_N_H){ real_N_H : real_N_H in N_H_conjs
+			    | eta in real_N_H};
+  error if not real, Error("No real type conjugate");
+  dummy, alpha := IsConjugate(GL_N,N_H,real_N_H);
+  real_H := H^alpha;
+  assert real_H^eta eq real_H;
+  return real_H; 
+end intrinsic;
+
 // update, 3rd Sept 2002: changed order in which
 // generators of SL2(Z) are given, to be compatible
 // with functions for computing words for matrices

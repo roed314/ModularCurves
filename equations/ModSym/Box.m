@@ -1113,7 +1113,7 @@ function get_old_spaces(MS)
     chars := [*[dirichlet_groups[i]!DirichletCharacter(d) : d in D |
 		Level(AssociatedNewSpace(d)) eq (old_levels[i])]
 	      : i in [1..#old_levels]*];
-    M_old := [ModularSymbols(chis, 2, 0 : F := BaseRing(MS))
+    M_old := [ModularSymbols(chis, Weight(MS), 0 : F := BaseRing(MS))
 	      : chis in chars | not IsEmpty(chis)];
     C_old := [CuspidalSubspace(m) : m in M_old];
     C_old_new := [NewSubspace(c) : c in C_old];
@@ -1626,7 +1626,7 @@ function create_character(G, Chars)
     return eps;
 end function;
 
-function compute_ms_action(G, eps, gens, Bgens, K, M, ds, AtkinLehner)
+function compute_ms_action(G, eps, gens, Bgens, K, M, ds, AtkinLehner : wt := 2)
 
     GL_N := GL(2, BaseRing(G));
     eps_gens := [eps(G!g) : g in gens];
@@ -1640,7 +1640,7 @@ function compute_ms_action(G, eps, gens, Bgens, K, M, ds, AtkinLehner)
     U, mU := UnitGroup(Integers(M));
     alphas := [Integers()!mU(x) : x in Generators(U)];
     gs := [g0] cat [CRT([1,alpha], [K^2,M]) : alpha in alphas];
-    MS := ModularSymbolsH(N, gs, 2, 0, eps);
+    MS := ModularSymbolsH(N, gs, wt, 0, eps);
 
     C := CuspidalSubspace(MS);
     dim := Dimension(C);
@@ -1852,7 +1852,7 @@ end function;
 // output: fs - a list of coefficients of q-expansions for a basis of cusp forms in S_2(G, Q)
 //         tos - indices indicating from which twist orbit each of them was taken.
 
-function BoxMethod(G, prec : AtkinLehner := [], Chars := [], M := 0)
+function BoxMethod(G, prec : AtkinLehner := [], Chars := [], M := 0, wt := 2)
 
     eps := create_character(G, Chars);
     
@@ -1869,7 +1869,7 @@ function BoxMethod(G, prec : AtkinLehner := [], Chars := [], M := 0)
     vprintf ModularCurves, 1 :  "Found generators. K = %o and M = %o.\n", K, M;
 
     MS, C, gs, Bmats, eps_gens, eps_BPd_gens :=
-	compute_ms_action(G, eps, gens, Bgens, K, M, ds, AtkinLehner);
+	compute_ms_action(G, eps, gens, Bgens, K, M, ds, AtkinLehner : wt := wt);
 
     J := Transpose(StarInvolution(C));
     Cplus := Kernel(Transpose(J-1));
@@ -2156,18 +2156,6 @@ procedure testBox(grps_by_name : Proof := false,
 
     for name in working_examples do
 	vprintf ModularCurves, 1 : "Working on group %o\n", name;
-	/*
-	genus := grps_by_name[name]`genus;
-	PG := createPSL2(grps_by_name[name]);
-	prec, max_deg := precisionForCurve(PG : Proof := Proof);
-	fs := qExpansionBasisPSL2(name, grps_by_name : Precision := prec,
-						       Normalizers := Normalizers);
-	X<[x]>, fs := getCurveFromForms(fs, prec, max_deg, genus);
-	vprintf ModularCurves, 1 : "Canonical curve is %o\n", X;
-	if WriteFiles then
-	    write_qexps(name, fs, X);
-	end if;
-       */
 	testBoxSingle(grps_by_name, name : Proof := Proof,
 					   Normalizers := Normalizers,
 					   WriteFile := WriteFiles);

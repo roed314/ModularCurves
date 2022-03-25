@@ -16,9 +16,11 @@
     farey_symbol.m
     linalg.m
     maps.m
+    misc.m
     modsym.m
     multichar.m
     operators.m
+    qexpansion.m
     representation.m
     subspace.m
     verbose.m
