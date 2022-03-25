@@ -1,17 +1,14 @@
-// Curves whose quadratic points are computed in Najman-Vukorepa-2021 : "QUADRATIC POINTS ON BIELLIPTIC MODULAR CURVES"
-
-Curve label | genus
-
+// Curves whose quadratic points are computed in Najman-Vukorepa-2021 : "Quadratic points on bielliptic modular curves"
+// Curve label | genus
 'X0(60)' | 7
-'X0(62)' | 7
-'X0(69)' | 7
-'X0(79)' | 6
-'X0(83)' | 7
-'X0(89)' | 7
-'X0(92)' | 10
-'X0(94)' | 11
-'X0(95)' | 9
-'X0(101)' | 8
-'X0(119)' | 11
+'62.96.7.1' | 7
+'69.96.7.1' | 7
+'79.80.6.1' | 6
+'83.84.7.1' | 7
+'89.90.7.1' | 7
+'92.144.10.1' | 10
+'94.144.11.1' | 11
+'95.120.9.1' | 9
+'101.102.8.1' | 8
+'119.144.11.1' | 11
 'X0(131)' | 11
-
