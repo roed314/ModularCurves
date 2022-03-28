@@ -1640,9 +1640,8 @@ if (gen eq 2) or (gen eq 3) then
     printf "Minimal plane quartic model is %o.\n",B2;    
     mp2 := map<B2 -> B | [mat[1][1]*B2.1+mat[1][2]*B2.2+mat[1][3]*B2.3,
     mat[2][1]*B2.1+mat[2][2]*B2.2+mat[2][3]*B2.3,mat[3][1]*B2.1+mat[3][2]*B2.2+mat[3][3]*B2.3]>;
-    mp2inv := Inverse(mp2);
     ckh, mpinv := IsInvertible(mp);
-    bigmap := mp2inv*mpinv*Cmpcover;
+    bigmap := mp2*mpinv*Cmpcover;
     printf "Expanding and extending map.\n";
     finbigmap := Extend(Expand(bigmap));
     timtim := Cputime();
