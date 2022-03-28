@@ -13,7 +13,13 @@ PG := PSL2Subgroup(GetRealConjugate(G));
 assert IsOfRealType(PG);
 // This code only works for groups of genus at least 2
 assert Genus(PG) ge 2;
-X<[x]>, fs := ModularCurve(PG);
+X<[x]>, fs, type := ModularCurve(PG);
+if type eq "hyperelliptic" then
+    vprintf ModularCurves, 1:
+	"Curve is hyperelliptic, finding a log-canonical model for the j-map...\n";
+    Hyp<x,y> := X;
+    X<[x]>, fs := ModularCurve(PG : Al := "LogCanonical");
+end if;
 E4, E6, j := JMap(PG, fs, AbsolutePrecision(fs[1]));
 WriteModel(X, fs, E4, E6, name);
 
