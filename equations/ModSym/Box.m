@@ -2234,3 +2234,34 @@ intrinsic WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
     Write(fname, write_str);
     return;
 end intrinsic;
+
+function strip(X)
+    // Strips spaces and carraige returns from string; much faster than StripWhiteSpace.
+    return Join(Split(Join(Split(X," "),""),"\n"),"");
+end function;
+
+function sprint(X)
+    // Sprints object X with spaces and carraige returns stripped.
+    if Type(X) eq Assoc then return Join(Sort([ $$(k) cat "=" cat $$(X[k]) : k in Keys(X)]),":"); end if;
+    return strip(Sprintf("%o",X));
+end function;
+
+intrinsic LMFDBWriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
+		          E4::FldFunRatMElt, E6::FldFunRatMElt, fname::MonStgElt)
+{Write the model, the q-expansions, E4, and E6 to a file for input into the LMFDB database}
+    Kq<q> := Parent(fs[1]);
+    K := BaseRing(Kq);
+    if Type(K) ne FldRat then
+        AssignNames(~K, ["zeta"]);
+    end if;
+    // Need to figure out what to do about q-expansions
+    uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
+    lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
+    DP := DefiningPolynomials(X);
+    R := Parent(DP[1]);
+    AssignNames(~R, uvars[1..Rank(R)]);
+    S := Parent(E4);
+    AssignNames(~S, lvars[1..Rank(R)]);
+    Write(fname, Sprintf("{%o}|{%o}|{%o,%o}", Join([sprint(f) : f in DefiningPolynomials(X)], ","), Join([sprint(f) : f in fs], ","), sprint(E4), sprint(E6)));
+    return;
+end intrinsic;

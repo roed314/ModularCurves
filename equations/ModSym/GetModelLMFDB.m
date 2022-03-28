@@ -2,6 +2,7 @@
 // where input_data is a folder containing one file for each label, consisting of the generators as a comma-separated list of integers
 
 System("mkdir -p output_data");
+//SetVerbose("ModularCurves", 1);
 AttachSpec("ModCrv.spec");
 
 level := StringToInteger(Split(label, ".")[1]);
@@ -17,6 +18,6 @@ assert IsOfRealType(PG);
 assert Genus(PG) ge 2;
 X<[x]>, fs := ModularCurve(PG);
 E4, E6, j := JMap(PG, fs, AbsolutePrecision(fs[1]));
-WriteModelLMFDB(X, fs, E4, E6, "output_data/" * label);
+LMFDBWriteModel(X, fs, E4, E6, "output_data/" * label);
 
 exit;
