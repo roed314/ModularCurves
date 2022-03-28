@@ -9,13 +9,16 @@
   FILE: Box.m (modular curve algorithm based on J. Box's paper)
 
   exports intrinsics:
-  ModularCurve(G::GrpPSL2);                                 
+  JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt);
+  ModularCurve(G::GrpPSL2);
+  WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
+		     E4::FldFunRatMElt, E6::FldFunRatMElt, name::MonStgElt);                                
                                                                       
 *************************************************************************************
 */
 
-import "linalg.m" : KernelOn, Restrict, RelativeBasis, RelativeEltseq;
-import "operators.m" : ActionOnModularSymbolsBasis;
+import "ModSym/linalg.m" : KernelOn, Restrict, RelativeBasis, RelativeEltseq;
+import "ModSym/operators.m" : ActionOnModularSymbolsBasis;
 
 // function : gen_to_mat
 // input: g - a matrix in GL(2,Q)
@@ -1458,29 +1461,24 @@ function FindCurveSimple(qexps, prec, n_rel)
 	is_all := &and[IsEmpty(x) : x in not_in_I];
 	d +:= 1;
     end while;
-    // I := ideal<R | &cat rels>;
     // This might throw an error in the hyperelliptic case. 
     X := Curve(ProjectiveSpace(R),I);
-    // Do we want to assert X is coercible to Q?
     return X;
 end function;
 
 function FindHyperellipticCurve(qexps, prec)
     R<q> := Universe(qexps);
     K := BaseRing(R);
-//  assert K eq Rationals();
     fs := [f + O(q^prec) : f in qexps];
     g := #fs;
     T, E := EchelonForm(Matrix([&cat[Eltseq(x)
 				     : x in AbsEltseq(f)] : f in fs]));
     fs := [&+[E[j][i]*fs[i] : i in [1..g]] : j in [1..g]];
-// T, E := EchelonForm(Matrix([AbsEltseq(f) : f in fs]));
-//    fs := [&+[E[j][i]*fs[i] : i in [1..g]] : j in [1..g]];
     x := fs[g-1] / fs[g];
     y := q * Derivative(x) / fs[g];
     mons := [x^i : i in [0..2*g+2]] cat [-y^2];
     denom := q^(-(2*g+2)*Valuation(x));
-    f_mons := [denom*m + O(q^AbsolutePrecision(x)) : m in mons];
+    f_mons := [denom*m + O(q^AbsolutePrecision(y)) : m in mons];
     ker := Kernel(Matrix([AbsEltseq(f : FixedLength) : f in f_mons]));
     assert Dimension(ker) eq 1;
     ker_b := Basis(ker)[1];
@@ -2222,7 +2220,7 @@ intrinsic WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
     	      X_%o := Curve(P_Q, %m);",
 			    proj_string, name, DefiningPolynomials(X));
 
-    write_str cat:= Sprintf("E4_num_%o := %m;\n", name, Numerator(E4));
+    write_str cat:= Sprintf("\nE4_num_%o := %m;\n", name, Numerator(E4));
     write_str cat:= Sprintf("E4_denom_%o := %m;\n", name, Denominator(E4));
     write_str cat:= Sprintf("E6_num_%o := %m;\n", name, Numerator(E6));
     write_str cat:= Sprintf("E6_denom_%o := %m;\n", name, Denominator(E6));

@@ -6,7 +6,7 @@ freeze;
 //                                                                //
 ////////////////////////////////////////////////////////////////////
 
-import "core.m" : CosetReduce, ManinSymbolGenList;
+import "../ModSym/core.m" : CosetReduce, ManinSymbolGenList;
 import "misc.m" : NormalizerGrpMat;
 
 intrinsic GetRealConjugate(H::GrpMat) -> GrpMat
