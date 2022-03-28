@@ -1489,41 +1489,12 @@ function FindHyperellipticCurve(qexps, prec)
     return X, fs;
 end function;
 
-function FindFormAsRationalFunction(form, R, fs, wt_diff : min_k := 0)
-    prec := AbsolutePrecision(form);
-    _<q> := Universe(fs);
-    degmons := AssociativeArray();
-    found := false;
-    if min_k eq 0 then min_k := wt_diff; end if;
-    k := min_k;
-    while (not found) do
-	vprintf ModularCurves, 1:
-	    "Trying to find form with weight %o\n", k;
-	for d in {k-wt_diff, k} do
-	    degmons[d] := MonomialsOfDegree(R, d div 2);
-	end for;
-	prods := [Evaluate(m, fs) + O(q^prec) : m in degmons[k]];
-	prods cat:= [form*Evaluate(m, fs)*q^wt_diff + O(q^prec) : m in degmons[k-wt_diff]];
-	ker := Kernel(Matrix([AbsEltseq(f) : f in prods]));
-	found :=  exists(v){v : v in Basis(ker)
-			| not &and[v[i] eq 0 :
-				   i in [1..#degmons[k]]] and
-			not &and[v[#degmons[k]+i] eq 0 :
-				 i in [1..#degmons[k-wt_diff]]]};
-	k +:= 2;
-    end while;
-    k -:= 2;
-    num := &+[v[i]*degmons[k][i] : i in [1..#degmons[k]]];
-    denom := &+[v[#degmons[k]+i]*degmons[k-wt_diff][i]
-		: i in [1..#degmons[k-wt_diff]]];
-    return num / denom;
-end function;
-
 intrinsic JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt) ->
   FldFunRatMElt, FldFunRatMElt, FldFunRatMElt
 {Computes E4, E6 and j as rational function, when the given qexpansions are the variables.}
     g := Genus(G);
     nu_infty := #Cusps(G);
+    // nu_ell := #EllipticPoints(G);
     H := Universe(EllipticPoints(G)); 
     nu_2 := #[H | pt : pt in EllipticPoints(G) |
 	      Order(Matrix(Stabilizer(pt, G))) eq 4];
@@ -1546,11 +1517,55 @@ intrinsic JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt) ->
     degmons := AssociativeArray();
     // we add this because there is something wrong with the bounds.
     // computing E4
-    E4 := qExpansion(EisensteinSeries(ModularForms(1,4))[1],prec);
-    E4 := FindFormAsRationalFunction(E4, R, fs, 4 : min_k := E4_k);
-    E6 := qExpansion(EisensteinSeries(ModularForms(1,6))[1],prec);
-    E6 := FindFormAsRationalFunction(E6, R, fs, 6 : min_k := E6_k);
+    E4_found := false;
+    while (not E4_found) do
+	vprintf ModularCurves, 1:
+	    "Trying to find E4 with weight %o\n", E4_k;
+	//    for d in {E4_k-4, E4_k, E6_k-6, E6_k} do
+	for d in {E4_k-4, E4_k} do
+	    degmons[d] := MonomialsOfDegree(R, d div 2);
+	end for;
+	E4 := qExpansion(EisensteinSeries(ModularForms(1,4))[1],prec);
+	prods_E4 := [Evaluate(m, fs) + O(q^prec) : m in degmons[E4_k]];
+	prods_E4 cat:= [E4*Evaluate(m, fs)*q^4 + O(q^prec) : m in degmons[E4_k-4]];
+	ker_E4 := Kernel(Matrix([AbsEltseq(f) : f in prods_E4]));
+	E4_found :=  exists(v_E4){v : v in Basis(ker_E4)
+			| not &and[v[i] eq 0 :
+				   i in [1..#degmons[E4_k]]] and
+			not &and[v[#degmons[E4_k]+i] eq 0 :
+				 i in [1..#degmons[E4_k-4]]]};
+	E4_k +:= 2;
+    end while;
+    E6_found := false;
+    while (not E6_found) do
+	vprintf ModularCurves, 1:
+	    "Trying to find E6 with weight %o\n", E6_k;
+	for d in {E6_k-6, E6_k} do
+	    degmons[d] := MonomialsOfDegree(R, d div 2);
+	end for;
+	E6 := qExpansion(EisensteinSeries(ModularForms(1,6))[1],prec);
+	prods_E6 := [Evaluate(m, fs) + O(q^prec) : m in degmons[E6_k]];
+	prods_E6 cat:= [E6*Evaluate(m, fs)*q^6 + O(q^prec) : m in degmons[E6_k-6]];
+	ker_E6 := Kernel(Matrix([AbsEltseq(f) : f in prods_E6]));
+	E6_found := exists(v_E6){v : v in Basis(ker_E6) |
+			not &and[v[i] eq 0 :
+				   i in [1..#degmons[E6_k]]] and
+			not &and[v[#degmons[E6_k]+i] eq 0 :
+				 i in [1..#degmons[E6_k-6]]]};
+	E6_k +:= 2;
+    end while;
+
+    E4_k -:= 2;
+    E6_k -:= 2;
     
+    E4_num := &+[v_E4[i]*degmons[E4_k][i] : i in [1..#degmons[E4_k]]];
+    E4_denom := &+[v_E4[#degmons[E4_k]+i]*degmons[E4_k-4][i]
+		   : i in [1..#degmons[E4_k-4]]];
+    E6_num := &+[v_E6[i]*degmons[E6_k][i] : i in [1..#degmons[E6_k]]];
+    E6_denom := &+[v_E6[#degmons[E6_k]+i]*degmons[E6_k-6][i]
+		   : i in [1..#degmons[E6_k-6]]];
+    E4 := E4_num / E4_denom;
+    E6 := E6_num / E6_denom;
     j := 1728*E4^3/(E4^3-E6^2);
     _<[x]> := Parent(E4);
     return E4, E6, j;
@@ -2165,6 +2180,7 @@ intrinsic WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
     ",name, name, name, name, name,
 		     name, name, name, name, name);
 
+    fname := name cat ".m";
     Kq<q> := Parent(fs[1]);
     K := BaseRing(Kq);
     if Type(K) ne FldRat then
@@ -2217,16 +2233,4 @@ intrinsic WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
     fname := name cat ".m";
     Write(fname, write_str);
     return;
-end intrinsic;
-
-intrinsic WriteModelLMFDB(X::Crv, fs::Enum[RngSerPowElt],
-		          E4::FldFunRatMElt, E6::FldFunRatMElt, fname::MonStgElt)
-{Write the model, the q-expansions, E4, and E6 to a file for input into the LMFDB database}
-    Kq<q> := Parent(fs[1]);
-    K := BaseRing(Kq);
-    if Type(K) ne FldRat then
-	AssignNames(~K, ["zeta"]);
-    end if;
-    // Need to figure out what to do about q-expansions
-    Write(fname, Sprintf("{%o}|{%o,%o}", Join([Sprint(f) : f in DefiningPolynomials(X)], ","), E4, E6));
 end intrinsic;
