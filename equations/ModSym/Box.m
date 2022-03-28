@@ -9,7 +9,10 @@
   FILE: Box.m (modular curve algorithm based on J. Box's paper)
 
   exports intrinsics:
-  ModularCurve(G::GrpPSL2);                                 
+  JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt);
+  ModularCurve(G::GrpPSL2);
+  WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
+		     E4::FldFunRatMElt, E6::FldFunRatMElt, name::MonStgElt);                                
                                                                       
 *************************************************************************************
 */
