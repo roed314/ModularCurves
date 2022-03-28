@@ -4,7 +4,13 @@ import re
 from collections import defaultdict, Counter
 from sage.all import QQ, NumberField, PolynomialRing
 
-S_LABEL_RE = re.compile(r"(\d+)(G|B|Cs|Cn|Ns|Nn|A4|S4|A5)(\.\d+){0,3}")
+S_LABEL_RE = re.compile(r"^(\d+)(G|B|Cs|Cn|Ns|Nn|A4|S4|A5)(\.\d+){0,3}$")
+LABEL_RE = re.compile(r"^\d+\.\d+\.\d+\.\d+$")
+QQ_RE = re.compile(r"^-?\d+(/\d+)?$")
+ZZ_RE = re.compile(r"^(-?\d+)|\\N$")
+QQ_LIST_RE = re.compile(r"^-?\d+(/\d+)?(,-?\d+(/\d+)?)*$") # can't be empty
+NN_LIST_RE = re.compile(r"^(\d+(,\d+)*)?$") # can be empty
+
 
 def load_points_files(data_folder):
     ans = []
@@ -32,6 +38,13 @@ def load_points_files(data_folder):
                     field_of_j = pieces[4].strip()
                     cm = pieces[6].strip()
                     quo_info = pieces[7].strip().replace("[", "{").replace("]", "}")
+                    assert LABLE_RE.match(label), f"Invalid curve label {label}"
+                    assert ZZ_RE.match(degree), f"Invalid degree {degree} for {label}"
+                    assert LABEL_RE.match(field_of_definition), f"Invalid field of definition {field_of_definition} for {label}"
+                    assert QQ_LIST_RE.mathc(jinv), f"Invalid j-invariant {jinv} for {label}"
+                    assert LABEL_RE.match(field_of_j), f"Invalid field of j {field_of_j} for {label}"
+                    assert ZZ_RE.match(cm), f"Invalid CM discriminant {cm} for {label}"
+                    assert NN_LIST_RE.match(quo_info[1:-1])
                     ans.append((label, int(degree), field_of_definition, jinv, field_of_j, cm, quo_info, r"\N", True))
     return ans
 
@@ -65,7 +78,7 @@ def generate_db_files(data_folder):
 
     immediate_parents = {}
     gpdata = {}
-    for rec in db.gps_gl2zhat_test.search({"level": {"$ne": 1}}, ["label", "parents", "contains_negative_one", "genus", "gonality_bounds", "simple", "rank"]):
+    for rec in db.gps_gl2zhat_test.search({"level": {"$ne": 1}}, ["label", "parents", "contains_negative_one", "genus", "gonality_bounds", "simple", "rank", "name"]):
         immediate_parents[rec["label"]] = [x for x in rec["parents"] if x.split(".")[0] != "1"]
         gpdata[rec["label"]] = rec
 
@@ -145,7 +158,7 @@ def generate_db_files(data_folder):
     point_counts = defaultdict(Counter)
     # Things to add: isolated, coordinates in terms of model, LMFDB curve label (when not containing -1
     with open(os.path.join(data_folder, "modcurve_ratpoints.txt"), "w") as F:
-        _ = F.write("label|degree|residue_field|jinv|j_field|cm|quo_info|Elabel|isolated\ntext|smallint|text|text|text|smallint|smallint[]|text|smallint\n\n")
+        _ = F.write("curve_label|curve_name|degree|residue_field|jinv|j_field|cm|quo_info|Elabel|isolated\ntext|smallint|text|text|text|smallint|smallint[]|text|smallint\n\n")
         for (label, degree, field_of_definition, jinv, field_of_j, cm, quo_info, Elabel, known_isolated) in ecq_db_data + ecnf_db_data + lit_data:
             for plabel in [label] + all_parents[label]:
                 if (field_of_j, jinv) not in jinvs_seen[plabel]:
@@ -156,6 +169,7 @@ def generate_db_files(data_folder):
                     gonlow = gdat["gonality_bounds"][0]
                     rank = gdat["rank"]
                     simp = gdat["simple"]
+                    name = gdat["name"]
                     Enow = r"\N" if gdat["contains_negative_one"] else Elabel
                     if label == plabel and known_isolated:
                         isolated = "1"
@@ -167,7 +181,7 @@ def generate_db_files(data_folder):
                         isolated = "-1"
                     else:
                         isolated = r"0"
-                    _ = F.write("|".join([plabel, str(degree), field_of_definition, jinv, field_of_j, str(cm), quo_info, Enow, isolated]) + "\n")
+                    _ = F.write("|".join([plabel, name, str(degree), field_of_definition, jinv, field_of_j, str(cm), quo_info, Enow, isolated]) + "\n")
     with open(os.path.join(data_folder, "modcurve_ptcount_update.txt"), "w") as F:
         _ = F.write("label|" + "|".join(f"known_degree{d}_points" for d in range(1,7)) + "\ntext" + "|smallint"*6 + "\n\n")
         for label, cnts in point_counts.items():
