@@ -2180,6 +2180,7 @@ intrinsic WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
     ",name, name, name, name, name,
 		     name, name, name, name, name);
 
+    fname := name cat ".m";
     Kq<q> := Parent(fs[1]);
     K := BaseRing(Kq);
     if Type(K) ne FldRat then
@@ -2232,16 +2233,4 @@ intrinsic WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
     fname := name cat ".m";
     Write(fname, write_str);
     return;
-end intrinsic;
-
-intrinsic WriteModelLMFDB(X::Crv, fs::Enum[RngSerPowElt],
-		          E4::FldFunRatMElt, E6::FldFunRatMElt, fname::MonStgElt)
-{Write the model, the q-expansions, E4, and E6 to a file for input into the LMFDB database}
-    Kq<q> := Parent(fs[1]);
-    K := BaseRing(Kq);
-    if Type(K) ne FldRat then
-	AssignNames(~K, ["zeta"]);
-    end if;
-    // Need to figure out what to do about q-expansions
-    Write(fname, Sprintf("{%o}|{%o,%o}", Join([Sprint(f) : f in DefiningPolynomials(X)], ","), E4, E6));
 end intrinsic;
