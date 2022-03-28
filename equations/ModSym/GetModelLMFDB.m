@@ -2,6 +2,7 @@
 // where input_data is a folder containing one file for each label, consisting of the generators as a comma-separated list of integers
 
 System("mkdir -p output_data");
+SetColumns(0);
 //SetVerbose("ModularCurves", 1);
 AttachSpec("ModCrv.spec");
 
