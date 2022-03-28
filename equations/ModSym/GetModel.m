@@ -2,6 +2,7 @@
 
 AttachSpec("ModCrv.spec");
 
+SetVerbose("ModularCurves", 1);
 gens := [StringToInteger(x) : x in Split(gens, ",")];
 // Should be a list of 2x2 matrices, so number of elements divisible by 4.
 assert #gens mod 4 eq 0;
