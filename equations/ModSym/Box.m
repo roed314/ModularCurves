@@ -1507,12 +1507,10 @@ function FindFormAsRationalFunction(form, R, fs, wt_diff : min_k := 0)
  	prods := [Evaluate(m, fs) + O(q^prec) : m in degmons[k]];
  	prods cat:= [form*Evaluate(m, fs)*q^wt_diff + O(q^prec)
 		     : m in degmons[k-wt_diff]];
-	// This is wrong!!!
-	// We should look for relations over QQ, i.e.
-	// mat := Matrix([&cat[Eltseq(x) :  x in AbsEltseq(f)] : f in prods]);
-	// ker := Kernel(mat);
-	// But for now I cannot get it to work even on simple examples
- 	ker := Kernel(Matrix([AbsEltseq(f) : f in prods]));
+	// We should look for relations over QQ
+	mat := Matrix([&cat[Eltseq(x)
+			    :  x in AbsEltseq(f)] : f in prods]);
+	ker := Kernel(mat);
  	found :=  exists(v){v : v in Basis(ker)
  			| not &and[v[i] eq 0 :
  				   i in [1..#degmons[k]]] and
