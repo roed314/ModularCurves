@@ -1505,8 +1505,12 @@ function FindFormAsRationalFunction(form, R, fs, wt_diff : min_k := 0)
  	    degmons[d] := MonomialsOfDegree(R, d div 2);
  	end for;
  	prods := [Evaluate(m, fs) + O(q^prec) : m in degmons[k]];
- 	prods cat:= [form*Evaluate(m, fs)*q^wt_diff + O(q^prec) : m in degmons[k-wt_diff]];
- 	ker := Kernel(Matrix([AbsEltseq(f) : f in prods]));
+ 	prods cat:= [form*Evaluate(m, fs)*q^wt_diff + O(q^prec)
+		     : m in degmons[k-wt_diff]];
+	// We should look for relations over QQ
+	mat := Matrix([&cat[Eltseq(x)
+			    :  x in AbsEltseq(f)] : f in prods]);
+	ker := Kernel(mat);
  	found :=  exists(v){v : v in Basis(ker)
  			| not &and[v[i] eq 0 :
  				   i in [1..#degmons[k]]] and
@@ -1530,13 +1534,15 @@ intrinsic JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt : LogCa
     else
 	g := Genus(G);
 	nu_infty := #Cusps(G);
-	// nu_ell := #EllipticPoints(G);
 	H := Universe(EllipticPoints(G)); 
 	nu_2 := #[H | pt : pt in EllipticPoints(G) |
 		      Order(Matrix(Stabilizer(pt, G))) eq 4];
 	nu_3 := #[H | pt : pt in EllipticPoints(G) |
 		      Order(Matrix(Stabilizer(pt, G))) eq 6];
-	// This bounds are from Rouse, DZB and Drew's paper
+	// These bounds are from Rouse, DZB and Drew's paper
+	// But they do not always work, e.g. 7.168.3.1 needs
+	// to go up to weight 62 to find a relation over QQ.
+	// TODO : Figure out why!
 	E4_k := Ceiling((2*nu_infty + nu_2 + nu_3 + 5*g-4)/(g-1));  
 	E6_k := Ceiling((3*nu_infty + nu_2 + 2*nu_3 + 7*g-6)/(g-1));
 	if IsOdd(E4_k) then
@@ -1552,8 +1558,8 @@ intrinsic JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt : LogCa
     assert g eq #fs;
     R<[x]> := PolynomialRing(K,g);
     degmons := AssociativeArray();
-    // we add this because there is something wrong with the bounds.
-    // computing E4
+    // Because there is something wrong with the bounds,
+    // we actually scan starting from the bounds in the paper
     E4 := qExpansion(EisensteinSeries(ModularForms(1,4))[1],prec);
     E4 := FindFormAsRationalFunction(E4, R, fs, 4 : min_k := E4_k);
     E6 := qExpansion(EisensteinSeries(ModularForms(1,6))[1],prec);
@@ -1842,7 +1848,8 @@ end function;
 // output: fs - a list of coefficients of q-expansions for a basis of cusp forms in S_2(G, Q)
 //         tos - indices indicating from which twist orbit each of them was taken.
 
-function BoxMethod(G, prec : AtkinLehner := [], Chars := [], M := 0, wt := 2)
+function BoxMethod(G, prec : AtkinLehner := [], Chars := [],
+			     M := 0, wt := 2)
 
     eps := create_character(G, Chars);
     
@@ -1996,7 +2003,7 @@ function getCurveFromForms(fs, prec, max_deg, genus : CheckGenus := true)
 	if CheckGenus then
 	    vprintf ModularCurves, 1: "Computing genus of curve...\n";
 	    g := Genus(X);
-	    vprintf ModularCurves, 1: "Done.";
+	    vprintf ModularCurves, 1: "Done.\n";
 	    if g eq 0 then
 		X, fs := FindHyperellipticCurve(fs, prec);
 		type := "hyperelliptic";
@@ -2032,7 +2039,8 @@ function ModularCurveBox(G, genus : Precision := 0, Proof := false,
       fs := BoxMethod(G, prec);
       K := BaseRing(Universe(fs));
       _<q> := PowerSeriesRing(K);
-      fs := qExpansions(fs, prec, q, K, true);
+      // fs := qExpansions(fs, prec, q, K, true);
+      fs := qExpansions(fs, prec, q, K, false);
     end if;
     if Al eq "LogCanonical" then
 	eis := EisensteinSeries(ModularForms(PG));
