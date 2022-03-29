@@ -1505,7 +1505,13 @@ function FindFormAsRationalFunction(form, R, fs, wt_diff : min_k := 0)
  	    degmons[d] := MonomialsOfDegree(R, d div 2);
  	end for;
  	prods := [Evaluate(m, fs) + O(q^prec) : m in degmons[k]];
- 	prods cat:= [form*Evaluate(m, fs)*q^wt_diff + O(q^prec) : m in degmons[k-wt_diff]];
+ 	prods cat:= [form*Evaluate(m, fs)*q^wt_diff + O(q^prec)
+		     : m in degmons[k-wt_diff]];
+	// This is wrong!!!
+	// We should look for relations over QQ, i.e.
+	// mat := Matrix([&cat[Eltseq(x) :  x in AbsEltseq(f)] : f in prods]);
+	// ker := Kernel(mat);
+	// But for now I cannot get it to work even on simple examples
  	ker := Kernel(Matrix([AbsEltseq(f) : f in prods]));
  	found :=  exists(v){v : v in Basis(ker)
  			| not &and[v[i] eq 0 :
@@ -1530,7 +1536,6 @@ intrinsic JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt : LogCa
     else
 	g := Genus(G);
 	nu_infty := #Cusps(G);
-	// nu_ell := #EllipticPoints(G);
 	H := Universe(EllipticPoints(G)); 
 	nu_2 := #[H | pt : pt in EllipticPoints(G) |
 		      Order(Matrix(Stabilizer(pt, G))) eq 4];
@@ -1842,7 +1847,8 @@ end function;
 // output: fs - a list of coefficients of q-expansions for a basis of cusp forms in S_2(G, Q)
 //         tos - indices indicating from which twist orbit each of them was taken.
 
-function BoxMethod(G, prec : AtkinLehner := [], Chars := [], M := 0, wt := 2)
+function BoxMethod(G, prec : AtkinLehner := [], Chars := [],
+			     M := 0, wt := 2)
 
     eps := create_character(G, Chars);
     
