@@ -3,8 +3,8 @@
 
 System("mkdir -p output_data");
 SetColumns(0);
-//SetVerbose("ModularCurves", 1);
 AttachSpec("ModCrv.spec");
+SetVerbose("ModularCurves", 1);
 
 level := StringToInteger(Split(label, ".")[1]);
 gens := [StringToInteger(x) : x in Split(Read("input_data/" * label), ",")];
