@@ -13,6 +13,15 @@
 	farey_symbol.m
 	misc.m
     }
+
+    ModFrm
+    {
+	categories.m
+	creation.m
+	eisenstein.m
+	predicates.m
+	q-expansions.m
+    }
     
     ModSym
     {
@@ -22,6 +31,7 @@
 	core.m
 	decomp.m
 	dims.m
+	dirichlet.m
 	linalg.m
 	maps.m
 	modsym.m

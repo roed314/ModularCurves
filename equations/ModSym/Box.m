@@ -12,7 +12,9 @@
   JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt);
   ModularCurve(G::GrpPSL2);
   WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
-		     E4::FldFunRatMElt, E6::FldFunRatMElt, name::MonStgElt);                                
+		     E4::FldFunRatMElt, E6::FldFunRatMElt, name::MonStgElt);
+  LMFDBWriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
+		          E4::FldFunRatMElt, E6::FldFunRatMElt, fname::MonStgElt);                           
                                                                       
 *************************************************************************************
 */
@@ -1489,25 +1491,60 @@ function FindHyperellipticCurve(qexps, prec)
     return X, fs;
 end function;
 
-intrinsic JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt) ->
+function FindFormAsRationalFunction(form, R, fs, wt_diff : min_k := 0)
+     prec := AbsolutePrecision(form);
+     _<q> := Universe(fs);
+     degmons := AssociativeArray();
+     found := false;
+     if min_k eq 0 then min_k := wt_diff; end if;
+     k := min_k;
+     while (not found) do
+ 	vprintf ModularCurves, 1:
+ 	    "Trying to find form with weight %o\n", k;
+ 	for d in {k-wt_diff, k} do
+ 	    degmons[d] := MonomialsOfDegree(R, d div 2);
+ 	end for;
+ 	prods := [Evaluate(m, fs) + O(q^prec) : m in degmons[k]];
+ 	prods cat:= [form*Evaluate(m, fs)*q^wt_diff + O(q^prec) : m in degmons[k-wt_diff]];
+ 	ker := Kernel(Matrix([AbsEltseq(f) : f in prods]));
+ 	found :=  exists(v){v : v in Basis(ker)
+ 			| not &and[v[i] eq 0 :
+ 				   i in [1..#degmons[k]]] and
+ 			not &and[v[#degmons[k]+i] eq 0 :
+ 				 i in [1..#degmons[k-wt_diff]]]};
+ 	k +:= 2;
+     end while;
+     k -:= 2;
+     num := &+[v[i]*degmons[k][i] : i in [1..#degmons[k]]];
+     denom := &+[v[#degmons[k]+i]*degmons[k-wt_diff][i]
+ 		: i in [1..#degmons[k-wt_diff]]];
+     return num / denom;
+ end function;
+
+intrinsic JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt : LogCanonical := false) ->
   FldFunRatMElt, FldFunRatMElt, FldFunRatMElt
 {Computes E4, E6 and j as rational function, when the given qexpansions are the variables.}
-    g := Genus(G);
-    nu_infty := #Cusps(G);
-    // nu_ell := #EllipticPoints(G);
-    H := Universe(EllipticPoints(G)); 
-    nu_2 := #[H | pt : pt in EllipticPoints(G) |
-	      Order(Matrix(Stabilizer(pt, G))) eq 4];
-    nu_3 := #[H | pt : pt in EllipticPoints(G) |
-	      Order(Matrix(Stabilizer(pt, G))) eq 6];
-    // This bounds are from Rouse, DZB and Drew's paper
-    E4_k := Ceiling((2*nu_infty + nu_2 + nu_3 + 5*g-4)/(g-1));  
-    E6_k := Ceiling((3*nu_infty + nu_2 + 2*nu_3 + 7*g-6)/(g-1));
-    if IsOdd(E4_k) then
-	E4_k +:= 1;
-    end if;
-    if IsOdd(E6_k) then
-	E6_k +:= 1;
+    if LogCanonical then
+	E4_k := 4;
+	E6_k := 6;
+    else
+	g := Genus(G);
+	nu_infty := #Cusps(G);
+	// nu_ell := #EllipticPoints(G);
+	H := Universe(EllipticPoints(G)); 
+	nu_2 := #[H | pt : pt in EllipticPoints(G) |
+		      Order(Matrix(Stabilizer(pt, G))) eq 4];
+	nu_3 := #[H | pt : pt in EllipticPoints(G) |
+		      Order(Matrix(Stabilizer(pt, G))) eq 6];
+	// This bounds are from Rouse, DZB and Drew's paper
+	E4_k := Ceiling((2*nu_infty + nu_2 + nu_3 + 5*g-4)/(g-1));  
+	E6_k := Ceiling((3*nu_infty + nu_2 + 2*nu_3 + 7*g-6)/(g-1));
+	if IsOdd(E4_k) then
+	    E4_k +:= 1;
+	end if;
+	if IsOdd(E6_k) then
+	    E6_k +:= 1;
+	end if;
     end if;
     R<q> := Universe(qexps);
     K := BaseRing(R);
@@ -1517,55 +1554,10 @@ intrinsic JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt) ->
     degmons := AssociativeArray();
     // we add this because there is something wrong with the bounds.
     // computing E4
-    E4_found := false;
-    while (not E4_found) do
-	vprintf ModularCurves, 1:
-	    "Trying to find E4 with weight %o\n", E4_k;
-	//    for d in {E4_k-4, E4_k, E6_k-6, E6_k} do
-	for d in {E4_k-4, E4_k} do
-	    degmons[d] := MonomialsOfDegree(R, d div 2);
-	end for;
-	E4 := qExpansion(EisensteinSeries(ModularForms(1,4))[1],prec);
-	prods_E4 := [Evaluate(m, fs) + O(q^prec) : m in degmons[E4_k]];
-	prods_E4 cat:= [E4*Evaluate(m, fs)*q^4 + O(q^prec) : m in degmons[E4_k-4]];
-	ker_E4 := Kernel(Matrix([AbsEltseq(f) : f in prods_E4]));
-	E4_found :=  exists(v_E4){v : v in Basis(ker_E4)
-			| not &and[v[i] eq 0 :
-				   i in [1..#degmons[E4_k]]] and
-			not &and[v[#degmons[E4_k]+i] eq 0 :
-				 i in [1..#degmons[E4_k-4]]]};
-	E4_k +:= 2;
-    end while;
-    E6_found := false;
-    while (not E6_found) do
-	vprintf ModularCurves, 1:
-	    "Trying to find E6 with weight %o\n", E6_k;
-	for d in {E6_k-6, E6_k} do
-	    degmons[d] := MonomialsOfDegree(R, d div 2);
-	end for;
-	E6 := qExpansion(EisensteinSeries(ModularForms(1,6))[1],prec);
-	prods_E6 := [Evaluate(m, fs) + O(q^prec) : m in degmons[E6_k]];
-	prods_E6 cat:= [E6*Evaluate(m, fs)*q^6 + O(q^prec) : m in degmons[E6_k-6]];
-	ker_E6 := Kernel(Matrix([AbsEltseq(f) : f in prods_E6]));
-	E6_found := exists(v_E6){v : v in Basis(ker_E6) |
-			not &and[v[i] eq 0 :
-				   i in [1..#degmons[E6_k]]] and
-			not &and[v[#degmons[E6_k]+i] eq 0 :
-				 i in [1..#degmons[E6_k-6]]]};
-	E6_k +:= 2;
-    end while;
-
-    E4_k -:= 2;
-    E6_k -:= 2;
-    
-    E4_num := &+[v_E4[i]*degmons[E4_k][i] : i in [1..#degmons[E4_k]]];
-    E4_denom := &+[v_E4[#degmons[E4_k]+i]*degmons[E4_k-4][i]
-		   : i in [1..#degmons[E4_k-4]]];
-    E6_num := &+[v_E6[i]*degmons[E6_k][i] : i in [1..#degmons[E6_k]]];
-    E6_denom := &+[v_E6[#degmons[E6_k]+i]*degmons[E6_k-6][i]
-		   : i in [1..#degmons[E6_k-6]]];
-    E4 := E4_num / E4_denom;
-    E6 := E6_num / E6_denom;
+    E4 := qExpansion(EisensteinSeries(ModularForms(1,4))[1],prec);
+    E4 := FindFormAsRationalFunction(E4, R, fs, 4 : min_k := E4_k);
+    E6 := qExpansion(EisensteinSeries(ModularForms(1,6))[1],prec);
+    E6 := FindFormAsRationalFunction(E6, R, fs, 6 : min_k := E6_k);
     j := 1728*E4^3/(E4^3-E6^2);
     _<[x]> := Parent(E4);
     return E4, E6, j;
@@ -1993,37 +1985,28 @@ function getCurveFromForms(fs, prec, max_deg, genus : CheckGenus := true)
     assert genus ge 2;
 
     assert Minimum([AbsolutePrecision(f) : f in fs]) ge prec;
-    
+
+    type := "canonical";
     X := FindCurveSimple(fs, prec, max_deg);
     
-    // If could not find equations, magma now spits an error
-    // when trying to compute the genus
-    // g := Genus(X);
-    
-    // if g eq 0 then
     if DefiningPolynomials(X) eq [0] then
-	//print "Curve is Hyperelliptic. Finding equations not implemented yet.";
 	X, fs := FindHyperellipticCurve(fs, prec);
-	return X, fs;
+	type := "hyperelliptic";
     else
 	if CheckGenus then
 	    vprintf ModularCurves, 1: "Computing genus of curve...\n";
 	    g := Genus(X);
 	    vprintf ModularCurves, 1: "Done.";
 	    if g eq 0 then
-		// print "Curve is Hyperelliptic. Finding equations not implemented yet.";
 		X, fs := FindHyperellipticCurve(fs, prec);
-		return X, fs;
+		type := "hyperelliptic";
 	    else
 		assert g eq genus;
-		X_Q := ChangeRing(X, Rationals());
-		return X_Q, fs;
 	    end if;
-	else
-	    X_Q := ChangeRing(X, Rationals());
-	    return X_Q, fs;
 	end if;
     end if;
+    X_Q := ChangeRing(X, Rationals());
+    return X_Q, fs, type;
 end function;
 
 // function: ModularCurve
@@ -2034,7 +2017,7 @@ end function;
 //         fs - the q-expansions of a basis of cusp forms
 
 function ModularCurveBox(G, genus : Precision := 0, Proof := false,
-			 chars := false)
+			 chars := false, Al := "Canonical")
     assert genus ge 2;
     N := Modulus(BaseRing(G));
     PG := PSL2Subgroup(G);
@@ -2051,20 +2034,25 @@ function ModularCurveBox(G, genus : Precision := 0, Proof := false,
       _<q> := PowerSeriesRing(K);
       fs := qExpansions(fs, prec, q, K, true);
     end if;
+    if Al eq "LogCanonical" then
+	eis := EisensteinSeries(ModularForms(PG));
+	fs cat:= [qExpansion(f,prec) : f in eis];
+    end if;
     return getCurveFromForms(fs, prec, max_deg, genus);
 end function;
 
-intrinsic ModularCurve(G::GrpPSL2 : Proof := false) -> Crv[FldRat],
-                                                       SeqEnum[RngSerPowElt]
+intrinsic ModularCurve(G::GrpPSL2 : Proof := false, Al := "Canonical") -> Crv[FldRat],SeqEnum[RngSerPowElt], MonStgElt
 {Returns the canonical embedding of the modular curve associated to G,
- together with the q-expansions of a basis of cusp forms.}
+ together with the q-expansions of a basis of cusp forms, and the type of model.}
+/*
   if IsGamma0(G) then
       db := ModularCurveDatabase("Canonical");
       return ModularCurve(db, Level(G));
   end if;
+*/
   genus := Genus(G);
   require genus ge 2 : "Currenty not implemented for genus < 2";
-  return ModularCurveBox(ImageInLevelGL(G), genus : Proof := Proof);
+  return ModularCurveBox(ImageInLevelGL(G), genus : Proof := Proof, Al := Al);
 end intrinsic;
 
 // procedure: testBoxExample
