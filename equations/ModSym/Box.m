@@ -1996,7 +1996,7 @@ function getCurveFromForms(fs, prec, max_deg, genus : CheckGenus := true)
 	if CheckGenus then
 	    vprintf ModularCurves, 1: "Computing genus of curve...\n";
 	    g := Genus(X);
-	    vprintf ModularCurves, 1: "Done.";
+	    vprintf ModularCurves, 1: "Done.\n";
 	    if g eq 0 then
 		X, fs := FindHyperellipticCurve(fs, prec);
 		type := "hyperelliptic";
