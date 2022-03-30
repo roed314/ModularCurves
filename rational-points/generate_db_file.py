@@ -39,6 +39,7 @@ def load_points_files(data_folder):
                     degree = field_of_definition.split(".")[0]
                     jinv = pieces[3].replace(" ", "").replace("[", "").replace("]", "")
                     field_of_j = pieces[4].strip()
+                    jorig = r"\N" if field_of_j in ["1.1.1.1", field_of_definition] else None
                     cm = pieces[6].strip()
                     quo_info = pieces[7].strip().replace("[", "{").replace("]", "}")
                     assert LABEL_RE.match(label), f"Invalid curve label {label}"
@@ -48,10 +49,14 @@ def load_points_files(data_folder):
                     assert LABEL_RE.match(field_of_j), f"Invalid field of j {field_of_j} for {label}"
                     assert ZZ_RE.match(cm), f"Invalid CM discriminant {cm} for {label}"
                     assert quo_info == r"\N" or NN_LIST_RE.match(quo_info[1:-1]), f"Invalid quotient information {quo_info} for {label}"
-                    ans.append((label, int(degree), field_of_definition, jinv, field_of_j, cm, quo_info, r"\N", True, r"\N"))
+                    ans.append((label, int(degree), field_of_definition, jorig, jinv, field_of_j, cm, quo_info, r"\N", True, r"\N"))
     return ans
 
 def generate_db_files(data_folder):
+    lit_data = load_points_files(data_folder)
+    lit_fields = sorted(set([datum[2] for datum in lit_data]))
+    print("Loaded tables from files")
+
     # Galois images are stored for NF curves using Sutherland labels
     from_Slabel = {
         rec["Slabel"] : rec["label"]
@@ -64,25 +69,38 @@ def generate_db_files(data_folder):
     print("Constructed Sutherland label lookup table")
 
     R = PolynomialRing(QQ, 'x')
-    field_data = list(db.nf_fields.search({"label": {"$in": db.ec_nfcurves.distinct("field_label")}},
+    field_data = list(db.nf_fields.search({"label": {"$in": db.ec_nfcurves.distinct("field_label") + lit_fields}},
                                           ["label", "coeffs", "subfields", "degree", "disc_abs"], silent=True))
     subs = [[int(c) for c in sub.split(".")] for sub in set(sum((rec["subfields"] for rec in field_data), []))]
-    sub_lookup = {(rec["degree"], rec["disc_abs"]) : (rec["label"], R(rec["coeffs"])) for rec in db.nf_fields.search({"$or": [{"coeffs": sub} for sub in subs]}, ["degree", "disc_abs", "label", "coeffs"], silent=True)}
-    if len(subs) != len(sub_lookup):
+    sub_data = list(db.nf_fields.search({"$or": [{"coeffs": sub} for sub in subs]}, ["degree", "disc_abs", "label", "coeffs"], silent=True))
+    if len(subs) != len(sub_data):
         raise RuntimeError("Sub not labeled or discriminant clash")
-    sub_lookup[1, 1] = ("1.1.1.1", x - 1)
+    sub_lookup = {(rec["degree"], rec["disc_abs"]) : (rec["label"], R(rec["coeffs"])) for rec in sub_data}
+    by_coeffs = {tuple(rec["coeffs"]): rec["label"] for rec in sub_data}
+    sub_lookup[1, 1] = ("1.1.1.1", R.gen() - 1)
     nfs = {}
+    embeddings = {}
     nf_subs = defaultdict(dict)
     for rec in field_data:
         f = R(rec["coeffs"])
-        nfs[rec["label"]] = NumberField(f, 'a')
+        nfs[rec["label"]] = L = NumberField(f, 'a')
         sub_lookup[rec["degree"], rec["disc_abs"]] = (rec["label"], f)
+        for sub in rec["subfields"]:
+            sub = [ZZ(c) for c in sub.split(".")]
+            g = R(sub)
+            embeddings[by_coeffs[tuple(sub)], rec["label"]] = g.roots(L, multiplicities=False)[0]
+    def get_j_height(jinv, j_field):
+        K = nfs[j_field]
+        j = [QQ(c) for c in jinv.split(",")]
+        j += [0] * (K.degree() - len(j))
+        j = K(j)
+        return j.global_height()
 
     print("Constructed number field lookup tables")
 
     immediate_parents = {}
     gpdata = {}
-    for rec in db.gps_gl2zhat_test.search({"level": {"$ne": 1}}, ["label", "parents", "contains_negative_one", "genus", "gonality_bounds", "simple", "rank", "name"], silent=True):
+    for rec in db.gps_gl2zhat_test.search({"level": {"$ne": 1}}, ["label", "parents", "contains_negative_one", "genus", "gonality_bounds", "simple", "rank", "name", "level", "index"], silent=True):
         immediate_parents[rec["label"]] = [x for x in rec["parents"] if x.split(".")[0] != "1"]
         gpdata[rec["label"]] = rec
 
@@ -97,9 +115,6 @@ def generate_db_files(data_folder):
             key=lambda x: [int(c) for c in x.split(".")]
         )
     print("Constructed GL(2, Zhat) lattice table")
-
-    lit_data = load_points_files(data_folder)
-    print("Loaded tables from files")
 
     skipped = set()
     ecq_db_data = []
@@ -117,7 +132,7 @@ def generate_db_files(data_folder):
                 jinv = str(rec["jinv"][0])
             else:
                 jinv = "%s/%s" % tuple(rec["jinv"])
-            ecq_db_data.append((label, 1, "1.1.1.1", jinv, "1.1.1.1", rec["cm"], r"\N", Elabel, False, str(rec["conductor"])))
+            ecq_db_data.append((label, 1, "1.1.1.1", r"\N", jinv, "1.1.1.1", rec["cm"], r"\N", Elabel, False, str(rec["conductor"])))
     print("Loaded elliptic curves over Q")
 
     ecnf_db_data = []
@@ -130,6 +145,8 @@ def generate_db_files(data_folder):
         if rec["jinv"].endswith(",0" * (rec["degree"] - 1)):
             jfield = "1.1.1.1"
             jinv = rec["jinv"].split(",")[0]
+            # Searching ecnf using a rational j-invariant works even when the residue field is not Q
+            jorig = r"\N"
         else:
             K = nfs[rec["field_label"]]
             j = K([QQ(c) for c in rec["jinv"].split(",")])
@@ -137,9 +154,13 @@ def generate_db_files(data_folder):
             if Qj.degree() == rec["degree"]:
                 jfield = rec["field_label"]
                 jinv = rec["jinv"]
+                jorig = r"\N"
             else:
                 jfield, f = sub_lookup[Qj.degree(), Qj.discriminant().abs()]
                 jinv = ",".join(str(c) for c in f.roots(Qj, multiplicities=False)[0].coordinates_in_terms_of_powers()(Qj.gen()))
+                #root = embeddings[jfield, rec["field_label"]]
+                #jinv = ",".join(str(c) for c in root.coordinates_in_terms_of_powers()(jinc(Qj.gen())))
+                jorig = rec["jinv"]
         for Slabel in rec["galois_images"]:
             if "[" in Slabel: # these have nonsurjective determinant
                 continue
@@ -159,7 +180,7 @@ def generate_db_files(data_folder):
                 continue
             label = from_Slabel[Slabel]
             Elabel = rec["label"]
-            ecnf_db_data.append((label, rec["degree"], rec["field_label"], jinv, jfield, rec["cm"], r"\N", Elabel, False, str(rec["conductor_norm"])))
+            ecnf_db_data.append((label, rec["degree"], rec["field_label"], jorig, jinv, jfield, rec["cm"], r"\N", Elabel, False, str(rec["conductor_norm"])))
     print("Loaded elliptic curves over number fields")
 
     # Check for overlap as we add points
@@ -167,19 +188,33 @@ def generate_db_files(data_folder):
     point_counts = defaultdict(Counter)
     # Things to add: isolated, coordinates in terms of model, LMFDB curve label (when not containing -1
     with open(os.path.join(data_folder, "modcurve_ratpoints.txt"), "w") as F:
-        _ = F.write("curve_label|curve_name|curve_genus|degree|residue_field|jinv|j_field|cm|quo_info|Elabel|isolated|conductor_norm\ntext|text|smallint|smallint|text|text|text|smallint|smallint[]|text|smallint|bigint\n\n")
-        for (label, degree, field_of_definition, jinv, field_of_j, cm, quo_info, Elabel, known_isolated, conductor_norm) in ecq_db_data + ecnf_db_data + lit_data:
+        _ = F.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm\ntext|text|smallint|integer|smallint|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint\n\n")
+        for ctr, (label, degree, field_of_definition, jorig, jinv, field_of_j, cm, quo_info, Elabel, known_isolated, conductor_norm) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
+            if ctr and ctr % 10000 == 0:
+                print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
             for plabel in [label] + all_parents[label]:
                 if (field_of_j, jinv) not in jinvs_seen[plabel]:
                     jinvs_seen[plabel].add((field_of_j, jinv))
                     point_counts[plabel][degree] += 1
+                    if jorig is None:
+                        # Recover the j-invariant in the residue field from our chosen embedding.
+                        K = nfs[field_of_j]
+                        j = [QQ(c) for c in jinv.split(",")]
+                        j += [0] * (K.degree() - len(j))
+                        j = K(j)
+                        L = nfs[field_of_definition]
+                        root = embeddings[field_of_j, field_of_definition]
+                        emb = K.hom([root])
+                        jorig = ",".join(str(c) for c in list(emb(j)))
+                    j_height = get_j_height(jinv, field_of_j)
                     gdat = gpdata[plabel]
                     g = gdat["genus"]
+                    ind = gdat["index"]
+                    level = gdat["level"]
                     gonlow = gdat["gonality_bounds"][0]
                     rank = gdat["rank"]
                     simp = gdat["simple"]
                     name = gdat["name"]
-                    Enow = r"\N" if gdat["contains_negative_one"] else Elabel
                     if label == plabel and known_isolated:
                         isolated = "1"
                     elif degree == 1:
@@ -190,7 +225,7 @@ def generate_db_files(data_folder):
                         isolated = "-1"
                     else:
                         isolated = r"0"
-                    _ = F.write("|".join([plabel, name, str(g), str(degree), field_of_definition, jinv, field_of_j, str(cm), quo_info, Enow, isolated, conductor_norm]) + "\n")
+                    _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, field_of_j, str(j_height), str(cm), quo_info, Elabel, isolated, conductor_norm]) + "\n")
     with open(os.path.join(data_folder, "modcurve_ptcount_update.txt"), "w") as F:
         _ = F.write("label|" + "|".join(f"known_degree{d}_points" for d in range(1,7)) + "\ntext" + "|smallint"*6 + "\n\n")
         for label, cnts in point_counts.items():
