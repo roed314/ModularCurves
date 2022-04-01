@@ -1900,6 +1900,7 @@ function ModularCurveBox(G, genus : Precision := 0, Proof := false,
     if Al eq "LogCanonical" then
 	eis := EisensteinSeries(ModularForms(PG));
 	fs cat:= [qExpansion(f,prec) : f in eis];
+	max_deg := 2;
     end if;
     X, fs, type := getCurveFromForms(fs, prec, max_deg, genus);
     return X, fs, type, K;
@@ -2119,4 +2120,12 @@ intrinsic LMFDBWriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
     AssignNames(~S, lvars[1..Rank(R)]);
     Write(fname, Sprintf("{%o}|{%o}|{%o,%o}", Join([sprint(f) : f in DefiningPolynomials(X)], ","), Join([sprint(f) : f in fs], ","), sprint(E4), sprint(E6)));
     return;
+end intrinsic;
+
+intrinsic LMFDBWriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
+		          E4::RngMPolElt, E6::RngMPolElt, fname::MonStgElt)
+{Write the model, the q-expansions, E4, and E6 to a file for input into the LMFDB database}
+  FF := FieldOfFractions(Parent(E4));
+  LMFDBWriteModel(X, fs, FF!E4, FF!E6, fname);
+  return;
 end intrinsic;
