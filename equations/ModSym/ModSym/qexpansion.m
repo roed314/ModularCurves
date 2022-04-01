@@ -129,7 +129,7 @@ import "arith.m"  :   DotProd,
                       SmallestPrimeNondivisor,
                       ToLowerCaseLetter;
 
-import "Box.m" : BoxMethod, qExpansions;
+import "../Box.m" : BoxMethod, qExpansions;
 
 import "linalg.m" :   EchelonPolySeq,
                       MyCharpoly,
