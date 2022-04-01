@@ -124,17 +124,19 @@ intrinsic ModularForms(N::RngIntElt, k::RngIntElt) -> ModFrm
    return ModularForms([DirichletGroup(N)!1], k);
 end intrinsic;
 
+// currently, this does not work well with character, e.g. for 8.96.3.9
+// the Eisenstein series has dimension 11, and we obtain only 9. 
 intrinsic ModularFormsGroup(G::GrpPSL2, k::RngIntElt) -> ModFrm
 {"} // "
      requirege k,1;
- //   Q, pi_Q := G / G;
-     G_prime := MaximalNormalizingWithAbelianQuotient(G);
+     Q, pi_Q := G / G;
+     // G_prime := MaximalNormalizingWithAbelianQuotient(G);
   // Q, pi_Q := ImageInLevel(G_prime) / ImageInLevel(G);
-     Q, pi_Q := G_prime / G;
-     D := FullCharacterGroup(pi_Q, G_prime, G);
-     chars := GaloisConjugacyRepresentatives(D);
-     return ModularForms(chars, k);
-//     return ModularForms([CharacterGroup(pi_Q, G, G)!1], k);
+     // Q, pi_Q := G_prime / G;
+     // D := FullCharacterGroup(pi_Q, G_prime, G);
+     // chars := GaloisConjugacyRepresentatives(D);
+     //return ModularForms(chars, k);
+     return ModularForms([CharacterGroup(pi_Q, G, G)!1], k);
 end intrinsic;
 
 function ModularFormsGamma1(N, k)
