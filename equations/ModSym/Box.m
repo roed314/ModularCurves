@@ -716,6 +716,7 @@ function fixed_cusp_forms_QQ(as, primes, Tpluslist, Kf_to_KKs, prec,
 //		B_pd_mat := B_imgs_block * ChangeRing(pd_mat, Kf)^(-1);
                 B_pd_mat := B_imgs_block * ChangeRing(pd_mat, Kf);
 		B_pd_cfs := Solution(fixed_basis_block, B_pd_mat);
+		//B_pd_cfs := Transpose(Solution(Transpose(B_pd_mat), Transpose(fixed_basis_block)));
 		I_mat := IdentityMatrix(Kf,EulerPhi(K)*#fixed_space_basis);
 		fixed_B_pd := Kernel(B_pd_cfs - eps_BPd_gens[k]^(-1)*I_mat);
 		fixed_ms_space_QQ meet:= fixed_B_pd;
@@ -1017,8 +1018,8 @@ function get_gens(G, eps)
     quo, quo_mat := G/H;
     Cs := [g@@quo_mat : g in Generators(quo)];
     ds := [Determinant(C) : C in Cs];
-    Bgens := [C*GL(2,Integers(N))![Determinant(C),0,0,1]^(-1) : C in Cs];
-//    Bgens := [C*GL(2,Integers(N))![1,0,0,Determinant(C)]^(-1) : C in Cs];
+//    Bgens := [C*GL(2,Integers(N))![Determinant(C),0,0,1]^(-1) : C in Cs];
+    Bgens := [C*GL(2,Integers(N))![1,0,0,Determinant(C)]^(-1) : C in Cs];
     Bgens := [Eltseq(FindLiftToSL2(b)) : b in Bgens];
     return gens, Bgens, K, M, ds;
 end function;
@@ -1449,7 +1450,8 @@ function FindCurveSimple(qexps, prec, n_rel)
     degmons := [MonomialsOfDegree(R, d) : d in [1..n_rel]];
     prods := [[Evaluate(m, fs) + O(q^prec) : m in degmons[d]] :
 	      d in [1..n_rel]];
-    kers := [Kernel(Matrix([AbsEltseq(f) : f in prod])) : prod in prods];
+    // kers := [Kernel(Matrix([AbsEltseq(f) : f in prod])) : prod in prods];
+    kers := [Kernel(Matrix([&cat[Eltseq(x) : x in AbsEltseq(f)] : f in prod])) : prod in prods];
     rels := [[&+[Eltseq(kers[d].i)[j]*degmons[d][j] : j in [1..#degmons[d]]] :
 	      i in [1..Dimension(kers[d])]] : d in [1..n_rel]];
     // We want to generate the ideal with the lowest possible degree
@@ -1528,11 +1530,12 @@ function FindFormAsRationalFunction(form, R, fs, wt_diff : min_k := 0)
 intrinsic JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt : LogCanonical := false) ->
   FldFunRatMElt, FldFunRatMElt, FldFunRatMElt
 {Computes E4, E6 and j as rational function, when the given qexpansions are the variables.}
+    g := #qexps;
     if LogCanonical then
 	E4_k := 4;
 	E6_k := 6;
     else
-	g := Genus(G);
+	assert g eq Genus(G);
 	nu_infty := #Cusps(G);
 	H := Universe(EllipticPoints(G)); 
 	nu_2 := #[H | pt : pt in EllipticPoints(G) |
@@ -1555,7 +1558,6 @@ intrinsic JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt : LogCa
     R<q> := Universe(qexps);
     K := BaseRing(R);
     fs := [f + O(q^prec) : f in qexps];
-    assert g eq #fs;
     R<[x]> := PolynomialRing(K,g);
     degmons := AssociativeArray();
     // Because there is something wrong with the bounds,
@@ -1997,16 +1999,22 @@ function getCurveFromForms(fs, prec, max_deg, genus : CheckGenus := true)
     X := FindCurveSimple(fs, prec, max_deg);
     
     if DefiningPolynomials(X) eq [0] then
-	X, fs := FindHyperellipticCurve(fs, prec);
-	type := "hyperelliptic";
+	vprintf ModularCurves, 1:
+	    "Curve is Hyperelliptic. Returned scheme is not the Curve!\n";
+	// X, fs := FindHyperellipticCurve(fs, prec);
+	// type := "hyperelliptic";
+	return X, fs, "hyperelliptic";
     else
 	if CheckGenus then
 	    vprintf ModularCurves, 1: "Computing genus of curve...\n";
 	    g := Genus(X);
 	    vprintf ModularCurves, 1: "Done.\n";
 	    if g eq 0 then
-		X, fs := FindHyperellipticCurve(fs, prec);
-		type := "hyperelliptic";
+		vprintf ModularCurves, 1:
+		    "Curve is Hyperelliptic. Returned scheme is not the Curve!\n";
+		// X, fs := FindHyperellipticCurve(fs, prec);
+		// type := "hyperelliptic";
+		return X, fs, "hyperelliptic";
 	    else
 		assert g eq genus;
 	    end if;
