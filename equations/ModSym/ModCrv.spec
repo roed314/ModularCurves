@@ -14,6 +14,8 @@
 	misc.m
     }
 
+    ModelsAndMaps.m
+    
     ModFrm
     {
 	categories.m
