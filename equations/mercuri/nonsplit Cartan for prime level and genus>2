@@ -1,0 +1,1620 @@
+
+
+// general setup
+
+
+// parameters
+
+// level (must be a prime)
+p:=13;
+
+// complex field precision
+prec:=200;
+
+// q-series precision to identify representation
+repprec:=1501;
+
+// q-series precision wanted
+coefprec:=101;
+
+// ns or ns+
+type:="ns+";
+
+
+
+
+// general structures
+
+// set up spaces
+M1:=ModularForms(Gamma1(p),2);
+SetPrecision(M1,20);
+M1c:=CuspidalSubspace(M1);
+NF1c:=Newforms(M1c);
+M0sq:=ModularForms(Gamma0(p^2),2);
+SetPrecision(M0sq,20);
+M0csq:=CuspidalSubspace(M0sq);
+NF0csq:=Newforms(M0csq);
+
+// set up fields and rings
+CC:=ComplexField(prec);
+QQ:=RationalField();
+ZZ:=IntegerRing();
+Zmodp:=ResidueClassRing(p);
+GCF<zeta>:=CyclotomicField(p*(p+1));
+LCF<zetap,yp>:=NumberField([CyclotomicPolynomial(p),CyclotomicPolynomial(p-1)]: Abs:=true);
+CFp<zp>:=NumberField(CyclotomicPolynomial(p): Abs:=true);
+dCFp:=Degree(CFp);
+FF<ap>:=NumberField(CyclotomicPolynomial(p+1): Abs:=true);
+subf:=Subfields(FF);
+R<x>:=PolynomialRing(ZZ);
+xproj:=hom<CFp->R|x>;
+
+// genus function
+genus:=function(n,t)
+  // n = level
+  // t = type (string: ns, ns+)
+  ZZ:=Integers();
+
+  // nonsplit
+  if t eq "ns" then
+    pd:=PrimeDivisors(n);
+    dgr:=1;
+    e2:=1;
+    e3:=1;
+    cusps:=1;
+    for p in pd do
+      ee:=Valuation(n,p);
+      dgr:=dgr*p^(2*ee-1)*(p-1);
+      if ((p mod 4) eq 3) then
+        e2:=e2*2;
+      else
+        e2:=e2*0;
+      end if;
+      if ((p mod 3) eq 2) then
+        e3:=e3*2;
+      else
+        e3:=e3*0;
+      end if;
+      cusps:=cusps*p^(ee-1)*(p-1);
+    end for;
+    g:=1+dgr/12-e2/4-e3/3-cusps/2;
+    return g,dgr,e2,e3,cusps;
+
+  // nonsplit+
+  elif t eq "ns+" then
+    pd:=PrimeDivisors(n);
+    dgr:=1;
+    e2:=1;
+    e3:=1;
+    cusps:=1;
+    for p in pd do
+      ee:=Valuation(n,p);
+      dgr:=dgr*p^(2*ee-1)*(p-1)/2;
+      if p eq 2 then
+        e2:=e2*p^(ee-1);
+      elif ((p mod 4) eq 1) then
+        e2:=e2*p^(ee-1)*(p-1)/2;
+      else
+        e2:=e2*(1+p^(ee-1)*(p+1)/2);
+      end if;
+      if ((p mod 3) eq 2) then
+        e3:=e3*1;
+      else
+        e3:=e3*0;
+      end if;
+      if p^ee eq 2 then
+        cusps:=cusps*1;
+      else
+        cusps:=cusps*p^(ee-1)*(p-1)/2;
+      end if;
+    end for;
+    g:=1+dgr/12-e2/4-e3/3-cusps/2;
+    return g,dgr,e2,e3,cusps;
+  else
+    print "Type not supported";
+    return 0;
+  end if;
+end function;
+
+// genus
+genere:=ZZ!genus(p,type);
+
+// setup groups
+Gch:=FullDirichletGroup(p);
+chs:=Elements(Gch);
+GFp2<u>:=GF(p,2);
+CFpperm,CFpaut,CFpmap:=AutomorphismGroup(CFp);
+grgalCFp:=[];
+for kk:=0 to Order(CFpperm.1)-1 do
+  test:=CFpperm.1^kk;
+  if not(test in grgalCFp) then
+    grgalCFp:=Append(grgalCFp,test);
+  end if;
+end for;
+
+// nonsquare modulo p
+for bb:=2 to p-1 do
+  if (KroneckerSymbol(p,bb) eq -1) then
+    nsq:=ZZ!(bb);
+    break;
+  end if;
+end for;
+
+// exponents of automorphisms on zp
+expo:=[];
+for kk:=1 to #grgalCFp do
+  temp:=xproj(CFpmap(grgalCFp[kk])(zp));
+  if (Coefficient(temp, p-2) eq -1) then
+    expo:=Append(expo,p-1);
+   else
+    expo:=Append(expo,Degree(temp));
+  end if;
+  delete temp;
+end for;
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+// determine representations
+
+
+// determine associated representation
+cput:=Cputime();
+representations:=[**];
+for ii:=1 to #NF0csq do
+
+  // forma modulare
+  form:=NF0csq[ii,1];
+
+  // Xns+
+  if type eq "ns+" then
+
+    // check sign with respect to w_(p^2)
+    tau:=CC.1/(2*p);
+    ss1:=0;
+    ss2:=0;
+    for nn:=1 to 200 do
+      ss1:=ss1+Conjugate(Coefficient(form,nn),1)*Exp(-2*Pi(CC)*CC.1*nn/(p^2*tau));
+      ss2:=ss2+Conjugate(Coefficient(form,nn),1)*Exp(2*Pi(CC)*CC.1*tau*nn);
+    end for;
+    sign:=Round((1/(p^2*tau^2))*ss1/ss2);
+    if sign eq 1 then
+
+      // check primitivity and find character
+      PS:=0;
+      for jj:=1 to #NF1c do
+        formtw:=NF1c[jj,1];
+        chform:=DirichletCharacter(formtw);
+        test:=Evaluate(chform^(-1),2);
+        testch:=[];
+        for kk:=1 to p-1 do
+          if (Evaluate(chs[kk]^2,2) eq test) then
+            testch:=Append(testch,chs[kk]);
+          end if;
+        end for;
+        if #testch gt 0 then
+          for ss:=1 to #NF0csq[ii] do
+            for tt:=1 to #NF1c[jj] do
+              for ch in testch do
+                for cc:=1 to p-1 do
+                  if Gcd(cc,p-1) eq 1 then
+                    count:=0;
+                    for nn:=1 to p do
+                      err:=Conjugate(Coefficient(formtw,nn),tt)*CC!Conjugate(Evaluate(ch,nn),cc)-Conjugate(Coefficient(form,nn),ss);
+                      if Abs(err) gt 10^(-100) then
+                        break nn;
+                      end if;
+                      count:=count+1;
+                    end for;
+                    if count eq p then
+                      chtw:=ch;
+                      PS:=1;
+                      if chtw eq Gch!1 then
+                        representations:=Append(representations,<ii,ss,"Steinberg",chtw,cc,jj,tt>);
+                      elif chtw^2 eq Gch!1 then
+                        representations:=Append(representations,<ii,ss,"Twisted Steinberg",chtw,cc,jj,tt>);
+                      else
+                        representations:=Append(representations,<ii,ss,"Principal Series",chtw,cc,jj,tt>);
+                      end if;
+                      break ch;
+                    end if;
+                  end if;
+                end for;
+              end for;
+            end for;
+          end for;
+        end if;
+      end for;
+      if PS eq 0 then
+
+        // check cuspidality and find character
+        // parameters
+        aa:=1;
+        yy:=2;
+
+        // find character
+        for ss:=1 to #NF0csq[ii] do
+          testchr:=0;
+          for ggg:=1 to ZZ!((p+1)/2) do
+            psicompnum:=[];
+            for kk:=1 to p do
+              psicompnum:=Append(psicompnum,0+0*CC.1);
+            end for;
+            for kk:=1 to p do
+              for nn:=1 to repprec-1 do
+                if ((nn mod p) eq (kk mod p)) then
+                  psicompnum[kk]:=psicompnum[kk]+Conjugate(Coefficient(form,nn),ss)*Exp(-2*Pi(CC)*yy*nn/p);
+                end if;
+              end for;
+            end for;
+            Ftest:=0+0*CC.1;
+            for nn:=1 to repprec-1 do
+              if ((nn mod p) eq (1 mod p)) then
+                Ftest:=Ftest+Conjugate(Coefficient(form,nn),ss)*Exp(-2*Pi(CC)*nn/(p*yy));
+              end if;
+            end for;
+            Gtest:=0+0*CC.1;
+            for kk:=1 to p^2-1 do
+              Gtest:=Gtest+(CC ! zeta^((p+1)*aa*(ZZ ! Trace(u^kk))))*(CC ! zeta^(p*ggg*kk))*psicompnum[aa*(ZZ ! Norm(u^kk))];
+            end for;
+            err:=p*Ftest-(yy^2)*Gtest;
+            if Abs(err) lt 10^(-100) then
+              gg:=ggg;
+              representations:=Append(representations,<ii,ss,"Cuspidal",u^gg,gg>);
+              testchr:=1;
+              break ggg;
+            end if;
+          end for;
+          if testchr eq 0 then
+            print "No cuspidal character found, maybe more precision is needed for:", ii,ss;
+          end if;
+        end for;
+      end if;
+    end if;
+  
+  // Xns
+  elif type eq "ns" then
+
+    // check primitivity and find character
+    PS:=0;
+    for jj:=1 to #NF1c do
+      formtw:=NF1c[jj,1];
+      chform:=DirichletCharacter(formtw);
+      test:=Evaluate(chform^(-1),2);
+      testch:=[];
+      for kk:=1 to p-1 do
+        if (Evaluate(chs[kk]^2,2) eq test) then
+          testch:=Append(testch,chs[kk]);
+        end if;
+      end for;
+      if #testch gt 0 then
+        for ss:=1 to #NF0csq[ii] do
+          for tt:=1 to #NF1c[jj] do
+            for ch in testch do
+              for cc:=1 to p-1 do
+                if Gcd(cc,p-1) eq 1 then
+                  count:=0;
+                  for nn:=1 to p do
+                    err:=Conjugate(Coefficient(formtw,nn),tt)*CC!Conjugate(Evaluate(ch,nn),cc)-Conjugate(Coefficient(form,nn),ss);
+                    if Abs(err) gt 10^(-100) then
+                      break nn;
+                    end if;
+                    count:=count+1;
+                  end for;
+                  if count eq p then
+                    chtw:=ch;
+                    PS:=1;
+                    if chtw eq Gch!1 then
+                      representations:=Append(representations,<ii,ss,"Steinberg",chtw,cc,jj,tt>);
+                    elif chtw^2 eq Gch!1 then
+                      representations:=Append(representations,<ii,ss,"Twisted Steinberg",chtw,cc,jj,tt>);
+                    else
+                      representations:=Append(representations,<ii,ss,"Principal Series",chtw,cc,jj,tt>);
+                    end if;
+                    break ch;
+                  end if;
+                end if;
+              end for;
+            end for;
+          end for;
+        end for;
+      end if;
+    end for;
+    if PS eq 0 then
+
+      // check cuspidality and find character
+      // parameters
+      aa:=1;
+      yy:=2;
+
+      // find character
+      for ss:=1 to #NF0csq[ii] do
+        testchr:=0;
+        for ggg:=1 to ZZ!((p+1)/2) do
+          psicompnum:=[];
+          for kk:=1 to p do
+            psicompnum:=Append(psicompnum,0+0*CC.1);
+          end for;
+          for kk:=1 to p do
+            for nn:=1 to repprec-1 do
+              if ((nn mod p) eq (kk mod p)) then
+                psicompnum[kk]:=psicompnum[kk]+Conjugate(Coefficient(form,nn),ss)*Exp(-2*Pi(CC)*yy*nn/p);
+              end if;
+            end for;
+          end for;
+          Ftest:=0+0*CC.1;
+          for nn:=1 to repprec-1 do
+            if ((nn mod p) eq (1 mod p)) then
+              Ftest:=Ftest+Conjugate(Coefficient(form,nn),ss)*Exp(-2*Pi(CC)*nn/(p*yy));
+            end if;
+          end for;
+          Gtest:=0+0*CC.1;
+          for kk:=1 to p^2-1 do
+            Gtest:=Gtest+(CC ! zeta^((p+1)*aa*(ZZ ! Trace(u^kk))))*(CC ! zeta^(p*ggg*kk))*psicompnum[aa*(ZZ ! Norm(u^kk))];
+          end for;
+          err:=p*Ftest-(yy^2)*Gtest;
+          if Abs(err) lt 10^(-100) then
+            gg:=ggg;
+            representations:=Append(representations,<ii,ss,"Cuspidal",u^gg,gg>);
+            testchr:=1;
+            break ggg;
+          end if;
+        end for;
+        if testchr eq 0 then
+          print "No cuspidal character found, maybe more precision is needed for:", ii,ss;
+        end if;
+      end for;
+    end if;
+  else
+    print "Modular curve type not supported. Type must be ns or ns+.";
+  end if; 
+end for;
+print "time for representations";
+Cputime(cput);
+
+
+
+representations;
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+// computation number fields involved
+
+
+// forms considered
+formindices:=[];
+for rep in representations do
+  if not(rep[1] in formindices) then
+    formindices:=Append(formindices,rep[1]);
+  end if;
+end for;
+
+// list of fields containing Fourier coefficients of the starting forms
+fieldsforms:=[**];
+for ii in formindices do
+  form:=NF0csq[ii,1];
+  fieldsforms:=Append(fieldsforms,<ii,Parent(Coefficient(form,1))>);
+end for;
+
+// computation of fields containing Fourier coefficients of the final forms
+fields:=[**];
+for ii in formindices do
+  form:=NF0csq[ii,1];
+  for rep in representations do
+    if rep[1] eq ii then
+
+      // Cuspidal case
+      if rep[3] eq "Cuspidal" then
+        cput:=Cputime();
+        LLformtemp:=Parent(Coefficient(form,1));
+
+        // case form over Q
+        if LLformtemp eq QQ then
+
+          // setup fields
+          LLtemp<zzp,aap>:=NumberField([CyclotomicPolynomial(p),CyclotomicPolynomial(p+1)]: Abs:=true);
+          QRtemp<q>:=PowerSeriesRing(LLtemp);
+          rts:=[1];
+          phi:=[];
+          phi:=Append(phi,hom<LLformtemp->LLtemp|>);
+          fields:=Append(fields,<ii,LLtemp,QRtemp,rts,phi,aap>);
+
+        // case form over an extension of Q
+        else
+
+          // setup fields
+          if IsSubfield(LLformtemp,FF) then
+            for sf1 in subf do
+              d1:=Degree(sf1[1]);
+              for sf2 in subf do
+                d2:=Degree(sf2[1]);
+                if d1*d2 eq Degree(CyclotomicPolynomial(p+1)) then
+                  Psf1:=PolynomialRing(sf1[1]);
+                  if IsIrreducible(Psf1!DefiningPolynomial(sf2[1])) then
+                    FFtemp:=NumberField([DefiningPolynomial(sf1[1]),DefiningPolynomial(sf2[1])]: Abs:=true);
+                    bool,isom:=IsIsomorphic(FFtemp,FF);
+                    if bool then
+                      LLtemp<zzp,alpha,beta>:=NumberField([CyclotomicPolynomial(p),DefiningPolynomial(sf1[1]),DefiningPolynomial(sf2[1])]: Abs:=true);
+                      QRtemp<q>:=PowerSeriesRing(LLtemp);
+                      iota:=hom<FFtemp->LLtemp|alpha,beta>;
+                      aap:=iota(ap@@isom);
+                      break sf1;
+                    end if;
+                  end if;
+                end if;
+              end for;
+            end for;
+            rtstemp:=[];
+            poltest:=DefiningPolynomial(LLformtemp);
+            df:=Degree(poltest);
+            searchpmt:=31;
+            VV:=VectorSpace(FiniteField(searchpmt),df);
+            oldvv:=[];
+            if d1 eq df then
+              for vv in VV do
+                if not(vv in oldvv) and not(-vv in oldvv) then
+                  oldvv:=Append(oldvv,vv);
+                  rttemp:=0;
+                  for jj:=1 to df do
+                    if ZZ!(vv[jj]) ge ZZ!((searchpmt+1)/2) then
+                      rttemp:=rttemp+(ZZ!(vv[jj])-searchpmt)*alpha^(jj-1);
+                    else
+                      rttemp:=rttemp+ZZ!(vv[jj])*alpha^(jj-1);
+                    end if;
+                  end for;
+                  if Evaluate(poltest,rttemp) eq 0 then
+                    rtstemp:=Append(rtstemp,rttemp);
+                  end if;
+                  if #rtstemp eq df then
+                    rts:=rtstemp;
+                    break vv;
+                  end if;
+                  rttemp:=0;
+                  for jj:=1 to df do
+                    if ZZ!(-vv[jj]) ge ZZ!((searchpmt+1)/2) then
+                      rttemp:=rttemp+(ZZ!(-vv[jj])-searchpmt)*alpha^(jj-1);
+                    else
+                      rttemp:=rttemp+ZZ!(-vv[jj])*alpha^(jj-1);
+                    end if;
+                  end for;
+                  if Evaluate(poltest,rttemp) eq 0 then
+                    rtstemp:=Append(rtstemp,rttemp);
+                  end if;
+                  if #rtstemp eq df then
+                    rts:=rtstemp;
+                    break vv;
+                  end if;
+                end if;
+              end for;
+              if not(#rtstemp eq df) and (d2 eq df) then
+                for vv in VV do
+                  if not(vv in oldvv) and not(-vv in oldvv) then
+                    oldvv:=Append(oldvv,vv);
+                    rttemp:=0;
+                    for jj:=1 to df do
+                      if ZZ!(vv[jj]) ge ZZ!((searchpmt+1)/2) then
+                        rttemp:=rttemp+(ZZ!(vv[jj])-searchpmt)*beta^(jj-1);
+                      else
+                        rttemp:=rttemp+ZZ!(vv[jj])*beta^(jj-1);
+                      end if;
+                    end for;
+                    if Evaluate(poltest,rttemp) eq 0 then
+                      rtstemp:=Append(rtstemp,rttemp);
+                    end if;
+                    if #rtstemp eq df then
+                      rts:=rtstemp;
+                      break vv;
+                    end if;
+                    rttemp:=0;
+                    for jj:=1 to df do
+                      if ZZ!(-vv[jj]) ge ZZ!((searchpmt+1)/2) then
+                        rttemp:=rttemp+(ZZ!(-vv[jj])-searchpmt)*beta^(jj-1);
+                      else
+                        rttemp:=rttemp+ZZ!(-vv[jj])*beta^(jj-1);
+                      end if;
+                    end for;
+                    if Evaluate(poltest,rttemp) eq 0 then
+                      rtstemp:=Append(rtstemp,rttemp);
+                    end if;
+                    if #rtstemp eq df then
+                      rts:=rtstemp;
+                      break vv;
+                    end if;
+                  end if;
+                end for;
+                if not(#rtstemp eq df) then
+                  rtstemp:=Roots(poltest,LLtemp);
+                  rts:=[];
+                  for rt in rtstemp do
+                    rts:=Append(rts,rt[1]);
+                  end for;
+                end if;
+              elif not(#rtstemp eq df) then
+                rtstemp:=Roots(poltest,LLtemp);
+                rts:=[];
+                for rt in rtstemp do
+                  rts:=Append(rts,rt[1]);
+                end for;
+              end if;
+            elif (d2 eq df) then
+              for vv in VV do
+                if not(vv in oldvv) and not(-vv in oldvv) then
+                  oldvv:=Append(oldvv,vv);
+                  rttemp:=0;
+                  for jj:=1 to df do
+                    if ZZ!(vv[jj]) ge ZZ!((searchpmt+1)/2) then
+                      rttemp:=rttemp+(ZZ!(vv[jj])-searchpmt)*beta^(jj-1);
+                    else
+                      rttemp:=rttemp+ZZ!(vv[jj])*beta^(jj-1);
+                    end if;
+                  end for;
+                  if Evaluate(poltest,rttemp) eq 0 then
+                    rtstemp:=Append(rtstemp,rttemp);
+                  end if;
+                  if #rtstemp eq df then
+                    rts:=rtstemp;
+                    break vv;
+                  end if;
+                  rttemp:=0;
+                  for jj:=1 to df do
+                    if ZZ!(-vv[jj]) ge ZZ!((searchpmt+1)/2) then
+                      rttemp:=rttemp+(ZZ!(-vv[jj])-searchpmt)*beta^(jj-1);
+                    else
+                      rttemp:=rttemp+ZZ!(-vv[jj])*beta^(jj-1);
+                    end if;
+                  end for;
+                  if Evaluate(poltest,rttemp) eq 0 then
+                    rtstemp:=Append(rtstemp,rttemp);
+                  end if;
+                  if #rtstemp eq df then
+                    rts:=rtstemp;
+                    break vv;
+                  end if;
+                end if;
+              end for;
+              if not(#rtstemp eq df) then
+                rtstemp:=Roots(poltest,LLtemp);
+                rts:=[];
+                for rt in rtstemp do
+                  rts:=Append(rts,rt[1]);
+                end for;
+              end if;
+            end if;
+          else
+            rtstemp:=[];
+            poltest:=DefiningPolynomial(LLformtemp);
+            LLtemp<zzp,aap,alpha>:=NumberField([CyclotomicPolynomial(p),CyclotomicPolynomial(p+1),poltest]: Abs:=true);
+            QRtemp<q>:=PowerSeriesRing(LLtemp);
+            df:=Degree(poltest);
+            searchpmt:=31;
+            VV:=VectorSpace(FiniteField(searchpmt),df);
+            oldvv:=[];
+            for vv in VV do
+              if not(vv in oldvv) and not(-vv in oldvv) then
+                oldvv:=Append(oldvv,vv);
+                rttemp:=0;
+                for jj:=1 to df do
+                  if ZZ!(vv[jj]) ge ZZ!((searchpmt+1)/2) then
+                    rttemp:=rttemp+(ZZ!(vv[jj])-searchpmt)*alpha^(jj-1);
+                  else
+                    rttemp:=rttemp+ZZ!(vv[jj])*alpha^(jj-1);
+                  end if;
+                end for;
+                if Evaluate(poltest,rttemp) eq 0 then
+                  rtstemp:=Append(rtstemp,rttemp);
+                end if;
+                if #rtstemp eq df then
+                  rts:=rtstemp;
+                  break vv;
+                end if;
+                rttemp:=0;
+                for jj:=1 to df do
+                  if ZZ!(-vv[jj]) ge ZZ!((searchpmt+1)/2) then
+                    rttemp:=rttemp+(ZZ!(-vv[jj])-searchpmt)*alpha^(jj-1);
+                  else
+                    rttemp:=rttemp+ZZ!(-vv[jj])*alpha^(jj-1);
+                  end if;
+                end for;
+                if Evaluate(poltest,rttemp) eq 0 then
+                  rtstemp:=Append(rtstemp,rttemp);
+                end if;
+                if #rtstemp eq df then
+                  rts:=rtstemp;
+                  break vv;
+                end if;
+              end if;
+            end for;
+            if not(#rtstemp eq df) then
+              rtstemp:=Roots(poltest,LLtemp);
+              rts:=[];
+              for rt in rtstemp do
+                rts:=Append(rts,rt[1]);
+              end for;
+            end if;
+          end if;
+          phi:=[];
+          for rt in rts do
+            phi:=Append(phi,hom<LLformtemp->LLtemp|rt>);
+          end for;
+          fields:=Append(fields,<ii,LLtemp,QRtemp,rts,phi,aap>);
+        end if;
+        print "time to setup number fields",ii;
+        Cputime(cput);
+
+      // not cuspidal case
+      else
+
+        // setup fields
+        cput:=Cputime();
+        chtwist:=rep[4];
+        iitw:=rep[6];
+        formtwisted:=NF1c[iitw,1];
+        LLtemp:=LCF;
+        QRtemp<q>:=PowerSeriesRing(LLtemp);
+        LLformtemp:=Parent(Coefficient(form,1));
+        if LLformtemp eq QQ then
+          phi:=[];
+          rts:=[1];
+          phi:=Append(phi,hom<LLformtemp->LLtemp|>);
+        else
+          poltest:=DefiningPolynomial(LLformtemp);
+          rtstemp:=Roots(poltest,LLtemp);
+          rts:=[];
+          for rt in rtstemp do
+            rts:=Append(rts,rt[1]);
+          end for;
+          phi:=[];
+          for rt in rts do
+            phi:=Append(phi,hom<LLformtemp->LLtemp|rt>);
+          end for;
+        end if;
+        LLtwtemp:=Parent(Coefficient(formtwisted,1));
+        if LLtwtemp eq QQ then
+          phitw:=[];
+          rtstw:=[1];
+          phitw:=Append(phitw,hom<LLtwtemp->LLtemp|>);
+        else
+          poltesttw:=DefiningPolynomial(LLtwtemp);
+          rtstwtemp:=Roots(poltesttw,LLtemp);
+          rtstw:=[];
+          for rt in rtstwtemp do
+            rtstw:=Append(rtstw,rt[1]);
+          end for;
+          phitw:=[];
+          for rt in rtstw do
+            phitw:=Append(phitw,hom<LLtwtemp->LLtemp|rt>);
+          end for;
+        end if;
+        LLchtemp:=Parent(Evaluate(chtwist,1));
+        if LLchtemp eq QQ then
+          phich:=[];
+          rtsch:=[1];
+          phich:=Append(phich,hom<LLchtemp->LLtemp|>);
+        else
+          poltestch:=DefiningPolynomial(LLchtemp);
+          rtschtemp:=Roots(poltestch,LLtemp);
+          rtsch:=[];
+          for rt in rtschtemp do
+            rtsch:=Append(rtsch,rt[1]);
+          end for;
+          phich:=[];
+          for rt in rtsch do
+            phich:=Append(phich,hom<LLchtemp->LLtemp|rt>);
+          end for;
+        end if;
+        fields:=Append(fields,<ii,LLtemp,QRtemp,rts,phi,rtstw,phitw,rtsch,phich>);
+        print "time to setup number fields",ii;
+        Cputime(cput);
+      end if;
+      break rep;
+    end if;
+  end for;
+end for;
+
+// associate correctly the "corresponding conjugates"
+for ii in formindices do
+  cput:=Cputime();
+  form:=NF0csq[ii,1];
+  rtstemp:=[];
+  phitemp:=[];
+  rtstwtemp:=[];
+  phitwtemp:=[];
+  rtschtemp:=[];
+  phichtemp:=[];
+  for rep in representations do
+    if rep[1] eq ii then
+      LLformtemp:=Parent(Coefficient(form,1));
+      ss:=rep[2];
+
+      // cuspidal case
+      if rep[3] eq "Cuspidal" then
+        for fld in fields do
+          if fld[1] eq ii then
+            LLtemp:=fld[2];
+            rts:=fld[4];
+            phi:=fld[5];
+            aaap:=fld[6];
+            break fld;
+          end if;
+        end for;
+        for jj:=1 to #NF0csq[ii] do
+          for rr:=1 to Degree(LLtemp) do
+            for nn:=2 to coefprec do
+              if Coefficient(form,nn) ne 0 then
+                err1:=Abs(Conjugate(phi[jj](LLformtemp!Coefficient(form,nn)),rr)-Conjugate(Coefficient(form,nn),ss));
+                err2:=Abs(Conjugate(LLtemp.1,rr)-Exp(2*Pi(CC)*CC.1/p));
+                err3:=Abs(Conjugate(aaap,rr)-Exp(2*Pi(CC)*CC.1/(p+1)));
+                if (err1 lt 10^(-100)) and (err2 lt 10^(-100)) and (err3 lt 10^(-100)) then
+                  rtstemp:=Append(rtstemp,rts[jj]);
+                  phitemp:=Append(phitemp,phi[jj]);
+                  break rr;
+                end if;
+                break nn;
+              end if;
+            end for;
+          end for;
+        end for;
+
+      // not cuspidal case
+      else
+        for fld in fields do
+          if fld[1] eq ii then
+            LLtemp:=fld[2];
+            rts:=fld[4];
+            phi:=fld[5];
+            rtstw:=fld[6];
+            phitw:=fld[7];
+            rtsch:=fld[8];
+            phich:=fld[9];
+            break fld;
+          end if;
+        end for;
+        chtwist:=rep[4];
+        iitw:=rep[6];
+        formtwisted:=NF1c[iitw,1];
+        LLformtwtemp:=Parent(Coefficient(formtwisted,1));
+        for jj:=1 to #phi do
+          for jjtw:=1 to #phitw do
+            for jjch:=1 to #phich do
+              test:=0;
+              for nn:=1 to p do
+                err:=phitw[jjtw](LLformtwtemp!Coefficient(formtwisted,nn))*phich[jjch](Evaluate(chtwist,nn))-phi[jj](LLformtemp!Coefficient(form,nn));
+                if err ne 0 then
+                  break nn;
+                end if;
+                test:=test+1;
+              end for;
+              if test eq p then
+                rtstwtemp:=Append(rtstwtemp,rtstw[jjtw]);
+                phitwtemp:=Append(phitwtemp,phitw[jjtw]);
+                rtschtemp:=Append(rtschtemp,rtsch[jjch]);
+                phichtemp:=Append(phichtemp,phich[jjch]);
+              end if;
+            end for;
+          end for;
+        end for;
+        break rep;
+      end if;
+    end if;
+  end for;
+  for rep in representations do
+    if rep[1] eq ii then
+      if rep[3] eq "Cuspidal" then
+        for fld:=1 to #fields do
+          if fields[fld][1] eq ii then
+            fields[fld][4]:=rtstemp;
+            fields[fld][5]:=phitemp;
+            break fld;
+          end if;
+        end for;
+      else
+        for fld:=1 to #fields do
+          if fields[fld][1] eq ii then
+            fields[fld][6]:=rtstwtemp;
+            fields[fld][7]:=phitwtemp;
+            fields[fld][8]:=rtschtemp;
+            fields[fld][9]:=phichtemp;
+            break fld;
+          end if;
+        end for;
+      end if;
+      break rep;
+    end if;
+  end for;
+  print "time for reordering";
+  Cputime(cput);
+end for;
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+// computation nonsplit invariant forms
+
+
+// computation of basis of representations or psi-components
+representationsbasis:=[**];
+for rep in representations do
+  if rep[3] eq "Cuspidal" then
+    representationsbasis:=Append(representationsbasis,[*rep[1],rep[2],[]*]);
+  else
+    representationsbasis:=Append(representationsbasis,[*rep[1],rep[2],rep[6],rep[7],[],0*]);
+  end if;
+end for;
+for ii in formindices do
+  form:=NF0csq[ii,1];
+  for rep in representations do
+    if rep[1] eq ii then
+
+      // Cuspidal case
+      if rep[3] eq "Cuspidal" then
+        cput:=Cputime();
+        LLformtemp:=Parent(Coefficient(form,1));
+        jj:=rep[2];
+        for fld in fields do
+          if fld[1] eq ii then
+            QRtemp:=fld[3];
+            phi:=fld[5];
+            break fld;
+          end if;
+        end for;
+
+        // computation of psi-components
+        for psi:=1 to #representationsbasis do
+          if (representationsbasis[psi][1] eq ii) and (representationsbasis[psi][2] eq jj) then
+            tempindex:=psi;
+            break psi;
+          end if;
+        end for;
+        for kk:=1 to p do
+          representationsbasis[tempindex][3]:=Append(representationsbasis[tempindex][3],O(QRtemp.1^coefprec));
+        end for;
+        for kk:=1 to p do
+          for nn:=1 to coefprec-1 do
+            if ((nn mod p) eq (kk mod p)) then
+              representationsbasis[tempindex][3][kk]:=representationsbasis[tempindex][3][kk]+phi[jj](LLformtemp!Coefficient(form,nn))*QRtemp.1^nn;
+            end if;
+          end for;
+        end for;
+        print "time to compute psi-component",ii,jj;
+        Cputime(cput);
+
+      // not cuspidal case
+      else
+        for fld in fields do
+          if fld[1] eq ii then
+            LLtemp:=fld[2];
+            QRtemp:=fld[3];
+            phitw:=fld[7];
+            phich:=fld[9];
+            break fld;
+          end if;
+        end for;
+        iicnj:=rep[2];
+        chtwist:=rep[4];
+        iitw:=rep[6];
+        jj:=rep[7];
+        formtwisted:=NF1c[iitw,1];
+        chformtwisted:=DirichletCharacter(formtwisted);
+
+        // basis computation
+        cput:=Cputime();
+        if Domain(phitw[jj]) eq QQ then
+          jjinv:=jj;
+        else
+          if jj mod 2 eq 0 mod 2 then
+            jjinv:=jj-1;
+          else
+            jjinv:=jj+1;
+          end if;
+        end if;
+        for basel:=1 to #representationsbasis do
+          if (representationsbasis[basel][1] eq ii) and (representationsbasis[basel][2] eq iicnj) and (representationsbasis[basel][4] eq jj) then
+            tempindex:=basel;
+            break basel;
+          end if;
+        end for;
+
+        // constant computation
+        gauss:=0;
+        for kk:=1 to p-1 do
+          gauss:=gauss+zetap^(nsq^kk)*phich[jj](Evaluate(chformtwisted,nsq^kk));
+        end for;
+        const:=gauss/phitw[jj](Coefficient(formtwisted,p));
+
+        // representation basis computation
+        for kk:=1 to p+1 do
+          representationsbasis[tempindex][5]:=Append(representationsbasis[tempindex][5],O(QRtemp.1^coefprec));
+        end for;
+        for nn:=1 to coefprec-1 do
+          for kk:=1 to p do
+            representationsbasis[tempindex][5][kk]:=representationsbasis[tempindex][5][kk]+phitw[jj](Coefficient(formtwisted,nn))*zetap^(-(kk-1)*nn)*QRtemp.1^nn;
+          end for;
+        end for;
+        for nn:=1 to coefprec-1 do
+          representationsbasis[tempindex][5][p+1]:=representationsbasis[tempindex][5][p+1]+p*const*phitw[jjinv](Coefficient(formtwisted,nn))*QRtemp.1^(p*nn);
+        end for;
+        MM:=ZeroMatrix(LLtemp,p+1,coefprec-1);
+        for kk:=1 to p+1 do
+          for nn:=1 to coefprec-1 do
+            MM[kk,nn]:=Coefficient(representationsbasis[tempindex][5][kk],nn);
+          end for;
+        end for;
+        representationsbasis[tempindex][6]:=MM;
+        print "time to compute basis of representation",ii,jj;
+        Cputime(cput);
+      end if;
+    end if;
+  end for;
+end for;
+
+// computation of nonsplit invariant forms
+fnstemp1:=[**];
+for rep in representations do
+  if rep[3] eq "Cuspidal" then
+    fnstemp1:=Append(fnstemp1,[*rep[1],rep[2],0*]);
+  else
+    fnstemp1:=Append(fnstemp1,[*rep[1],rep[2],rep[7],0*]);
+  end if;
+end for;
+for ii in formindices do
+  form:=NF0csq[ii,1];
+  jjch:=0;
+  for rep in representations do
+    if rep[1] eq ii then
+
+      // Cuspidal case
+      if rep[3] eq "Cuspidal" then
+        cput:=Cputime();
+        jj:=rep[2];
+        gentemp:=rep[5];
+        for fld in fields do
+          if fld[1] eq ii then
+            LLtemp:=fld[2];
+            QRtemp:=fld[3];
+            rts:=fld[4];
+            aaap:=fld[6];
+            break fld;
+          end if;
+        end for;
+
+        // q-series computation
+        for psi:=1 to #representationsbasis do
+          if (representationsbasis[psi][1] eq ii) and (representationsbasis[psi][2] eq jj) then
+            tempindex:=psi;
+            break psi;
+          end if;
+        end for;
+        rr:=1;
+        for fff:=1 to #fnstemp1 do
+          if (fnstemp1[fff][1] eq ii) and (fnstemp1[fff][2] eq jj) then
+            tempindexf:=fff;
+            break fff;
+          end if;
+        end for;
+        fnstemp1[tempindexf][3]:=O(QRtemp.1^coefprec);
+        for ww:=1 to #grgalCFp do
+          coeffproj:=[LLtemp|];
+          for ss:=1 to p do
+            coeffproj:=Append(coeffproj,0);
+          end for;
+          if gentemp mod 2 eq 1 then
+            for ss:=1 to p do
+              for aaa:=1 to p do
+                for kk:=1 to p^2-1 do
+                  if ( (ZZ ! Norm(u^kk)) eq (ZZ!(Zmodp!((ss/rr)*(aaa^2-nsq)))) ) then
+                    coeffproj[ss]:=coeffproj[ss]+(1/p)*LLtemp.1^(expo[ww]*(aaa*(rr+ss)-rr*(ZZ ! Trace(u^kk))))*aaap^(gentemp*kk);
+                  end if;
+                end for;
+              end for;
+            end for;
+            for ss:=1 to p do
+              fsost:=O(QRtemp.1^coefprec);
+              for nn:=1 to coefprec-1 do
+                fsost:=fsost+Coefficient(representationsbasis[tempindex][3][ss],nn)*QRtemp.1^nn;
+              end for;
+              representationsbasis[tempindex][3][ss]:=fsost;
+            end for;
+            ch1:=ZZ!(Zmodp!(expo[ww]*rr));
+            if (ch1 eq 0) then
+              ch1:=p;
+            end if;
+            fnsqFconj:=representationsbasis[tempindex][3][ch1];
+          else
+            for ss:=1 to p do
+              for aaa:=1 to p do
+                for kk:=1 to p^2-1 do
+                  if ( (ZZ ! Norm(u^kk)) eq (ZZ!(Zmodp!((ss/rr)*(aaa^2-nsq)))) ) then
+                    coeffproj[ss]:=coeffproj[ss]+(1/p)*LLtemp.1^(expo[ww]*(1+aaa*(rr+ss)-rr*(ZZ ! Trace(u^kk))))*aaap^(gentemp*kk);
+                  end if;
+                end for;
+              end for;
+            end for;
+            for ss:=1 to p do
+              fsost:=O(QRtemp.1^coefprec);
+              for nn:=1 to coefprec-1 do
+                fsost:=fsost+Coefficient(representationsbasis[tempindex][3][ss],nn)*QRtemp.1^nn;
+              end for;
+              representationsbasis[tempindex][3][ss]:=fsost;
+            end for;
+            ch1:=ZZ!(Zmodp!(expo[ww]*rr));
+            if (ch1 eq 0) then
+              ch1:=p;
+            end if;
+            fnsqFconj:=LLtemp.1^(expo[ww])*representationsbasis[tempindex][3][ch1];
+          end if;
+          for ss:=1 to p do
+            ch2:=ZZ!(Zmodp!(expo[ww]*ss));
+            if (ch2 eq 0) then
+              ch2:=p;
+            end if;
+            fnsqFconj:=fnsqFconj-(QRtemp!coeffproj[ss])*representationsbasis[tempindex][3][ch2];
+          end for;
+          fnstemp1[tempindexf][3]:=fnstemp1[tempindexf][3]+p*fnsqFconj;
+          delete fsost;
+          delete fnsqFconj;
+          delete coeffproj;
+          delete ch1;
+          delete ch2;
+        end for;
+        print "time to compute nonsplit invariant form",ii,jj;
+        Cputime(cput);
+
+      // not cuspidal case
+      else
+        cput:=Cputime();
+        jjch:=jjch+1;
+        iicnj:=rep[2];
+        chtwist:=rep[4];
+        iitw:=rep[6];
+        jj:=rep[7];
+        formtwisted:=NF1c[iitw,1];
+        chformtwisted:=DirichletCharacter(formtwisted);
+        for fld in fields do
+          if fld[1] eq ii then
+            LLtemp:=fld[2];
+            QRtemp:=fld[3];
+            rts:=fld[4];
+            phich:=fld[9];
+            break fld;
+          end if;
+        end for;
+
+        // q-series computation
+        for basel:=1 to #representationsbasis do
+          if (representationsbasis[basel][1] eq ii) and (representationsbasis[basel][2] eq iicnj) and (representationsbasis[basel][4] eq jj) then
+            tempindex:=basel;
+            break basel;
+          end if;
+        end for;
+        for fff:=1 to #fnstemp1 do
+          if (fnstemp1[fff][1] eq ii) and (fnstemp1[fff][2] eq iicnj) and (fnstemp1[fff][3] eq jj) then
+            tempindexf:=fff;
+            break fff;
+          end if;
+        end for;
+
+        // split Cartan invariant element coordinates
+        coorsp:=ZeroMatrix(LLtemp,p+1,1);
+        for kk:=2 to p do
+          coorsp[kk,1]:=phich[jjch](Evaluate(chtwist^(-1),kk-1));
+        end for;
+        coorsp[1,1]:=0;
+        coorsp[p+1,1]:=0;
+
+        // split Cartan invariant element q-expansion
+        fspl:=Transpose(Transpose(representationsbasis[tempindex][6])*coorsp);
+        fqspl:=O(QRtemp.1^coefprec);
+        for nn:=1 to coefprec-1 do
+          fqspl:=fqspl+fspl[1,nn]*QRtemp.1^nn;
+        end for;
+
+        // nonsplit Cartan invariant element coordinates
+        coorns:=ZeroMatrix(LLtemp,p+1,1);
+        for kk:=1 to p do
+          coorns[kk,1]:=phich[jjch](Evaluate(chtwist,(1-nsq)*ZZ!((Zmodp!((kk-1)^2-nsq))^(-1))));
+        end for;
+        coorns[p+1,1]:=phich[jjch](Evaluate(chtwist,(1-nsq)));
+
+        // nonsplit Cartan invariant element q-expansion
+        fnsm:=Transpose(Transpose(representationsbasis[tempindex][6])*coorns);
+        fnstemp:=O(QRtemp.1^coefprec);
+        for nn:=1 to coefprec-1 do
+          fnstemp:=fnstemp+fnsm[1,nn]*QRtemp.1^nn;
+        end for;
+        fnstemp1[tempindexf][4]:=p*fnstemp/Coefficient(fqspl,1);
+        print "time to compute nonsplit invariant form",ii,jj;
+        Cputime(cput);
+      end if;
+    end if;
+  end for;
+end for;
+
+
+
+
+
+// traces toward smaller fields
+fnstemp2:=[**];
+for rep in representations do
+  ctrl:=false;
+  for el in fnstemp2 do
+    if (el[1] eq rep[1]) and (el[2] eq rep[2]) then
+      ctrl:=true;
+    end if;
+  end for;
+  if not(ctrl) then
+    fnstemp2:=Append(fnstemp2,[*rep[1],rep[2],0*]);
+  end if;
+end for;
+for ii in formindices do
+  form:=NF0csq[ii,1];
+  for rep in representations do
+    if rep[1] eq ii then
+
+      // Cuspidal case
+      if rep[3] eq "Cuspidal" then
+        cput:=Cputime();
+        for fld in fields do
+          if fld[1] eq ii then
+            QRtemp:=fld[3];
+            rts:=fld[4];
+            break fld;
+          end if;
+        end for;
+
+        // trace toward the right field
+        for kkk:=1 to #rts do
+          ff:=O(QRtemp.1^coefprec);
+          for fff in fnstemp1 do
+            if fff[1] eq ii then
+                ff:=ff+rts[fff[2]]^(kkk-1)*fff[3];
+            end if;
+          end for;
+          for fff:=1 to #fnstemp2 do
+            if (fnstemp2[fff][1] eq ii) and (fnstemp2[fff][2] eq kkk) then
+              tempindexf:=fff;
+              break fff;
+            end if;
+          end for;
+          fnstemp2[tempindexf][3]:=ff;
+        end for;
+        print "time to compute trace",ii;
+        Cputime(cput);
+
+      // not cuspidal case
+      else
+        cput:=Cputime();
+        for fld in fields do
+          if fld[1] eq ii then
+            QRtemp:=fld[3];
+            rts:=fld[4];
+            break fld;
+          end if;
+        end for;
+
+        // trace toward the right field
+        for kkk:=1 to #rts do
+          ff:=O(QRtemp.1^coefprec);
+          for fff in fnstemp1 do
+            if fff[1] eq ii then
+              ff:=ff+rts[fff[2]]^(kkk-1)*fff[4];
+            end if;
+          end for;
+          for fff:=1 to #fnstemp2 do
+            if (fnstemp2[fff][1] eq ii) and (fnstemp2[fff][2] eq kkk) then
+              tempindexf:=fff;
+              break fff;
+            end if;
+          end for;
+          fnstemp2[tempindexf][3]:=ff;
+          print "time to compute trace",ii,kkk;
+          Cputime(cput);
+        end for;
+      end if;
+      break rep;
+    end if;
+  end for;
+end for;
+
+// embedding all the forms in the same space
+fns:=[**];
+uu:=[**];
+for fld in fields do
+  fldgen:=[zp];
+  for fg:=2 to #Generators(fld[2]) do
+    fldgen:=Append(fldgen,1);
+  end for;
+  uu:=Append(uu,<fld[1],hom<fld[2]->CFp|fldgen>>);
+end for;
+QR<q>:=PowerSeriesRing(CFp);
+for fff in fnstemp2 do
+  fftemp:=O(q^coefprec);
+  for uuu:=1 to #uu do
+    if uu[uuu][1] eq fff[1] then
+      tempindexuu:=uuu;
+      break uuu;
+    end if;
+  end for;
+  for nn:=1 to coefprec-1 do
+    fftemp:=fftemp+uu[tempindexuu][2](Coefficient(fff[3],nn))*q^nn;
+  end for;
+  fns:=Append(fns,fftemp);
+end for;
+
+// reduce coefficients
+mcoint:=ZeroMatrix(ZZ,genere,(coefprec-1)*dCFp);
+for ss:=1 to genere do
+  count:=0;
+  for nn:=1 to coefprec-1 do
+    for kk:=1 to p-1 do
+      count:=count+1;
+      mcoint[ss,count]:=Coefficient(xproj(Coefficient(fns[ss],nn)),kk-1);
+    end for;
+  end for;
+end for;
+for ii:=1 to NumberOfRows(mcoint) do
+  gcd:=Gcd(ElementToSequence(mcoint[ii]));
+  if gcd gt 1 then
+    fns[ii]:=fns[ii]/gcd;
+  end if;
+end for;
+Mprettifying:=IdentityMatrix(QQ,genere);
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+// prettifying cusp form basis
+
+
+// matrix of the integer coordinates of Fourier coefficients
+mcoint:=ZeroMatrix(ZZ,genere,(coefprec-1)*dCFp);
+for ss:=1 to genere do
+  count:=0;
+  for nn:=1 to coefprec-1 do
+    for kk:=1 to p-1 do
+      count:=count+1;
+      mcoint[ss,count]:=Coefficient(xproj(Coefficient(fns[ss],nn)),kk-1);
+    end for;
+  end for;
+end for;
+
+// test
+if not(genere eq Rank(mcoint)) then
+  print "Error! The set of nonsplit Cartan invariant cusp forms is not a basis!";
+end if;
+
+// find and eliminate bad primes
+mcointnobadp:=mcoint;
+badp:=[];
+chk:=true;
+while chk do
+  testcol:=[];
+  jj:=1;
+  while jj le genere do
+    rnd:=Random(1,(coefprec-1)*dCFp);
+    if not(rnd in testcol) then
+      testcol:=Append(testcol,rnd);
+      jj:=jj+1;
+    end if;
+  end while;
+  testcol:=Sort(testcol);
+  testmatrix:=Submatrix(mcoint,[1..genere],testcol);
+  dettest:=Determinant(testmatrix);
+  if dettest ne 0 then
+    chk:=false;
+  end if;
+end while;
+fac:=Factorization(dettest);
+if #fac gt 0 then
+  for el in fac do
+    badp:=Append(badp,el[1]);
+  end for;
+end if;
+for ell in badp do
+  FFell:=FiniteField(ell);
+  matmodell:=ZeroMatrix(FFell,NumberOfRows(mcointnobadp),NumberOfColumns(mcointnobadp));
+  for ii:=1 to NumberOfRows(matmodell) do
+    for jj:=1 to NumberOfColumns(matmodell) do
+      matmodell[ii,jj]:=FFell!mcointnobadp[ii,jj];
+    end for;
+  end for;
+  rk:=Rank(matmodell);
+  if (rk lt genere) then
+    while (rk lt genere) do
+      kermod:=KernelMatrix(matmodell);
+      rowstochange:=[];
+      for ii:=1 to NumberOfRows(kermod) do
+        for jj:=1 to NumberOfColumns(kermod) do
+          if kermod[ii,jj] eq ell-1 then
+            rowstochange:=Append(rowstochange,jj);
+            break jj;
+          end if;
+        end for;
+      end for;
+      kermodlift:=ZeroMatrix(ZZ,NumberOfRows(kermod),NumberOfColumns(kermod));
+      for ii:=1 to NumberOfRows(kermodlift) do
+        for jj:=1 to NumberOfColumns(kermodlift) do
+          kermodlift[ii,jj]:=ZZ!kermod[ii,jj];
+          if (kermodlift[ii,jj] gt ((ell-1)/2)) then
+            kermodlift[ii,jj]:=kermodlift[ii,jj]-ell;
+          end if;
+        end for;
+      end for;
+      mtemp:=kermodlift*mcointnobadp;
+      for ii:=1 to NumberOfRows(mtemp) do
+        for jj:=1 to NumberOfColumns(mtemp) do
+          mtemp[ii,jj]:=mtemp[ii,jj]/ell;
+        end for;
+      end for;
+      for ii:=1 to #rowstochange do
+        mcointnobadp[rowstochange[ii]]:=mtemp[ii];
+      end for;
+      mell:=IdentityMatrix(QQ,genere);
+      for jj:=1 to NumberOfColumns(mell) do
+        mell[1,jj]:=kermodlift[1,jj]/ell;
+      end for;
+      Mprettifying:=mell*Mprettifying;
+      matmodell:=ZeroMatrix(FFell,NumberOfRows(mcointnobadp),NumberOfColumns(mcointnobadp));
+      for ii:=1 to NumberOfRows(matmodell) do
+        for jj:=1 to NumberOfColumns(matmodell) do
+          matmodell[ii,jj]:=FFell!mcointnobadp[ii,jj];
+        end for;
+      end for;
+      rk:=Rank(matmodell);
+    end while;
+  end if;
+end for;
+
+// LLL
+mcolll,mllltrasf:=LLL(mcointnobadp);
+Mprettifying:=ChangeRing(mllltrasf,QQ)*Mprettifying;
+
+// back to q-expansions
+fnspretty:=[];
+for ii:=1 to genere do
+  fnspretty:=Append(fnspretty,O(q^coefprec));
+end for;
+for ss:=1 to genere do
+  for nn:=1 to coefprec-1 do
+    for kk:=1 to p-1 do
+      fnspretty[ss]:=fnspretty[ss]+mcolll[ss,kk+dCFp*(nn-1)]*zp^(kk-1)*q^nn;
+    end for;
+  end for;
+end for;
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+// canonical model (only generic case for genus at least 3, see read me file)
+
+
+// equations
+if genere eq 3 then
+  numdeg4:=Binomial(genere+3,4);
+  deg4:=[];
+  for i1:=1 to genere do
+    for i2:=i1 to genere do
+      for i3:=i2 to genere do
+        for i4:=i3 to genere do
+          deg4:=Append(deg4,fnspretty[i1]*fnspretty[i2]*fnspretty[i3]*fnspretty[i4]);
+        end for;
+      end for;
+    end for;
+  end for;
+  mmint:=ZeroMatrix(ZZ,numdeg4,(coefprec-1)*dCFp);
+  for ss:=1 to numdeg4 do
+    count:=0;
+    for nn:=1 to coefprec-1 do
+      for kk:=1 to p-1 do
+        count:=count+1;
+        mmint[ss,count]:=Coefficient(xproj(Coefficient(deg4[ss],nn)),kk-1);
+      end for;
+    end for;
+  end for;
+  kerint:=KernelMatrix(mmint);
+  if not(NumberOfRows(kerint) eq 1) then
+    print "Error! The number of quartic equations found is wrong!";
+    print "It is",NumberOfRows(kerint);
+    print "It must be",1;
+  else
+    ER<x,y,z>:=PolynomialRing(CFp,genere);
+    mon4:=[];
+    for i1:=1 to genere do
+      for i2:=i1 to genere do
+        for i3:=i2 to genere do
+          for i4:=i3 to genere do
+            mon4:=Append(mon4,ER.i1*ER.i2*ER.i3*ER.i4);
+          end for;
+        end for;
+      end for;
+    end for;
+    coefeq:=kerint;
+    equations:=[ER|];
+    for ss:=1 to NumberOfRows(kerint) do
+      equations:=Append(equations,0);
+    end for;
+    for ss:=1 to NumberOfRows(kerint) do
+      for kk:=1 to numdeg4 do
+        equations[ss]:=equations[ss]+coefeq[ss][kk]*mon4[kk];
+      end for;
+    end for;
+    for kk:=1 to #equations do
+      equations[kk];
+    end for;
+  end if;
+
+elif genere eq 4 then
+  numdeg2:=Binomial(genere+1,2);
+  deg2:=[];
+  for i1:=1 to genere do
+    for i2:=i1 to genere do
+      deg2:=Append(deg2,fnspretty[i1]*fnspretty[i2]);
+    end for;
+  end for;
+  mmint:=ZeroMatrix(ZZ,numdeg2,(coefprec-1)*dCFp);
+  for ss:=1 to numdeg2 do
+    count:=0;
+    for nn:=1 to coefprec-1 do
+      for kk:=1 to p-1 do
+        count:=count+1;
+        mmint[ss,count]:=Coefficient(xproj(Coefficient(deg2[ss],nn)),kk-1);
+      end for;
+    end for;
+  end for;
+  kerint2:=KernelMatrix(mmint);
+  numdeg3:=Binomial(genere+2,3);
+  deg3:=[];
+  for i1:=1 to genere do
+    for i2:=i1 to genere do
+      for i3:=i2 to genere do
+        deg3:=Append(deg3,fnspretty[i1]*fnspretty[i2]*fnspretty[i3]);
+      end for;
+    end for;
+  end for;
+  mmint:=ZeroMatrix(ZZ,numdeg3,(coefprec-1)*dCFp);
+  for ss:=1 to numdeg3 do
+    count:=0;
+    for nn:=1 to coefprec-1 do
+      for kk:=1 to p-1 do
+        count:=count+1;
+        mmint[ss,count]:=Coefficient(xproj(Coefficient(deg3[ss],nn)),kk-1);
+      end for;
+    end for;
+  end for;
+  kerint3:=KernelMatrix(mmint);
+  ER<[x]>:=PolynomialRing(CFp,genere);
+  equations:=[ER|];
+  if not(NumberOfRows(kerint2) eq 1) then
+    print "Error! The number of quadratic equations found is wrong!";
+    print "It is",NumberOfRows(kerint2);
+    print "It must be",1;
+  else
+    mon2:=[];
+    for i1:=1 to genere do
+      for i2:=i1 to genere do
+        mon2:=Append(mon2,ER.i1*ER.i2);
+      end for;
+    end for;
+    coefeq:=kerint2;
+    equations2:=[ER|];
+    for ss:=1 to NumberOfRows(kerint2) do
+      equations2:=Append(equations2,0);
+    end for;
+    for ss:=1 to NumberOfRows(kerint2) do
+      for kk:=1 to numdeg2 do
+        equations2[ss]:=equations2[ss]+coefeq[ss][kk]*mon2[kk];
+      end for;
+    end for;
+    count2:=0;
+    for kk:=1 to #equations2 do
+      count2:=count2+1;
+      equations:=Append(equations,equations2[kk]);
+    end for;
+  end if;
+  mon3:=[];
+  for i1:=1 to genere do
+    for i2:=i1 to genere do
+      for i3:=i2 to genere do
+        mon3:=Append(mon3,ER.i1*ER.i2*ER.i3);
+      end for;
+    end for;
+  end for;
+  coefeq:=kerint3;
+  equations3:=[ER|];
+  for ss:=1 to NumberOfRows(kerint3) do
+    equations3:=Append(equations3,0);
+  end for;
+  for ss:=1 to NumberOfRows(kerint3) do
+    for kk:=1 to numdeg3 do
+      equations3[ss]:=equations3[ss]+coefeq[ss][kk]*mon3[kk];
+    end for;
+  end for;
+  count3:=0;
+  for kk:=1 to #equations3 do
+    if IsIrreducible(equations3[kk]) then
+      count3:=count3+1;
+      equations:=Append(equations,equations3[kk]);
+    end if;
+  end for;
+  if not(count3 eq 1) then
+    print "Error! The number of cubic equations found is wrong!";
+    print "It is",count3;
+    print "It must be",1;
+  elif (count2 eq 1) and (count3 eq 1) then
+    for kk:=1 to #equations do
+      equations[kk];
+    end for;
+  end if;
+
+elif genere ge 5 then
+  eqnum:=Binomial(genere-2,2);
+  numdeg2:=Binomial(genere+1,2);
+  deg2:=[];
+  for i1:=1 to genere do
+    for i2:=i1 to genere do
+      deg2:=Append(deg2,fnspretty[i1]*fnspretty[i2]);
+    end for;
+  end for;
+  mmint:=ZeroMatrix(ZZ,numdeg2,(coefprec-1)*dCFp);
+  for ss:=1 to numdeg2 do
+    count:=0;
+    for nn:=1 to coefprec-1 do
+      for kk:=1 to p-1 do
+        count:=count+1;
+        mmint[ss,count]:=Coefficient(xproj(Coefficient(deg2[ss],nn)),kk-1);
+      end for;
+    end for;
+  end for;
+  kerint:=KernelMatrix(mmint);
+  if not(NumberOfRows(kerint) eq eqnum) then
+    print "Error! The number of quadratic equations found is wrong!";
+    print "It is",NumberOfRows(kerint);
+    print "It must be",eqnum;
+  else
+    ER<[x]>:=PolynomialRing(CFp,genere);
+    mon2:=[];
+    for i1:=1 to genere do
+      for i2:=i1 to genere do
+        mon2:=Append(mon2,ER.i1*ER.i2);
+      end for;
+    end for;
+    coefeq:=kerint;
+    equations:=[ER|];
+    for ss:=1 to NumberOfRows(kerint) do
+      equations:=Append(equations,0);
+    end for;
+    for ss:=1 to NumberOfRows(kerint) do
+      for kk:=1 to numdeg2 do
+        equations[ss]:=equations[ss]+coefeq[ss][kk]*mon2[kk];
+      end for;
+    end for;
+    for kk:=1 to #equations do
+      equations[kk];
+    end for;
+  end if;
+
+else
+  print "The genus is",genere;
+  print "The genus must be at least 3";
+end if;
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
