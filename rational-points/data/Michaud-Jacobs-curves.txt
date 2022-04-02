@@ -1,0 +1,5 @@
+// Curves whose points are computed in Michaud-Jacobs 2021, "Quadratic points on non-split Cartan modular curves"
+// Curve label | genus
+'7.42.1.2' | 1
+'11.110.4.2' | 4
+'13.156.8.1' | 8
