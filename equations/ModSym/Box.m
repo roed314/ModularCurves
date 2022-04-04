@@ -1854,7 +1854,11 @@ function getCurveFromForms(fs, prec, max_deg, genus : CheckGenus := true)
     else
 	if CheckGenus then
 	    vprintf ModularCurves, 1: "Computing genus of curve...\n";
-	    g := Genus(X);
+	    try
+		g := Genus(X);
+	    catch e
+		g := 0;
+	    end try;	    
 	    vprintf ModularCurves, 1: "Done.\n";
 	    if g eq 0 then
 		vprintf ModularCurves, 1:
