@@ -26,7 +26,8 @@ end if;
 if type eq "hyperelliptic" then
     vprintf ModularCurves, 1:
 	"Curve is hyperelliptic, finding a log-canonical model for the j-map...\n";
-    X<[x]>, fs := ModularCurve(PG : Al := "LogCanonical");
+    // X<[x]>, fs := ModularCurve(PG : Al := "LogCanonical");
+    X<[x]>, fs, K := CanonicalRing(G);
     LogCanonical := true;
 end if;
 E4, E6, j := JMap(PG, fs, AbsolutePrecision(fs[1]), K

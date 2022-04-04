@@ -191,7 +191,10 @@ function FindRationalCurve(qexps, prec, n_rel)
     return X;
 end function;
 
-function CanonicalRing(G)
+intrinsic CanonicalRing(G::GrpMat) -> Crv[FldRat],
+                                      SeqEnum[RngSerPowElt],
+                                      RngIntElt
+{Return the curve, q-expansions and K (denominator of the power in q-expansions) for the model of the canonical ring.}
     PG := PSL2Subgroup(G);
     s := Signature(PG);
     g := s[1];
@@ -261,4 +264,4 @@ function CanonicalRing(G)
     end while;
     X := Curve(ProjectiveSpace(R),I);
     return X, fs, K;
-end function;
+end intrinsic;
