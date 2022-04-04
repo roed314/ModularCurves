@@ -1023,8 +1023,8 @@ function get_gens(G, eps)
     quo, quo_mat := G/H;
     Cs := [g@@quo_mat : g in Generators(quo)];
     ds := [Determinant(C) : C in Cs];
-//    Bgens := [C*GL(2,Integers(N))![Determinant(C),0,0,1]^(-1) : C in Cs];
-    Bgens := [C*GL(2,Integers(N))![1,0,0,Determinant(C)]^(-1) : C in Cs];
+    Bgens := [C*GL(2,Integers(N))![Determinant(C),0,0,1]^(-1) : C in Cs];
+//    Bgens := [C*GL(2,Integers(N))![1,0,0,Determinant(C)]^(-1) : C in Cs];
     Bgens := [Eltseq(FindLiftToSL2(b)) : b in Bgens];
     return gens, Bgens, K, M, ds;
 end function;
