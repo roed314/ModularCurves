@@ -2,6 +2,7 @@
 
 AttachSpec("ModCrv.spec");
 
+SetVerbose("ModularCurves", 1);
 gens := [StringToInteger(x) : x in Split(gens, ",")];
 // Should be a list of 2x2 matrices, so number of elements divisible by 4.
 assert #gens mod 4 eq 0;
@@ -12,7 +13,13 @@ PG := PSL2Subgroup(GetRealConjugate(G));
 assert IsOfRealType(PG);
 // This code only works for groups of genus at least 2
 assert Genus(PG) ge 2;
-X<[x]>, fs := ModularCurve(PG);
+X<[x]>, fs, type := ModularCurve(PG);
+if type eq "hyperelliptic" then
+    vprintf ModularCurves, 1:
+	"Curve is hyperelliptic, finding a log-canonical model for the j-map...\n";
+    Hyp<x,y> := X;
+    X<[x]>, fs := ModularCurve(PG : Al := "LogCanonical");
+end if;
 E4, E6, j := JMap(PG, fs, AbsolutePrecision(fs[1]));
 WriteModel(X, fs, E4, E6, name);
 
