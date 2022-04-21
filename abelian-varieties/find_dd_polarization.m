@@ -10,7 +10,7 @@ for pol in polarizations do //find the (1,d) polarization with the smallest d
 	Zpol:= Matrix(Integers(), pol);
 	E, F:= FrobeniusFormAlternating(Zpol);
 	simplPol := F*pol*Transpose(F);
-	if simplPol[1][3]/simplPol[2][4] gt pol0[1][3]/pol0[2][4] or (simplPol[1][3]/simplPol[2][4] eq pol0[1][3]/pol0[2][4] and  pol0[1][3] gt E[1][3]) then //pick the smaller polarization
+	if simplPol[1][3]/simplPol[2][4] gt pol0[1][3]/pol0[2][4] or (simplPol[1][3]/simplPol[2][4] eq pol0[1][3]/pol0[2][4] and  simplPol[1][3] lt pol0[1][3]) then //pick the smaller polarization
 		pol0 := E;
 		F1 := F;
 	end if;
