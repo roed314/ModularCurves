@@ -226,6 +226,33 @@ intrinsic CanonicalRing(G::GrpMat) -> Crv[FldRat],
 	    gen_deg := Maximum(3,e);
 	    rel_deg := 2*gen_deg;
 	else
+	    if delta eq 0 then
+		if r eq 3 then 
+		    exceptional := [[2,3,7],[2,3,8],[2,3,9],[2,4,5],[2,5,5],[3,3,4],[3,3,5],
+				    [3,3,6],[3,4,4],[3,4,5],[4,4,4]];
+		    gen_degs := [21,15,9,10,6,12,9,6,8,5,4];
+		    rel_degs := [42,30,24,20,16,24,18,15,16,16,5];
+		elif r eq 4 then
+		    exceptional := [[2,2,2,3], [2,2,2,4],[2,2,2,5],[2,2,3,3],
+				    [2,2,3,4],[2,3,33]];
+		    gen_degs := [9,7,5,6,4,3];
+		    rel_degs := [18,14,12,12,13,9];
+		elif r eq 5 then
+		    exceptional := [[2,2,2,2,2],[2,2,2,2,3]];
+		    gen_degs := [5,3];
+		    rel_degs := [10,8];
+		else
+		    exceptional := [[2 : i in [1..r]]];
+		    gen_degs := [3];
+		    rel_degs := [6];
+		end if;
+		
+		if s[2] in exceptional then
+		    idx := Index(exceptional, s[2]);
+		    gen_deg := gen_degs[idx];
+		    rel_deg := rel_degs[idx];
+		end if;
+	    end if;
 	    // Theorem 9.3.1
 	    gen_deg := e;
 	    rel_deg := 2*e;
