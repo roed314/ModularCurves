@@ -1843,7 +1843,12 @@ function getCurveFromForms(fs, prec, max_deg, genus : CheckGenus := true)
     assert Minimum([AbsolutePrecision(f) : f in fs]) ge prec;
 
     type := "canonical";
-    X := FindCurveSimple(fs, prec, max_deg);
+    try
+	X := FindCurveSimple(fs, prec, max_deg);
+    catch e
+	g := 0;
+	X := ProjectiveSpace(Rationals(),1);
+    end try;
     
     if DefiningPolynomials(X) eq [0] then
 	vprintf ModularCurves, 1:
