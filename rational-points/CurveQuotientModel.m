@@ -149,6 +149,3 @@ SH := SimplifiedModel(H);
     end if;       
     */
  
-
-*/
-
