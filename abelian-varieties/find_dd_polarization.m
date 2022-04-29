@@ -1,26 +1,32 @@
-AttachSpec("spec");
-f:= MakeNewformModSym(85, [<2,[-3,0,1]>]); //85.2.a.c
-prec := 80;
-ncoeffs:= 10000;
-P := PeriodMatrix(f : prec:=prec, ncoeffs:=ncoeffs); 
-polarizations := SomePolarizations(P : D:=[-20..20]);  
-Zpol:= Matrix(Integers(), polarizations[1]);
-pol0, F1:= FrobeniusFormAlternating(Zpol);
-for pol in polarizations do //find the (1,d) polarization with the smallest d
-	Zpol:= Matrix(Integers(), pol);
-	E, F:= FrobeniusFormAlternating(Zpol);
-	simplPol := F*pol*Transpose(F);
-	if simplPol[1][3]/simplPol[2][4] gt pol0[1][3]/pol0[2][4] or (simplPol[1][3]/simplPol[2][4] eq pol0[1][3]/pol0[2][4] and  simplPol[1][3] lt pol0[1][3]) then //pick the smaller polarization
-		pol0 := E;
-		F1 := F;
-	end if;
-end for;
 
-Dscalar := Matrix([[1,0,0,0], [0,pol0[1][3]/pol0[2][4],0,0],[0,0,1,0],[0,0,0,1]]);
-CC := BaseRing(P);
-Dscalar* F1 * pol0 * Transpose(Dscalar* F1); // this is the polarization we want
-Pnew := P *Transpose(ChangeRing(Dscalar*F1, CC) );
-newpols := SomePolarizations(Pnew : D:=[-10..10]); 
+
+intrinsic FindddPolarizizedCurve(f::ModSym : prec:=80, ncoeffs:=10000, D:=[-10..10]) -> BoolElt, SeqEnum
+{
+    Finds smallest (d,d) polarization (if there is one) of the modular abelian surface associated to f
+    Returns period matrix for the d-isogenous abelian variety which is principally polarized
+}
+	P := PeriodMatrix(f : prec:=prec, ncoeffs:=ncoeffs); 
+	polarizations := SomePolarizations(P : D);  
+	Zpol:= Matrix(Integers(), polarizations[1]);
+	E1, F1:= FrobeniusFormAlternating(Zpol);
+	for pol in polarizations do //find the (1,d) polarization with the smallest d
+		Zpol:= Matrix(Integers(), pol);
+		E, F:= FrobeniusFormAlternating(Zpol);
+		if E[1][3]/E[2][4] gt E1[1][3]/E1[2][4] or (E[1][3]/E[2][4] eq E1[1][3]/E1[2][4] and  E[1][3] lt E1[1][3]) then //pick the smaller polarization
+			E1 := E;
+			F1 := F;
+		end if;
+	end for;
+	Dscalar := Matrix([[1,0,0,0], [0,E1[1][3]/E1[2][4],0,0],[0,0,1,0],[0,0,0,1]]);
+	CC := BaseRing(P);
+	Dscalar* F1 * E1 * Transpose(Dscalar* F1); // this is the polarization we want, should we also return it?
+	Pnew := P *Transpose(ChangeRing(Dscalar*F1, CC) );
+	return Pnew;
+end intrinsic;
+
+
+//some other code that used to be useful, to check the above
+newpols := SomePolarizations(Pnew : D); 
 
 //at this point we can just reconstruct the curve
 QQ := RationalsExtra(Precision(CC));
