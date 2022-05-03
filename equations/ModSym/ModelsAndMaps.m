@@ -196,6 +196,7 @@ intrinsic CanonicalRing(PG::GrpPSL2) -> Crv[FldRat],
                                       RngIntElt
 {Return the curve, q-expansions and K (denominator of the power in q-expansions) for the model of the canonical ring.}
     s := Signature(PG);
+    level := Level(PG);
     g := s[1];
     e := s[2];
     delta := s[3];
