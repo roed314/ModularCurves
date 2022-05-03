@@ -269,7 +269,7 @@ intrinsic CanonicalRing(PG::GrpPSL2) -> Crv[FldRat],
 	eis := [qExpansion(f, prec) : f in eis];
 	gap := level div K;
 	eis_elt := [AbsEltseq(f) : f in eis];
-	assert &and[ &and[f[x] eq 0 : x in [1..#f] | x mod gap ne 1] : f in eis_elt];
+	assert &and[ &and[f[x] eq 0 : x in [1..#f] | (x-1) mod gap ne 0] : f in eis_elt];
 	eis_elt := [[f[gap*i+1] : i in [0..(#f-1) div gap]] : f in eis_elt];
 	eis := [Universe(eis)!f_elt : f_elt in eis_elt];
 	ring_gens[d] := fs cat eis;
