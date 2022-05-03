@@ -145,13 +145,17 @@ intrinsic LMFDBReadModel(fname::MonStgElt) ->
   uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
   lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
   if #Set(weights) eq 1 then
-      R<[x]> := PolynomialRing(Rationals(), weights);
+      // R<[x]> := PolynomialRing(Rationals(), rank);
+      P<[x]> := ProjectiveSpace(Rationals(), rank-1);
   else
-      R<[x]> := PolynomialRing(Rationals(), rank);
+      // R<[x]> := PolynomialRing(Rationals(), weights);
+      P<[x]> := WeightedProjectiveSpace(Rationals(), weights);
   end if;
+  R := CoordinateRing(P);
   AssignNames(~R, uvars[1..rank]);
   polys := [R | eval StringToPoly(s, R, "x") : s in data[1]];
-  C := Curve(ProjectiveSpace(R), polys);
+  //  C := Curve(ProjectiveSpace(R), polys);
+  C := Curve(P, polys);
   Kq<q> := PowerSeriesRing(K);
   qexps := [eval f : f in data[2]];
   S<[X]> := FieldOfFractions(PolynomialRing(Rationals(), rank));
