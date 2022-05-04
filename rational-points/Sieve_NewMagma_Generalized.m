@@ -235,7 +235,7 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 		poshat := {DD : DD in degr2 |pi((JFp!(psi(DD - bpp)))) in imGhat};  // Set S_{p,M}
 		posP := {DD : DD in poshat | not DD in redpL};   // Remove reductions of all known points,
 		
-		for i in [1..#QuadraticPts] do  // then add back in those that don't pass the Chabuaty test
+		for i in [1..#QuadraticPts] do  // then add back in those that don't pass the Chabauty test
 			if Rks[i] eq 0 then
 				posP := posP join {redpL[i]};
 			end if; 
