@@ -60,6 +60,43 @@ Eq15:=2*x_1^2 - 2*x_1*x_2 + x_1*x_4 + 3*x_1*x_5 - 2*x_1*x_6 - 2*x_1*x_7 - 2*x_1*
 + x_4*x_7 + x_4*x_8 + 2*x_5^2 - 4*x_5*x_6 - 2*x_5*x_8 +2*x_6*x_7 + x_7^2 -2*x_7*x_8 + x_8^2;
 eqns:=[Eq1,Eq2,Eq3,Eq4,Eq5,Eq6,Eq7,Eq8,Eq9,Eq10,Eq11,Eq12,Eq13,Eq14,Eq15]; // List of equations
 
+// Checking if there are exceptional points in residue disc of the point
+AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb)
+      //Rks := [];      // Ranks of residue disc matrices
+
+      //print X;
+			AmbientDim := Dimension(AmbientSpace(X)); //Assuming X is given in projective space
+			CoordRing<[u]>:=CoordinateRing(AmbientSpace(Xpp));
+
+			row := [&+[RowSequence(WMatrix)[k][j] * u[j] : j in [1..AmbientDim + 1]] : k in [1..AmbientDim + 1]];
+			wpp := iso<Xpp -> Xpp | row, row>;
+
+			V, phiD := SpaceOfDifferentialsFirstKind(Xpp);  // Holomorphic differentials on Xpp
+			t := hom<V -> V | [ (Pullback(wpp, phiD(V.k)))@@phiD -V.k : k in [1..8] ]>; 
+			T := Image(t);                                 // The space red(V_0)
+			oms := [phiD(T.k) : k in [1..Dimension(T)]]; 
+			
+			
+						plQtaa := Place(Qtaa);
+						plQtbb := Place(Qtbb);
+			
+			tQta := UniformizingParameter(Qtaa);  
+			tQtb := UniformizingParameter(Qtbb);
+			Ata := Matrix([[Evaluate(omega/Differential(tQta), plQtaa) : omega in oms]]);
+			Atb := Matrix([[Evaluate(omega/Differential(tQtb), plQtbb) : omega in oms]]);  
+			ra := Rank(Ata);
+			rb := Rank(Atb);  // Rank 1 means no exceptional points in residue class
+			
+			// An alert to say that there could potentially be an exceptional point in the residue class. 
+			if ra eq 0 then 
+				print "Point Not Lonely When Qtaa =", Qtaa;
+				print"and p =", p;
+			end if; 
+	
+			return ra;
+end function;
+
+
 // Change of coordinates map 
 g:=hom<R->R | x_2,x_3,1/2*x_2-1/2*x_3-1/2*x_5,1/2*x_1+1/2*x_8,-1/2*x_1+1/2*x_8,1/2*x_2-1/2*x_6,
 1/2*x_3-1/2*x_7,1/2*x_2-1/2*x_4>; 
@@ -164,45 +201,21 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 			Qared := [unif^(-m)*a : a in Qa]; 
 			Qtaa := Xpp![Evaluate(a,Place(pp)) : a in Qared]; // Reduction of quadratic point to Xpp
 			Qta := Xp(Fpp) ! Eltseq(Qtaa);      
-			plQtaa := Place(Qtaa); 
+ 
 			plQta := Place(Qta);               
 
 			m := Minimum([Valuation(a, pp) : a in Qb | not a eq 0]); // Repeat with conjugate
 			Qbred := [unif^(-m)*a : a in Qb];
 			Qtbb := Xpp![Evaluate(a,Place(pp)) : a in Qbred];
 			Qtb := Xp(Fpp) ! Eltseq(Qtbb);
-			plQtbb := Place(Qtbb);
+			
 			plQtb := Place(Qtb);
 
 			////////////////////////////////////////////////////////////////////////////////
 			// Checking if there are exceptional points in residue disc of the point
+Rks := Rks cat [AreLonelyRanks(X, p, Xpp, WMatrix, Qtaa, Qtbb)];
+      //print Rks;
 
-			AmbientDim := Dimension(AmbientSpace(X)); //Assuming X is given in projective space
-			CoordRing<[u]> := CoordinateRing(AmbientSpace(Xpp));
-
-			row := [&+[RowSequence(WMatrix)[i][j] * u[j] : j in [1..AmbientDim + 1]] : i in [1..AmbientDim + 1]];
-			wpp := iso<Xpp -> Xpp | row, row>; // WMatrix as involution of X base changed to Fpp
-
-			V, phiD := SpaceOfDifferentialsFirstKind(Xpp);  // Holomorphic differentials on Xpp
-			t := hom<V -> V | [ (Pullback(wpp, phiD(V.i)))@@phiD - V.i : i in [1..8] ] >; // pullback by WMatrix on Omega^1
-			T := Image(t);                                 // The space red(V_0)
-			oms := [phiD(T.i) : i in [1..Dimension(T)]]; 
-			tQta := UniformizingParameter(Qtaa);  
-			tQtb := UniformizingParameter(Qtbb);
-			Ata := Matrix([[Evaluate(omega/Differential(tQta), plQtaa) : omega in oms]]);
-			Atb := Matrix([[Evaluate(omega/Differential(tQtb), plQtbb) : omega in oms]]);  
-			ra := Rank(Ata);
-			rb := Rank(Atb);  // Rank 1 means no exceptional points in residue class
-			// CHECKME: rb never used
-
-			// An alert to say that there could potentially be an exceptional point in the residue class. 
-			if ra eq 0 then 
-				printf "Point not lonely when i = %o and p = %o\n.", i, p;
-			end if; 
-	
-			Rks := Rks cat [ra];
-
-			////////////////////////////////////////////////////////////////////////////////
 
 			if Degree(plQta) eq 1 then   // if a point is defined over Fp
 			   DivQ := plQta + plQtb;        // then form a divisor from the point and its conjugate
