@@ -14,6 +14,8 @@
 	misc.m
     }
 
+    io.m
+
     ModelsAndMaps.m
     
     ModFrm

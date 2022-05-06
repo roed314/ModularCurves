@@ -875,6 +875,9 @@ end intrinsic;
 intrinsic PSL2Subgroup(H::GrpMat, IsExactLevel::BoolElt) -> GrpPSL2
  {returns a subgroup of PSL2(Z) whose image is H (assumes -I in H)}
      require Type(BaseRing(H)) eq RngIntRes : "Image group must be Z/NZ";
+     if Dimension(H) eq 1 then
+	 return Gamma0(1);
+     end if;
      require Dimension(H) eq 2 : "Group must be of 2x2 matrices";
      // This check takes too long to verify
      // require GL(2,BaseRing(H))![-1,0,0,-1] in H : "Currently assume -I in H";
