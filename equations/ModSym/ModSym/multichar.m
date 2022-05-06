@@ -361,6 +361,9 @@ intrinsic ModularSymbolsH(N::RngIntElt, gens::[RngIntElt],
     require sign in {-1,0,1} : "Argument 4 must be either -1, 0, or 1.";
     require #[d : d in gens | GCD(N,d) ne 1] eq 0 : 
                  "Arguments 1 and 2 must be coprime.";
+    if N eq 1 then
+	return ModularSymbols(N,k,sign);
+    end if;
     phi_N := EulerPhi(N);		 
     F := CyclotomicField(phi_N);
     if IsEven(phi_N) and IsOdd(phi_N div 2) then
