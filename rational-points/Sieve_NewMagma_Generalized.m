@@ -163,19 +163,19 @@ flds := [NumberField(x^2 + discriminant) : discriminant in Discriminants];
 
 pts := [];
 
-"Adding qudratic places...";
+"Adding quadratic places ...";
    
 pts := Append(pts, Place(NX(flds[1])![-5/13*flds[1].1, 2/13*flds[1].1, 3/13*flds[1].1, 0, -1, -2, 1, 1]));
 pts := Append(pts, Place(NX(flds[2])![-3/13*flds[2].1, -4/13*flds[2].1, -6/13*flds[2].1, 0, 4, -4, -2, 1]));
 pts := Append(pts, Place(NX(flds[3])![-7/13*flds[3].1, -5/13*flds[3].1, -1/13*flds[3].1, -1, 0, -1, 1, 1]));
-pts := Append(pts, Place(NX(flds[4])![4/13*flds[4].1, 1/13*flds[4].1, -5/13*flds[4].1, 0, 0, 1, 0, 0]));
+pts := Append(pts, Place(NX(flds[4])![ 4/13*flds[4].1, 1/13*flds[4].1, -5/13*flds[4].1, 0, 0, 1, 0, 0]));
 pts := Append(pts, Place(NX(flds[5])![-1/13*flds[5].1, 3/13*flds[5].1, -2/13*flds[5].1, 1, 1, 1, 0, 1]));
 pts := Append(pts, Place(NX(flds[6])![-3/13*flds[6].1, -2/91*flds[6].1, -3/91*flds[6].1, -12/7, -5/7, -10/7, 25/7, 1]));
 pts := Append(pts, Place(NX(flds[7])![-1/13*flds[7].1, 3/13*flds[7].1, 11/13*flds[7].1, 1, 0, -3, -1, 1]));
 
 "Known quadratic places are: ", pts;
 
-gens := [1*pts[1] - 1*pts[4], 1*pts[2] - 1*pts[4], 1*pts[3] - 1*pts[4]];
+gens := [1*pts[1] - 1*pts[4], 1*pts[2] - 1*pts[4], 1*pts[3] - 1*pts[4]]; // generators of MW group of finite index
 basePoint := 1*pts[4];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -258,10 +258,10 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////
 
-		pls1p := Places(Xp, 1);   // The degree 1 places on Xp 
-		pls2p := Places(Xp, 2);   //  The degree 2 places on Xp 
+		places_of_degree_1_mod_p := Places(Xp, 1);   // The degree 1 places on Xp 
+		places_of_degree_2_mod_p := Places(Xp, 2);   //  The degree 2 places on Xp 
 		//Degree 2 divisors on Xp
-		degr2 := {1*pl1 + 1*pl2 : pl1 in pls1p, pl2 in pls1p} join {1*pl : pl in pls2p}; 
+		degr2 := {1*pl1 + 1*pl2 : pl1 in places_of_degree_1_mod_p, pl2 in places_of_degree_1_mod_p} join {1*pl : pl in places_of_degree_2_mod_p}; 
 		
 		time C, phi, psi := ClassGroup(Xp); 
 		JFp := TorsionSubgroup(C); // Jac(X)(F_p) =: J(F_p)
@@ -274,7 +274,7 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 		
 		for i in [1..#QuadraticPts] do  // then add back in those that don't pass the Chabauty test
 			if Rks[i] eq 0 then
-				posP := posP join {redpL[i]};
+				posP join:= {redpL[i]};
 			end if; 
 		end for;
 		
@@ -287,8 +287,8 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 		"Index of Bp in A: ", Index(A, Bp);
 		Wp := {x@@phi_pM : x in jposP}; // Bp-cosets W_{p,M} in A
 		"#Wp is: ", #Wp;
-		Ws := Ws cat [* Wp *];  
-		Bs := Bs cat [* Bp *];
+		Ws cat:= [* Wp *];  
+		Bs cat:= [* Bp *];
 		printf "Calculations completed for p = %o.\n", p;  
 
 		// TODO/suggestion: perform the intersection of the W_{p,M} directly after each p to save time
