@@ -67,7 +67,7 @@ eqns:=[Eq1,Eq2,Eq3,Eq4,Eq5,Eq6,Eq7,Eq8,Eq9,Eq10,Eq11,Eq12,Eq13,Eq14,Eq15]; // Li
 // WMatrix: matrix of involution w
 // Qtaa: reduction of quadratic point to Xpp
 // Qtbb: reduction of conjugate quadratic point to Xpp 
-AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb)
+AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb, doublePoint)
     //Rks := [];      // Ranks of residue disc matrices
 
     //print X;
@@ -88,7 +88,20 @@ AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb)
 	tQta := UniformizingParameter(Qtaa);  
 	tQtb := UniformizingParameter(Qtbb);
 	Ata := Matrix([[Evaluate(omega/Differential(tQta), plQtaa) : omega in omegas]]);
-	Atb := Matrix([[Evaluate(omega/Differential(tQtb), plQtbb) : omega in omegas]]);  
+	Atb := Matrix([[Evaluate(omega/Differential(tQtb), plQtbb) : omega in omegas]]);
+
+	if doublePoint then
+		"We have a double rational point.";
+		matrixSeq = [];
+		
+		//matrix is different if Q is a double point
+		Append(~matrixSeq, [Evaluate(omega/Differential(tQta), plQtaa) : omega in oms]);
+		Append(~matrixSeq, [Evaluate((omega/Differential(tQta) - Evaluate(omega/Differential(tQta), plQtaa))/tQta, plQtaa) : omega in oms]); 
+
+		Ata := Matrix(matrixSeq);
+		Atb := Matrix(matrixSeq); 
+	end if;	
+
 	ra := Rank(Ata);
 	rb := Rank(Atb);  // Rank 1 means no exceptional points in residue class
 
@@ -193,7 +206,13 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
         
 			Qa := Coordinates(RepresentativePoint(QuadraticPts[i]));
 			Aut := Automorphisms(Fields[i]);
-			Qb := [Aut[2](crd) : crd in Qa]; // conjugate of Qa
+			Qb := Qa;
+			doublePoint := true;
+			
+			if #Aut ne 1 then
+				Qb := [Aut[2](crd) : crd in Qa]; // conjugate of Qa if it is not a double point
+				doublePoint := false;
+			end if;
 
 			OK := RingOfIntegers(Fields[i]);
 			dec := Factorization(p*OK);        
@@ -219,7 +238,7 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 
 			////////////////////////////////////////////////////////////////////////////////
 			// Checking if there are exceptional points in residue disc of the point
-			Rks cat:= [AreLonelyRanks(X, p, Xpp, WMatrix, Qtaa, Qtbb)];
+			Rks cat:= [AreLonelyRanks(X, p, Xpp, WMatrix, Qtaa, Qtbb, doublePoint)];
       		//print Rks;
 
 			if Degree(plQta) eq 1 then   // if a point is defined over Fp
