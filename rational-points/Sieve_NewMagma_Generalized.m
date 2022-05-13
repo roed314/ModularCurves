@@ -62,38 +62,38 @@ eqns:=[Eq1,Eq2,Eq3,Eq4,Eq5,Eq6,Eq7,Eq8,Eq9,Eq10,Eq11,Eq12,Eq13,Eq14,Eq15]; // Li
 
 // Checking if there are exceptional points in residue disc of the point
 AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb)
-      //Rks := [];      // Ranks of residue disc matrices
+    //Rks := [];      // Ranks of residue disc matrices
 
-      //print X;
-			AmbientDim := Dimension(AmbientSpace(X)); //Assuming X is given in projective space
-			CoordRing<[u]>:=CoordinateRing(AmbientSpace(Xpp));
+    //print X;
+	AmbientDim := Dimension(AmbientSpace(X)); //Assuming X is given in projective space
+	CoordRing<[u]>:=CoordinateRing(AmbientSpace(Xpp));
 
-			row := [&+[RowSequence(WMatrix)[k][j] * u[j] : j in [1..AmbientDim + 1]] : k in [1..AmbientDim + 1]];
-			wpp := iso<Xpp -> Xpp | row, row>;
+	row := [&+[RowSequence(WMatrix)[k][j] * u[j] : j in [1..AmbientDim + 1]] : k in [1..AmbientDim + 1]];
+	wpp := iso<Xpp -> Xpp | row, row>;
 
-			V, phiD := SpaceOfDifferentialsFirstKind(Xpp);  // Holomorphic differentials on Xpp
-			t := hom<V -> V | [ (Pullback(wpp, phiD(V.k)))@@phiD -V.k : k in [1..8] ]>; 
-			T := Image(t);                                 // The space red(V_0)
-			oms := [phiD(T.k) : k in [1..Dimension(T)]]; 
+	V, phiD := SpaceOfDifferentialsFirstKind(Xpp);  // Holomorphic differentials on Xpp
+	t := hom<V -> V | [ (Pullback(wpp, phiD(V.k)))@@phiD -V.k : k in [1..8] ]>; 
+	T := Image(t);                                 // The space red(V_0)
+	oms := [phiD(T.k) : k in [1..Dimension(T)]]; 
+						
+	plQtaa := Place(Qtaa);
+	plQtbb := Place(Qtbb);
 			
+	tQta := UniformizingParameter(Qtaa);  
+	tQtb := UniformizingParameter(Qtbb);
+	Ata := Matrix([[Evaluate(omega/Differential(tQta), plQtaa) : omega in oms]]);
+	Atb := Matrix([[Evaluate(omega/Differential(tQtb), plQtbb) : omega in oms]]);  
+	ra := Rank(Ata);
+	rb := Rank(Atb);  // Rank 1 means no exceptional points in residue class
+
+	// TODO: rb never used again
 			
-						plQtaa := Place(Qtaa);
-						plQtbb := Place(Qtbb);
-			
-			tQta := UniformizingParameter(Qtaa);  
-			tQtb := UniformizingParameter(Qtbb);
-			Ata := Matrix([[Evaluate(omega/Differential(tQta), plQtaa) : omega in oms]]);
-			Atb := Matrix([[Evaluate(omega/Differential(tQtb), plQtbb) : omega in oms]]);  
-			ra := Rank(Ata);
-			rb := Rank(Atb);  // Rank 1 means no exceptional points in residue class
-			
-			// An alert to say that there could potentially be an exceptional point in the residue class. 
-			if ra eq 0 then 
-				print "Point Not Lonely When Qtaa =", Qtaa;
-				print"and p =", p;
-			end if; 
+	// An alert to say that there could potentially be an exceptional point in the residue class. 
+	if ra eq 0 then 
+		printf "Point Not Lonely When Qtaa = %o and p = %o.\n", Qtaa, p;
+	end if; 
 	
-			return ra;
+	return ra;
 end function;
 
 
@@ -213,9 +213,8 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 
 			////////////////////////////////////////////////////////////////////////////////
 			// Checking if there are exceptional points in residue disc of the point
-Rks := Rks cat [AreLonelyRanks(X, p, Xpp, WMatrix, Qtaa, Qtbb)];
-      //print Rks;
-
+			Rks cat:= [AreLonelyRanks(X, p, Xpp, WMatrix, Qtaa, Qtbb)];
+      		//print Rks;
 
 			if Degree(plQta) eq 1 then   // if a point is defined over Fp
 			   DivQ := plQta + plQtb;        // then form a divisor from the point and its conjugate
