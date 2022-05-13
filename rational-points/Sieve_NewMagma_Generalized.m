@@ -92,7 +92,7 @@ AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb, doublePoint)
 
 	if doublePoint then
 		"We have a double rational point.";
-		matrixSeq = [];
+		matrixSeq := [];
 		
 		//matrix is different if Q is a double point
 		Append(~matrixSeq, [Evaluate(omega/Differential(tQta), plQtaa) : omega in omegas]);
