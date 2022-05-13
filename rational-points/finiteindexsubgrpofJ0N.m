@@ -453,5 +453,7 @@ TODO: need to change JZero to JZero^+ in this block
 	return X, Xplus, pi, cusps, bp, Xplus_pts, bp_plus, divs_sub;
 end function;
 
+/*
 N := 137;
 X, Xplus, pi, cusps, bp, Xplus_pts, bp_plus, divsX := finiteindexsubgrpofJ0N(N);
+*/
