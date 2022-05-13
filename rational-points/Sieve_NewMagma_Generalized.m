@@ -271,6 +271,8 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 		Ws := Ws cat [* Wp *];  
 		Bs := Bs cat [* Bp *];
 		printf "Calculations completed for p = %o.\n", p;  
+
+		// TODO/suggestion: perform the intersection of the W_{p,M} directly after each p to save time
 	end for; // end of loop over MWprimes
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
