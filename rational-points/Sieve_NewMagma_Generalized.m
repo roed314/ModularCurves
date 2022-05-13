@@ -64,7 +64,7 @@ eqns:=[Eq1,Eq2,Eq3,Eq4,Eq5,Eq6,Eq7,Eq8,Eq9,Eq10,Eq11,Eq12,Eq13,Eq14,Eq15]; // Li
 // X: curve
 // p: prime
 // Xpp: reduction of X at prime above p
-// WMatrix:
+// WMatrix: matrix of involution w
 // Qtaa: reduction of quadratic point to Xpp
 // Qtbb: reduction of conjugate quadratic point to Xpp 
 AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb)
@@ -72,23 +72,23 @@ AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb)
 
     //print X;
 	AmbientDim := Dimension(AmbientSpace(X)); //Assuming X is given in projective space
-	CoordRing<[u]>:=CoordinateRing(AmbientSpace(Xpp));
+	CoordRing<[u]> := CoordinateRing(AmbientSpace(Xpp));
 
 	row := [&+[RowSequence(WMatrix)[k][j] * u[j] : j in [1..AmbientDim + 1]] : k in [1..AmbientDim + 1]];
-	wpp := iso<Xpp -> Xpp | row, row>;
+	wpp := iso<Xpp -> Xpp | row, row>; // w on Xpp
 
 	V, phiD := SpaceOfDifferentialsFirstKind(Xpp);  // Holomorphic differentials on Xpp
-	t := hom<V -> V | [ (Pullback(wpp, phiD(V.k)))@@phiD -V.k : k in [1..8] ]>; 
+	t := hom<V -> V | [(Pullback(wpp, phiD(V.k)))@@phiD - V.k : k in [1..8] ]>; 
 	T := Image(t);                                 // The space red(V_0)
-	oms := [phiD(T.k) : k in [1..Dimension(T)]]; 
+	omegas := [phiD(T.k) : k in [1..Dimension(T)]]; 
 						
 	plQtaa := Place(Qtaa);
 	plQtbb := Place(Qtbb);
 			
 	tQta := UniformizingParameter(Qtaa);  
 	tQtb := UniformizingParameter(Qtbb);
-	Ata := Matrix([[Evaluate(omega/Differential(tQta), plQtaa) : omega in oms]]);
-	Atb := Matrix([[Evaluate(omega/Differential(tQtb), plQtbb) : omega in oms]]);  
+	Ata := Matrix([[Evaluate(omega/Differential(tQta), plQtaa) : omega in omegas]]);
+	Atb := Matrix([[Evaluate(omega/Differential(tQtb), plQtbb) : omega in omegas]]);  
 	ra := Rank(Ata);
 	rb := Rank(Atb);  // Rank 1 means no exceptional points in residue class
 
