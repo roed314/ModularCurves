@@ -61,6 +61,12 @@ Eq15:=2*x_1^2 - 2*x_1*x_2 + x_1*x_4 + 3*x_1*x_5 - 2*x_1*x_6 - 2*x_1*x_7 - 2*x_1*
 eqns:=[Eq1,Eq2,Eq3,Eq4,Eq5,Eq6,Eq7,Eq8,Eq9,Eq10,Eq11,Eq12,Eq13,Eq14,Eq15]; // List of equations
 
 // Checking if there are exceptional points in residue disc of the point
+// X: curve
+// p: prime
+// Xpp: reduction of X at prime above p
+// WMatrix:
+// Qtaa: reduction of quadratic point to Xpp
+// Qtbb: reduction of conjugate quadratic point to Xpp 
 AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb)
     //Rks := [];      // Ranks of residue disc matrices
 
