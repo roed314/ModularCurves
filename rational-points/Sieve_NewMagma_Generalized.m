@@ -78,7 +78,7 @@ AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb, doublePoint)
 	wpp := iso<Xpp -> Xpp | row, row>; // w on Xpp
 
 	V, phiD := SpaceOfDifferentialsFirstKind(Xpp);  // Holomorphic differentials on Xpp
-	t := hom<V -> V | [(Pullback(wpp, phiD(V.k)))@@phiD - V.k : k in [1..8] ]>; 
+	t := hom< V -> V | [(Pullback(wpp, phiD(V.k)))@@phiD - V.k : k in [1..Dimension(V)]] >; 
 	T := Image(t);                                 // The space red(V_0)
 	omegas := [phiD(T.k) : k in [1..Dimension(T)]]; 
 						
