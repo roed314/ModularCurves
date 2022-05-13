@@ -95,8 +95,8 @@ AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb, doublePoint)
 		matrixSeq = [];
 		
 		//matrix is different if Q is a double point
-		Append(~matrixSeq, [Evaluate(omega/Differential(tQta), plQtaa) : omega in oms]);
-		Append(~matrixSeq, [Evaluate((omega/Differential(tQta) - Evaluate(omega/Differential(tQta), plQtaa))/tQta, plQtaa) : omega in oms]); 
+		Append(~matrixSeq, [Evaluate(omega/Differential(tQta), plQtaa) : omega in omegas]);
+		Append(~matrixSeq, [Evaluate((omega/Differential(tQta) - Evaluate(omega/Differential(tQta), plQtaa))/tQta, plQtaa) : omega in omegas]); 
 
 		Ata := Matrix(matrixSeq);
 		Atb := Matrix(matrixSeq); 
