@@ -87,8 +87,6 @@ AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb, doublePoint)
 			
 	tQta := UniformizingParameter(Qtaa);  
 	tQtb := UniformizingParameter(Qtbb);
-	Ata := Matrix([[Evaluate(omega/Differential(tQta), plQtaa) : omega in omegas]]);
-	Atb := Matrix([[Evaluate(omega/Differential(tQtb), plQtbb) : omega in omegas]]);
 
 	if doublePoint then
 		"We have a double rational point.";
@@ -99,11 +97,14 @@ AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb, doublePoint)
 		Append(~matrixSeq, [Evaluate((omega/Differential(tQta) - Evaluate(omega/Differential(tQta), plQtaa))/tQta, plQtaa) : omega in omegas]); 
 
 		Ata := Matrix(matrixSeq);
-		Atb := Matrix(matrixSeq); 
+		//Atb := Matrix(matrixSeq);
+	else
+		Ata := Matrix([[Evaluate(omega/Differential(tQta), plQtaa) : omega in omegas]]);
+		//Atb := Matrix([[Evaluate(omega/Differential(tQtb), plQtbb) : omega in omegas]]);
 	end if;	
 
 	ra := Rank(Ata);
-	rb := Rank(Atb);  // Rank 1 means no exceptional points in residue class
+	//rb := Rank(Atb);  // Rank 1 means no exceptional points in residue class
 
 	// TODO: rb never used again
 			
@@ -202,7 +203,7 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 	for p in MWPrimes do 
 		printf "Sieving mod p = %o ...\n", p;
 
-		known_divisors_mod_p := {};    // Build up to list of known divisors reduced mod p
+		known_divisors_mod_p := [];    // Build up to list of known divisors reduced mod p
 		Rks := [];      // Ranks of residue disc matrices
 		Fp := GF(p);
 		Xp := ChangeRing(X, Fp);
@@ -224,41 +225,45 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 			end if;
 
 			OK := RingOfIntegers(Fields[i]);
-			dec := Factorization(p*OK);        
+			dec := Factorization(p * OK);        
 			pp := dec[1][1];                   // A prime above the rational prime p
 			f := InertiaDegree(pp);            
 			Fpp<t> := ResidueClassField(pp);  // Either GF(p) or GF(p^2) depending on inertia degree
-			Xpp := ChangeRing(X,Fpp);
+			Xpp := ChangeRing(X, Fpp);
 
 			unif := UniformizingElement(pp);   // Use to reduce point modulo p
-			m := Minimum([Valuation(a, pp) : a in Qa | not a eq 0]);  
+			m := Minimum([Valuation(a, pp) : a in Qa | a ne 0]);  
 			Qared := [unif^(-m)*a : a in Qa]; 
-			Qtaa := Xpp![Evaluate(a,Place(pp)) : a in Qared]; // Reduction of quadratic point to Xpp
+			Qtaa := Xpp![Evaluate(a, Place(pp)) : a in Qared]; // Reduction of quadratic point to Xpp
 			Qta := Xp(Fpp) ! Eltseq(Qtaa);      
  
 			plQta := Place(Qta);               
 
-			m := Minimum([Valuation(a, pp) : a in Qb | not a eq 0]); // Repeat with conjugate
+			m := Minimum([Valuation(a, pp) : a in Qb | a ne 0]); // Repeat with conjugate
 			Qbred := [unif^(-m)*a : a in Qb];
-			Qtbb := Xpp![Evaluate(a,Place(pp)) : a in Qbred];
+			Qtbb := Xpp![Evaluate(a, Place(pp)) : a in Qbred];
 			Qtb := Xp(Fpp) ! Eltseq(Qtbb);
 			
 			plQtb := Place(Qtb);
 
 			////////////////////////////////////////////////////////////////////////////////
 			// Checking if there are exceptional points in residue disc of the point
-			Rks cat:= [AreLonelyRanks(X, p, Xpp, WMatrix, Qtaa, Qtbb, doublePoint)];
+			Append(~Rks, AreLonelyRanks(X, p, Xpp, WMatrix, Qtaa, Qtbb, doublePoint));
       		//print Rks;
 
-			if Degree(plQta) eq 1 then   // if a point is defined over Fp
-			   DivQ := plQta + plQtb;        // then form a divisor from the point and its conjugate
-			elif Degree(plQta) eq 2 then   // if a point is defined over Fp^2
-			   DivQ := Divisor(plQta);     // then form the divisor of its place
+			if Rks[#Rks] eq 0 then
+				if Degree(plQta) eq 1 then   // if a point is defined over Fp
+					DivQ := plQta + plQtb;        // then form a divisor from the point and its conjugate
+				elif Degree(plQta) eq 2 then   // if a point is defined over Fp^2
+					DivQ := Divisor(plQta);     // then form the divisor of its place
+				else
+					error "only places of degree <= 2 are implemented.";
+				end if;
 			else
-				error "only places of degree <= 2 are implemented.";
+				DivQ := 0 * plQta; // don't need divisor if rank is non-zero
 			end if;
 
-			known_divisors_mod_p join:= {DivQ};    // Include divisors in the reductions of our known points
+			Append(~known_divisors_mod_p, DivQ);    // Include divisors in the reductions of our known points
 		end for;  // End of loop over known quadratic points
 
 		divisors_mod_p := [NewReduce(X, Xp, divisor) : divisor in Generators]; // reductions of (generators of subgroup of MW group) mod p
@@ -268,7 +273,7 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 	///////////////////////////////////////////////////////////////////////////////////////////////
 
 		places_of_degree_1_mod_p := Places(Xp, 1);   // The degree 1 places on Xp 
-		places_of_degree_2_mod_p := Places(Xp, 2);   //  The degree 2 places on Xp 
+		places_of_degree_2_mod_p := Places(Xp, 2);   // The degree 2 places on Xp 
 		// degree 2 divisors on Xp
 		degree2divisors_mod_p := {1*pl1 + 1*pl2 : pl1 in places_of_degree_1_mod_p, pl2 in places_of_degree_1_mod_p} join {1*pl : pl in places_of_degree_2_mod_p}; 
 		
