@@ -15,7 +15,7 @@
 // harder things to do (which should not be urgent!) :
 // - Compute maps to quotients by multiple AL involutions (e.g. to star quotients).
 // - Obtain a function that can compute the j-invariant of a given point (either by working with the point or by producing equations for the j-map)
-// - Output the cusps on the model. When the cusps are rational there are not may non-cupsidal Q-rational points on the curves X_0(N), so this should be okay to do. When the cusps are not rational (non-square free level) then this probably requires extra work. Since the curves are coming from a canonical embedding via cusp forms there should be a straightforward way of doing this (?)
+// - Output the cusps on the model. This will be straightforward if the level is squarefree since the AL involutions act transitively on the cusps, and one cusp can be obtained by setting q = 0 in the cusp form expansions.
 
 ///////////////
 /// Curve_X ///  (auxiliary function)
@@ -31,7 +31,7 @@ Curve_X := function(N, B, prec, check);
 	d:=1;
 	tf:=false;
 	while tf eq false do
-		d:=d+1;
+		d:=d+1; 
 		mons:=MonomialsOfDegree(R,d);
 		monsq:=[Evaluate(mon,Bexp) : mon in mons];
 		V:=VectorSpace(Rationals(),#mons);
@@ -191,6 +191,75 @@ diag_model := function(X,w);
      
     return NX, XtoNX, NXtoX, Nw;
 end function;
+
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+////////////////////////////////////////////////////////
+
+//////////////////
+/// simul_diag /// (auxiliary function)
+//////////////////
+
+// This is an auxiliary function for the all_diag_X code below.
+
+// Input: A sequence of matrices that are involutions
+// Output: The matrix T that simultaneuosly diagonalised them and the diagonalised matrices.
+
+simul_diag := function(seqw);
+    n := NumberOfRows(seqw[1]);
+    Vs := [VectorSpace(Rationals(),n)];
+
+    for w in seqw do
+        NVs := [];
+        for U in Vs do
+            BU := Basis(U);
+            N1 := Nullspace(w-1) meet U;
+            N2 := Nullspace(w+1) meet U;
+            NVs := NVs cat [N1,N2];
+            Vs := NVs;
+        end for;
+     end for;
+
+     new_basis := &cat[Basis(V) : V in NVs | Dimension(V) gt 0];
+     T := Matrix(new_basis);
+     new_als := [T*w*T^(-1) : w in seqw];
+     return T, new_als;
+end function;
+
+////////////////////////////////////////////////////////
+
+//////////////////
+/// all_diag_X /// 
+//////////////////
+
+// Input: N
+// Output: A model for X_0(N) with all the Atkin-Lehner involutions diagonalised
+
+// X_0(N) should be of genus > 1 and non-hyperelliptic.
+
+all_diag_X := function(N);
+
+    C := CuspForms(N);
+    g := Dimension(C);
+
+    al_inds := [ m : m in Divisors(N) | GCD(m,N div m) eq 1 and m gt 1];
+    al_invols := [AtkinLehnerOperator(C,d) : d in al_inds];
+
+    T, new_als := simul_diag(al_invols);
+    B := Basis(C);
+    NB := [&+[(T)[i,j]*6*B[j] : j in [1..g]] : i in [1..g]];  // can change 6   
+           
+    X:=Curve_X(N,NB,5*N,true);        
+    A<[x]> := AmbientSpace(X);            
+    als_X := [ iso<X->X | [w[i,i]*x[i] : i in [1..g]], [w[i,i]*x[i] : i in [1..g]]>  : w in new_als];
+    return X, als_X;
+end function;   
+
+// e.g. time X, als := all_diag_X(74);  Time: 0.580   (Genus 8)
+// e.g. time X,als := all_diag_X(111);  Time: 1.490   (Genus 11)
+// e.g. time X,als := all_diag_X(2*59); Time: 4.180   (Genus 14)
+// e.g. time X,als := all_diag_X(2*71); Time: 9.970   (Genus 17)
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
