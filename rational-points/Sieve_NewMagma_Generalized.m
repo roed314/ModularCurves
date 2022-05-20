@@ -275,7 +275,8 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 		places_of_degree_1_mod_p := Places(Xp, 1);   // The degree 1 places on Xp 
 		places_of_degree_2_mod_p := Places(Xp, 2);   // The degree 2 places on Xp 
 		// degree 2 divisors on Xp
-		degree2divisors_mod_p := {1*pl1 + 1*pl2 : pl1 in places_of_degree_1_mod_p, pl2 in places_of_degree_1_mod_p} join {1*pl : pl in places_of_degree_2_mod_p}; 
+		degree2divisors_mod_p := {1*place1 + 1*place2 : pl1 in places_of_degree_1_mod_p, pl2 in places_of_degree_1_mod_p}
+								join {1*place : pl in places_of_degree_2_mod_p}; 
 		
 		time C, _, divisor_to_JFp := ClassGroup(Xp); 
 		JFp := TorsionSubgroup(C); // Jac(X)(F_p) =: J(F_p)
