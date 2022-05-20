@@ -150,7 +150,7 @@ SvnPts:=PointSearch(XNSplus13,100);
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-pinsieve:=[3,5,31,43,53,61,73];  // Primes to be used in sieve 
+MWPrimes:=[3,5,31,43,53,61,73];  // Primes to be used in sieve 
 
 M := 3^10*5^10*13^10*29^10;
 
@@ -159,24 +159,24 @@ M := 3^10*5^10*13^10*29^10;
 _<x> := PolynomialRing(Integers());
 
 Discriminants := [11, 67, 7, 2, 19, 163, 7];       
-flds := [NumberField(x^2 + discriminant) : discriminant in Discriminants];   
+QuadraticFields := [NumberField(x^2 + discriminant) : discriminant in Discriminants];   
 
-pts := [];
+points := [];
 
 "Adding quadratic places ...";
    
-time Append(~pts, Place(NX(flds[1])![-5/13*flds[1].1, 2/13*flds[1].1, 3/13*flds[1].1, 0, -1, -2, 1, 1]));
-time Append(~pts, Place(NX(flds[2])![-3/13*flds[2].1, -4/13*flds[2].1, -6/13*flds[2].1, 0, 4, -4, -2, 1]));
-time Append(~pts, Place(NX(flds[3])![-7/13*flds[3].1, -5/13*flds[3].1, -1/13*flds[3].1, -1, 0, -1, 1, 1]));
-time Append(~pts, Place(NX(flds[4])![ 4/13*flds[4].1, 1/13*flds[4].1, -5/13*flds[4].1, 0, 0, 1, 0, 0]));
-/*time Append(~pts, Place(NX(flds[5])![-1/13*flds[5].1, 3/13*flds[5].1, -2/13*flds[5].1, 1, 1, 1, 0, 1]));
-time Append(~pts, Place(NX(flds[6])![-3/13*flds[6].1, -2/91*flds[6].1, -3/91*flds[6].1, -12/7, -5/7, -10/7, 25/7, 1]));
-time Append(~pts, Place(NX(flds[7])![-1/13*flds[7].1, 3/13*flds[7].1, 11/13*flds[7].1, 1, 0, -3, -1, 1]));*/
+time Append(~points, Place(NX(QuadraticFields[1])![-5/13*QuadraticFields[1].1, 2/13*QuadraticFields[1].1, 3/13*QuadraticFields[1].1, 0, -1, -2, 1, 1]));
+time Append(~points, Place(NX(QuadraticFields[2])![-3/13*QuadraticFields[2].1, -4/13*QuadraticFields[2].1, -6/13*QuadraticFields[2].1, 0, 4, -4, -2, 1]));
+time Append(~points, Place(NX(QuadraticFields[3])![-7/13*QuadraticFields[3].1, -5/13*QuadraticFields[3].1, -1/13*QuadraticFields[3].1, -1, 0, -1, 1, 1]));
+time Append(~points, Place(NX(QuadraticFields[4])![ 4/13*QuadraticFields[4].1, 1/13*QuadraticFields[4].1, -5/13*QuadraticFields[4].1, 0, 0, 1, 0, 0]));
+/*time Append(~points, Place(NX(QuadraticFields[5])![-1/13*QuadraticFields[5].1, 3/13*QuadraticFields[5].1, -2/13*QuadraticFields[5].1, 1, 1, 1, 0, 1]));
+time Append(~points, Place(NX(QuadraticFields[6])![-3/13*QuadraticFields[6].1, -2/91*QuadraticFields[6].1, -3/91*QuadraticFields[6].1, -12/7, -5/7, -10/7, 25/7, 1]));
+time Append(~points, Place(NX(QuadraticFields[7])![-1/13*QuadraticFields[7].1, 3/13*QuadraticFields[7].1, 11/13*QuadraticFields[7].1, 1, 0, -3, -1, 1]));*/
 
-"Known quadratic places are: ", pts;
+"Known quadratic places are: ", points;
 
-gens := [1*pts[1] - 1*pts[4], 1*pts[2] - 1*pts[4], 1*pts[3] - 1*pts[4]]; // generators of subgroup of MW group of finite index
-basePoint := 1*pts[4];
+Generators := [1*points[1] - 1*points[4], 1*points[2] - 1*points[4], 1*points[3] - 1*points[4]]; // generators of subgroup of MW group of finite index
+basePoint := 1*points[4];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -340,4 +340,4 @@ MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Gene
 	return false;
 end function;
 
-MWSieveFiniteIndex(NX, XNSplus13, Matrix(Nw), pts, flds, gens, basePoint, pinsieve, M);
+MWSieveFiniteIndex(NX, XNSplus13, Matrix(Nw), points, QuadraticFields, Generators, basePoint, MWPrimes, M);
