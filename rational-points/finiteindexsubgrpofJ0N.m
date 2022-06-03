@@ -11,7 +11,7 @@
 // 2. rank J_0(N)(Q) = rank J_0(N)^+(Q)
 
 
-load "models_and_maps.m";
+load "new_models.m";
 load "rank_calcs.m";
 
 //This function computes the discriminant of the field a place is defined over.
