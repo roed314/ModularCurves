@@ -356,7 +356,7 @@ eqs_quos := function(N, list_als);
                  rho := rho1*rho2*rho3;
                  pairs := pairs cat [* <H,rho>*];
              elif genY eq 0 then 
-                 pairs := pairs cat [* <Y, rho>*];
+                 pairs := pairs cat [* <Y, rho1>*];
              else assert Genus(Y) eq 1 and g_quo eq 1;
                  assert Degree(rho1) eq #AutomorphismGroup(X,seqw); // make sure we haven't quotiented out by an extra isogeny
                  Z, rho2 := EllipticCurve(Y,rho1(cusp));

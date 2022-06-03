@@ -11,6 +11,9 @@
 // 2. rank J_0(N)(Q) = rank J_0(N)^+(Q)
 
 
+load "models_and_maps.m";
+load "rank_calcs.m";
+
 //This function computes the discriminant of the field a place is defined over.
 discQuadPlace := function(P);
     assert Degree(P) eq 2;
@@ -183,6 +186,7 @@ relations_divs := function(X, divs, bp : primes := PrimesUpTo(15), bd := 25);
 	return small_rels;
 end function;
 
+/*
 modformeqns_X0N_X0Nplus := function(Bminus, Bplus, N, prec, jMapProof);
 // We first find the equation of X_0(N)plus
     B := Bplus;
@@ -258,7 +262,7 @@ modformeqns_X0N_X0Nplus := function(Bminus, Bplus, N, prec, jMapProof);
 			end if;
 		end if;
 	end while;
-
+*/
 	//We commented out this part because it is slow and only potentially simplifies the equations
 	/*eqns:=GroebnerBasis(ideal<R | eqns>); // Simplifying the equations.
 	tf:=true;
@@ -278,7 +282,7 @@ modformeqns_X0N_X0Nplus := function(Bminus, Bplus, N, prec, jMapProof);
 			t:=0;
 		end if;
 	until tf eq false and t eq #eqns;*/
-
+/*
 	X:=Curve(ProjectiveSpace(R),eqns); // Our model for X_0(N) discovered via the canonical embedding.
 	assert Genus(X) eq dim;
 
@@ -390,16 +394,39 @@ modformeqns_X0N_X0Nplus := function(Bminus, Bplus, N, prec, jMapProof);
 	Cusps := [P1, P2];
 	return X, Xplus, quotbywN, Cusps;
 end function;
+*/
+
+function atkinlehnersubgrp(N,seq);
+	boo := true;
+	subgrp := seq;
+	while boo do
+		for a in subgrp do
+			for b in subgrp do
+				c := ExactQuotient(a*b,GCD(a,b)^2);
+				if c ne 1 and not c in subgrp then
+					Append(~subgrp,c);
+					boo := true;
+					break a;
+				end if;
+			end for;
+			boo := false;
+		end for;
+	end while;
+	return Sort(subgrp);
+end function;
 
 // This function constructs the following
 // X = the curve X_0(N)
 // Xplus = the curve X_0(N)^+
 // pi = the quotient map
+/*
 // cusps = Cusps of X_0(N)
+*/
 // bp = a rational cusp chosen as basepoint of X
 // Xplus_pts = a list of small rational points on X_0(N)^+
 // divs_sub = a list of linearly independent degree 0 divisors on X generating a finite index subgroup of J_0(N)(Q)
 finiteindexsubgrpofJ0N := function(N);
+/*
 	C := CuspForms(N);
 	printf "Dimension of CuspForms(%o) is: %o\n", N, Dimension(C);
 	AL := AtkinLehnerOperator(C, N);
@@ -409,51 +436,157 @@ finiteindexsubgrpofJ0N := function(N);
 	printf "Dimension of eigenspace lambda = -1 for w_%o is: %o\n", N, Dimension(NNc);
 	BN := [&+[(Integers()!(1*Eltseq(Basis(NN)[i])[j]))*C.j : j in [1..Dimension(C)]] : i in [1..Dimension(NN)]];
 	BNc := [&+[(Integers()!(1*Eltseq(Basis(NNc)[i])[j]))*C.j : j in [1..Dimension(C)]] : i in [1..Dimension(NNc)]];
+*/
 
+/*
 	X, Xplus, pi, cusps := modformeqns_X0N_X0Nplus(BNc, BN, N, 500, true);
 	printf "There are %o cusps on X_0(%o)\n", #cusps, N;
 	printf "They are:\n%o\n", cusps;
-	Xplus_pts := PointSearch(Xplus,100);
-	printf "Found %o small rational points on X_0(%o)^+\n", #Xplus_pts, N;
-	printf "They are:\n%o\n", Xplus_pts;
-	divsplus := [Divisor(pt) : pt in Xplus_pts];
-	divs := [Pullback(pi,D) : D in divsplus];
-
-	bp_plus := Divisor(Xplus_pts[1]);
-	bp := Pullback(pi,bp_plus);
-
-/*
-	assert exists(bp){c : c in cusps | Type(c) eq Pt};
-	bp := Divisor(bp);
-	bp_plus := Pushforward(pi,bp);
 */
-
-	rels := relations_divs(Xplus,divsplus,bp_plus);
-	for r in rels do
-		D := &+[r[i]*divsplus[i] : i in [1..#divsplus]] - &+[r[i] : i in [1..#divsplus]]*bp_plus;
-		assert IsPrincipal(D);
-	end for;
-	L := StandardLattice(#divs);
-	Lsub := sub<L | rels>;
-	Lquot, quot := L / Lsub;
-
 /*
-TODO: need to change JZero to JZero^+ in this block
-	b, tors := TorsionSubgroup(JZero(N));
-	assert b;
-	n := #AbelianInvariants(tors);
+	hypell_X0Nplus := [ 42, 46, 52, 57, 60, 62, 66, 67, 68, 69, 72, 73, 74, 77, 80, 85, 87, 91, 92, 94, 98, 103, 104, 107, 111, 121, 125, 143, 167, 191 ];
+	genus1_X0Nplus := [ 22, 28, 30, 33, 34, 37, 38, 40, 43, 44, 45, 48, 51, 53, 54, 55, 56, 61, 63, 64, 65, 75, 79, 81, 83, 89, 95, 101, 119, 131 ];
+	genus0_X0Nplus := [ 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 29, 31, 32, 35, 36, 39, 41, 47, 49, 50, 59, 71 ];
+// This list is complete for N upto 200
+	hypell_X0Nplus := Sort(hypell_X0Nplus cat genus1_X0Nplus);
+	if N in genus0_X0Nplus then
+		printf "X_0(%o)^+ has genus 0\n", N;
+		printf "The curve is in the small modular curve database\n";
+		error Error();
+	end if;
+	if equal_rank(N,N) then
+		h := N in hypell_X0Nplus;
+		printf "Working with X_0(%o)/w_%o", N, N;
+		X, Xplus, pi, wN, ws, BN, BNc := Curve_and_Map(N,N,h);
+//		g := Genus(X0NQuotient(N,[N]));
+	else
+		Halldivs := [d : d in Divisors(N) | GCD(d,ExactQuotient(N,d)) eq 1 and d ne 1];
+		good_wds := [d : d in Halldivs | equal_rank(N,d)];
+		if #good_wds eq 0 then
+			printf "No Atkin-Lehner quotient has Mordell-Weil rank equal to that of X_0(%o)", N;
+			error Error();
+		else
+			d := good_wds[1];
+			h := IsHyperelliptic(X0NQuotient(N,[d]));
+			printf "Working with X_0(%o)/w_%o", N, d;
+			X, Xplus, pi, wN, ws, BN, BNc := Curve_and_Map(N,d,h);
+//			g := Genus(X0NQuotient(N,[d]));
+		end if;
+	end if;
+
+	if h then
+		Xplus_pts := Points(Xplus,10000);
+	else
+		Xplus_pts := PointSearch(Xplus,100);
+	end if;
+*/
+/*
 	a, r := LeadingCoefficient(LSeries(JZero(N)),1,100);
-	assert AbelianInvariants(Lquot) eq AbelianInvariants(tors) cat [0 : i in [1..r]];
 */
-	abinvsLquot := AbelianInvariants(Lquot);
-	n := Maximum([0] cat [Index(abinvsLquot,i) : i in abinvsLquot | i ne 0]);
-	Lquot_basis := [Lquot.i @@ quot : i in [n+1..#Generators(Lquot)]];
-	divsplus_sub := [&+[v[i]*divsplus[i] : i in [1..#divsplus]] - sumv*bp_plus where sumv is &+[v[i] : i in [1..#divsplus]]: v in Lquot_basis];
-	divs_sub := [&+[v[i]*divs[i] : i in [1..#divs]] - sumv*bp where sumv is &+[v[i] : i in [1..#divsplus]] : v in Lquot_basis];
-	return X, Xplus, pi, cusps, bp, Xplus_pts, bp_plus, divs_sub;
+	r, boo := rank_J0N_wd(N,1);
+	if r ne 0 then
+		Halldivs := {d : d in Divisors(N) | GCD(d,ExactQuotient(N,d)) eq 1 and d ne 1};
+		seq_als := SetToSequence({atkinlehnersubgrp(N,Sort(SetToSequence(x))) : x in Subsets(Halldivs) | #x gt 0});
+		printf "%o\n", seq_als;
+		seq_als := [x : x in seq_als | &and[equal_rank(N,y) : y in x]];
+		printf "%o\n", seq_als;
+		comp := func<a,b|(#a eq #b) select &+b-&+a else #a-#b>;
+		seq_als := Sort(seq_als,comp);
+		seq_als := [x : x in seq_als | not <N,x> in hyper_data] cat [x : x in seq_als | <N,x> in hyper_data];
+		printf "%o\n", seq_als;
+	else
+		seq_als := [[N]];
+	end if;
+	for seq in seq_als do
+		X, ws, pairs, NB, cusp := eqs_quos(N,[seq]);
+		Xquo := pairs[1,1];
+		pi := pairs[1,2];
+		curvhyp := false;
+		if Type(Xquo) eq CrvHyp then
+			Xquo_pts := Points(Xquo : Bound := 1000);
+			curvhyp := true;
+		elif DefiningEquations(Xquo) eq [] then
+			Xquo_pts := {@@};
+			for a := -10 to 10 do
+				for b := -10 to 10 do
+					if not (a eq 0 and b eq 0) then
+						if GCD(a,b) eq 1 then
+							pt := Xquo ! [a,b];
+							Include(~Xquo_pts,pt);
+						end if;
+					end if;
+				end for;
+			end for;
+		else
+			Xquo_pts := PointSearch(Xquo,1000);
+		end if;
+/*
+		if #Xquo_pts eq 0 then
+			continue;
+		end if;
+*/
+		printf "Found %o small rational points on X_0(%o) quotiented by the Atkin-Lehner involutions corresponding to %o\n", #Xquo_pts, N, seq;
+		printf "They are:\n%o\n", Xquo_pts;
+
+		bp_quo := Divisor(pi(cusp));
+		bp := Divisor(cusp);
+		if r eq 0 then
+			return X, seq, Xquo, pi, bp, Xquo_pts, bp_quo, [];
+		end if;
+
+		bpquo_pullback := Pullback(pi,bp_quo);
+		divsplus := [Divisor(pt) : pt in Xquo_pts];
+		divs := [Pullback(pi,D) : D in divsplus];
+
+	/*
+		assert exists(bp){c : c in cusps | Type(c) eq Pt};
+		bp := Divisor(bp);
+		bp_quo := Pushforward(pi,bp);
+	*/
+		if curvhyp then
+			rels := relations_divs(X,divs,bp : primes := PrimesUpTo(20), bd := 100);
+		else
+			rels := relations_divs(Xquo,divsplus,bp_quo : primes := PrimesUpTo(50), bd := 100);
+		end if;
+		for r in rels do
+			D := &+[r[i]*divsplus[i] : i in [1..#divsplus]] - &+[r[i] : i in [1..#divsplus]]*bp_quo;
+			assert IsPrincipal(D);
+		end for;
+		L := StandardLattice(#divs);
+		Lsub := sub<L | rels>;
+		Lquot, quot := L / Lsub;
+
+	/*
+	TODO: need to change JZero to JZero^+ in this block
+		b, tors := TorsionSubgroup(JZero(N));
+		assert b;
+		n := #AbelianInvariants(tors);
+		// a, r := LeadingCoefficient(LSeries(JZero(N)),1,100);
+		r, boo := rank_J0N_wd(N,1);
+		assert AbelianInvariants(Lquot) eq AbelianInvariants(tors) cat [0 : i in [1..r]];
+	*/
+		abinvsLquot := AbelianInvariants(Lquot);
+		n := Maximum([0] cat [i : i in [1..#abinvsLquot] | abinvsLquot[i] ne 0]);
+		Lquot_basis := [Lquot.i @@ quot : i in [n+1..#Generators(Lquot)]];
+		divsplus_sub := [&+[v[i]*divsplus[i] : i in [1..#divsplus]] - sumv*bp_quo where sumv is &+[v[i] : i in [1..#divsplus]]: v in Lquot_basis];
+		divs_sub := [&+[v[i]*divs[i] : i in [1..#divs]] - sumv*bpquo_pullback where sumv is &+[v[i] : i in [1..#divsplus]] : v in Lquot_basis];
+	/*
+		return X, Xquo, pi, cusps, bp, Xquo_pts, bp_quo, divs_sub;
+	*/
+		if #divs_sub eq r then
+			return X, seq, Xquo, pi, bp, Xquo_pts, bp_quo, divs_sub;
+		end if;
+	end for;
+/*
+	return Sprintf("Not enough rational divisors found which can generate J_0(%o). Found %o, but rank is %o.", N, #divs_sub, r);
+*/
+	return Sprintf("Not enough rational divisors found which can generate J_0(%o).", N);
 end function;
 
 /*
 N := 137;
-X, Xplus, pi, cusps, bp, Xplus_pts, bp_plus, divsX := finiteindexsubgrpofJ0N(N);
+X, Xplus, pi, cusps, bp, Xplus_pts, bp_quo, divsX := finiteindexsubgrpofJ0N(N);
+*/
+/*
+X, Xplus, pi, bp, Xplus_pts, bp_quo, divsX := finiteindexsubgrpofJ0N(N);
 */
