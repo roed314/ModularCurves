@@ -183,6 +183,12 @@ relations_divs := function(X, divs, bp : primes := PrimesUpTo(15), bd := 25);
     L := Lattice(#divs,&cat[Eltseq(fullrelsspace ! relsspace.i) : i in [1..#divs]]);
 	Lprime, T := LLL(L);
 	small_rels := [Eltseq(Lprime.i) : i in [1..#divs] | Norm(Lprime.i) lt bd*#divs];
+	for r in small_rels do
+		D := &+[r[i]*divs[i] : i in [1..#divs]] - &+[r[i] : i in [1..#divs]]*bp;
+		if not IsPrincipal(D) then
+			Exclude(~small_rels,r);
+		end if;
+	end for;
 	return small_rels;
 end function;
 
@@ -544,14 +550,10 @@ finiteindexsubgrpofJ0N := function(N);
 		bp_quo := Pushforward(pi,bp);
 	*/
 		if curvhyp then
-			rels := relations_divs(X,divs,bp : primes := PrimesUpTo(20), bd := 100);
+			rels := relations_divs(X,divs,bp : primes := PrimesUpTo(50), bd := 1000);
 		else
-			rels := relations_divs(Xquo,divsplus,bp_quo : primes := PrimesUpTo(50), bd := 100);
+			rels := relations_divs(Xquo,divsplus,bp_quo : primes := PrimesUpTo(50), bd := 1000);
 		end if;
-		for r in rels do
-			D := &+[r[i]*divsplus[i] : i in [1..#divsplus]] - &+[r[i] : i in [1..#divsplus]]*bp_quo;
-			assert IsPrincipal(D);
-		end for;
 		L := StandardLattice(#divs);
 		Lsub := sub<L | rels>;
 		Lquot, quot := L / Lsub;

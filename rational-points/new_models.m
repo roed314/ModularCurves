@@ -119,7 +119,8 @@ all_diag_basis := function(N);
 
     T, new_als := simul_diag(al_invols);
     B := Basis(C);
-    NB := [&+[(T)[i,j]*1*B[j] : j in [1..g]] : i in [1..g]];  // can change 1   
+    cleardenom := LCM([Denominator(x) : x in Eltseq(T)]);
+    NB := [&+[cleardenom*T[i,j]*B[j] : j in [1..g]] : i in [1..g]];  // can change 1   
     return NB, new_als;
 end function;
 
