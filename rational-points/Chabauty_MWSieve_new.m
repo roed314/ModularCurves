@@ -11,6 +11,8 @@ load "ChabautyHelp.m";
 //not used in code yet because we might want to discuss it first
 //testing showed significant speed gains for X0(137)
 
+//didnt help, will probably be deleted
+
 BetterPhi := function(D, JFpGenerators, PhiActionTable, JFp)
 	rep := Representation(JFpGenerators, D);
 		
@@ -35,7 +37,21 @@ ChabautyInfo := function(X, AtkinLehner, genusC, p, A, divs, Dpull, B, iA, W, de
 	//We reduce the divisors and the basepoint
 	JFp, phi, psi := JacobianFp(Xp);
 	divsp := [reduce(X, Xp, divi) : divi in divs];
-	Dpull_p := reduce(X, Xp, Dpull); 
+	Dpull_p := reduce(X, Xp, Dpull);
+	
+	"Getting deg 1 places on Xp...";
+	places_of_degree_1_mod_p := Places(Xp, 1);   // The degree 1 places on Xp
+
+	"Getting deg 2 places on Xp...";
+	places_of_degree_2_mod_p := Places(Xp, 2);   // The degree 2 places on Xp 
+
+	// degree 2 divisors on Xp
+	"Combining them into divisors...";
+	degree2divisors_mod_p := {1*place1 + 1*place2 : place1, place2 in places_of_degree_1_mod_p} join {1*place : place in places_of_degree_2_mod_p};
+	"There are ", #degree2divisors_mod_p, " of them!";
+
+	deg2Divs_p_set := Setseq(degree2divisors_mod_p);	// turn them into set
+	Abstracts := [JFp!psi(deg2Divs_p_set[i] - Dpull_p) : i in [1..#S]];	// elements on JFp (as abstract group)
 
 	//The map A -> J_X(\F_p).
 	h := hom<A -> JFp | [(JFp!psi(divp)) : divp in divsp]>;
@@ -64,15 +80,23 @@ ChabautyInfo := function(X, AtkinLehner, genusC, p, A, divs, Dpull, B, iA, W, de
 	//We try to eliminate z as described in the article.
 	//If we can't eliminate at least one z such that (1 - w)*z = x, we keep x.
 	printf "out of %o: ", #imW;
+	
+	// not used right now
 	gensJFp := OrderedGenerators(JFp);
 	table := [Decomposition(phi(g)) : g in gensJFp];
+	
 	for x in imW do
 		printf ".";
     		z := x@@mI;
-    		if &or[Dimension(phi(z + k) + Dpull_p) gt 0 and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
-			//if &or[Dimension(BetterPhi(z + k, gensJFp, table, JFp) + Dpull_p) gt 0
-					 //and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
-				Append(~jposP, x);
+		
+		//if &or[Dimension(phi(z + k) + Dpull_p) gt 0 and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
+    		
+		// instead of checking if z + k is of RR-Dimension > 0, we check if it is one of the candidate divisors from above
+		// this avoids calling phi() and/or Dimension() which can be slow
+		// this can be improved further by avoiding the above preimage x@@mI
+		
+		if &or[(z + k in Abstracts) and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
+			Append(~jposP, x);
     		end if;
 	end for;
 
