@@ -19,7 +19,7 @@ load "rank_calcs.m";
 ////////////////////////////////////////////////////////
 
 //////////////////
-/// JacobianFp /// 
+/// JacobianFp ///
 //////////////////
 
 // This function computes Jac(X)(F_q) for a curve X defined over a finite field F_q
@@ -43,7 +43,7 @@ end function;
 ////////////////////////////////////////////////////////
 
 /////////////////
-/// NewReduce /// 
+/// NewReduce ///
 /////////////////
 
 // Input:
@@ -100,7 +100,7 @@ end function;
 ////////////////////////////////////////////////////////
 
 //////////////
-/// reduce /// 
+/// reduce ///
 //////////////
 
 // This is an old version of the function NewReduce above.
@@ -133,7 +133,7 @@ reduce := function(X,Xp,D);
 		PP:=[d div g : d in PP];
 		Fp:=BaseRing(Xp);
 		PP:=Xp![Fp!d : d in PP];
-		return Place(PP);	
+		return Place(PP);
 	end if;
 	I:=Ideal(D);
 	Fp:=BaseRing(Xp);
@@ -164,7 +164,7 @@ end function;
 ////////////////////////////////////////////////////////
 
 /////////////////
-/// relations /// 
+/// relations ///
 /////////////////
 
 // This function returns the space of relations between a given sequence xs of
@@ -184,7 +184,7 @@ end function;
 ////////////////////////////////////////////////////////
 
 //////////////////////
-/// relations_divs /// 
+/// relations_divs ///
 //////////////////////
 
 // This function returns a space containing the space of relations between a
@@ -224,6 +224,10 @@ relations_divs := function(X, divs, bp : primes := PrimesUpTo(30), bd := 1000);
             end for;
 			printf "Reduced divisors\nCalculating relations between the reduced divisors\n";
 			psibpp := psi(bpp);
+/*
+			print Degree(bpp);
+			print [Degree(D) : D in divsp];
+*/
 			divspzero := [psi(D) - Degree(D)*psibpp : D in divsp];
             relsp := relations(Jfp,divspzero);
 			printf "Done calculating relations.\n";
@@ -238,7 +242,7 @@ relations_divs := function(X, divs, bp : primes := PrimesUpTo(30), bd := 1000);
 	Lprime, T := LLL(L);
 	small_rels := [Eltseq(Lprime.i) : i in [1..#divs] | Norm(Lprime.i) lt bd*#divs];
 	for r in small_rels do
-		D := &+[r[i]*divs[i] : i in [1..#divs]] - &+[r[i] : i in [1..#divs]]*bp;
+		D := &+[r[i]*divs[i] : i in [1..#divs]] - &+[r[i]*Degree(divs[i]) : i in [1..#divs]]*bp;
 		if not IsPrincipal(D) then
 			Exclude(~small_rels,r);
 		end if;
@@ -251,7 +255,7 @@ end function;
 ////////////////////////////////////////////////////////
 
 /////////////////////////
-/// atkinlehnersubgrp /// 
+/// atkinlehnersubgrp ///
 /////////////////////////
 
 // Input: The level N, and a list of Hall divisors of N representing the corresponding Atkin-Lehner involutions.
@@ -276,13 +280,12 @@ function atkinlehnersubgrp(N,seq);
 	return Sort(subgrp);
 end function;
 
-
 ////////////////////////////////////////////////////////
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
 ////////////////////////////////////////////////////////
 
 //////////////////////////////
-/// finiteindexsubgrpofJ0N /// 
+/// finiteindexsubgrpofJ0N ///
 //////////////////////////////
 
 // This function attempts to compute a list of linearly independent degree 0 divisors on X_0(N)
@@ -313,7 +316,10 @@ finiteindexsubgrpofJ0N := function(N);
 		printf "%o\n", seq_als;
 		comp := func<a,b|(#a eq #b) select &+b-&+a else #a-#b>;
 		seq_als := Sort(seq_als,comp);
+/*
 		seq_als := [x : x in seq_als | not <N,x> in hyper_data] cat [x : x in seq_als | <N,x> in hyper_data];
+*/
+		seq_als := [x : x in seq_als | is_hyper_quo(N,x)] cat [x : x in seq_als | not is_hyper_quo(N,x)];
 		printf "%o\n", seq_als;
 	else
 		seq_als := [[N]];
@@ -344,20 +350,21 @@ finiteindexsubgrpofJ0N := function(N);
 		printf "Found %o small rational points on X_0(%o) quotiented by the Atkin-Lehner involutions corresponding to %o\n", #Xquo_pts, N, seq;
 		printf "They are:\n%o\n", Xquo_pts;
 
-		bp_quo := Divisor(pi(cusp));
+/*
 		bp := Divisor(cusp);
+		bp_quo := Divisor(pi(cusp));
 		if r eq 0 then
 			return X, seq, Xquo, pi, bp, Xquo_pts, bp_quo, [];
 		end if;
 
 		bpquo_pullback := Pullback(pi,bp_quo);
-		divsplus := [Divisor(pt) : pt in Xquo_pts];
-		divs := [Pullback(pi,D) : D in divsplus];
+		divsquo := [Divisor(pt) : pt in Xquo_pts];
+		divs := [Pullback(pi,D) : D in divsquo];
 
 		if curvhyp then
-			rels := relations_divs(X,divs,bp : primes := PrimesUpTo(40), bd := 1000);
+			rels := relations_divs(X,divs,bp : primes := PrimesUpTo(30), bd := 1000);
 		else
-			rels := relations_divs(Xquo,divsplus,bp_quo : primes := PrimesUpTo(40), bd := 1000);
+			rels := relations_divs(Xquo,divsquo,bp_quo : primes := PrimesUpTo(30), bd := 1000);
 		end if;
 		L := StandardLattice(#divs);
 		Lsub := sub<L | rels>;
@@ -366,10 +373,81 @@ finiteindexsubgrpofJ0N := function(N);
 		abinvsLquot := AbelianInvariants(Lquot);
 		n := Maximum([0] cat [i : i in [1..#abinvsLquot] | abinvsLquot[i] ne 0]);
 		Lquot_basis := [Lquot.i @@ quot : i in [n+1..#Generators(Lquot)]];
-		divsplus_sub := [&+[v[i]*divsplus[i] : i in [1..#divsplus]] - sumv*bp_quo where sumv is &+[v[i] : i in [1..#divsplus]]: v in Lquot_basis];
-		divs_sub := [&+[v[i]*divs[i] : i in [1..#divs]] - sumv*bpquo_pullback where sumv is &+[v[i] : i in [1..#divsplus]] : v in Lquot_basis];
+		divsquo_sub := [&+[v[i]*divsquo[i] : i in [1..#divsquo]] - sumv*bp_quo where sumv is &+[v[i] : i in [1..#divsquo]]: v in Lquot_basis];
+		divs_sub := [&+[v[i]*divs[i] : i in [1..#divs]] - sumv*bpquo_pullback where sumv is &+[v[i] : i in [1..#divsquo]] : v in Lquot_basis];
 		if #divs_sub eq r then
 			return X, seq, Xquo, pi, bp, Xquo_pts, bp_quo, divs_sub;
+		end if;
+*/
+
+		if r eq 0 then
+			return X, seq, Xquo, pi, Xquo_pts, [];
+		end if;
+		if curvhyp then
+			g := Genus(Xquo);
+			Xquo_simp, isom := SimplifiedModel(Xquo);
+			Jquo := Jacobian(Xquo_simp);
+			if Genus(Xquo_simp) eq 2 then
+				ptsJquo := Points(Jquo : Bound := 100);
+			else
+				ptsXquo_simp := Points(Xquo_simp : Bound := 1000);
+				ptsJquo := [ptsXquo_simp[i]-ptsXquo_simp[1] : i in [2..#ptsXquo_simp]];
+			end if;
+			try
+				bas, htpair := ReducedBasis(ptsJquo);
+			catch e
+				continue;
+			end try;
+			P<u,v,w> := CoordinateRing(AmbientSpace(Xquo_simp));
+			infinite_div := Divisor(Xquo_simp, ideal<P | w>);
+			assert Degree(infinite_div) eq 2;
+			odddegmodel := false;
+			if Degree(HyperellipticPolynomials(Xquo_simp)) mod 2 eq 1 then
+				odddegmodel := true;
+				infinite_div := infinite_div div 2;
+				assert Degree(infinite_div) eq 1;
+			end if;
+
+			if #bas eq r then
+				divs_Xquosimp := [];
+				for pt in bas do
+					dd := pt[3];
+					fcoefs := Eltseq(pt[1]);
+					f_homgnsd := &+[fcoefs[i]*w^(dd+1-i)*u^(i-1) : i in [1..#fcoefs]];
+					gcoefs := Eltseq(pt[2]);
+					g_homgnsd := v-&+[gcoefs[i]*w^(g+2-i)*u^(i-1) : i in [1..#gcoefs]];
+					D := Divisor(Xquo_simp,ideal<P | f_homgnsd,g_homgnsd>);
+					assert Degree(D) eq dd;
+					if odddegmodel then
+						Append(~divs_Xquosimp, D-dd*infinite_div);
+					else
+						assert dd mod 2 eq 0;
+						ddby2 := dd div 2;
+						Append(~divs_Xquosimp, D-ddby2*infinite_div);
+					end if;
+				end for;
+				divs_sub := [Pullback(pi,Pullback(isom,D)) : D in divs_Xquosimp];
+				return X, seq, Xquo, pi, Xquo_pts, divs_sub;
+			end if;
+		else
+			bp := Divisor(cusp);
+			bp_quo := Divisor(pi(cusp));
+			bpquo_pullback := Pullback(pi,bp_quo);
+			divsquo := [Divisor(pt) : pt in Xquo_pts];
+			divs := [Pullback(pi,D) : D in divsquo];
+			rels := relations_divs(Xquo,divsquo,bp_quo : primes := PrimesUpTo(30), bd := 1000);
+			L := StandardLattice(#divs);
+			Lsub := sub<L | rels>;
+			Lquot, quot := L / Lsub;
+
+			abinvsLquot := AbelianInvariants(Lquot);
+			n := Maximum([0] cat [i : i in [1..#abinvsLquot] | abinvsLquot[i] ne 0]);
+			Lquot_basis := [Lquot.i @@ quot : i in [n+1..#Generators(Lquot)]];
+			divsquo_sub := [&+[v[i]*divsquo[i] : i in [1..#divsquo]] - sumv*bp_quo where sumv is &+[v[i] : i in [1..#divsquo]]: v in Lquot_basis];
+			divs_sub := [&+[v[i]*divs[i] : i in [1..#divs]] - sumv*bpquo_pullback where sumv is &+[v[i] : i in [1..#divsquo]] : v in Lquot_basis];
+			if #divs_sub eq r then
+				return X, seq, Xquo, pi, Xquo_pts, divs_sub;
+			end if;
 		end if;
 	end for;
 	return Sprintf("Not enough rational divisors found which can generate J_0(%o).", N);
@@ -377,5 +455,5 @@ end function;
 
 /*
 N := 137;
-X, seq, Xquo, pi, bp, Xquo_pts, bp_quo, divsX := finiteindexsubgrpofJ0N(N);
+X, seq, Xquo, pi, Xquo_pts, divsX := finiteindexsubgrpofJ0N(N);
 */
