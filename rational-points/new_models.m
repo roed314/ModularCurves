@@ -244,6 +244,36 @@ end function;
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
 ////////////////////////////////////////////////////////
 
+/////////////////////////
+/// atkinlehnersubgrp /// 
+/////////////////////////
+
+// Input: The level N, and a list of Hall divisors of N representing the corresponding Atkin-Lehner involutions.
+// Output: The list of all (non-trivial) Hall divisors of N corresponding to all the Atkin-Lehner involutions in the subgroup generated.
+
+function atkinlehnersubgrp(N,seq);
+	boo := true;
+	subgrp := seq;
+	while boo do
+		for a in subgrp do
+			for b in subgrp do
+				c := ExactQuotient(a*b,GCD(a,b)^2);
+				if c ne 1 and not c in subgrp then
+					Append(~subgrp,c);
+					boo := true;
+					break a;
+				end if;
+			end for;
+			boo := false;
+		end for;
+	end while;
+	return Sort(subgrp);
+end function;
+
+////////////////////////////////////////////////////////
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++
+////////////////////////////////////////////////////////
+
 ////////////////////
 /// is_hyper_quo /// 
 ////////////////////
@@ -257,18 +287,9 @@ is_hyper_quo := function(N, seq_al);
     g_quo := genus_quo(N,seq_al);
         if g_quo eq 2 then 
            is_hyp := true;
-        elif g_quo gt 2 and N in hyper_stars then // we check by computation if AL involutions generate the whole group.
-            C := CuspForms(N);
-            n := Dimension(C);
-            // start by simply diagonalising all AL involutions
-            al_inds := [ m : m in Divisors(N) | GCD(m,N div m) eq 1 and m gt 1];
-            al_invols := [AtkinLehnerOperator(C,d) : d in al_inds];
-            T, new_als := simul_diag(al_invols);
-            // pick out those corresponding to seq_al
-            seqw_M := [new_als[i] : i in [1..#new_als] | al_inds[i] in seq_al];
-            GL_n := GeneralLinearGroup(n, Rationals());
-            al_group := sub<GL_n | seqw_M >;
-            if #al_group eq 2^(#PrimeFactors(N)) then 
+        elif g_quo gt 2 and N in hyper_stars then
+            al_group := atkinlehnersubgrp(N,seq_al);
+            if #al_group eq 2^(#PrimeFactors(N))-1 then 
                 is_hyp := true;
             elif <N, seq_al> in hyper_data then 
                 is_hyp := true;
