@@ -395,6 +395,39 @@ eqs_quos := function(N, list_als);
 end function;
 
 
+
+
+//checks whether X_0(n) has a degree 2 map to a haperlliptic curve
+is_bihyperelliptic:=function(n);
+lst:= Divisors(n) ;
+lst2:=[];
+for a in lst do
+if GCD(a, n div a) eq 1 then lst2:=lst2 cat [a]; end if;
+end for;
+tr:=false;
+for w in lst2 do
+if w ge 2 then
+if (is_hyper_quo(n,[w])) then return true, w, genus_quo(n,[w]); end if;
+end if;
+end for;
+return false;
+end function;
+
+//returns the genera of all X_0(n)/w_d
+genera_quo:=procedure(n);
+lst:= Divisors(n) ;
+lst2:=[];
+for a in lst do
+if GCD(a, n div a) eq 1 then lst2:=lst2 cat [a]; end if;
+end for;
+for w in lst2 do
+if w ge 2 then
+w, genus_quo(n,[w]);
+end if;
+end for;
+end procedure;
+
+
 ////////////////////////////////////////////////////////
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
 ////////////////////////////////////////////////////////
