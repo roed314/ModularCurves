@@ -15,7 +15,7 @@ hc := eval s[3];
 prec := StringToInteger(prec);
 ncoeffs := Ceiling(20*Sqrt(level)*Log(10)*prec/(2*Pi(ComplexField())));
 time f := MakeNewformModSym(level, hc);
-b, out := ReconstructGenus2Curve(f : prec:=prec, ncoeffs:=ncoeffs,  D:=[-20..20], UpperBound:=12);
+b, out := ReconstructGenus2Curve(f : prec:=prec, ncoeffs:=ncoeffs,  D:=[-3..3], UpperBound:=14);
 /*
 try
   b, out := ReconstructGenus2Curve(f : prec:=prec, ncoeffs:=ncoeffs);//, D:=[-2..2]);
