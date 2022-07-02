@@ -51,7 +51,7 @@ ChabautyInfo := function(X, AtkinLehner, genusC, p, A, divs, Dpull, B, iA, W, de
 	"There are ", #degree2divisors_mod_p, " of them!";
 
 	deg2Divs_p_set := Setseq(degree2divisors_mod_p);	// turn them into set
-	Abstracts := [JFp!psi(deg2Divs_p_set[i] - Dpull_p) : i in [1..#S]];	// elements on JFp (as abstract group)
+	Abstracts := [JFp!psi(deg2Divs_p_set[i] - Dpull_p) : i in [1..#deg2Divs_p_set]];	// elements on JFp (as abstract group)
 
 	//The map A -> J_X(\F_p).
 	h := hom<A -> JFp | [(JFp!psi(divp)) : divp in divsp]>;
