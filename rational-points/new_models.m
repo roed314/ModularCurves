@@ -322,6 +322,14 @@ end function;
 // X_0(N) should be of genus > 1 and non-hyperelliptic
 // There are no restrictions on the quotient.
 
+// auxiliary function to compare the size of two sets
+
+size_comp := function(s1,s2);
+    if #s1 gt #s2 then return 1;
+    elif #s1 lt #s2 then return -1;
+    else return 0; end if;
+end function;
+
 eqs_quos := function(N, list_als);
     X, ws,NB,cusp := all_diag_X(N);
     A<[x]> := AmbientSpace(X);
@@ -354,25 +362,36 @@ eqs_quos := function(N, list_als);
             PS := [P : P in PS0 | #P gt 1];
             consts := &meet[{P : P in PS | &+[s[i] : i in P] eq #P or &+[s[i] : i in P] eq -#P} : s in Ss];
             con := SetToSequence(consts);
-            sizes := [#c : c in con];
-            _,pos := Maximum(sizes);
-            coords := Sort(SetToSequence(con[pos]));
-            P := ProjectiveSpace(Rationals(),#coords-1);
-            proj := map<A->P|[x[i] : i in coords]>;
-            Y1 := Curve(proj(X));
-            genY1 := Genus(Y1);
-            if genY1 eq g_quo then 
-                assert Dimension(Y1) eq 1 and IsIrreducible(Y1);
-                Y := Y1;
-                genY := genY1;
-                rho1 := map<X->Y | [x[i] : i in coords]>;
-            else Y, rho1 := CurveQuotient(AutomorphismGroup(X,seqw));  // longer, only used if projection map does not work.
+            con3 := [c : c in con | #c gt 2];
+            maxcon3 := con3;
+            for s,e in con3 do
+                if s subset e and s ne e then
+                    Exclude(~maxcon3,s);
+                end if;
+            end for;
+            maxcon3 := Sort(maxcon3, size_comp);
+            genY1 := -1;
+            for i in [1..#maxcon3] do
+                coords := Sort(SetToSequence(maxcon3[i]));
+                P := ProjectiveSpace(Rationals(),#coords-1);
+                proj := map<A->P|[x[i] : i in coords]>;
+                Y1 := Curve(proj(X));
+                genY1 := Genus(Y1);
+                if genY1 eq g_quo then 
+                    assert Dimension(Y1) eq 1 and IsIrreducible(Y1);
+                    Y := Y1;
+                    genY := genY1;
+                    rho1 := map<X->Y | [x[i] : i in coords]>;
+                    break;
+                end if;
+            end for;
+            if genY1 ne g_quo then 
+                Y, rho1 := CurveQuotient(AutomorphismGroup(X,seqw));  // longer, only used if projection map does not work.
                 assert Dimension(Y) eq 1 and IsIrreducible(Y); 
                 genY := Genus(Y);
             end if;
     
-
-             if  genY gt 1 then // curve is hyperelliptic
+            if  genY gt 1 then // curve is hyperelliptic
                  htf, Z, rho2 := IsHyperelliptic(Y);
                  assert htf;           
                  H, rho3 := SimplifiedModel(Z);
@@ -395,9 +414,7 @@ eqs_quos := function(N, list_als);
 end function;
 
 
-
-
-//checks whether X_0(n) has a degree 2 map to a haperlliptic curve
+// (Filip) checks whether X_0(n) has a degree 2 map to a hyperlliptic curve
 is_bihyperelliptic:=function(n);
 lst:= Divisors(n) ;
 lst2:=[];
@@ -413,7 +430,7 @@ end for;
 return false;
 end function;
 
-//returns the genera of all X_0(n)/w_d
+// (Filip) returns the genera of all X_0(n)/w_d
 genera_quo:=procedure(n);
 lst:= Divisors(n) ;
 lst2:=[];
@@ -435,7 +452,9 @@ end procedure;
 ////////////////
 /// Examples /// 
 ////////////////
+
 /*
+
 // Example 1 //
 
 // 1a) 
@@ -452,7 +471,7 @@ time X, ws, pairs, NB, cusp := eqs_quos(74,[]);  // 0.6 seconds
 
 // 1b) This time we compute the quotients by each involution
 
-time X, ws, pairs, NB, cusp := eqs_quos(74,[[2],[37],[74]]);  // 0.8 seconds
+time X, ws, pairs, NB, cusp := eqs_quos(74,[[2],[37],[74]]);  // 1.5 seconds
 
 // pairs consist of three tuples of a curve and a map
 // the first curve is X_0(74) / w_2
@@ -481,7 +500,7 @@ assert #Chabauty(G) eq 6;  // we have found all the rational points.
 
 // 1c)  This time we quotient by the full group of Atkin-Lehner involutions.
 
-time X, ws, pairs, NB, cusp := eqs_quos(74,[[2,37]]);  // 1 second
+time X, ws, pairs, NB, cusp := eqs_quos(74,[[2,37]]);  // 1.2 seconds
 
 // this time the quotient curve is an elliptic curve
 
@@ -533,7 +552,7 @@ time X := all_diag_X(163); // 53 seconds
 
 // An example with a larger group of automorphisms.
 
-time X, ws, pairs, NB, cusp := eqs_quos(60,[[3],[4],[5],[3,4],[4,5],[3,5],[3,4,5]]); // 1 second
+time X, ws, pairs, NB, cusp := eqs_quos(60,[[3],[4],[5],[3,4],[4,5],[3,5],[3,4,5]]); // 5 seconds
 
 Y := pairs[7][1];
 assert Genus(Y) eq 0;  // we have a genus 0 quotient here
@@ -552,7 +571,7 @@ end for;
 
 // We do a prime power level
 
-time X, ws, pairs, NB, cusp := eqs_quos(125,[[125]]); // 0.8 seconds
+time X, ws, pairs, NB, cusp := eqs_quos(125,[[125]]); // 1 second
 
 Y := pairs[1][1]; // Hyperelliptic Curve defined by y^2 = x^6 + 2*x^5 + 5*x^4 + 10*x^3 + 10*x^2 + 8*x+ 1
 assert Genus(Y) eq 2;
@@ -746,5 +765,147 @@ X_0_43; // we get nice equations for the quotient curve too
 
 
 
+////////////////////////////////////////////////////////
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++
+////////////////////////////////////////////////////////
+
+////////////////
+//// jmap //////
+////////////////
+
+// Input: X, N
+// X is a diagonalised model for X_0(N), M divides N
+// Output: Equations for the j-map as a map to P^1, a tuple of its numerator and denominator
+
+// X should be non-hyperelliptic of genus > 2 and should be obtained from all_diag_X or eqs_quos
+// If you want to run this code using a different model for X then you can by changing the first few lines appropriately
+
+// The following code is adapted from code sent to me (Philippe) by Jeremy Rouse
+
+// An auxiliary function to help simplify matrices using LLL reduction
+
+function nicefy(M)
+  M0, T := EchelonForm(M);
+  ee := Eltseq(M0);
+  denom := LCM([ Denominator(ee[i]) : i in [1..#ee]]);
+  M2 := Matrix(Integers(),NumberOfRows(M),NumberOfColumns(M),[ denom*ee[i] : i in [1..#ee]]);
+  AA := Saturation(M2);
+  chk, mult := IsConsistent(ChangeRing(M2,Rationals()),ChangeRing(AA,Rationals()));
+  curbat := denom*mult*T;
+  newlatbasismat, change := LLL(AA : Proof := false);
+  finalbat := ChangeRing(change,Rationals())*curbat;
+  return finalbat;
+end function;
+
+/////////////////////////////////////////////////////////
+
+jmap := function(X, N);
+    B := all_diag_basis(N);
+    g := #B;
+    prec := 5*N;
+    maxprec := prec+1;
+
+    L<q> := LaurentSeriesRing(Rationals());
+
+    E4 := Eisenstein(4,q : Precision := prec);
+    E6 := Eisenstein(6,q : Precision := prec);
+    j := 1728*E4^3/(E4^3 - E6^2);
+    val := Valuation(j);
+    degj := N*(&*[1+1/p : p in PrimeFactors(N)]);
+
+    Bexp:=[L!qExpansion(B[i],maxprec) : i in [1..g]];
+
+    r := Ceiling((degj / (2*(g-1))) + 1/2);
+    maxd := r;
+    R<[x]> := PolynomialRing(Rationals(),g);
+    vars := [R.i : i in [1..g]];
+    canring := [ <Bexp,vars>];
+
+    for d in [2..maxd] do
+        dimen := (2*d-1)*(g-1);
+        fouriermat := ZeroMatrix(Rationals(),0,(maxprec-1));
+        prds := [ <i,j> : i in [1..g], j in [1..#canring[d-1][1]]];
+        done := false;
+        curind := 1;
+        newfourier := [];
+        newvars := [];
+        while (done eq false) do
+            e1 := prds[curind][1];
+            e2 := prds[curind][2];
+            pp := Bexp[e1]*canring[d-1][1][e2];
+            vecseq := &cat[ Eltseq(Coefficient(pp,j)) : j in [d..d+maxprec-2]];
+            tempfouriermat := VerticalJoin(fouriermat,Matrix(Rationals(),1,(maxprec-1),vecseq));
+            if Rank(tempfouriermat) eq NumberOfRows(tempfouriermat) then
+                fouriermat := tempfouriermat;
+                Append(~newfourier,pp);
+                Append(~newvars,canring[1][2][e1]*canring[d-1][2][e2]);
+                if NumberOfRows(tempfouriermat) eq dimen then
+                    done := true;
+	                Append(~canring,<newfourier,newvars>);
+                end if;
+            end if;
+            if (done eq false) then
+                curind := curind + 1;
+                if (curind gt #prds) then
+                    done := true;
+	                Append(~canring,<newfourier,newvars>);
+                end if;
+            end if;
+        end while;
+    end for;
+
+    jmat := ZeroMatrix(Rationals(),0,(maxprec-2));
+    for i in [1..#canring[maxd][1]] do
+        pp := j*canring[maxd][1][i];
+        vecseq := &cat[ Eltseq(Coefficient(pp,j)) : j in [maxd+val..maxd+val+maxprec-3]];
+        jmat := VerticalJoin(jmat,Matrix(Rationals(),1,(maxprec-2),vecseq));  
+    end for;
+    for j in [1..#canring[maxd][1]] do
+        vecseq := &cat[ Eltseq(-Coefficient(canring[maxd][1][j],i)) : i in [maxd+val..maxd+val+maxprec-3]];
+        jmat := VerticalJoin(jmat,Matrix(Rationals(),1,(maxprec-2),vecseq));
+    end for;
+
+    NN1 := NullSpace(jmat);
+    M1 := Matrix(Basis(NN1));
+    cb1 := nicefy(M1);
+    jsol := (cb1*M1)[1];
+
+    felt := &+[ jsol[i+#canring[maxd][1]]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]]/&+[ jsol[i]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]];
+
+    num := Numerator(felt);
+    denom := Denominator(felt);
+    jmap := map<X -> ProjectiveSpace(Rationals(),1)|[num,denom]>;
+    mfnum := Evaluate(num,Bexp);
+    mfdenom := Evaluate(denom,Bexp);
+    elt := j - (mfnum/mfdenom);
+    assert IsWeaklyZero(elt);
+    return jmap, <num, denom>;
+end function;
+
+////////////////////////////////////////////////////////
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++
+////////////////////////////////////////////////////////
+
+
+
+///////////////
+/// Example /// (see above for examples of using eqs_quo)
+/////////////// (here we see how to use jmap)
+
+// We will compute equations for the j-map on X_0(67)
+
+/*
+X, _, _, _, cusp := eqs_quos(67, []);
+
+time j, num_denom := jmap(X,67);  // 6 seconds
+
+pts := PointSearch(X,10);
+for p in pts do 
+    j(p);
+end for;
+
+// we see that we have two cusps and one point with j-invariant -147197952000 = -2^15 3^3 5^3 11^3
+// this is as expected
+*/
 
 
