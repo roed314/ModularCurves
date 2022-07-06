@@ -32,23 +32,24 @@ end function;
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
 
-///////////////////
-/// rank_J0N_wd ///
-///////////////////
+////////////////
+/// rank_quo ///
+////////////////
 
-// Input: N, d
-// Ouput: Rank(J_0(N)) / w_d, tf
+// Input: N, sequence of AL indices which generates a group W
+// Ouput: Rank(J_0(N)) / W, tf
 // Rank and whether it is provably true
-// If the second output is false then Rank(J_0(N)) will be -1000
+// If the second output is false then the rank will be -1000
 
-// if you want to compute the rank of J_0(N) then set d = 1
+// if you want to compute the rank of J_0(N) (without quotienting) then take empty sequence
 
-
-rank_J0N_wd := function(N,d);
+rank_quo := function(N,seq_al);
     J := JZero(N);
-    wd := AtkinLehnerOperator(J,d);
-    Jwd := ConnectedKernel(1-wd);    
-    dec := Decomposition(Jwd);
+    if #seq_al gt 0 then
+        J_quo := Image(&*[1+AtkinLehnerOperator(J,i) : i in seq_al]);
+    else J_quo := J;
+    end if;
+    dec := Decomposition(J_quo);
     rk := 0;
     tf := true;
 
@@ -64,7 +65,7 @@ rank_J0N_wd := function(N,d);
 
      return rk, tf;
 end function;
-     
+
 
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
@@ -73,32 +74,32 @@ end function;
 /// equal_rank ///
 //////////////////
 
-
-
-// Input: N, d.
+// Input: N, seq_al.
 // N is the level
-// d is the index of the Atkin-Lehner involution
+// seq_al is sequence of AL indices which generates a group W
 
 // Output: true true, false true, or false, false
 
-// true true if the ranks of J_0(N) and J_0(N) / w_d are equal and this is provably correct
-// false true if the ranks of J_0(N) and J_0(N) / w_d are not equal and this is provably correct
-// false false if we cannot verify whether or not the ranks of J_0(N) and J_0(N) / w_d are equal
+// true true if the ranks of J_0(N) and J_0(N) / W are equal and this is provably correct
+// false true if the ranks of J_0(N) and J_0(N) / W are not equal and this is provably correct
+// false false if we cannot verify whether or not the ranks of J_0(N) and J_0(N) / W are equal
 
 // This code provides an alternative way of checking the equality of ranks. 
 // It is of course possible to compute the rank of J0N and the quotient using the code above and checking whether they are equal.
-// This code works with the minus eigenspace of w_d, so may work even if computing the ranks separately fails 
+// This code works with different simple abelian varieties, so may work even if computing the ranks separately fails 
 // (but not vice-versa, if this code fails then computing the rank of J0N will also fail)
 
-equal_rank := function(N,d);
+equal_rank := function(N,seq_al);
     J := JZero(N);  
-    wd := AtkinLehnerOperator(J,d);
-    Jwd_min := ConnectedKernel(1+wd);  // The minus eigenspace of wd
-    dec := Decomposition(Jwd_min);
+    if seq_al eq [] then 
+        return true, true;
+    end if;
+    J_min := ConnectedKernel(&*[1+AtkinLehnerOperator(J,i) : i in seq_al]);  
+    dec := Decomposition(J_min);
 
     for A in dec do  // simple factors of minus part
         rkA, tfA := simple_rank(A);
-        if rkA gt 0 and tfA eq true then // there is a positive rank factor in Jwd_min
+        if rkA gt 0 and tfA eq true then // there is a positive rank factor in J_min
            return false, true;
         elif tfA eq false then 
            return false, false;
@@ -107,23 +108,31 @@ equal_rank := function(N,d);
     return true, true;
 end function;
 
+
+
 /*
 // A few examples
 
-rank_J0N_wd(74,1); // 2 true. So the rank of J_0(74) is 2
-rank_J0N_wd(74,74); // 1 true. So the rank of J_0+(74) is 1
-rank_J0N_wd(74,37); // 2 true.
-rank_J0N_wd(74,2); // 1 true.
+rank_quo(74, []); // 2 true. So the rank of J_0(74) is 2
+rank_quo(74, [74]); // 1 true. So the rank of J_0+(74) is 1
+rank_quo(74, [37]); // 2 true.
+rank_quo(74, [2]); // 1 true.
+// The following four lines all compute the rank of the quotient by the full AL group
+rank_quo(74, [2,37]); // 1 true
+rank_quo(74, [37,74]);
+rank_quo(74, [2,74]);
+rank_quo(74, [2,37,74]);
 
-equal_rank(74,74); // false true
-equal_rank(74,37); // true true
-equal_rank(74,2); // false true
+equal_rank(74,[74]); // false true
+equal_rank(74,[37]); // true true
+equal_rank(74,[2]); // false true
+equal_rank(74,[2, 37]); // false true
 
 //////// 
 
-rank_J0N_wd(389,1); // 13 true. So the rank of J_0(389) is 13.
-rank_J0N_wd(389,389); // 11 true. So the rank of J_0+(389) is 11.
-equal_rank(389,389); // false true
+rank_quo(389,[]); // 13 true. So the rank of J_0(389) is 13.
+rank_quo(389,[389]); // 11 true. So the rank of J_0+(389) is 11.
+equal_rank(389,[389]); // false true
 
 for A in Decomposition(JZero(389)) do
     simple_rank(A);   // ranks are 2,2,3,6,0. All true.
@@ -131,20 +140,7 @@ end for;
 
 ////////
 
-rank_J0N_wd(13,1); // 0 true  
-rank_J0N_wd(1,1); // 0 true  
+rank_quo(13,[]); // 0 true  
+rank_quo(1,[]); // 0 true  
 
-
-//testing for variuos levels and divisors of levels:
-for N:= 1 to 200 do
-	S:=Divisors(N);
-	for d in S do 
-		if GCD(d, Integers()!(N/d)) eq 1 then
-			print [N,d], equal_rank(N,d), rank_J0N_wd(N,d);
-		end if;
-	end for;
-end for;
 */
-
-
-
