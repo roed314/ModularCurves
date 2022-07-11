@@ -313,14 +313,13 @@ end function;
 // Input: N and a sequence of sequences of Atkin-Lehner indices 
 // (each sequence of indices should be given in ascending order by index)
 // Output: 
-// - A model for X_0(N) with all the Atkin-Lehner involutions diagonalised
-// - The diagonalised Atkin-Lehner involutions on X_0(N) (listed in ascending order by index)
+// - A model for X_0(N), with all the Atkin-Lehner involutions diagonalised when X_0(N) is non-hyperelliptic of genus > 1
+// - The Atkin-Lehner involutions on X_0(N) (listed in ascending order by index) (diagonalised if X_0(N) is non-hyperelliptic of genus > 1)
 // - A list: for each sequence of AL-indices, a tuple consisting of the corresponding quotient curve and the map to the quotient curve
-// - The basis of cuspforms used for the canonical embedding of X
+// - The basis of cuspforms used for the canonical embedding of X when X_0(N) is non-hyperelliptic of genus > 1, otherwise the q-expansions of generators are given
 // - the infinity cusp on X (as a rational point)
 
-// X_0(N) should be of genus > 1 and non-hyperelliptic
-// There are no restrictions on the quotient.
+// If X_0(N) has genus 0 or 1, then pairs will be empty
 
 // auxiliary function to compare the size of two sets
 
@@ -331,6 +330,26 @@ size_comp := function(s1,s2);
 end function;
 
 eqs_quos := function(N, list_als);
+    // Start with case in which X_0(N) is genus 0, elliptic or hyperelliptic.
+    if N in [1,2,3,4,5,6,7,8,9,10,12,13,16,18,25] cat  [ 11,14,15,17,19,20,21,24,27,32,36,49] cat [22,23,26,28,29,30,31,33,35,37,39,40,41,46,47,48,50,59,71] then 
+        X := SmallModularCurve(N);
+        al_inds := [ m : m in Divisors(N) | GCD(m,N div m) eq 1 and m gt 1];
+        ws := [AtkinLehnerInvolution(X,N,d) : d in al_inds];
+        pairs := [* *];
+        if Genus(X) gt 1 then 
+            for seq_al in list_als do
+                seqw := [ws[i] : i in [1..#ws] | al_inds[i] in seq_al];
+                Y, rho := CurveQuotient(AutomorphismGroup(X,seqw));
+                pairs := pairs cat [* <Y, rho> *];
+            end for;
+        end if;
+
+        L<q> := LaurentSeriesRing(Rationals());
+        NB := qExpansionsOfGenerators(N, L, 5*N);    
+        cusp := Cusp(X, N, N);
+        return X, ws, pairs, NB, cusp;
+    end if;     
+    // Now consider case in which X is canonically embedded
     X, ws,NB,cusp := all_diag_X(N);
     A<[x]> := AmbientSpace(X);
     al_inds := [ m : m in Divisors(N) | GCD(m,N div m) eq 1 and m gt 1];
@@ -585,6 +604,13 @@ time X, ws, pairs, NB, cusp := eqs_quos(169,[[169]]);  // 1 second
 Y := pairs[1][1];
 // this matches Galbraith's model exactly in this case.
 
+// Example 7 //
+
+// Here is an example with X_0(N) hyperelliptic.
+// In this case we just use the SmallModularCurve package functionalities
+
+time X, ws, pairs, NB, cusp := eqs_quos(28, [[4], [7], [28], [4,28]]);
+
 */
 
 ////////////////////////////////////////////////////////
@@ -774,11 +800,11 @@ X_0_43; // we get nice equations for the quotient curve too
 ////////////////
 
 // Input: X, N
-// X is a diagonalised model for X_0(N), M divides N
+// X is a diagonalised model for X_0(N) when X is non-hyperelliptic of Genus > 1. Otherwise X is the small modular curve model.
 // Output: Equations for the j-map as a map to P^1, a tuple of its numerator and denominator
 
-// X should be non-hyperelliptic of genus > 2 and should be obtained from all_diag_X or eqs_quos
-// If you want to run this code using a different model for X then you can by changing the first few lines appropriately
+// When X is non-hyperelliptic of genus > 1 it should be obtained from all_diag_X or eqs_quos
+// If you want to run this code using a different model for X of this type then you can by changing the first few lines appropriately
 
 // The following code is adapted from code sent to me (Philippe) by Jeremy Rouse
 
@@ -800,6 +826,16 @@ end function;
 /////////////////////////////////////////////////////////
 
 jmap := function(X, N);
+    // Start with case in which X_0(N) is genus 0, elliptic or hyperelliptic.
+    if N in [1,2,3,4,5,6,7,8,9,10,12,13,16,18,25] cat  [ 11,14,15,17,19,20,21,24,27,32,36,49] cat [22,23,26,28,29,30,31,33,35,37,39,40,41,46,47,48,50,59,71] then 
+        jj := jInvariant(X,N);
+        num := Numerator(jj);
+        denom := Denominator(jj);
+        jmap := map<X -> ProjectiveSpace(Rationals(),1) | [num, denom] >;
+        return jmap, <num, denom>;  
+    end if;
+    // Now consider case in which X is canonically embedded
+
     B := all_diag_basis(N);
     g := #B;
     prec := 5*N;
