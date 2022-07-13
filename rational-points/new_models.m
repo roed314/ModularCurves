@@ -710,7 +710,7 @@ end function;
 ////////////////////////////////////////////////////////
 
 ///////////////////
-/// level_basis /// 
+/// level_quo   /// 
 ///////////////////
 
 // Input: X, N, M
@@ -851,7 +851,7 @@ jmap := function(X, N);
 
     Bexp:=[L!qExpansion(B[i],maxprec) : i in [1..g]];
 
-    r := Ceiling((degj / (2*(g-1))) + 1/2);
+    r := Ceiling((degj / (2*(g-1))) + 1/2); // When degj / 2g-1 +1/2 is an integer, we should really take this +1, but for N < 200 I found that this worked in these cases (and is slightly nicer) so I will stick with it. For the other functions, we do need and take the +1 in these cases.
     maxd := r;
     R<[x]> := PolynomialRing(Rationals(),g);
     vars := [R.i : i in [1..g]];
@@ -911,18 +911,19 @@ jmap := function(X, N);
     num := Numerator(felt);
     denom := Denominator(felt);
     jmap := map<X -> ProjectiveSpace(Rationals(),1)|[num,denom]>;
+   
+    // checks for correctness
     mfnum := Evaluate(num,Bexp);
     mfdenom := Evaluate(denom,Bexp);
     elt := j - (mfnum/mfdenom);
-    assert IsWeaklyZero(elt);
+    assert prec gt 2*degj+1; // If this fails then increase precision
+    assert IsWeaklyZero(elt); // If this fails then increase precision
     return jmap, <num, denom>;
 end function;
 
 ////////////////////////////////////////////////////////
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
 ////////////////////////////////////////////////////////
-
-
 
 ///////////////
 /// Example /// (see above for examples of using eqs_quo)
@@ -944,4 +945,468 @@ end for;
 // this is as expected
 */
 
+////////////////////////////////////////////////////////
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++
+////////////////////////////////////////////////////////
 
+/////////////////////
+//// xy_coords ////
+/////////////////////
+
+// Input: X, N, M
+// X is a diagonalised model for X_0(N) (for X non-hyperelliptic of Genus > 1)
+// X_0(M) must be elliptic or hyperelliptic (see level_quo otherwise)
+// Output: 
+// 1. x-coordinate map as a quotient of polynomials
+// 2. x-coordinate map as a quotient of polynomials
+// 3. X_0(M) (the small modular curve model obtained from eqs_quos
+
+// If you want to try and construct the map as a map to X_0(M), or its ambient projective space, then you can do so using the function construct_map_to_quotient which follows this function.
+// However, this can be very slow... 
+// So I prefer to work with these x- and y-maps
+// See the examples later for how to use the x- and y-maps to compute the image of points.
+
+// Note that the cusps are in the wrong affine chart to be evaluated at the x- and y-maps
+
+// The following code is adapted from code sent to me (Philippe) by Jeremy Rouse
+
+xy_coords := function(X,N,M);
+    B := all_diag_basis(N);
+    g := #B;
+    degN := N*(&*[1+1/p : p in PrimeFactors(N)]);
+    degM := M*(&*[1+1/p : p in PrimeFactors(M)]);
+    deg_map := Integers() ! (degN / degM);
+    
+    
+    prec := 5*N;
+    maxprec := prec+1;
+    Y := eqs_quos(M, []);
+
+    L<q> := LaurentSeriesRing(Rationals());
+    Bexp:=[L!qExpansion(B[i],maxprec) : i in [1..g]];
+    R<[x]> := PolynomialRing(Rationals(),g);
+    vars := [R.i : i in [1..g]];
+
+    qexps := qExpansionsOfGenerators(M, L, prec);
+    for f in qexps do
+        val := Valuation(f);
+        if f eq qexps[1] then 
+            degf := 2*deg_map;
+        else degf := Degree(HyperellipticPolynomials(Y))*deg_map;
+        end if;
+        
+        r1 := (degf / (2*(g-1))) + 1/2;
+        if IsIntegral(r1) then 
+           r := Integers()! (r1+1);
+        else r := Ceiling(r1);
+        end if;
+        maxd := r;
+        
+        canring := [ <Bexp,vars>];
+        for d in [2..maxd] do
+            dimen := (2*d-1)*(g-1);
+            fouriermat := ZeroMatrix(Rationals(),0,(maxprec-1));
+            prds := [ <i,j> : i in [1..g], j in [1..#canring[d-1][1]]];
+            done := false;
+            curind := 1;
+            newfourier := [];
+            newvars := [];
+            while (done eq false) do
+                e1 := prds[curind][1];
+                e2 := prds[curind][2];
+                pp := Bexp[e1]*canring[d-1][1][e2];
+                vecseq := &cat[ Eltseq(Coefficient(pp,j)) : j in [d..d+maxprec-2]];
+                tempfouriermat := VerticalJoin(fouriermat,Matrix(Rationals(),1,(maxprec-1),vecseq));
+                if Rank(tempfouriermat) eq NumberOfRows(tempfouriermat) then
+                    fouriermat := tempfouriermat;
+                    Append(~newfourier,pp);
+                    Append(~newvars,canring[1][2][e1]*canring[d-1][2][e2]);
+                    if NumberOfRows(tempfouriermat) eq dimen then
+                        done := true;
+	                    Append(~canring,<newfourier,newvars>);
+                    end if;
+                end if;
+                if (done eq false) then
+                    curind := curind + 1;
+                    if (curind gt #prds) then
+                        done := true;
+	                    Append(~canring,<newfourier,newvars>);
+                    end if;
+                end if;
+            end while;
+        end for;
+
+        fmat := ZeroMatrix(Rationals(),0,(maxprec-2));
+        for i in [1..#canring[maxd][1]] do
+            pp := f*canring[maxd][1][i];
+            vecseq := &cat[ Eltseq(Coefficient(pp,j)) : j in [maxd+val..maxd+val+maxprec-3]];
+            fmat := VerticalJoin(fmat,Matrix(Rationals(),1,(maxprec-2),vecseq));  
+        end for;
+        for j in [1..#canring[maxd][1]] do
+            vecseq := &cat[ Eltseq(-Coefficient(canring[maxd][1][j],i)) : i in [maxd+val..maxd+val+maxprec-3]];
+            fmat := VerticalJoin(fmat,Matrix(Rationals(),1,(maxprec-2),vecseq));
+        end for;
+
+        NN1 := NullSpace(fmat);
+        M1 := Matrix(Basis(NN1));
+        cb1 := nicefy(M1);
+        fsol := (cb1*M1)[1];
+
+        felt := &+[ fsol[i+#canring[maxd][1]]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]]/&+[ fsol[i]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]];
+
+        num := Numerator(felt);
+        denom := Denominator(felt);
+        // checks for correctness
+        mfnum := Evaluate(num,Bexp);
+        mfdenom := Evaluate(denom,Bexp);
+        elt := f - (mfnum/mfdenom);
+        assert prec gt 2*degf+1;  // If this fails then increase precision
+        assert IsWeaklyZero(elt); // If this fails then increase precision
+        if f eq qexps[1] then 
+            xnum := num;
+            xdenom := denom;
+            xx := xnum / xdenom;
+        else ynum := num;
+             ydenom := denom;
+             yy := ynum / ydenom;
+        end if;
+    end for;
+
+    return xx, yy, Y;
+end function;
+    
+///////////////////////////////////
+//// construct_map_to_quotient ////
+///////////////////////////////////
+
+// As explained above, we can try and construct a map to X_0(M), or its ambient projective space if we really want to.
+// The following function takes as input X_0(N), X_0(M), and the x and y expressions from above 
+// The final input paramter is a true or false Boolean.
+// if true then the codomain will be set to X_0(M)
+// if false then the codomain will be set to the ambient projective space of X_0(M), this is faster
+
+// Warning! This is very slow / does not terminate in a reasonable time if X_0(M) is hyperelliptic and tf = true
+// Do not try and evaluate the map at cusps
+
+construct_map_to_quotient := function(X,Y,xx,yy,tf);
+    if tf then 
+        map := map<X -> Y | [xx,yy,1]>;
+    else map := map<X -> AmbientSpace(Y) | [xx,yy,1] >;
+    end if;
+    return map;
+end function;
+
+////////////////////////////////////////////////////////
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++
+////////////////////////////////////////////////////////
+
+/*
+
+////////////////
+/// Examples /// (we see how to work with xy_coords)
+////////////////
+
+// We will use the following function, taken from "pullbacks.m" in these examples.
+// For convenience we have included the function again here
+
+pullback_points := function(X, pairs, N, bound);
+    places := [];
+    for i in [i : i in [1..#pairs]] do
+        pair := pairs[i];
+        Y := pair[1];
+        rho := pair[2];
+        if Genus(Y) eq 0 then 
+            continue;
+        elif IsHyperelliptic(Y) or Genus(Y) eq 1 then 
+            pts := Points(Y : Bound := bound);
+        else pts := PointSearch(Y, bound);
+        end if;
+        for R in pts do 
+            place := Pullback(rho, Place(R));
+            dec := Decomposition(place);
+            if #dec eq 2 or (#dec eq 1 and dec[1][2] eq 2) then  // two rat points or a double rat point so ignore
+                continue;
+            else places := places cat [dec[1][1]];
+            end if;
+        end for;
+     end for;
+        return places;
+end function;
+
+
+// Example 1 (elliptic quotient)
+
+N := 85;
+M := 17;
+
+al_seq := [ [m] : m in Divisors(N) | GCD(m,N div m) eq 1 and m gt 1];
+X, _, pairs := eqs_quos(N, al_seq);  // This is the curve X_0(85)
+assert Genus(X) eq 7;
+
+// The curve X_0(17) is an elliptic curve
+
+time xx, yy, E := xy_coords(X,N,M); // 0.9 seconds
+
+// In this case, since X_0(M) is elliptic and the genus of X_0(N) is not too large
+
+// We can construct the map to X_0(M) relatively quickly if we really want to
+
+time Pmap := construct_map_to_quotient(X,E,xx,yy,false); //0.001
+Codomain(Pmap); // Projective space of dimension 2 over Rational Field
+time Emap := construct_map_to_quotient(X,E,xx,yy,true); // 4.6 seconds
+assert Codomain(Emap) eq E;
+// However, if we want to work with points, we are best off sticking with the x and y coordinate expressions
+
+// Let's compute some quadratic points on X_0(85) and evaluate our map on them
+// We use the "pullback_points" function, available in the "pullbacks.m" file
+
+time pullbacks := pullback_points(X,pairs,N, 10000); // 24 seconds
+
+assert #pullbacks eq 6;
+
+pl := pullbacks[2]; // this is a place on X
+K<d> := ResidueClassField(pl);
+assert Discriminant(Integers(K)) eq -4; // So K is the field Q(i)
+
+// Pl is Place at (-1/2 : -1/2 : 1/192*d : -1/96*d : 1/96*d : -1/192*d : 1)
+
+EK := ChangeRing(E,K);
+ptK := Eltseq(RepresentativePoint(pl));  // Sequence of coordinates of the point
+RK := [Evaluate(xx,ptK), Evaluate(yy,ptK), 1];  // The image point
+SK := EK ! RK; // the image point on EK is (1/24*(d - 48) : 1/12*(-d - 36) : 1)
+
+// Warning! Trying to base change Emap to K and compute the image directly is too slow
+// In this example one can base change Pmap to K and use it
+// but in more complicated examples or in the hyperelliptic case it does not work
+
+// Here, we used a place as a starting point, but the same works if we have a point:
+
+XK := ChangeRing(X,K);
+QK := XK ! ptK; // Say this is out starting point.
+
+qK := Eltseq(QK);
+R2K := [Evaluate(xx,qK), Evaluate(yy,qK), 1];  
+S2K := EK ! R2K;
+
+assert S2K eq SK;  // same as before
+
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+// Example 2 (hyperelliptic quotient)
+
+// This example will be very similar to Example 1
+
+N := 82;
+M := 41;
+
+al_seq := [ [m] : m in Divisors(N) | GCD(m,N div m) eq 1 and m gt 1];
+X, _, pairs := eqs_quos(N, al_seq);  // This is the curve X_0(82)
+assert Genus(X) eq 9;
+
+// The curve X_0(41) is a hyperelliptic curve of genus 3
+
+time xx, yy, H := xy_coords(X,N,M); // 0.5 seconds
+
+time Pmap := construct_map_to_quotient(X,H,xx,yy,false); // 0.1 seconds
+
+// In this case it is fast to compute the map to weighted projective space
+
+Codomain(Pmap); // Projective Space of dimension 2 over Rational Field with grading 1, 4, 1
+
+// Warning! Do not try to make H the codomain with this example
+// It will be too slow
+
+// Again, we use the "pullback_points" function, available in the "pullbacks.m" file to access some quadratic points
+
+time pullbacks := pullback_points(X,pairs,N, 10000); // 14.8 seconds
+assert #pullbacks eq 6;
+
+// Let's compute the image of all of these points.
+
+// Warning! Do not try to do this by base changing Pmap to a quadratic field
+// it is too slow. 
+// It is much faster to work with the x- and y-coordinates!
+
+time for pl in pullbacks do  // 0.01 seconds, this is almost instantaneous
+    K := ResidueClassField(pl);
+    print(Discriminant(Integers(K)));
+    HK := BaseChange(H,K);
+    ptK := Eltseq(RepresentativePoint(pl));
+    RK := [Evaluate(xx,ptK), Evaluate(yy,ptK), 1];
+    SK := HK ! RK;
+    print(SK);
+end for;
+
+// Here is the output
+// Note that the field K and "K.1" are different for the different points
+
+// -4
+// (-1 : 1/512*(-159*d + 1272) : 1)
+// -4
+// (1 : 1/24*(K.1 + 88) : 1)
+// -4
+// (1 : 1/128*(-159*K.1 + 605) : 1)
+// -8
+// (0 : 3/2*K.1 : 1)
+// -4
+// (1 : 1/24*(K.1 + 88) : 1)
+// -8
+// (0 : 3/2*K.1 : 1)
+
+
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+// Example 3 (large genus hyperelliptic quotient)
+
+N := 118;
+M := 59;
+
+time X := eqs_quos(N, []); // 4.7 seconds
+assert Genus(X) eq 14;
+// X_0(M) is hyperelliptic of genus 5
+
+time xx, yy, H := xy_coords(X,N,M); // 1.4 seconds
+
+// with this larger genus example, we can see how even the map to the ambient projective space is slow
+// time Pmap := construct_map_to_quotient(X,H,xx,yy,false); // 193 seconds
+// not only is constructing the map slow, but trying to evaluate it at points would be slow too
+// it is best to stick with the x and y expressions as in Examples 1 and 2
+
+*/
+
+
+////////////////////////////////////////////////////////
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++
+////////////////////////////////////////////////////////
+
+////////////////////
+//// gen_0_quo ///// // see xy_coords and level_quo for other level quotients
+////////////////////
+
+// Input: X, N, M
+// X is a diagonalised model for X_0(N) for X non-hyperelliptic of Genus > 1. 
+// X_0(M) is a genus 0 modular curve
+// Output: Equations for the map X_0(N) -> X_0(M) = P^1 and a tuple of its numerator and denominator, and the curve X_0(M)
+
+// X should be obtained from all_diag_X or eqs_quos
+// If you want to run this code using a different model for X of this type then you can by changing the first few lines appropriately
+
+// The following code is adapted from code sent to me (Philippe) by Jeremy Rouse
+
+
+gen_0_quo := function(X, N, M);
+   
+    B := all_diag_basis(N);
+    g := #B;
+    prec := 5*N;
+    maxprec := prec+1;
+
+    degN := N*(&*[1+1/p : p in PrimeFactors(N)]);
+    degM := M*(&*[1+1/p : p in PrimeFactors(M)]);
+    degf := Integers() ! (degN / degM);
+    
+    L<q> := LaurentSeriesRing(Rationals());
+    Y := eqs_quos(M, []);
+    assert Genus(Y) eq 0;
+    
+    Bexp:=[L!qExpansion(B[i],maxprec) : i in [1..g]];
+    f := qExpansionsOfGenerators(M, L, prec)[1];
+    val := Valuation(f);
+    r1 := (degf / (2*(g-1))) + 1/2;
+    if IsIntegral(r1) then 
+       r := Integers()! (r1+1);
+    else r := Ceiling(r1);
+    end if;
+
+    maxd := r;
+
+    R<[x]> := PolynomialRing(Rationals(),g);
+    vars := [R.i : i in [1..g]];
+    canring := [ <Bexp,vars>];
+
+    for d in [2..maxd] do
+        dimen := (2*d-1)*(g-1);
+        fouriermat := ZeroMatrix(Rationals(),0,(maxprec-1));
+        prds := [ <i,j> : i in [1..g], j in [1..#canring[d-1][1]]];
+        done := false;
+        curind := 1;
+        newfourier := [];
+        newvars := [];
+        while (done eq false) do
+            e1 := prds[curind][1];
+            e2 := prds[curind][2];
+            pp := Bexp[e1]*canring[d-1][1][e2];
+            vecseq := &cat[ Eltseq(Coefficient(pp,j)) : j in [d..d+maxprec-2]];
+            tempfouriermat := VerticalJoin(fouriermat,Matrix(Rationals(),1,(maxprec-1),vecseq));
+            if Rank(tempfouriermat) eq NumberOfRows(tempfouriermat) then
+                fouriermat := tempfouriermat;
+                Append(~newfourier,pp);
+                Append(~newvars,canring[1][2][e1]*canring[d-1][2][e2]);
+                if NumberOfRows(tempfouriermat) eq dimen then
+                    done := true;
+	                Append(~canring,<newfourier,newvars>);
+                end if;
+            end if;
+            if (done eq false) then
+                curind := curind + 1;
+                if (curind gt #prds) then
+                    done := true;
+	                Append(~canring,<newfourier,newvars>);
+                end if;
+            end if;
+        end while;
+    end for;
+
+    fmat := ZeroMatrix(Rationals(),0,(maxprec-2));
+    for i in [1..#canring[maxd][1]] do
+        pp := f*canring[maxd][1][i];
+        vecseq := &cat[ Eltseq(Coefficient(pp,j)) : j in [maxd+val..maxd+val+maxprec-3]];
+        fmat := VerticalJoin(fmat,Matrix(Rationals(),1,(maxprec-2),vecseq));  
+    end for;
+    for j in [1..#canring[maxd][1]] do
+        vecseq := &cat[ Eltseq(-Coefficient(canring[maxd][1][j],i)) : i in [maxd+val..maxd+val+maxprec-3]];
+        fmat := VerticalJoin(fmat,Matrix(Rationals(),1,(maxprec-2),vecseq));
+    end for;
+
+    NN1 := NullSpace(fmat);
+    M1 := Matrix(Basis(NN1));
+    cb1 := nicefy(M1);
+    fsol := (cb1*M1)[1];
+
+    felt := &+[ fsol[i+#canring[maxd][1]]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]]/&+[ fsol[i]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]];
+
+    num := Numerator(felt);
+    denom := Denominator(felt);
+    fmap := map<X -> Y|[num,denom]>;
+   
+    // checks for correctness
+    mfnum := Evaluate(num,Bexp);
+    mfdenom := Evaluate(denom,Bexp);
+    elt := f - (mfnum/mfdenom);
+    assert prec gt 2*degf+1; // If this fails then increase precision
+    assert IsWeaklyZero(elt); // If this fails then increase precision
+    return fmap, <num, denom>, Y;
+end function;
+
+////////////////////////////////////////////////////////////////////////////////
+
+/*
+
+// Example:
+
+X := eqs_quos(111,[]); // This is a genus 11 curve
+time map, tup, Y := gen_0_quo(X, 111, 3); // 4.5 seconds
+// The map should have degree:
+// Index of Gamma_0(N) divided by index of Gamma_0(M), which is
+
+111*(&*[1+1/p : p in PrimeFactors(111)]) / (3*(&*[1+1/p : p in PrimeFactors(3)]));  // this is 38
+
+// It takes a while, but we can check that the map does indeed have the right degree
+
+time assert Degree(map) eq 38; // 22 seconds
+ 
+*/
+
+ 
