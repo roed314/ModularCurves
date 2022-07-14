@@ -1,17 +1,62 @@
 //////////////
-// Philippe // (get in touch with me if (when) you find problems with the code!)
+// Philippe // // get in touch with me if (when) you find problems with the code!
 //////////////
 
-// Code to compute models for X_0(N), its AL quotients, and maps to the quotients.
-// Code computes models for which all AL involutions are diagonalised.
-// Main function is eqs_quos
+// (there a couple functions written by Filip and Shiva too, I have put these names in parentheses next to the corresponding functions to help with fixing errors if they occur).
+// functions for the jmap and certain level quotients are based off code sent to me by Jeremy Rouse.
 
-// There are many examples included after the function eqs_quos
+/////////////////////////////////////////////////////
+/////////////////////////////////////////////////////
 
-// After this there are some extra functions 
-// The main useful one is probably level_quo
-// this gives you a map to a quotient curve X_0(M) of a lower level (under certain conditions)
+// Code to compute models for X_0(N), Atkin-Lehner group quotients, maps to the quotients, maps to different levels, jmap
+// Models for canaonically embedded curves X_0(N) come with all AL-involutions diagonalised
 
+/////////////////////////////////////////////////////
+/////////////////////////////////////////////////////
+
+////////////////
+/// Contents /// (with brief descriptions, there are many examples throughout)
+////////////////
+
+// canonic (auxiliary : computes canonically embedded curve from cusp forms
+
+// simul_diag (auxiliary) : simultaneously diagonalised involution matrices 
+
+// all_diag_basis : gives basis of cusp forms on which AL-involutions are diagonal
+
+// all_diag_X (auxiliary) : model for X_0(N) with diagonalised AL-involutions
+
+// genus_quo : computes the genus of an AL quotient
+
+// atkinlehnersubgrp (auxiliary, Shiva) : find all AL indices in an AL subgroup
+
+// is_hyper_quo : test if an AL quotient is hyperelliptic
+
+// *** eqs_quos (main) *** : compute model for X_0(N), any quotients by AL groups, and the maps
+
+// is_bi_hyperelliptic (Filip) : tests if X_0(N) is bi-hyperelliptic
+
+// genera_quo (Filip) : computes genera of multiple AL quotients
+
+// change_basis_mat (auxiliary) : change of basis matrix for two bases of cuspforms
+
+// coord_change (auxiliary) : change of coordinate map between two canonically embedded models using different bases
+
+// level_basis (auxiliary) : basis for S_2(M) that sits inside S_2(N)
+
+// level_quo : map from X_0(N) to X_0(M) when X_0(M) is canonically embedded
+
+// nicefy (auxiliary) : simplifies matrices using LLL
+
+// find_rels (auxiliary) : expresses q-expansions in terms of cusp forms
+
+// *** jmap (main) : computes the jmap
+
+// xy_coords : x- and y-expressions for map to X_0(M) elliptic or hyperelliptic
+
+// construct_map_to_quotient : map to X_0(M) elliptic or hyperelliptic (SLOW! use xy_coords instead and see examples)
+
+// gen_0_quo : map to X_0(M) of genus 0
 
 ///////////////
 /// canonic ///  
@@ -245,7 +290,7 @@ end function;
 ////////////////////////////////////////////////////////
 
 /////////////////////////
-/// atkinlehnersubgrp /// 
+/// atkinlehnersubgrp /// (Shiva)
 /////////////////////////
 
 // Input: The level N, and a list of Hall divisors of N representing the corresponding Atkin-Lehner involutions.
@@ -432,8 +477,15 @@ eqs_quos := function(N, list_als);
     return X, ws, pairs, NB, cusp;
 end function;
 
+////////////////////////////////////////////////////////
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++
+////////////////////////////////////////////////////////
 
-// (Filip) checks whether X_0(n) has a degree 2 map to a hyperlliptic curve
+///////////////////////////
+/// is_bi_hyperelliptic /// (Filip)
+///////////////////////////
+
+// checks whether X_0(n) has a degree 2 map to a hyperlliptic curve
 is_bihyperelliptic:=function(n);
 lst:= Divisors(n) ;
 lst2:=[];
@@ -449,7 +501,16 @@ end for;
 return false;
 end function;
 
-// (Filip) returns the genera of all X_0(n)/w_d
+////////////////////////////////////////////////////////
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++
+////////////////////////////////////////////////////////
+
+//////////////////
+/// genera_quo /// (Filip)
+//////////////////
+
+// returns the genera of all X_0(n)/w_d
+
 genera_quo:=procedure(n);
 lst:= Divisors(n) ;
 lst2:=[];
@@ -825,38 +886,24 @@ end function;
 
 /////////////////////////////////////////////////////////
 
-jmap := function(X, N);
-    // Start with case in which X_0(N) is genus 0, elliptic or hyperelliptic.
-    if N in [1,2,3,4,5,6,7,8,9,10,12,13,16,18,25] cat  [ 11,14,15,17,19,20,21,24,27,32,36,49] cat [22,23,26,28,29,30,31,33,35,37,39,40,41,46,47,48,50,59,71] then 
-        jj := jInvariant(X,N);
-        num := Numerator(jj);
-        denom := Denominator(jj);
-        jmap := map<X -> ProjectiveSpace(Rationals(),1) | [num, denom] >;
-        return jmap, <num, denom>;  
-    end if;
-    // Now consider case in which X is canonically embedded
+// An auxiliary function to find q-expansion relations
 
-    B := all_diag_basis(N);
-    g := #B;
-    prec := 5*N;
-    maxprec := prec+1;
+// Input:
+// L = Laurent series ring
+// Bexp = cusp form expansions in L
+// N = Level of cusp forms
+// f = cusp form
+// degf = degree as map to P1
+// maxd = RR parameter
+// prec = precision
+// maxprec = precision + 1
+// g = #Bexp = genus of X_0(N)
 
-    L<q> := LaurentSeriesRing(Rationals());
-
-    E4 := Eisenstein(4,q : Precision := prec);
-    E6 := Eisenstein(6,q : Precision := prec);
-    j := 1728*E4^3/(E4^3 - E6^2);
-    val := Valuation(j);
-    degj := N*(&*[1+1/p : p in PrimeFactors(N)]);
-
-    Bexp:=[L!qExpansion(B[i],maxprec) : i in [1..g]];
-
-    r := Ceiling((degj / (2*(g-1))) + 1/2); // When degj / 2g-1 +1/2 is an integer, we should really take this +1, but for N < 200 I found that this worked in these cases (and is slightly nicer) so I will stick with it. For the other functions, we do need and take the +1 in these cases.
-    maxd := r;
+find_rels := function(L, Bexp, N, f, degf, maxd, prec, maxprec, g);
+    val := Valuation(f);
     R<[x]> := PolynomialRing(Rationals(),g);
     vars := [R.i : i in [1..g]];
     canring := [ <Bexp,vars>];
-
     for d in [2..maxd] do
         dimen := (2*d-1)*(g-1);
         fouriermat := ZeroMatrix(Rationals(),0,(maxprec-1));
@@ -890,35 +937,74 @@ jmap := function(X, N);
         end while;
     end for;
 
-    jmat := ZeroMatrix(Rationals(),0,(maxprec-2));
+    fmat := ZeroMatrix(Rationals(),0,(maxprec-2));
     for i in [1..#canring[maxd][1]] do
-        pp := j*canring[maxd][1][i];
+        pp := f*canring[maxd][1][i];
         vecseq := &cat[ Eltseq(Coefficient(pp,j)) : j in [maxd+val..maxd+val+maxprec-3]];
-        jmat := VerticalJoin(jmat,Matrix(Rationals(),1,(maxprec-2),vecseq));  
+        fmat := VerticalJoin(fmat,Matrix(Rationals(),1,(maxprec-2),vecseq));  
     end for;
     for j in [1..#canring[maxd][1]] do
         vecseq := &cat[ Eltseq(-Coefficient(canring[maxd][1][j],i)) : i in [maxd+val..maxd+val+maxprec-3]];
-        jmat := VerticalJoin(jmat,Matrix(Rationals(),1,(maxprec-2),vecseq));
+        fmat := VerticalJoin(fmat,Matrix(Rationals(),1,(maxprec-2),vecseq));
     end for;
 
-    NN1 := NullSpace(jmat);
+    NN1 := NullSpace(fmat);
     M1 := Matrix(Basis(NN1));
     cb1 := nicefy(M1);
-    jsol := (cb1*M1)[1];
+    fsol := (cb1*M1)[1];
 
-    felt := &+[ jsol[i+#canring[maxd][1]]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]]/&+[ jsol[i]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]];
+    felt := &+[ fsol[i+#canring[maxd][1]]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]]/&+[ fsol[i]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]];
 
     num := Numerator(felt);
     denom := Denominator(felt);
-    jmap := map<X -> ProjectiveSpace(Rationals(),1)|[num,denom]>;
    
     // checks for correctness
     mfnum := Evaluate(num,Bexp);
     mfdenom := Evaluate(denom,Bexp);
-    elt := j - (mfnum/mfdenom);
-    assert prec gt 2*degj+1; // If this fails then increase precision
+    elt := f - (mfnum/mfdenom);
+    assert prec gt 2*degf+1; // If this fails then increase precision
     assert IsWeaklyZero(elt); // If this fails then increase precision
-    return jmap, <num, denom>;
+    
+    return num, denom;
+end function;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+jmap := function(X, N);
+    // Start with case in which X_0(N) is genus 0, elliptic or hyperelliptic.
+    if N in [1,2,3,4,5,6,7,8,9,10,12,13,16,18,25] cat  [ 11,14,15,17,19,20,21,24,27,32,36,49] cat [22,23,26,28,29,30,31,33,35,37,39,40,41,46,47,48,50,59,71] then 
+        jj := jInvariant(X,N);
+        num := Numerator(jj);
+        denom := Denominator(jj);
+        jmap := map<X -> ProjectiveSpace(Rationals(),1) | [num, denom] >;
+        return jmap, <num, denom>;  
+    end if;
+    // Now consider case in which X is canonically embedded
+
+    B := all_diag_basis(N);
+    g := #B;
+    prec := 5*N;
+    maxprec := prec+1;
+
+    L<q> := LaurentSeriesRing(Rationals());
+
+    E4 := Eisenstein(4,q : Precision := prec);
+    E6 := Eisenstein(6,q : Precision := prec);
+    j := 1728*E4^3/(E4^3 - E6^2);
+    val := Valuation(j);
+    degj := N*(&*[1+1/p : p in PrimeFactors(N)]);
+
+    Bexp:=[L!qExpansion(B[i],maxprec) : i in [1..g]];
+
+    r := Ceiling((degj / (2*(g-1))) + 1/2); // When degj / 2g-1 +1/2 is an integer, we should really take this +1, but for N < 200 I found that this worked in these cases (and is slightly nicer) so I will stick with it. For the other functions, we do need and take the +1 in these cases.
+
+    num, denom := find_rels(L, Bexp, N, j, degj, r, prec, maxprec, g);
+
+    jmap := map<X -> ProjectiveSpace(Rationals(),1)|[num,denom]>;
+
+    return jmap, <num,denom>;
+
 end function;
 
 ////////////////////////////////////////////////////////
@@ -954,8 +1040,11 @@ end for;
 /////////////////////
 
 // Input: X, N, M
-// X is a diagonalised model for X_0(N) (for X non-hyperelliptic of Genus > 1)
+// X is a diagonalised model for X_0(N) (for X_0(N) non-hyperelliptic of Genus > 1)
 // X_0(M) must be elliptic or hyperelliptic (see level_quo otherwise)
+
+// If X_0(N) is hyperelliptic, elliptic or genus 0, then the function simply returns the map to X_0(M) and X_0(M)
+
 // Output: 
 // 1. x-coordinate map as a quotient of polynomials
 // 2. x-coordinate map as a quotient of polynomials
@@ -971,13 +1060,20 @@ end for;
 // The following code is adapted from code sent to me (Philippe) by Jeremy Rouse
 
 xy_coords := function(X,N,M);
+
+    // Start with case in which X_0(N) is genus 0, elliptic or hyperelliptic.
+    if N in [1,2,3,4,5,6,7,8,9,10,12,13,16,18,25] cat  [ 11,14,15,17,19,20,21,24,27,32,36,49] cat [22,23,26,28,29,30,31,33,35,37,39,40,41,46,47,48,50,59,71] then 
+        Y := eqs_quos(M, []);
+        map := ProjectionMap(X,N,Y,M);
+        return map, Y;
+    end if;
+
     B := all_diag_basis(N);
     g := #B;
     degN := N*(&*[1+1/p : p in PrimeFactors(N)]);
     degM := M*(&*[1+1/p : p in PrimeFactors(M)]);
     deg_map := Integers() ! (degN / degM);
-    
-    
+        
     prec := 5*N;
     maxprec := prec+1;
     Y := eqs_quos(M, []);
@@ -1000,68 +1096,9 @@ xy_coords := function(X,N,M);
            r := Integers()! (r1+1);
         else r := Ceiling(r1);
         end if;
-        maxd := r;
-        
-        canring := [ <Bexp,vars>];
-        for d in [2..maxd] do
-            dimen := (2*d-1)*(g-1);
-            fouriermat := ZeroMatrix(Rationals(),0,(maxprec-1));
-            prds := [ <i,j> : i in [1..g], j in [1..#canring[d-1][1]]];
-            done := false;
-            curind := 1;
-            newfourier := [];
-            newvars := [];
-            while (done eq false) do
-                e1 := prds[curind][1];
-                e2 := prds[curind][2];
-                pp := Bexp[e1]*canring[d-1][1][e2];
-                vecseq := &cat[ Eltseq(Coefficient(pp,j)) : j in [d..d+maxprec-2]];
-                tempfouriermat := VerticalJoin(fouriermat,Matrix(Rationals(),1,(maxprec-1),vecseq));
-                if Rank(tempfouriermat) eq NumberOfRows(tempfouriermat) then
-                    fouriermat := tempfouriermat;
-                    Append(~newfourier,pp);
-                    Append(~newvars,canring[1][2][e1]*canring[d-1][2][e2]);
-                    if NumberOfRows(tempfouriermat) eq dimen then
-                        done := true;
-	                    Append(~canring,<newfourier,newvars>);
-                    end if;
-                end if;
-                if (done eq false) then
-                    curind := curind + 1;
-                    if (curind gt #prds) then
-                        done := true;
-	                    Append(~canring,<newfourier,newvars>);
-                    end if;
-                end if;
-            end while;
-        end for;
 
-        fmat := ZeroMatrix(Rationals(),0,(maxprec-2));
-        for i in [1..#canring[maxd][1]] do
-            pp := f*canring[maxd][1][i];
-            vecseq := &cat[ Eltseq(Coefficient(pp,j)) : j in [maxd+val..maxd+val+maxprec-3]];
-            fmat := VerticalJoin(fmat,Matrix(Rationals(),1,(maxprec-2),vecseq));  
-        end for;
-        for j in [1..#canring[maxd][1]] do
-            vecseq := &cat[ Eltseq(-Coefficient(canring[maxd][1][j],i)) : i in [maxd+val..maxd+val+maxprec-3]];
-            fmat := VerticalJoin(fmat,Matrix(Rationals(),1,(maxprec-2),vecseq));
-        end for;
+        num, denom := find_rels(L, Bexp, N, f, degf, r, prec, maxprec, g);
 
-        NN1 := NullSpace(fmat);
-        M1 := Matrix(Basis(NN1));
-        cb1 := nicefy(M1);
-        fsol := (cb1*M1)[1];
-
-        felt := &+[ fsol[i+#canring[maxd][1]]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]]/&+[ fsol[i]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]];
-
-        num := Numerator(felt);
-        denom := Denominator(felt);
-        // checks for correctness
-        mfnum := Evaluate(num,Bexp);
-        mfdenom := Evaluate(denom,Bexp);
-        elt := f - (mfnum/mfdenom);
-        assert prec gt 2*degf+1;  // If this fails then increase precision
-        assert IsWeaklyZero(elt); // If this fails then increase precision
         if f eq qexps[1] then 
             xnum := num;
             xdenom := denom;
@@ -1288,6 +1325,9 @@ time xx, yy, H := xy_coords(X,N,M); // 1.4 seconds
 // Input: X, N, M
 // X is a diagonalised model for X_0(N) for X non-hyperelliptic of Genus > 1. 
 // X_0(M) is a genus 0 modular curve
+
+// If X_0(N) is hyperelliptic, elliptic or genus 0, then the function simply returns the map to X_0(M) and X_0(M)
+
 // Output: Equations for the map X_0(N) -> X_0(M) = P^1 and a tuple of its numerator and denominator, and the curve X_0(M)
 
 // X should be obtained from all_diag_X or eqs_quos
@@ -1297,6 +1337,14 @@ time xx, yy, H := xy_coords(X,N,M); // 1.4 seconds
 
 
 gen_0_quo := function(X, N, M);
+
+    // Start with case in which X_0(N) is genus 0, elliptic or hyperelliptic.
+    if N in [1,2,3,4,5,6,7,8,9,10,12,13,16,18,25] cat  [ 11,14,15,17,19,20,21,24,27,32,36,49] cat [22,23,26,28,29,30,31,33,35,37,39,40,41,46,47,48,50,59,71] then 
+        Y := eqs_quos(M, []);
+        map := ProjectionMap(X,N,Y,M);
+        return map, Y;
+    end if;
+
    
     B := all_diag_basis(N);
     g := #B;
@@ -1320,73 +1368,9 @@ gen_0_quo := function(X, N, M);
     else r := Ceiling(r1);
     end if;
 
-    maxd := r;
+    num, denom := find_rels(L, Bexp, N, f, degf, r, prec, maxprec, g);
 
-    R<[x]> := PolynomialRing(Rationals(),g);
-    vars := [R.i : i in [1..g]];
-    canring := [ <Bexp,vars>];
-
-    for d in [2..maxd] do
-        dimen := (2*d-1)*(g-1);
-        fouriermat := ZeroMatrix(Rationals(),0,(maxprec-1));
-        prds := [ <i,j> : i in [1..g], j in [1..#canring[d-1][1]]];
-        done := false;
-        curind := 1;
-        newfourier := [];
-        newvars := [];
-        while (done eq false) do
-            e1 := prds[curind][1];
-            e2 := prds[curind][2];
-            pp := Bexp[e1]*canring[d-1][1][e2];
-            vecseq := &cat[ Eltseq(Coefficient(pp,j)) : j in [d..d+maxprec-2]];
-            tempfouriermat := VerticalJoin(fouriermat,Matrix(Rationals(),1,(maxprec-1),vecseq));
-            if Rank(tempfouriermat) eq NumberOfRows(tempfouriermat) then
-                fouriermat := tempfouriermat;
-                Append(~newfourier,pp);
-                Append(~newvars,canring[1][2][e1]*canring[d-1][2][e2]);
-                if NumberOfRows(tempfouriermat) eq dimen then
-                    done := true;
-	                Append(~canring,<newfourier,newvars>);
-                end if;
-            end if;
-            if (done eq false) then
-                curind := curind + 1;
-                if (curind gt #prds) then
-                    done := true;
-	                Append(~canring,<newfourier,newvars>);
-                end if;
-            end if;
-        end while;
-    end for;
-
-    fmat := ZeroMatrix(Rationals(),0,(maxprec-2));
-    for i in [1..#canring[maxd][1]] do
-        pp := f*canring[maxd][1][i];
-        vecseq := &cat[ Eltseq(Coefficient(pp,j)) : j in [maxd+val..maxd+val+maxprec-3]];
-        fmat := VerticalJoin(fmat,Matrix(Rationals(),1,(maxprec-2),vecseq));  
-    end for;
-    for j in [1..#canring[maxd][1]] do
-        vecseq := &cat[ Eltseq(-Coefficient(canring[maxd][1][j],i)) : i in [maxd+val..maxd+val+maxprec-3]];
-        fmat := VerticalJoin(fmat,Matrix(Rationals(),1,(maxprec-2),vecseq));
-    end for;
-
-    NN1 := NullSpace(fmat);
-    M1 := Matrix(Basis(NN1));
-    cb1 := nicefy(M1);
-    fsol := (cb1*M1)[1];
-
-    felt := &+[ fsol[i+#canring[maxd][1]]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]]/&+[ fsol[i]*canring[maxd][2][i] : i in [1..#canring[maxd][1]]];
-
-    num := Numerator(felt);
-    denom := Denominator(felt);
     fmap := map<X -> Y|[num,denom]>;
-   
-    // checks for correctness
-    mfnum := Evaluate(num,Bexp);
-    mfdenom := Evaluate(denom,Bexp);
-    elt := f - (mfnum/mfdenom);
-    assert prec gt 2*degf+1; // If this fails then increase precision
-    assert IsWeaklyZero(elt); // If this fails then increase precision
     return fmap, <num, denom>, Y;
 end function;
 
@@ -1397,7 +1381,7 @@ end function;
 // Example:
 
 X := eqs_quos(111,[]); // This is a genus 11 curve
-time map, tup, Y := gen_0_quo(X, 111, 3); // 4.5 seconds
+time map, tup, Y := gen_0_quo(X, 111, 3); // 3.1 seconds
 // The map should have degree:
 // Index of Gamma_0(N) divided by index of Gamma_0(M), which is
 
