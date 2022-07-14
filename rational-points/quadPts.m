@@ -425,7 +425,11 @@ searchDiv2:=function(X,bd,tf : max_hyperplanes := 10000);
 	g:=Genus(X);
 	//
 	// First we find degree 1 points
-	pts:=PointSearch(X, 100);
+	try
+    pts:=PointSearch(X, 100);
+  catch e
+    pts := RationalPoints(X : Bound:=5);
+  end try;
 	printf "found %o Q-points.\n", #pts;
 	pls1:={Place(P) : P in pts};
 	pls2:={};
@@ -448,7 +452,11 @@ searchDiv2:=function(X,bd,tf : max_hyperplanes := 10000);
 		if &or[b[i] ne 0 : i in [1..n]] then
 			if GCD(b) eq 1 and b[1] ge 0 then
 				f:=&+[b[i]*R.i : i in [1..n]];
-				D:=Divisor(X,ideal<R | f>);
+				try
+					D:=Divisor(X,ideal<R | f>);
+				catch e
+					continue;
+				end try;
 				decomp:=Decomposition(D);
 				for pr in decomp do
 					P:=pr[1];
