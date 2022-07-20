@@ -83,7 +83,7 @@ canonic := function(B);
 		h:=hom<V->W | [W![Coefficient(monsq[i],j) : j in [1..(prec-10)]] : i in [1..#mons]]>;
 		K:=Kernel(h);
 		eqns:=eqns cat [ &+[Eltseq(V!k)[j]*mons[j] : j in [1..#mons] ] : k in Basis(K)  ];
-        	I:=Radical(ideal<R | eqns>);
+        I:=Radical(ideal<R | eqns>);
 		X:=Scheme(ProjectiveSpace(R),I);
 		if Dimension(X) eq 1 then
 			if IsIrreducible(X) then
@@ -422,7 +422,7 @@ eqs_quos := function(N, list_als);
              
         else                           // cannot use canonical embedding for quotient curve
                                        // we use a projection map instead (if possible)
-                                       // quotient is either elliptic or hyperelliptic
+                                       // quotient is either elliptic or hyperelliptic or genus 0
             PS := [P : P in PS0 | #P gt 1];
             consts := &meet[{P : P in PS | &+[s[i] : i in P] eq #P or &+[s[i] : i in P] eq -#P} : s in Ss];
             con := SetToSequence(consts);
@@ -462,6 +462,7 @@ eqs_quos := function(N, list_als);
                  rho := rho1*rho2*rho3;
                  pairs := pairs cat [* <H,rho>*];
              elif genY eq 0 then 
+                 assert Degree(rho1) eq #AutomorphismGroup(X,seqw); // make sure we haven't quotiented out by anything extra
                  pairs := pairs cat [* <Y, rho1>*];
              else assert Genus(Y) eq 1 and g_quo eq 1;
                  assert Degree(rho1) eq #AutomorphismGroup(X,seqw); // make sure we haven't quotiented out by an extra isogeny
@@ -890,7 +891,8 @@ end function;
 
 // Input:
 // L = Laurent series ring
-// Bexp = cusp form expansions in L
+// B = Basis of cusp forms
+// Bexp = cusp form expansions in L up to prec
 // N = Level of cusp forms
 // f = cusp form
 // degf = degree as map to P1
@@ -899,7 +901,7 @@ end function;
 // maxprec = precision + 1
 // g = #Bexp = genus of X_0(N)
 
-find_rels := function(L, Bexp, N, f, degf, maxd, prec, maxprec, g);
+find_rels := function(L, B, Bexp, N, f, degf, maxd, prec, maxprec, g);
     val := Valuation(f);
     R<[x]> := PolynomialRing(Rationals(),g);
     vars := [R.i : i in [1..g]];
@@ -959,11 +961,21 @@ find_rels := function(L, Bexp, N, f, degf, maxd, prec, maxprec, g);
     denom := Denominator(felt);
    
     // checks for correctness
-    mfnum := Evaluate(num,Bexp);
-    mfdenom := Evaluate(denom,Bexp);
-    elt := f - (mfnum/mfdenom);
-    assert prec gt 2*degf+1; // If this fails then increase precision
-    assert IsWeaklyZero(elt); // If this fails then increase precision
+
+    wt := 2*maxd;
+    ind := N*(&*[1+1/p : p in PrimeFactors(N)]);
+    sturm := Ceiling((wt*ind)/12);
+
+    if prec le sturm then 
+        NewBexp := [L!qExpansion(B[i],sturm) : i in [1..g]]; // increase precision up to Sturm bound
+    else NewBexp := Bexp;
+    end if;
+
+    mfnum := Evaluate(num,NewBexp);
+    mfdenom := Evaluate(denom,NewBexp);   
+    elt := mfnum - f*mfdenom;
+
+    assert IsWeaklyZero(elt); // If this fails then try increasing precision to >5N
     
     return num, denom;
 end function;
@@ -999,7 +1011,7 @@ jmap := function(X, N);
 
     r := Ceiling((degj / (2*(g-1))) + 1/2); // When degj / 2g-1 +1/2 is an integer, we should really take this +1, but for N < 200 I found that this worked in these cases (and is slightly nicer) so I will stick with it. For the other functions, we do need and take the +1 in these cases.
 
-    num, denom := find_rels(L, Bexp, N, j, degj, r, prec, maxprec, g);
+    num, denom := find_rels(L, B, Bexp, N, j, degj, r, prec, maxprec, g);
 
     jmap := map<X -> ProjectiveSpace(Rationals(),1)|[num,denom]>;
 
@@ -1097,7 +1109,7 @@ xy_coords := function(X,N,M);
         else r := Ceiling(r1);
         end if;
 
-        num, denom := find_rels(L, Bexp, N, f, degf, r, prec, maxprec, g);
+        num, denom := find_rels(L, B, Bexp, N, f, degf, r, prec, maxprec, g);
 
         if f eq qexps[1] then 
             xnum := num;
@@ -1368,7 +1380,7 @@ gen_0_quo := function(X, N, M);
     else r := Ceiling(r1);
     end if;
 
-    num, denom := find_rels(L, Bexp, N, f, degf, r, prec, maxprec, g);
+    num, denom := find_rels(L, B, Bexp, N, f, degf, r, prec, maxprec, g);
 
     fmap := map<X -> Y|[num,denom]>;
     return fmap, <num, denom>, Y;
