@@ -759,10 +759,10 @@ quadPts:=function(N,UB : vb:=true, mw:=[], search:=true, additionalBadPrimes := 
 	time X, ws, pairs, NB, cusp := eqs_quos(N, [[N]]);
 	// make defining equations of X integral by multiplying by the common denominator
 	denominator := 1;
-  for f in DefiningEquations(X) do
+  	for f in DefiningEquations(X) do
       denominator := LCM([Denominator(c) : c in Coefficients(f)] cat [denominator]);
-  end for;
-  definingEquations := [denominator * f : f in DefiningEquations(X)];
+  	end for;
+  	definingEquations := [denominator * f : f in DefiningEquations(X)];
   //X2 := X;
   X := Curve(AmbientSpace(X), definingEquations);
   /*printf "X = %o\n", X;
@@ -775,7 +775,7 @@ quadPts:=function(N,UB : vb:=true, mw:=[], search:=true, additionalBadPrimes := 
   print "2";
   jinvN := Pullback(phi * isom, jFunction(Z, n));
   print "3";*/
-  jinvN := jmap(X, N);
+  time jinvN := jmap(X, N);
   /*if additionalBadPrimes eq [] then
     for f in DefiningEquations(X) do
       additionalBadPrimes cat:= &cat[PrimeDivisors(Denominator(c)) : c in Coefficients(f)];
@@ -793,21 +793,23 @@ quadPts:=function(N,UB : vb:=true, mw:=[], search:=true, additionalBadPrimes := 
 	//
 	// We construct the cusps on X_0(N)
 	//cusps := Poles(jinvN);
-	// TODO: Does not work yet!
-	assert false;
-	cusps := [Place(c) : c in PointsOverSplittingField(Pullback(jinvN, Codomain(jinvN)![1,0]))];
+	/*preimage_of_infty := Pullback(jinvN, Codomain(jinvN)![1,0]);
+	time cusp_pts := PointsOverSplittingField(Difference(preimage_of_infty, BaseScheme(jinvN)));
+	cusps := [Place(X!Eltseq(c)) : c in cusp_pts]; // this fails if c is not Q-rational*/
+	num, denom := Explode(DefiningEquations(jinvN));
+	cusps := Poles(X, num/denom);
 	if vb then
 		print "Thus cusps are these places", cusps;
 	end if;
 	// Sanity check!
-	cuspDegrees:=[EulerPhi(GCD(m,N div m)) :  m in Divisors(N)];  // The cusp degrees as predicted by theory.
-	assert Sort(cuspDegrees) eq Sort([Degree(d) : d in cusps]); // The degrees of the cusps we have found agree with theory.
-	cusps1:=[P : P in cusps | Degree(P) eq 1];
+	cuspDegrees := [EulerPhi(GCD(m, N div m)) : m in Divisors(N)]; // The cusp degrees as predicted by theory.
+	assert Sort(cuspDegrees) eq Sort([Degree(c) : c in cusps]); // The degrees of the cusps we have found agree with theory.
+	cusps1 := [P : P in cusps | Degree(P) eq 1];
 	assert #cusps1 ge 2; 
 				// There are always at least two cusps 
 				// of degree 1 corresponding to the
 				// factors 1 and N of N.
-	P0:=cusps1[1]; // This will our base for the Abel-Jacobi map.
+	P0 := cusps1[1]; // This will our base point for the Abel-Jacobi map.
 	if vb then
 		print "The base point for the Abel-Jacobi map is", P0;
 	end if;
@@ -815,7 +817,7 @@ quadPts:=function(N,UB : vb:=true, mw:=[], search:=true, additionalBadPrimes := 
 	deg2:=[cusps1[i]+cusps1[j] : i,j in [1..#cusps1] | i le j] cat [1*P : P in cusps2];
 	// These are the degree 2 divisors we know from the cusps.
 	if vb then
-		print "There are", #deg2, "effective degree 2 divisors that are composed of cusps";
+		print "There are", #deg2, "effective degree 2 divisors that are composed of cusps.";
 	end if;
 	p0:=3;
 	while IsDivisibleBy(N,p0) or p0 in additionalBadPrimes do
@@ -859,7 +861,7 @@ quadPts:=function(N,UB : vb:=true, mw:=[], search:=true, additionalBadPrimes := 
 		I:=1;
 	end if;
 	if vb then
-		print "I*J(Q) is contained in the cuspidal subgroup where I=", I;
+		print "I*J(Q) is contained in the cuspidal subgroup where I =", I;
 	end if;
 	if search then
 		deg2New:=searchDiv2(X,1,false : max_hyperplanes:=500); // Searching for degree 2 effective divisors.
