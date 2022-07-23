@@ -737,14 +737,14 @@ end function;
 
 
 
-quadPts:=function(N,n,UB : vb:=true, mw:=[], search:=true, additionalBadPrimes := []); 
+quadPts:=function(N,UB : vb:=true, mw:=[], search:=true, additionalBadPrimes := []); 
 	// vb is a verbose flag.
 	// If it is set to true it will print intermediate steps.
 	// If search is set to true, the command will search
 	// for additional degree 2 divisors using the command
 	// searchDiv2 
 	if vb then
-		print "N=", N;
+		print "N =", N;
 	end if;
 	L:=LSeries(JZero(N));
 	l,v:=LeadingCoefficient(L,1,10);
@@ -765,12 +765,17 @@ quadPts:=function(N,n,UB : vb:=true, mw:=[], search:=true, additionalBadPrimes :
   definingEquations := [denominator * f : f in DefiningEquations(X)];
   //X2 := X;
   X := Curve(AmbientSpace(X), definingEquations);
+  /*printf "X = %o\n", X;
   time phi, Xnew, Xl, coord, proj := level_quo(X, N, n);
-  Z := SmallModularCurve(n); 
+  print "1";
+  Z := SmallModularCurve(n);
   assert Domain(phi) eq X;
   time flag, isom := IsIsomorphic(Codomain(phi), Z);
   assert flag;
+  print "2";
   jinvN := Pullback(phi * isom, jFunction(Z, n));
+  print "3";*/
+  jinvN := jmap(X, N);
   /*if additionalBadPrimes eq [] then
     for f in DefiningEquations(X) do
       additionalBadPrimes cat:= &cat[PrimeDivisors(Denominator(c)) : c in Coefficients(f)];
@@ -780,14 +785,17 @@ quadPts:=function(N,n,UB : vb:=true, mw:=[], search:=true, additionalBadPrimes :
 	if vb then
 		print "X_0(N) is the curve", X, "with genus", Genus(X);
 	end if; 
-	 // X=X_0(N)
+	// X=X_0(N)
  	// Z=X_0(n)
 	// and phi : X --> Z is the degeneracy map
 	// jinvN is the j-function as an element of the function field of X. 
 	//
 	//
 	// We construct the cusps on X_0(N)
-	cusps:=Poles(jinvN);
+	//cusps := Poles(jinvN);
+	// TODO: Does not work yet!
+	assert false;
+	cusps := [Place(c) : c in PointsOverSplittingField(Pullback(jinvN, Codomain(jinvN)![1,0]))];
 	if vb then
 		print "Thus cusps are these places", cusps;
 	end if;
