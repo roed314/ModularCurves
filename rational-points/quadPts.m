@@ -797,7 +797,9 @@ quadPts:=function(N,UB : vb:=true, mw:=[], search:=true, additionalBadPrimes := 
 	time cusp_pts := PointsOverSplittingField(Difference(preimage_of_infty, BaseScheme(jinvN)));
 	function defining_ideal(c)
 		R<[x]> := CoordinateRing(AmbientSpace(X));
-		return ideal< R | [Evaluate(MinimalPolynomial(c[i]), x[i]) : i in [1..#x]] >;
+		ind := Index(Eltseq(c), 1); // find a coordinate 1
+		assert ind ne 0;
+		return ideal< R | [Homogenization(Evaluate(MinimalPolynomial(c[i]), x[i]), x[ind]) : i in [1..#x]] >;
 	end function;
 	cusps := {Place(X, defining_ideal(c)) : c in cusp_pts};
 	//cusps := [Place(X!Eltseq(c)) : c in cusp_pts]; // this fails if c is not Q-rational
