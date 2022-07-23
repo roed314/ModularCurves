@@ -962,19 +962,17 @@ find_rels := function(L, B, Bexp, N, f, degf, maxd, prec, maxprec, g);
    
     // checks for correctness
 
-    wt := 2*maxd;
-    ind := N*(&*[1+1/p : p in PrimeFactors(N)]);
-    sturm := Ceiling((wt*ind)/12);
+    deg_bd := (2*g-2)*maxd;
+    prec_bd := deg_bd + degf + 1;
 
-    if prec le sturm then 
-        NewBexp := [L!qExpansion(B[i],sturm) : i in [1..g]]; // increase precision up to Sturm bound
+    if prec lt prec_bd then 
+        NewBexp := [L!qExpansion(B[i],prec_bd) : i in [1..g]]; // increase precision up to bound
     else NewBexp := Bexp;
     end if;
 
     mfnum := Evaluate(num,NewBexp);
     mfdenom := Evaluate(denom,NewBexp);   
-    elt := mfnum - f*mfdenom;
-
+    elt := (mfnum/mfdenom) - f;
     assert IsWeaklyZero(elt); // If this fails then try increasing precision to >5N
     
     return num, denom;
@@ -1024,8 +1022,8 @@ end function;
 ////////////////////////////////////////////////////////
 
 ///////////////
-/// Example /// (see above for examples of using eqs_quo)
-/////////////// (here we see how to use jmap)
+/// Example /// (here we see how to use jmap)
+/////////////// 
 
 // We will compute equations for the j-map on X_0(67)
 
