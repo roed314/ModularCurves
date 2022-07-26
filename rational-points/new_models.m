@@ -963,7 +963,7 @@ find_rels := function(L, B, Bexp, N, f, degf, maxd, prec, maxprec, g);
     // checks for correctness
 
     deg_bd := (2*g-2)*maxd;
-    prec_bd := deg_bd + degf + 1;
+    prec_bd := Integers() ! (deg_bd + degf + 1);
 
     if prec lt prec_bd then 
         NewBexp := [L!qExpansion(B[i],prec_bd) : i in [1..g]]; // increase precision up to bound
@@ -1021,14 +1021,55 @@ end function;
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
 ////////////////////////////////////////////////////////
 
-///////////////
-/// Example /// (here we see how to use jmap)
-/////////////// 
+/////////////////////////
+//// compute_cusps //////
+/////////////////////////
+
+// Input:
+//- X (obtained from eqs_quos) 
+//- N
+//- (OPTION A) ws, the Atkin--Lehner involutions on X (obtained from eqs_quos for example)
+//- (OPTION A) cusp, the infinty cusp on X (obtained from eqs_quos for example)
+//- (OPTION B) num_denom (obtained as the second output of the jmap function)
+
+// Output: Sequence of places corresponding to the cusps of X_0(N)
+
+// If N is squarefree, then AL involutions act transitively on the cusps
+// In this case it is much faster to provide a cusp and the AL involutions
+// otherwise the code works with the j-map
+// X should be non-hyperelliptic of genus > 2.
+
+compute_cusps := function(X, N, ws, cusp, num_denom);
+    if IsSquarefree(N) then 
+       cusps := SetToSequence({Place(cusp)} join {Place(w(cusp)) : w in ws});
+       return cusps;
+    end if;
+    A<[x]> := AmbientSpace(X);
+    g := Dimension(A) + 1; 
+    KX := FunctionField(X);
+    KXgens:=[KX!(x[i]/x[g]) : i in [1..(g-1)]] cat [KX!1];
+    num := num_denom[1];
+    denom := num_denom[2];
+    numK := Evaluate(num,KXgens);
+    denomK:=Evaluate(denom,KXgens);
+    cusps := Poles(numK/denomK);
+    return cusps;
+end function;
+
+
+////////////////////////////////////////////////////////
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++
+////////////////////////////////////////////////////////
+
+/////////////////
+/// Example 1 /// (here we see how to use jmap)
+///////////////// 
 
 // We will compute equations for the j-map on X_0(67)
 
 /*
-X, _, _, _, cusp := eqs_quos(67, []);
+
+X, ws, _, _, cusp := eqs_quos(67, []);
 
 time j, num_denom := jmap(X,67);  // 6 seconds
 
@@ -1039,6 +1080,62 @@ end for;
 
 // we see that we have two cusps and one point with j-invariant -147197952000 = -2^15 3^3 5^3 11^3
 // this is as expected
+
+// we can also compute the cusps using the compute_cusps function.
+// since 67 is squarefree, this is immediate
+// For the 5th input parameter, we just use an empty sequence (anything is fine here)
+
+time cusps := compute_cusps(X, 67, ws, cusp, []); // 0.04 seconds
+
+// We have two degree 1 places
+// [ Place at (-1 : 0 : 1 : 0 : 0), Place at (1 : 0 : 1 : 0 : 0)]
+
+/////////////////
+/// Example 2 /// 
+///////////////// 
+
+// We will compute equations for the j-map on X_0(60)
+
+X, ws, _, _, cusp := eqs_quos(60, []);
+
+time j, num_denom := jmap(X,60);  // 61 seconds
+
+// We compute the cusps
+// 60 is not squarefree and we use the j-map
+// We just use empty sequences as inputs for the 3rd and 4th parameters
+
+time cusps := compute_cusps(X, 60, [], [], num_denom); // 6 seconds
+
+// We have 12 rational cusps in this case
+
+// This is as expected using the formula for the number of cusps.
+assert &+[EulerPhi(GCD(d, Integers() ! (60/d))) : d in Divisors(60)] eq 12;
+
+
+/////////////////
+/// Example 3 /// 
+///////////////// 
+
+// We will compute equations for the j-map on X_0(64)
+
+X, ws, _, _, cusp := eqs_quos(64, []);
+
+time j, num_denom := jmap(X,64);  // 29 seconds
+
+// We compute the cusps 
+// We just use empty sequences as inputs for the 3rd and 4th parameters
+
+time cusps := compute_cusps(X, 64, [], [], num_denom); // 0.9 seconds
+
+for c in cusps do
+    Degree(c);
+end for;
+
+// Degrees of fields are: 4, 1, 1, 2, 2, 1, 1
+// So we have 12 cusps in total.
+
+// This is as expected using the formula for the number of cusps.
+assert &+[EulerPhi(GCD(d, Integers() ! (64/d))) : d in Divisors(64)] eq 12;
 */
 
 ////////////////////////////////////////////////////////
