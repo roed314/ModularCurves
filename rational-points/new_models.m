@@ -52,6 +52,8 @@
 
 // *** jmap (main) : computes the jmap
 
+// *** compute_cusps (main) : computes the cusps as places on X_0(N)
+
 // xy_coords : x- and y-expressions for map to X_0(M) elliptic or hyperelliptic
 
 // construct_map_to_quotient : map to X_0(M) elliptic or hyperelliptic (SLOW! use xy_coords instead and see examples)
