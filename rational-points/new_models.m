@@ -3,7 +3,7 @@
 //////////////
 
 // (there a couple functions written by Filip and Shiva too, I have put these names in parentheses next to the corresponding functions to help with fixing errors if they occur).
-// functions for the jmap and certain level quotients are based off code sent to me by Jeremy Rouse.
+// the find_rels function is based off code sent to me by Jeremy Rouse.
 
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -100,12 +100,14 @@ canonic := function(B);
     indexGam:=N*&*[Rationals() | 1+1/p : p in PrimeDivisors(N)];	
 	indexGam:=Integers()!indexGam; // Index of Gamma_0(N) in SL_2(Z)
 
+    eqns := [LCM([Denominator(c) : c in Coefficients(eqn)])*eqn : eqn in eqns]; // scale equations
+    X := Curve(ProjectiveSpace(R),eqns); // same curve with scaled equations
+
 	for eqn in eqns do
-		eqnScaled:=LCM([Denominator(c) : c in Coefficients(eqn)])*eqn;
 		wt:=2*Degree(eqn); // Weight of eqn as a cuspform.
 		hecke:=Ceiling(indexGam*wt/12);  // Hecke=Sturm bound for Gamma_0(N)						 
 	    Bexp1:=[qExpansion(B[i],hecke+10) : i in [1..dim]]; // q-expansions
-		assert Valuation(Evaluate(eqnScaled,Bexp1)) gt hecke+1;
+		assert Valuation(Evaluate(eqn,Bexp1)) gt hecke+1;
 	end for; // We have now checked the correctness of the equations for X.	
   
  return(X);
@@ -1503,3 +1505,13 @@ time assert Degree(map) eq 38; // 22 seconds
 */
 
  
+////////////////////////////////////////////////////////
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++
+////////////////////////////////////////////////////////
+
+
+
+
+
+
+
