@@ -60,6 +60,8 @@
 
 // gen_0_quo : map to X_0(M) of genus 0
 
+// is_nonsing_p : Checks if X_0(N) is nonsingular mod p
+
 ///////////////
 /// canonic ///  
 ///////////////
@@ -1257,6 +1259,10 @@ end function;
 // We will use the following function, taken from "pullbacks.m" in these examples.
 // For convenience we have included the function again here
 
+// Warning! This function is slow for larger genus examples (e.g. genus 13) 
+// because it works with places, and I need to update it to work with points which is faster
+// I'll update it in the near future (written 17 Aug 22 (!))
+
 pullback_points := function(X, pairs, N, bound);
     places := [];
     for i in [i : i in [1..#pairs]] do
@@ -1510,6 +1516,100 @@ time assert Degree(map) eq 38; // 22 seconds
 ////////////////////////////////////////////////////////
 
 
+///////////////////////
+//// is_nonsing_p ///// 
+//////////////////////
+
+// Input: X, N, p, R or []
+// X is a smooth model for X_0(N) from canonical embedding, p is a prime, R is any rational point on X, if no point provided, set to []
+// e.g. R is the infinity cusp obtained from eqs_quos
+
+// true if X is nonsingular mod p, false if X is singular mod p
+
+// Note: if a point R is supplied then we check geometric integrality by ensuring X_p is smooth at R_p
+// otherwise we generate a random point on X_p (which takes more time). 
+
+// ALTERNATIVE IF NO POINT IS SUPPLIED it is easy to supply a point so this is really not necessary, and the current method of producing a random point works quickly too with the curves X_0(N), but anyway, for completeness... 
+// The reason for obtaining a smooth point on X_F_p is to check X_F_p (and its smooth completion / normalisation) are geometrically integral
+// It is usually faster to check that X_F_p is geometrically integral using FieldOfGeometricIrreducibility; 
+// (this works by checking the algebraic closure of F_p in the function field is F_p itself)
+// If X_F_p is geometrically integral, then its normalisation will be too and we can apply the same conclusions
+
+is_nonsing_p := function(X, N, p, R);
+    if IsZero(N mod p) then 
+        return false;
+    end if;
+    Xp := ChangeRing(X,GF(p));
+    if IsIrreducible(Xp) eq false then 
+        return false;
+    end if;
+    if IsReduced(Xp) eq false then 
+        return false;
+    end if; 
+    // Now know the curve is integral. We check the genus condition.
+    if Genus(Xp) ne Genus(Gamma0(N)) then // Genus(Gamma_0(N)) is the genus of X, and therefore the arithmetic genus of Xp
+        return false;
+    end if;
+    // We check the curve has a smooth F_p point
+    if Eltseq(R) eq [] then 
+        Rp := RepresentativePoint(RandomPlace(Xp,1));
+    else seqp := [GF(p) ! r : r in Eltseq(R)];
+        try Rp := Xp ! seqp; // in try in case point has bad representative, won't happen if a cusp
+        catch e Rp := RepresentativePoint(RandomPlace(Xp,1));
+        end try;
+    end if;
+    if IsNonsingular(Xp,Rp) then 
+        return true;
+    else return false;
+    end if;
+end function;
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Example 1:
+
+/*
+
+// We test is_nonsing_p with the curve X_0(100)
+
+N := 100;
+X,_,_,_,cusp := eqs_quos(N,[]);   
+time for p in PrimesUpTo(70) do         // 4 seconds
+    tf := is_nonsing_p(X, N, p, cusp);
+    print(<p, tf>);
+end for;
+// output is false for 2 and 5, and true otherwise
+
+// Example 2a:
+
+// We test is_nonsing_p with the curve X_0(100)
+N := 103;
+X,_,_,_,cusp := eqs_quos(N,[]);   
+time for p in PrimesUpTo(70) do         // 2.5 seconds
+    tf := is_nonsing_p(X, N, p, cusp);
+    print(<p, tf>);
+end for;
+// output is false for 2 and true otherwise.
+// X_0(103) will admit some model which is nonsingular at 2, but this one is singular at 2.
+
+// Example 2b:
+
+// We test the same code on X_0(103) without supplying a point
+// It takes twice as long with this example (worse for higher genus examples)
+
+N := 103;
+X := eqs_quos(N,[]);   
+time for p in PrimesUpTo(70) do         // 5 seconds
+    tf := is_nonsing_p(X, N, p, []);
+    print(<p, tf>);
+end for;
+
+*/
+
+////////////////////////////////////////////////////////
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++
+////////////////////////////////////////////////////////
 
 
 
