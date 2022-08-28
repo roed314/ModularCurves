@@ -61,11 +61,9 @@ ChabautyInfo := function(X, AtkinLehner, genusC, p, A, divs, Dpull, B, iA, W, de
 	
 	for x in imW do
 		printf ".";
-    		z := x@@mI;
+    	z := x@@mI;
 		
-		//if &or[Dimension(phi(z + k) + Dpull_p) gt 0 and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
-    		
-		// instead of checking if z + k is of RR-Dimension > 0, we check if it is one of the candidate divisors from above
+		// we check if z + k is one of the candidate divisors from above
 		// this avoids calling phi() and/or Dimension() which can be slow
 		// this can be improved further by avoiding the above preimage x@@mI
 		
