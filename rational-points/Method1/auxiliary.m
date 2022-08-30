@@ -215,7 +215,7 @@ function GetTorsion(N, XN, XN_Cusps)
 
 		// compute the cuspidal torsion subgroup (= J(Q)_tors assuming the generalized Ogg conjecture)
 		// TODO: combine with torsionBound to prove the torsion
-		h, Ksub, bas, divsNew := findGenerators(XN, [Place(cusp) : cusp in XN_Cusps], Place(XN_Cusps[1]), p);
+		h, Ksub, bas, divsNew := findGenerators(XN, XN_Cusps, XN_Cusps[1], p);
 
 		// Ksub == abstract group isomorphic to cuspidal
 		// "It also returns a subset divsNew such that [[D-deg(D) P_0] : D in divsNew] generates the same subgroup."
