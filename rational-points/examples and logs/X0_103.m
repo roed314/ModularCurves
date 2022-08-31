@@ -33,7 +33,9 @@ Nc := Nullspace(Matrix(AL + 1));
 B := [&+[(Integers()!(2*Eltseq(Basis(N)[i])[j]))*C.j : j in [1..Dimension(C)]] : i in [1..Dimension(N)]];
 Bc := [&+[(Integers()!(2*Eltseq(Basis(Nc)[i])[j]))*C.j : j in [1..Dimension(C)]] : i in [1..Dimension(Nc)]];
 
-X := modformeqns(Bc, B, 103, 500, false);
+//X := modformeqns(Bc, B, 103, 500, false);
+//let's change this to Philippe's code
+X, ws := eqs_quos(103, [[103]]);
 "Nice model for X0(103) is:";
 X;
 "";
