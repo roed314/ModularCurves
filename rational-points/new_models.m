@@ -171,7 +171,13 @@ all_diag_basis := function(N);
     T, new_als := simul_diag(al_invols);
     B := Basis(C);
     cleardenom := LCM([Denominator(x) : x in Eltseq(T)]);
-    NB := [&+[cleardenom*T[i,j]*B[j] : j in [1..g]] : i in [1..g]];  // can change 1   
+    NB := [&+[cleardenom*T[i,j]*B[j] : j in [1..g]] : i in [1..g]];  
+    // Optional code to swap the basis "blocks" if the level is prime
+    //if IsPrime(N) then 
+    //    diag := [(T*al_invols[1]*T^(-1))[i,i] : i in [1..g]];
+    //    ind := Index(diag, -1);
+    //    NB := [NB[i] : i in [ind..g]] cat [NB[i] : i in [1..ind-1]];  
+    //end if; 
     return NB, new_als;
 end function;
 
@@ -1259,35 +1265,6 @@ end function;
 // We will use the following function, taken from "pullbacks.m" in these examples.
 // For convenience we have included the function again here
 
-// Warning! This function is slow for larger genus examples (e.g. genus 13) 
-// because it works with places, and I need to update it to work with points which is faster
-// I'll update it in the near future (written 17 Aug 22 (!))
-
-pullback_points := function(X, pairs, N, bound);
-    places := [];
-    for i in [i : i in [1..#pairs]] do
-        pair := pairs[i];
-        Y := pair[1];
-        rho := pair[2];
-        if Genus(Y) eq 0 then 
-            continue;
-        elif IsHyperelliptic(Y) or Genus(Y) eq 1 then 
-            pts := Points(Y : Bound := bound);
-        else pts := PointSearch(Y, bound);
-        end if;
-        for R in pts do 
-            place := Pullback(rho, Place(R));
-            dec := Decomposition(place);
-            if #dec eq 2 or (#dec eq 1 and dec[1][2] eq 2) then  // two rat points or a double rat point so ignore
-                continue;
-            else places := places cat [dec[1][1]];
-            end if;
-        end for;
-     end for;
-        return places;
-end function;
-
-
 // Example 1 (elliptic quotient)
 
 N := 85;
@@ -1314,35 +1291,23 @@ assert Codomain(Emap) eq E;
 // Let's compute some quadratic points on X_0(85) and evaluate our map on them
 // We use the "pullback_points" function, available in the "pullbacks.m" file
 
-time pullbacks := pullback_points(X,pairs,N, 10000); // 24 seconds
+time pullbacks := pullback_points(X,pairs,N, 10000); // 14 seconds
 
-assert #pullbacks eq 6;
+assert #pullbacks eq 5;
 
-pl := pullbacks[2]; // this is a place on X
-K<d> := ResidueClassField(pl);
+pl := pullbacks[2][1][1]; // this is a quadratic point on X
+K<d> := pullbacks[2][2];
 assert Discriminant(Integers(K)) eq -4; // So K is the field Q(i)
-
-// Pl is Place at (-1/2 : -1/2 : 1/192*d : -1/96*d : 1/96*d : -1/192*d : 1)
+pl; // (-1/2 : -1/2 : 0 : 1/2*d : -1/2*d : 0 : 1)
 
 EK := ChangeRing(E,K);
-ptK := Eltseq(RepresentativePoint(pl));  // Sequence of coordinates of the point
+ptK := Eltseq(pl);  // Sequence of coordinates of the point
 RK := [Evaluate(xx,ptK), Evaluate(yy,ptK), 1];  // The image point
-SK := EK ! RK; // the image point on EK is (1/24*(d - 48) : 1/12*(-d - 36) : 1)
+SK := EK ! RK; // the image point on EK is (d + 3 : -4*d - 5 : 1)
 
 // Warning! Trying to base change Emap to K and compute the image directly is too slow
 // In this example one can base change Pmap to K and use it
 // but in more complicated examples or in the hyperelliptic case it does not work
-
-// Here, we used a place as a starting point, but the same works if we have a point:
-
-XK := ChangeRing(X,K);
-QK := XK ! ptK; // Say this is out starting point.
-
-qK := Eltseq(QK);
-R2K := [Evaluate(xx,qK), Evaluate(yy,qK), 1];  
-S2K := EK ! R2K;
-
-assert S2K eq SK;  // same as before
 
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
@@ -1373,8 +1338,8 @@ Codomain(Pmap); // Projective Space of dimension 2 over Rational Field with grad
 
 // Again, we use the "pullback_points" function, available in the "pullbacks.m" file to access some quadratic points
 
-time pullbacks := pullback_points(X,pairs,N, 10000); // 14.8 seconds
-assert #pullbacks eq 6;
+time pullbacks := pullback_points(X,pairs,N, 10000); // 7.8 seconds
+assert #pullbacks eq 4;
 
 // Let's compute the image of all of these points.
 
@@ -1383,31 +1348,27 @@ assert #pullbacks eq 6;
 // It is much faster to work with the x- and y-coordinates!
 
 time for pl in pullbacks do  // 0.01 seconds, this is almost instantaneous
-    K := ResidueClassField(pl);
+    pt := pl[1][1];
+    K := pl[2];
     print(Discriminant(Integers(K)));
     HK := BaseChange(H,K);
-    ptK := Eltseq(RepresentativePoint(pl));
+    ptK := Eltseq(pt);
     RK := [Evaluate(xx,ptK), Evaluate(yy,ptK), 1];
     SK := HK ! RK;
     print(SK);
 end for;
 
 // Here is the output
-// Note that the field K and "K.1" are different for the different points
+// Note that the fields "K.1" are different for the different points
 
 // -4
-// (-1 : 1/512*(-159*d + 1272) : 1)
+// (-1 : K.1 : 1)
 // -4
-// (1 : 1/24*(K.1 + 88) : 1)
+// (1 : -2*K.1 + 1 : 1)
 // -4
-// (1 : 1/128*(-159*K.1 + 605) : 1)
+// (1 : 2*K.1 + 1 : 1)
 // -8
-// (0 : 3/2*K.1 : 1)
-// -4
-// (1 : 1/24*(K.1 + 88) : 1)
-// -8
-// (0 : 3/2*K.1 : 1)
-
+// (0 : K.1 : 1)
 
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
