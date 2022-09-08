@@ -1,5 +1,5 @@
 SetLogFile("main.log");
-load "X0p_NiceModel.m";
+//load "X0p_NiceModel.m";
 load "new_models.m";
 load "auxiliary.m";
 load "Chabauty_MWSieve_new.m";
