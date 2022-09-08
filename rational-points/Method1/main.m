@@ -3,15 +3,24 @@ load "X0p_NiceModel.m";
 load "new_models.m";
 load "auxiliary.m";
 load "Chabauty_MWSieve_new.m";
+load "rank_calcs.m";
 
-ProvablyComputeQuadPts_X0N := function(N)
+ProvablyComputeQuadPts_X0N := function(N : d:=N)
 	printf "Genus of X_0(%o) is: %o\n", N, Dimension(CuspForms(N));
-
+	printf "d is %o\n", d;
 	//  Check rk J_0(N)(Q) = rk J_0(N)^+(Q)
-	if not IsRankOfALQuotEqual(N) then
-		error "One needs rk J_0(N)(Q) = rk J_0(N)^+(Q) for our algorithm to work.";
+	if d eq N then
+		if not IsRankOfALQuotEqual(N) then
+			error "One needs rk J_0(N)(Q) = rk J_0(N)^+(Q) for our algorithm to work.";
+		else
+			printf "rk J_0(N)(Q) = rk J_0(N)^+(Q).\n";
+		end if;
 	else
-		printf "rk J_0(N)(Q) = rk J_0(N)^+(Q).\n";
+		if rank_quo(N, [d]) ne rank_quo(N, []) then
+			error "One needs rk J_0(N)(Q) = rk J_0(N)(Q)/w_d for our algorithm to work.";
+		else
+			printf "rk J_0(%o)(Q) = rk J_0(%o)(Q)/w_%o \n", N, N, d;
+		end if;
 	end if;
 
 	XN, ws, _, _, cuspInf := eqs_quos(N, []);
@@ -25,7 +34,12 @@ ProvablyComputeQuadPts_X0N := function(N)
 
 	printf "Nice model for X_0(%o) is: %o\n\n", N, XN;
 
-	wN := ws[#ws]; //this is because ALs are returned in ascending index
+	//wN := ws[#ws]; //this is because ALs are returned in ascending index
+	ListOfDivs := Divisors(N);
+	for i:=1 to #ListOfDivs do
+		if ListOfDivs[i] eq d then wN := ws[i-1]; break;
+		end if;
+	end for;
 	printf "w_%o on X_0(%o) is given by: %o\n", N, N, wN;
 
 	printf "Genus of X_0(%o) is %o\n", N, Genus(XN);
@@ -56,11 +70,19 @@ ProvablyComputeQuadPts_X0N := function(N)
 	//Finally, we do the sieve.
 
 	A, divs := GetTorsion(N, XN, XN_Cusps);
-	genusC := genus_quo(N, [N]);
+	genusC := genus_quo(N, [d]);
 	bp := deg2pb[1];
 	wNMatrix := Matrix(wN);
 
-	primes := PrimesInInterval(3, 50); // TODO: find suitable primes
+	primes := []; // TODO: find suitable primes
+
+	for p in PrimesInInterval(3, 10) do
+		if N mod p ne 0 then
+			Append(~primes, p);
+		end if;
+	end for;
+
+
 	B0, iA0 := sub<A | Generators(A)>;
 	W0 := {0*A.1};
 
@@ -109,4 +131,4 @@ ProvablyComputeQuadPts_X0N := function(N)
 	return "done";
 end function;
 
-ProvablyComputeQuadPts_X0N(101);
+//ProvablyComputeQuadPts_X0N(101);
