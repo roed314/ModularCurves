@@ -47,7 +47,7 @@ function MemberTest(G,g)
    // we assume that the subgroup list consists of a list containing
    // exactly one Dirichlet character.  This will have been defined when
    // the group was construced with the
-   // CongruenceSubgroup(A::SeqEnum,char::GrpDrchElt)
+   // CongruenceSubgroup(A::SeqEnum,char::GrpDrchAElt)
    // function in the creation.m file.
    if assigned G`subgroup_list  then
       char := G`subgroup_list[1];
@@ -141,7 +141,7 @@ end function;
 // construction those algorithms are producing matrices
 // the the groups they are supposed to be in.
 function init_psl2_elt_from_integer_matrix(G,A)
-   X := New(GrpPSL2Elt); 
+   X := New(GrpGL2HatElt); 
    X`Parent := G;
    X`Element := A;
    return X;
@@ -150,7 +150,7 @@ end function;
 
 function init_psl2_elt(G,A)
     /* The basic internal creation function. */ 
-    X := New(GrpPSL2Elt); 
+    X := New(GrpGL2HatElt); 
     X`Parent := G;
     coeffs := [ x : x in Eltseq(A) ];
     // some normalization of coefficients:
@@ -238,7 +238,7 @@ function normalization(S)
 end function;
 
 
-intrinsic IsCoercible(G::GrpPSL2,S::.) -> BoolElt, GrpPSL2Elt 
+intrinsic IsCoercible(G::GrpGL2Hat,S::.) -> BoolElt, GrpGL2HatElt 
   {The element of G defined by S.}
 
   case Type(S):
@@ -246,7 +246,7 @@ intrinsic IsCoercible(G::GrpPSL2,S::.) -> BoolElt, GrpPSL2Elt
 	    // since projective, [a,0,0,a] = [1,0,0,1]
       return true, init_psl2_elt(G,G`MatrixGroup![1,0,0,1]);
 
-    when GrpPSL2Elt:
+    when GrpGL2HatElt:
       if Type(G`BaseRing) eq FldRat or (assigned S`Parent and S`Parent cmpeq G) 
         or MemberTest(G,S`Element) then
         if S`Parent cmpeq G then
@@ -292,11 +292,6 @@ intrinsic IsCoercible(G::GrpPSL2,S::.) -> BoolElt, GrpPSL2Elt
 	    // if not val then
 	    // return false, "Illegal coercion, invalid sequence universe.";
 	    // end if;
-	
-      if assigned G`IsShimuraGroup then
-        // Shimura subgroup
-        return false;
-      end if;
 
       if (not ((Universe(S) cmpeq Integers())
 	        or (Universe(S) cmpeq Rationals()))) then

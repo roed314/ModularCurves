@@ -8,7 +8,7 @@ freeze;
                          
    FILE: creation.m
 
-   $Header: /home/was/magma/packages/ModFrm/code/RCS/predicates.m,v 1.7 2002/08/26 20:12:58 was Exp was $
+   $Header: /home/was/magma/packages/ModFrmA/code/RCS/predicates.m,v 1.7 2002/08/26 20:12:58 was Exp was $
 
    $Log: predicates.m,v $
 
@@ -56,19 +56,19 @@ forward Element,
 
 
 function SpaceType(M)
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
    return M`type;
 end function;
 
 function SpaceTypeParam(M)
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
    if not assigned M`type_param then
       M`type_param := 0; 
    end if;
    return M`type_param;
 end function;
 
-intrinsic BaseRing(M::ModFrm) -> Rng
+intrinsic BaseRing(M::ModFrmA) -> Rng
 {The field over which Basis(M) is defined.  This is either the rational
 numbers, a prime finite field, or a p-adic field Q_p.}
    return M`base_ring;
@@ -76,7 +76,7 @@ end intrinsic;
 
 
 function DimensionOfCuspidalSpace(M)
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
    assert IsAmbientSpace(M);
 
    if not IsOfGammaType(M) then
@@ -104,7 +104,7 @@ function DimensionOfCuspidalSpace(M)
 end function;
 
 function DimensionOfNewCuspidalSpace(M, param)
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
    assert IsAmbientSpace(M);
 
    if not IsOfGammaType(M) then
@@ -131,7 +131,7 @@ end function;
 
 
 function DimensionOfNewEisensteinSpace(M, param)
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
    assert IsAmbientSpace(M);
    if param ne 0 then
       error "DimensionOfNewEisensteinSpace -- nontrivial p-new subspace, not yet programmed.";
@@ -171,7 +171,7 @@ function ObviouslyHasDimensionZero(M)
     return false;
 end function;
 
-intrinsic Dimension(M::ModFrm) -> RngIntElt
+intrinsic Dimension(M::ModFrmA) -> RngIntElt
 {The dimension of the space M of modular forms. (If M is defined 
 over a ring R, then M is free and this is the rank of M.)}
  
@@ -243,7 +243,7 @@ over a ring R, then M is free and this is the rank of M.)}
 end intrinsic;
 
 
-intrinsic Level(M::ModFrm) -> RngIntElt
+intrinsic Level(M::ModFrmA) -> RngIntElt
 {The level of M.}
    if not assigned M`level then
       if not IsOfGammaType(M) then
@@ -256,7 +256,7 @@ intrinsic Level(M::ModFrm) -> RngIntElt
    return M`level;      
 end intrinsic;
 
-intrinsic LevelSubgroup(M::ModFrm) -> GrpPSL2
+intrinsic LevelSubgroup(M::ModFrmA) -> GrpGL2Hat
 {The level of M.}
    if not assigned M`level_subgroup then
       if IsGamma0(M) then
@@ -274,27 +274,27 @@ intrinsic LevelSubgroup(M::ModFrm) -> GrpPSL2
    return M`level_subgroup;      
 end intrinsic;
 
-intrinsic Level(f::ModFrmElt) -> RngIntElt
+intrinsic Level(f::ModFrmAElt) -> RngIntElt
 {The level of f.}
    require not IsRingOfAllModularForms(Parent(f)) : 
      "The level of f is not known.";
    return Level(Parent(f));
 end intrinsic;
 
-intrinsic IsRingOfAllModularForms(M::ModFrm) -> BoolElt
+intrinsic IsRingOfAllModularForms(M::ModFrmA) -> BoolElt
 {True if and only if M is the ring of all modular forms over
 a given ring.}
    return not assigned M`weight;
 end intrinsic;
 
-intrinsic Weight(M::ModFrm) -> RngIntElt
+intrinsic Weight(M::ModFrmA) -> RngIntElt
 {The weight of M.}
    require not IsRingOfAllModularForms(M) : 
      "The weight of f is not known or not defined.";
    return M`weight;      
 end intrinsic;
 
-intrinsic Weight(f::ModFrmElt) -> RngIntElt
+intrinsic Weight(f::ModFrmAElt) -> RngIntElt
 {The weight of f, if it is defined.}
    if not assigned f`weight then
       require not IsRingOfAllModularForms(Parent(f)) : 
@@ -304,7 +304,7 @@ intrinsic Weight(f::ModFrmElt) -> RngIntElt
    return f`weight;
 end intrinsic;
 
-intrinsic IsGamma1(M::ModFrm) -> BoolElt
+intrinsic IsGamma1(M::ModFrmA) -> BoolElt
 {True if and only if M is explicitly a space of modular forms for Gamma_1(N).}
    if IsRingOfAllModularForms(M) then
       return false;
@@ -313,7 +313,7 @@ intrinsic IsGamma1(M::ModFrm) -> BoolElt
    return M`is_gamma1;
 end intrinsic;
 
-intrinsic IsOfGammaType(M::ModFrm) -> BoolElt
+intrinsic IsOfGammaType(M::ModFrmA) -> BoolElt
 {True if and only if M is explicitly a space of modular forms of Gamma type.}
    if not assigned M`is_gamma_type then
       if IsAmbientSpace(M) then
@@ -325,7 +325,7 @@ intrinsic IsOfGammaType(M::ModFrm) -> BoolElt
    return M`is_gamma_type;
 end intrinsic;
 
-intrinsic IsGamma0(M::ModFrm) -> BoolElt
+intrinsic IsGamma0(M::ModFrmA) -> BoolElt
 {True if and only if M is a space of modular forms for Gamma_0(N).}
    if not assigned M`is_gamma0 then
      if IsRingOfAllModularForms(M) then
@@ -342,12 +342,12 @@ intrinsic IsGamma0(M::ModFrm) -> BoolElt
    return M`is_gamma0;
 end intrinsic;
 
-intrinsic IsAmbientSpace(M::ModFrm) -> BoolElt
+intrinsic IsAmbientSpace(M::ModFrmA) -> BoolElt
 {True if and only if M is an ambient space.}
    return M`type in {"full", "full_half_int"};
 end intrinsic;   
 
-intrinsic IsCuspidal(M::ModFrm) -> BoolElt
+intrinsic IsCuspidal(M::ModFrmA) -> BoolElt
 {True if M is contained in the cuspidal subspace of the ambient space of M.}
    if not assigned M`is_cuspidal then
       if assigned M`dimension and M`dimension eq 0 then
@@ -372,7 +372,7 @@ intrinsic IsCuspidal(M::ModFrm) -> BoolElt
    return M`is_cuspidal;    
 end intrinsic;   
 
-intrinsic IsEisenstein(M::ModFrm) -> BoolElt
+intrinsic IsEisenstein(M::ModFrmA) -> BoolElt
 {True if M is contained in the Eisenstein subspace of the ambient space of M.}
 
    if not assigned M`is_eisenstein then
@@ -417,7 +417,7 @@ function AbsoluteDegreeOfRingGeneratedBy(gens)
    end case;
 end function;
 
-intrinsic Degree(f::ModFrmElt) -> RngIntElt
+intrinsic Degree(f::ModFrmAElt) -> RngIntElt
 {The number of Galois conjugates of f over the
 prime subfield.}
    require Type(BaseRing(Parent(f))) in 
@@ -442,7 +442,7 @@ prime subfield.}
 end intrinsic;
 
 
-intrinsic DirichletCharacters(M::ModFrm) -> SeqEnum
+intrinsic DirichletCharacters(M::ModFrmA) -> SeqEnum
 {The sequence containing Galois representatives of the Dirichlet characters associated with M.}
 
    // Let's try having M`dirichlet_character only assigned for ambient spaces.
@@ -475,13 +475,13 @@ intrinsic DirichletCharacters(M::ModFrm) -> SeqEnum
 end intrinsic;
 
 
-intrinsic Parent(f::ModFrmElt) -> ModFrm
+intrinsic Parent(f::ModFrmAElt) -> ModFrmA
    {}
    return f`parent;
 end intrinsic;
 
 
-intrinsic 'eq' (M::ModFrm,N::ModFrm) -> BoolElt
+intrinsic 'eq' (M::ModFrmA,N::ModFrmA) -> BoolElt
    {True if M and N are mathematically the same space of modular forms,
     and their base rings are equal.}
    if IsIdentical(M,N) then 
@@ -535,7 +535,7 @@ intrinsic 'eq' (M::ModFrm,N::ModFrm) -> BoolElt
    end if;
 end intrinsic;
 
-intrinsic 'eq' (f::ModFrmElt,g::ModFrmElt) -> BoolElt
+intrinsic 'eq' (f::ModFrmAElt,g::ModFrmAElt) -> BoolElt
    {True iff f and g are mathematically the same modular form (and their parent spaces are equal).}
    if IsIdentical(f,g) then 
       return true; 
@@ -547,7 +547,7 @@ intrinsic 'eq' (f::ModFrmElt,g::ModFrmElt) -> BoolElt
    return Eltseq(f) cmpeq Eltseq(g);
 end intrinsic;
 
-intrinsic 'subset'(M1::ModFrm, M2::ModFrm) -> BoolElt
+intrinsic 'subset'(M1::ModFrmA, M2::ModFrmA) -> BoolElt
 {True iff M1 is a subspace of M2, where these are spaces of modular 
 forms with equal ambient spaces.}
    if AmbientSpace(M1) ne AmbientSpace(M2) then
@@ -604,35 +604,35 @@ forms with equal ambient spaces.}
    end case;
 end intrinsic;
 
-intrinsic 'in'(f::ModFrmElt, M::ModFrm) -> BoolElt
+intrinsic 'in'(f::ModFrmAElt, M::ModFrmA) -> BoolElt
 {}
    return Parent(f) eq M;
 end intrinsic;
 
 
-intrinsic IsNewform(f::ModFrmElt) -> BoolElt
+intrinsic IsNewform(f::ModFrmAElt) -> BoolElt
 {True if f was created using Newform.}
    return assigned f`is_newform and f`is_newform;
 end intrinsic;
 
-intrinsic IsEisensteinSeries(f::ModFrmElt) -> BoolElt
+intrinsic IsEisensteinSeries(f::ModFrmAElt) -> BoolElt
 {True if f was created using EisensteinSeries.}
    return assigned f`eisenstein;
 end intrinsic;
 
-intrinsic EisensteinData(f::ModFrmElt) -> Tup
+intrinsic EisensteinData(f::ModFrmAElt) -> Tup
 {The data <chi, psi, t, chi', psi'> that defines the Eisenstein series f.}
    require assigned f`eisenstein : "Argument 1 is not an Eisenstein series.";
    return f`eisenstein;
 end intrinsic
 
-intrinsic IsCuspidalNewform(f::ModFrmElt) -> BoolElt
+intrinsic IsCuspidalNewform(f::ModFrmAElt) -> BoolElt
 {True if f is cuspidal and was created using the Newform intrinsic.}
    return IsNewform(f) and not IsEisensteinSeries(f);
 end intrinsic;
 
 
-intrinsic IsNew(M::ModFrm) -> BoolElt
+intrinsic IsNew(M::ModFrmA) -> BoolElt
 {True if M is contained in the new subspace of the ambient space of M.}
    if not assigned M`is_new then
       if M`type in {"new", "cusp_new", "eis_new", "eis_newform", "cusp_newform"} then
@@ -649,7 +649,7 @@ intrinsic IsNew(M::ModFrm) -> BoolElt
 end intrinsic;
 
 
-intrinsic AmbientSpace(M::ModFrm) -> ModFrm
+intrinsic AmbientSpace(M::ModFrmA) -> ModFrmA
 {The ambient space that contains M.}
    if IsAmbientSpace(M) then
       return M;
@@ -658,12 +658,12 @@ intrinsic AmbientSpace(M::ModFrm) -> ModFrm
    return M`ambient_space;
 end intrinsic;   
 
-intrinsic VectorSpace(M::ModFrm : Ring:=BaseRing(M) ) -> ModTupRng, Map, Map
+intrinsic VectorSpace(M::ModFrmA : Ring:=BaseRing(M) ) -> ModTupRng, Map, Map
 {Same as RSpace(M)}
    return RSpace(M : Ring:=Ring);
 end intrinsic;
 
-intrinsic RSpace(M::ModFrm : Ring:=BaseRing(M) ) -> ModTupRng, Map, Map
+intrinsic RSpace(M::ModFrmA : Ring:=BaseRing(M) ) -> ModTupRng, Map, Map
 {The abstract free module isomorphic to the given space of modular forms M,
 over the same base ring, and a map to M (with inverse).}
    V := RSpace(BaseRing(M), Dimension(M));
@@ -672,7 +672,7 @@ over the same base ring, and a map to M (with inverse).}
 end intrinsic;
 
 function AssociatedSpaceOverZ(M)
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
    if not assigned M`associated_space_over_z then
       assert Type(BaseRing(M)) eq RngInt;
       return M;
@@ -680,7 +680,7 @@ function AssociatedSpaceOverZ(M)
    return M`associated_space_over_z;
 end function;
 
-intrinsic Precision(M::ModFrm) -> RngIntElt
+intrinsic Precision(M::ModFrmA) -> RngIntElt
 {The default printing precision for elements of M.}
    if not IsAmbientSpace(M) then
       return Precision(AmbientSpace(M));
@@ -698,7 +698,7 @@ intrinsic Precision(M::ModFrm) -> RngIntElt
    return M`default_precision;
 end intrinsic;
 
-intrinsic SetPrecision(M::ModFrm, prec::RngIntElt)
+intrinsic SetPrecision(M::ModFrmA, prec::RngIntElt)
 {Set the default printing precision for elements of M.}
    requirege prec,1;
    if not IsAmbientSpace(M) then
@@ -708,13 +708,13 @@ intrinsic SetPrecision(M::ModFrm, prec::RngIntElt)
    end if;
 end intrinsic;
 
-intrinsic RaisePrecision(M::ModFrm, prec::RngIntElt)
+intrinsic RaisePrecision(M::ModFrmA, prec::RngIntElt)
 {Set the default printing precision for elements of M to the given value 
  if this is higher than the current precision.}
    if prec gt GetPrecision(M) then SetPrecision(M,prec); end if;
 end intrinsic;
 
-intrinsic Eltseq(f::ModFrmElt) -> SeqEnum
+intrinsic Eltseq(f::ModFrmAElt) -> SeqEnum
 {The sequence [a1, ..., an] such that
  f = a1*g_1 + ... + an*g_n, where
  g_1, ..., g_n is the basis of the parent of f.}
@@ -732,7 +732,7 @@ end intrinsic;
 
 
 function WhichNewform(M)
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
 
    if assigned M`which_newform then
       return M`which_newform;
@@ -742,7 +742,7 @@ function WhichNewform(M)
 end function;
 
 function Element(f)
-   assert Type(f) eq ModFrmElt;   
+   assert Type(f) eq ModFrmAElt;   
    if not assigned f`element then
       dummy := Eltseq(f);
    end if;

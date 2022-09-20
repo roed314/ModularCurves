@@ -174,7 +174,7 @@ Representation(M), for p large.
 
 */   
 
-import "../GrpPSL2/GrpPSL2/misc.m" :
+import "../GrpGL2Hat/GrpGL2Hat/misc.m" :
    Conjugates,
    IsConjugate;
 
@@ -609,7 +609,7 @@ function HeckeGeneralCaseRepresentativesDoubleCoset2(G, alpha)
     end if;
     H := sub<ModLevelGL | gens>;
 
-    import "../GrpPSL2/GrpPSL2/creation.m" : get_coercion_hom;
+    import "../GrpGL2Hat/GrpGL2Hat/creation.m" : get_coercion_hom;
     red_H := get_coercion_hom(H, GL(2, Integers(N)));
     H_d := Kernel(red_H);
     im_d := ImageInLevelGL(G) meet Image(red_H);

@@ -1,48 +1,40 @@
 freeze;
 
-import "../GrpPSL2Shim/mingens.m" : InternalShimuraGenerators;
-import "../GrpPSL2Shim/definvs.m" : TotallyPositiveUnits;
-
 ////////////////////////////////////////////////////////////////////
 //                                                                //
 //                      Access Functions                          //
 //                                                                //
 ////////////////////////////////////////////////////////////////////
 
-declare attributes GrpPSL2Elt : MatrixH, MatrixD, MatrixDCenter;
+declare attributes GrpGL2HatElt : MatrixH, MatrixD, MatrixDCenter;
 
-intrinsic BaseRing(G::GrpPSL2) -> Rng
+intrinsic BaseRing(G::GrpGL2Hat) -> Rng
     {The base ring of G.}
     return G`BaseRing;
 end intrinsic;
 
-intrinsic Identity(G::GrpPSL2) -> GrpPSL2Elt
+intrinsic Identity(G::GrpGL2Hat) -> GrpGL2HatElt
    {The identity element of G.}
    return G!1;
 end intrinsic;
 
-intrinsic Eltseq(A::GrpPSL2Elt) -> SeqEnum
+intrinsic Eltseq(A::GrpGL2HatElt) -> SeqEnum
     {Eltseq for the given element A in PSL_2(Z)}
     return Eltseq(A`Element);
 end intrinsic;
 
-intrinsic Parent(A::GrpPSL2Elt) -> GrpPSL2
+intrinsic Parent(A::GrpGL2HatElt) -> GrpGL2Hat
    {}
    return A`Parent;
 end intrinsic;
 
-intrinsic Level(G::GrpPSL2) -> RngIntElt
+intrinsic Level(G::GrpGL2Hat) -> RngIntElt
    {The level of G.}
-   if assigned G`ShimLevel then
-      return G`ShimLevel;
-   else
-       // We do not calculate the level, since CalcLevel needs some level assigned
-       assert assigned G`Level;
-       return G`Level;
-   end if;
+   assert assigned G`Level;
+   return G`Level;
 end intrinsic;
 
-intrinsic ImageInLevel(G::GrpPSL2 : N := Level(G)) -> GrpMat
+intrinsic ImageInLevel(G::GrpGL2Hat : N := Level(G)) -> GrpMat
 {The image of G in SL_2(Z/NZ), where N is the level.}
   require N mod Level(G) eq 0 : "N must divide level of G";
   if not assigned G`ImageInLevel then     
@@ -80,7 +72,7 @@ intrinsic ImageInLevel(G::GrpPSL2 : N := Level(G)) -> GrpMat
   return G`ImageInLevel;
 end intrinsic;
 
-intrinsic ImageInLevelGL(G::GrpPSL2 : N := Level(G)) -> GrpMat
+intrinsic ImageInLevelGL(G::GrpGL2Hat : N := Level(G)) -> GrpMat
 {The image of G in GL_2(Z/NZ), where N is the level.}
   require N mod Level(G) eq 0 : "level of G must divide N";
   if not assigned G`ImageInLevelGL then 
@@ -125,7 +117,7 @@ intrinsic ImageInLevelGL(G::GrpPSL2 : N := Level(G)) -> GrpMat
   return G`ImageInLevelGL; 
 end intrinsic;
 
-intrinsic ModLevel(G::GrpPSL2) -> GrpMat
+intrinsic ModLevel(G::GrpGL2Hat) -> GrpMat
   {SL_2(Z/NZ), where N is the level.}
   if assigned G`ModLevel then
      return G`ModLevel;
@@ -141,7 +133,7 @@ intrinsic ModLevel(G::GrpPSL2) -> GrpMat
   end if;
 end intrinsic;
 
-intrinsic ModLevelGL(G::GrpPSL2) -> GrpMat
+intrinsic ModLevelGL(G::GrpGL2Hat) -> GrpMat
   {GL_2(Z/NZ), where N is the level.}
   if not assigned G`ModLevelGL then
      N := Level(G);
@@ -155,7 +147,7 @@ intrinsic ModLevelGL(G::GrpPSL2) -> GrpMat
   return G`ModLevelGL;
 end intrinsic;
 
-intrinsic GetFindCoset(G::GrpPSL2) -> Map
+intrinsic GetFindCoset(G::GrpGL2Hat) -> Map
 {.}
   if not assigned G`FindCoset then
     cosets, find_coset := Transversal(ModLevel(G), ImageInLevel(G));
@@ -177,13 +169,13 @@ intrinsic GetFindCoset(G::GrpPSL2) -> Map
   return G`FindCoset;
 end intrinsic;
 
-intrinsic NSCartanV(G::GrpPSL2) -> RngIntResElt
+intrinsic NSCartanV(G::GrpGL2Hat) -> RngIntResElt
 {return the middle coefficient in the quadratic polynomial x^2+vx-u used to create the group, i.e. such that it is the regular representation of ZZ[alpha], where alpha is a root of the polynomial mod N.}
   if assigned G`NSCartanV then return G`NSCartanV; end if;
   require false : "Not Implemented!";
 end intrinsic;	  
 
-intrinsic NSCartanU(G::GrpPSL2) -> RngIntResElt
+intrinsic NSCartanU(G::GrpGL2Hat) -> RngIntResElt
  {return the (non square) element u used to create the group.
      i.e. such that N | a-d, N | b-uc.}
    // Although it makes sense, we actually need the function to
@@ -278,7 +270,7 @@ intrinsic NSCartanU(G::GrpPSL2) -> RngIntResElt
 */
 end intrinsic;
 
-intrinsic CongruenceIndices(G::GrpPSL2) -> RngIntElt
+intrinsic CongruenceIndices(G::GrpGL2Hat) -> RngIntElt
    {For G  a congruence subgroup, returns [[N,M,P]]
    where G consists of matrices [a,b,c,d] with
    c = 0 mod N, a, d = 1 mod M, b = 0 mod P}
@@ -288,23 +280,9 @@ intrinsic CongruenceIndices(G::GrpPSL2) -> RngIntElt
 end intrinsic;
 
 
-intrinsic Genus(G::GrpPSL2) -> RngIntElt
+intrinsic Genus(G::GrpGL2Hat) -> RngIntElt
    {The genus of the upper half plane quotiented by the congruence
    subgroup G}
-
-   if assigned G`IsShimuraGroup then
-     if assigned G`ShimGroup then
-       return Integers()!((#Generators(G`ShimGroup)-#Relations(G`ShimGroup)+1)/2);
-     end if;
-     if EllipticInvariants(G) eq [] then
-       g := 1 + ArithmeticVolume(G)/2;
-     else
-       g := 1 + ArithmeticVolume(G)/2 - 
-         &+[s[2]*(1-1/s[1]) : s in EllipticInvariants(G)]/2;
-     end if;
-     assert IsIntegral(g);
-     return Integers()!g;
-   end if;
 
    Z:=Integers();
 
@@ -329,35 +307,15 @@ end intrinsic;
 
 // the following is needed because it is not yet
 // possible to use things like Set on sequences of
-// objects of type GrpPSL2Elt.
-intrinsic Matrix(g::GrpPSL2Elt : Precision := 0) -> GrpMatElt
+// objects of type GrpGL2HatElt.
+intrinsic Matrix(g::GrpGL2HatElt : Precision := 0) -> GrpMatElt
     {returns an element of a matrix group corresponding to g}
-   if assigned Parent(g)`IsShimuraGroup then
-      if Precision eq 0 then
-        if not assigned g`MatrixH then
-          gmat := (Parent(g)`MatrixRepresentation)(g`Element);
-          gmat /:= Sqrt(Determinant(gmat));
-          g`MatrixH := gmat;
-        end if;
-        return g`MatrixH;
-      else
-        A := Algebra(BaseRing(Parent(g)));
-        gmat := FuchsianMatrixRepresentation(A : Precision := Precision)(g`Element);
-        gmat /:= Sqrt(Determinant(gmat));
-        g`MatrixH := gmat;
-        return g`MatrixH;
-      end if;
-   end if;
     return g`Element;
 end intrinsic;
 
 
-intrinsic Generators (G::GrpPSL2) -> SeqEnum
+intrinsic Generators (G::GrpGL2Hat) -> SeqEnum
    {A sequence containing the generators for G}
-
-   if assigned G`IsShimuraGroup then
-      return InternalShimuraGenerators(G);
-   end if;
 
    require G`BaseRing eq Integers():
    "currently only implemented for subgroups of PSL_2(Z)";
@@ -367,7 +325,7 @@ intrinsic Generators (G::GrpPSL2) -> SeqEnum
       G`Generators := [G!g : g in Gens];
       return Gens;
    else
-      if Type(G`Generators[1]) ne GrpPSL2Elt then
+      if Type(G`Generators[1]) ne GrpGL2HatElt then
 	 G`Generators := [G| x : x in G`Generators];
       end if;
       return G`Generators;
@@ -375,7 +333,7 @@ intrinsic Generators (G::GrpPSL2) -> SeqEnum
 end intrinsic;
   
 
-intrinsic Index(G::GrpPSL2) -> RngIntElt
+intrinsic Index(G::GrpGL2Hat) -> RngIntElt
     {The index of G in PSL_2(Z), if this is finite}
 	// should improve on this to return a fractional index
 	// when G and SL_2(Z) are comensurable
@@ -404,7 +362,7 @@ intrinsic Index(G::GrpPSL2) -> RngIntElt
 end intrinsic;
 
 
-intrinsic CosetRepresentatives(G::GrpPSL2) -> SeqEnum
+intrinsic CosetRepresentatives(G::GrpGL2Hat) -> SeqEnum
     {returns a list of coset representatives of G in PSL2(Z);
     only defined for G a subgroup of PSL2(Z)}
 
@@ -413,7 +371,7 @@ intrinsic CosetRepresentatives(G::GrpPSL2) -> SeqEnum
     if not assigned G`FS_cosets then
 	FS := FareySymbol(G);	
      end if;
-     if Type(G`FS_cosets[1]) ne GrpPSL2Elt then
+     if Type(G`FS_cosets[1]) ne GrpGL2HatElt then
 	P := PSL2(Integers());
 	G`FS_cosets := [P| x : x in G`FS_cosets];
      end if;

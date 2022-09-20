@@ -268,7 +268,7 @@ end function;
 // need another coset rep map for -3 edges!!!!
 
 
-intrinsic FareySymbol(group::GrpPSL2,restrictions::SeqEnum) -> SymFry
+intrinsic FareySymbol(group::GrpGL2Hat,restrictions::SeqEnum) -> SymFry
     {Computes the Farey Symbol of a congruence subgroup in PSL_2(Z).}
 
     Z := Integers();
@@ -418,7 +418,7 @@ intrinsic FareySymbol(group::GrpPSL2,restrictions::SeqEnum) -> SymFry
 end intrinsic;
 
 
-intrinsic FareySymbol(group::GrpPSL2) -> SymFry
+intrinsic FareySymbol(group::GrpGL2Hat) -> SymFry
    {Computes the Farey Symbol of a congruence subgroup in
     PSL_2(Z).}
     // if a farey sequence is already found, don't recompute;
@@ -676,14 +676,14 @@ end intrinsic;
 intrinsic Generators(FS::SymFry) -> SeqEnum
     {Returns the generators of the congruence subgroup
     corresponding to the Farey Symbol}
-     if Type(FS`generators[1]) ne GrpPSL2Elt then
+     if Type(FS`generators[1]) ne GrpGL2HatElt then
 	FS`generators := [FS`group | x : x in FS`generators];
      end if;
     return FS`generators;
 end intrinsic;
 
 
-intrinsic Group(FS::SymFry) -> GrpPSL2
+intrinsic Group(FS::SymFry) -> GrpGL2Hat
     {Returns the congruence subgroup corresponding to
     the Farey Symbol FS}
     return FS`group;
@@ -730,7 +730,7 @@ end intrinsic;
 intrinsic CosetRepresentatives(FS::SymFry) -> SeqEnum
    {Returns the coset representatives for the congruence subgroup
    of the Farey Symbol in PSL_2(z)}
-   if Type(FS`cosets[1]) ne GrpPSL2Elt then
+   if Type(FS`cosets[1]) ne GrpGL2HatElt then
       P := PSL2(Integers());
       FS`cosets := [P | x : x in FS`cosets];
    end if;

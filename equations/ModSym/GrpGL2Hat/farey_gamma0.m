@@ -14,7 +14,7 @@ import "farey_gamma1.m": transformSequence,
                          transformLabels;
 
 			 
-import "../GrpPSL2/coercion.m": init_psl2_elt_from_integer_matrix;
+import "../GrpGL2Hat/coercion.m": init_psl2_elt_from_integer_matrix;
 			    
 			 
 function FareySequenceForPSL(PSL)

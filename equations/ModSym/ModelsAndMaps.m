@@ -99,7 +99,7 @@ function FindFormAsRationalFunction(form, R, fs, wt_diff : min_k := 0)
      return num / denom;
  end function;
 
-intrinsic JMap(G::GrpPSL2, X::Crv[FldRat], qexps::SeqEnum[RngSerPowElt],
+intrinsic JMap(G::GrpGL2Hat, X::Crv[FldRat], qexps::SeqEnum[RngSerPowElt],
 	       K::RngIntElt : LogCanonical := false) ->
   FldFunRatMElt, FldFunRatMElt, FldFunRatMElt
 {Computes E4, E6 and j as rational function, when the given qexpansions are the variables.}
@@ -142,6 +142,7 @@ intrinsic JMap(G::GrpPSL2, X::Crv[FldRat], qexps::SeqEnum[RngSerPowElt],
     E6 := FindFormAsRationalFunction(E6, R, fs, 6 : min_k := E6_k);
     j := 1728*E4^3/(E4^3-E6^2);
     _<[x]> := Parent(E4);
+    _<[x]> := Parent(j);
     return E4, E6, j;
 end intrinsic;
 
@@ -191,7 +192,7 @@ function FindRationalCurve(qexps, prec, n_rel)
     return X;
 end function;
 
-intrinsic CanonicalRing(PG::GrpPSL2) -> Crv[FldRat],
+intrinsic CanonicalRing(PG::GrpGL2Hat : Precision := 100) -> Crv[FldRat],
                                       SeqEnum[RngSerPowElt],
                                       RngIntElt
 {Return the curve, q-expansions and K (denominator of the power in q-expansions) for the model of the canonical ring.}
@@ -258,8 +259,8 @@ intrinsic CanonicalRing(PG::GrpPSL2) -> Crv[FldRat],
 	    rel_deg := 2*e;
 	end if;
     end if;
-    // TODO - fix the needed precision
-    prec := 100;
+    // TODO - find the needed precision
+    prec := Precision;
     ring_gens := AssociativeArray();
     for d in [1..gen_deg] do
 	G := ImageInLevelGL(PG);
@@ -267,7 +268,11 @@ intrinsic CanonicalRing(PG::GrpPSL2) -> Crv[FldRat],
 	// The Eisenstein series are returned with denominator N = level !!
 	eis := EisensteinSeries(ModularForms(PG,2*d));
 	eis := [qExpansion(f, prec) : f in eis];
-	gap := level div K;
+	if (PG`IsOfGammaType) then
+	    gap := 1;
+	else   
+	    gap := level div K;
+	end if;
 	eis_elt := [AbsEltseq(f) : f in eis];
 	assert &and[ &and[f[x] eq 0 : x in [1..#f] | (x-1) mod gap ne 0] : f in eis_elt];
 	eis_elt := [[f[gap*i+1] : i in [0..(#f-1) div gap]] : f in eis_elt];
@@ -298,6 +303,8 @@ intrinsic CanonicalRing(PG::GrpPSL2) -> Crv[FldRat],
 	d +:= 1;
     end while;
     X := Curve(ProjectiveSpace(R),I);
+    _<q> := Universe(fs);
+    fs := [f + O(q^prec) : f in fs];
     return X, fs, K;
 end intrinsic;
 

@@ -10,7 +10,7 @@ freeze;
 
    2007-06 (Steve)    Allow coercion of Laurent series (with positive valution)
                       into modular forms
-                      Coercion of a ModFrmElt into the 'same' space now
+                      Coercion of a ModFrmAElt into the 'same' space now
                       done by copying the element
 
    2007-05 (Steve)    Get coercion working properly for inexact base rings.
@@ -30,7 +30,7 @@ freeze;
                       is returned if insufficient coefficients are given to
                       uniquely determine the form
 
-   2004-10-24: (was)  Changed CoerceModFrmElt(M,x) so coercion
+   2004-10-24: (was)  Changed CoerceModFrmAElt(M,x) so coercion
                       into the parent of an element is the identity:
 
    Revision 1.13  2002/09/12 15:13:41  was
@@ -49,10 +49,10 @@ freeze;
    *** empty log message ***
 
    Revision 1.8  2002/03/11 23:06:07  was
-   improved intrinsic ModularForms(M::ModFrm, N::RngIntElt).
+   improved intrinsic ModularForms(M::ModFrmA, N::RngIntElt).
 
    Revision 1.7  2002/03/11 23:01:36  was
-   Added intrinsic ModularForms(M::ModFrm, N::RngIntElt) -> ModFrm.
+   Added intrinsic ModularForms(M::ModFrmA, N::RngIntElt) -> ModFrmA.
 
    Revision 1.6  2001/11/22 19:28:20  was
    Added some more constructors for "ModularForms".
@@ -75,7 +75,7 @@ freeze;
       
  ***************************************************************************/
 
-import "categories.m" : CopyOfModFrmElt;
+import "categories.m" : CopyOfModFrmAElt;
 
 import "predicates.m" : SpaceType,
                         SpaceTypeParam,
@@ -84,9 +84,9 @@ import "predicates.m" : SpaceType,
 import "q-expansions.m" : PowerSeriesInternal;
 
 /* Looks like this never worked, since several attributes don't exist...
-intrinsic ModularForms(R::Rng) -> ModFrm
+intrinsic ModularForms(R::Rng) -> ModFrmA
 {The space spanned by all modular forms of all weights over the ring R.}
-   M := New(ModFrm);
+   M := New(ModFrmA);
    M`base_ring := R;
    M`is_complex := true;
    M`is_padic := false;
@@ -97,13 +97,13 @@ intrinsic ModularForms(R::Rng) -> ModFrm
 end intrinsic;
 */
 
-intrinsic ModularForms(N::RngIntElt) -> ModFrm
+intrinsic ModularForms(N::RngIntElt) -> ModFrmA
 {Same as ModularForms(N,2)}
    require N ge 1: "The first argument must be at least 1.";
    return ModularForms(N,2);
 end intrinsic; 
 
-intrinsic ModularForms(N::RngIntElt, k::FldRatElt) -> ModFrm
+intrinsic ModularForms(N::RngIntElt, k::FldRatElt) -> ModFrmA
 {The space of weight k modular forms on Gamma_0(N) over the integers.}
    require N ge 1: "The level N must be at least 1.";
    if IsIntegral(k) and k ge 1 then 
@@ -117,7 +117,7 @@ intrinsic ModularForms(N::RngIntElt, k::FldRatElt) -> ModFrm
    end if;
 end intrinsic;
 
-intrinsic ModularForms(N::RngIntElt, k::RngIntElt) -> ModFrm
+intrinsic ModularForms(N::RngIntElt, k::RngIntElt) -> ModFrmA
 {"} // "
    require N ge 1: "The first argument must be at least 1.";
    requirege k,1;
@@ -126,7 +126,7 @@ end intrinsic;
 
 // currently, this does not work well with character, e.g. for 8.96.3.9
 // the Eisenstein series has dimension 11, and we obtain only 9. 
-intrinsic ModularFormsGroup(G::GrpPSL2, k::RngIntElt) -> ModFrm
+intrinsic ModularFormsGroup(G::GrpGL2Hat, k::RngIntElt) -> ModFrmA
 {"} // "
      requirege k,1;
      Q, pi_Q := G / G;
@@ -142,7 +142,7 @@ end intrinsic;
 function ModularFormsGamma1(N, k)
    assert Type(N) eq RngIntElt;
    assert Type(k) eq RngIntElt;
-   M := New(ModFrm);
+   M := New(ModFrmA);
    M`base_ring := Integers();
    M`is_gamma1 := true;
    M`level := N;
@@ -152,13 +152,13 @@ function ModularFormsGamma1(N, k)
    return M;
 end function;
 
-intrinsic ModularForms(G::GrpPSL2) -> ModFrm
+intrinsic ModularForms(G::GrpGL2Hat) -> ModFrmA
 {Same as  ModularForms(G,2)}
 // require IsGamma1(G) or IsGamma0(G) : "Argument 1 must be Gamma_0(N) or Gamma_1(N).";
    return ModularForms(G,2);
 end intrinsic;
 
-intrinsic ModularForms(G::GrpPSL2, k::FldRatElt) -> ModFrm
+intrinsic ModularForms(G::GrpGL2Hat, k::FldRatElt) -> ModFrmA
 {The space of weight k modular forms on G over the integers.}
    if IsIntegral(k) and k ge 1 then 
       return ModularForms(G, Integers()!k);
@@ -171,7 +171,7 @@ intrinsic ModularForms(G::GrpPSL2, k::FldRatElt) -> ModFrm
    end if;
 end intrinsic;
 
-intrinsic ModularForms(G::GrpPSL2, k::RngIntElt) -> ModFrm
+intrinsic ModularForms(G::GrpGL2Hat, k::RngIntElt) -> ModFrmA
 {"} // "
    requirege k,1;
    if IsGamma1(G) then
@@ -184,7 +184,7 @@ intrinsic ModularForms(G::GrpPSL2, k::RngIntElt) -> ModFrm
    end if;
 end intrinsic;
 
-/*intrinsic ModularForms(eps::GrpDrchElt, k::RngIntElt) -> ModFrm
+/*intrinsic ModularForms(eps::GrpDrchAElt, k::RngIntElt) -> ModFrmA
 {The space M_k(N,eps) over Z.}
    require Type(BaseRing(Parent(eps))) in {FldCyc, FldRat} : 
        "The base ring of argument 1 must be the rationals or cyclotomic.";
@@ -192,7 +192,7 @@ end intrinsic;
 end intrinsic;
 */
 
-intrinsic ModularForms(chars::[GrpDrchElt], k::RngIntElt) -> ModFrm
+intrinsic ModularForms(chars::[GrpDrchAElt], k::RngIntElt) -> ModFrmA
 {The direct sum of the spaces ModularForms(eps,k), where eps runs through
  representatives of the Galois orbits of the characters in the
  sequence chars.}
@@ -206,7 +206,7 @@ intrinsic ModularForms(chars::[GrpDrchElt], k::RngIntElt) -> ModFrm
    require Type(BaseRing(Parent(chars[1]))) in {FldCyc, FldRat} : 
       "The base ring of argument 1 must be the rationals or cyclotomic.";
    
-   M := New(ModFrm);
+   M := New(ModFrmA);
    M`base_ring := Integers();
    M`dirichlet_character := GaloisConjugacyRepresentatives(chars);
    M`is_gamma1 := false;
@@ -215,7 +215,7 @@ intrinsic ModularForms(chars::[GrpDrchElt], k::RngIntElt) -> ModFrm
    return M;
 end intrinsic;
 
-intrinsic ModularForms(chars::[GrpChrElt], k::RngIntElt) -> ModFrm
+intrinsic ModularForms(chars::[GrpChrElt], k::RngIntElt) -> ModFrmA
 {The direct sum of the spaces ModularForms(eps,k), where eps runs through
  representatives of the Galois orbits of the characters in the
  sequence chars.}
@@ -229,7 +229,7 @@ intrinsic ModularForms(chars::[GrpChrElt], k::RngIntElt) -> ModFrm
    require Type(BaseRing(Parent(chars[1]))) in {FldCyc, FldRat} : 
       "The base ring of argument 1 must be the rationals or cyclotomic.";
    
-   M := New(ModFrm);
+   M := New(ModFrmA);
    M`base_ring := Integers();
    M`dirichlet_character := GaloisConjugacyRepresentatives(chars);
    M`is_gamma1 := false;
@@ -240,19 +240,19 @@ intrinsic ModularForms(chars::[GrpChrElt], k::RngIntElt) -> ModFrm
    return M;
 end intrinsic;
 
-intrinsic ModularForms(chars::[GrpDrchElt]) -> ModFrm
+intrinsic ModularForms(chars::[GrpDrchAElt]) -> ModFrmA
 {Same as ModularForms(chars,2)}
    require #chars gt 0 : "Argument 1 must have length at least 1.";
    return ModularForms(chars,2);
 end intrinsic;
 
-intrinsic ModularForms(chars::[GrpChrElt]) -> ModFrm
+intrinsic ModularForms(chars::[GrpChrElt]) -> ModFrmA
 {Same as ModularForms(chars,2)}
    require #chars gt 0 : "Argument 1 must have length at least 1.";
    return ModularForms(chars,2);
 end intrinsic;
 
-intrinsic ModularForms(eps::GrpDrchElt, k::FldRatElt) -> ModFrm
+intrinsic ModularForms(eps::GrpDrchAElt, k::FldRatElt) -> ModFrmA
 {The space of modular forms of weight k over the integers, which under base extension
 becomes equal to the direct sum of the spaces M_k(eps'), where eps' runs over
 all Galois conjugates of eps.}
@@ -267,36 +267,36 @@ all Galois conjugates of eps.}
    end if; 
 end intrinsic;
 
-intrinsic ModularForms(eps::GrpDrchElt, k::RngIntElt) -> ModFrm
+intrinsic ModularForms(eps::GrpDrchAElt, k::RngIntElt) -> ModFrmA
 {"} // "
    requirege k,1;
    return ModularForms([eps],k);  
 end intrinsic;
 
-intrinsic ModularForms(eps::GrpChrElt, k::RngIntElt) -> ModFrm
+intrinsic ModularForms(eps::GrpChrElt, k::RngIntElt) -> ModFrmA
 {"} // "
    requirege k,1;
    return ModularForms([eps],k);  
 end intrinsic;
 
-intrinsic ModularForms(eps::GrpDrchElt) -> ModFrm
+intrinsic ModularForms(eps::GrpDrchAElt) -> ModFrmA
 {Same as ModularForms(eps,2)}
    return ModularForms([eps],2);  
 end intrinsic;
 
-intrinsic ModularForms(eps::GrpChrElt) -> ModFrm
+intrinsic ModularForms(eps::GrpChrElt) -> ModFrmA
 {Same as ModularForms(eps,2)}
    return ModularForms([eps],2);  
 end intrinsic;
 
 // The following two intrinsic are cheats, because they don't
 // have proper require statements. 
-intrinsic CuspForms(x::.) -> ModFrm  
+intrinsic CuspForms(x::.) -> ModFrmA  
 {Shorthand for CuspidalSubspace(ModularForms(x))}
    return CuspidalSubspace(ModularForms(x));
 end intrinsic;
 
-intrinsic CuspForms(x::., y::.) -> ModFrm
+intrinsic CuspForms(x::., y::.) -> ModFrmA
 {Shorthand for CuspidalSubspace(ModularForms(x,y))}
    return CuspidalSubspace(ModularForms(x,y));
 end intrinsic;
@@ -304,7 +304,7 @@ end intrinsic;
 // Just copy the most very basic defining properties of M, not 
 // things like hecke operators and so on. 
 function CopyOfDefiningModularFormsObject(M)
-   C := New(ModFrm);  // C for "copy"
+   C := New(ModFrmA);  // C for "copy"
    if assigned M`dimension then
       C`dimension := M`dimension;  
    end if;
@@ -340,7 +340,7 @@ function CopyOfDefiningModularFormsObject(M)
    return C;
 end function;
 
-intrinsic ModularForms(M::ModFrm, N::RngIntElt) -> ModFrm
+intrinsic ModularForms(M::ModFrmA, N::RngIntElt) -> ModFrmA
 {The full space of modular forms with the same defining 
 weight, base ring, etc. as M, but with level N.  
 If M is defined by nontrivial dirichlet characters, then
@@ -360,7 +360,7 @@ of the characters.}
       M`other_levels := [* *];
    end if;
 
-   T := New(ModFrm);  
+   T := New(ModFrmA);  
    T`base_ring := BaseRing(M);
    T`level := N;
    T`level_subgroup := LevelSubgroup(M);
@@ -406,7 +406,7 @@ end intrinsic;
 
 
 /*
-intrinsic ModularForms(eps::GrpDrchElt, k::RngIntElt) -> ModFrm
+intrinsic ModularForms(eps::GrpDrchAElt, k::RngIntElt) -> ModFrmA
 {This returns M_k(eps), which is the direct sum of the e parts 
 of M_k(Gamma_1(N)) as e varies over the Galois conjugates of eps.} 
    requirege k,2;
@@ -419,18 +419,18 @@ end intrinsic;
 
 
 function CreateModularFormFromElement(parent, element)
-   assert Type(parent) eq ModFrm;
+   assert Type(parent) eq ModFrmA;
    assert Type(element) in {ModTupRngElt, ModTupFldElt};
-   y := New(ModFrmElt);
+   y := New(ModFrmAElt);
    y`parent := parent;
    y`element := element;
    return y;
 end function;
 
 
-function create_ModFrmElt_from_theta_data(parent, theta_data)
-   assert Type(parent) eq ModFrm;
-   f := New(ModFrmElt);
+function create_ModFrmAElt_from_theta_data(parent, theta_data)
+   assert Type(parent) eq ModFrmA;
+   f := New(ModFrmAElt);
    f`parent := parent;
    f`theta_data := theta_data;
    return f;
@@ -438,7 +438,7 @@ end function;
 
 
 function CoerceRngIntElt(M,x)
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
    assert Type(x) eq RngIntElt;
 
    if x eq 0 then
@@ -571,7 +571,7 @@ function CoerceSeqEnum(M,x)
 end function;
 
 
-function CoerceModFrmElt(M,x)
+function CoerceModFrmAElt(M,x)
    Mx := Parent(x);
    if BaseRing(Mx) cmpne BaseRing(M) then
       return false, "Base rings are not the same.";
@@ -579,7 +579,7 @@ function CoerceModFrmElt(M,x)
 
    /* Removed ModularForms(Rng), don't want to waste time checking this anyway
    if IsRingOfAllModularForms(M) then
-      y := CopyOfModFrmElt(x);
+      y := CopyOfModFrmAElt(x);
       y`parent := M;
       delete y`element;
       return true, y;
@@ -606,7 +606,7 @@ function CoerceModFrmElt(M,x)
       end if;
    end if;
    if copy then
-      y := CopyOfModFrmElt(x);
+      y := CopyOfModFrmAElt(x);
       y`parent := M;
       return true, y;
    end if;   
@@ -635,7 +635,7 @@ function CoerceModFrmElt(M,x)
    return false, "Cannot coerce modular form.";
 end function;
 
-intrinsic IsCoercible(M::ModFrm,x::.) -> BoolElt, ModFrmElt
+intrinsic IsCoercible(M::ModFrmA,x::.) -> BoolElt, ModFrmAElt
 {Coerce x into M.}
    case Type(x):
       when RngIntElt:
@@ -646,15 +646,15 @@ intrinsic IsCoercible(M::ModFrm,x::.) -> BoolElt, ModFrmElt
          return CoerceSeqEnum(M,x);
       when RngSerPowElt, RngSerLaurElt:
          return CoerceRngSerElt(M,x);
-      when ModFrmElt:
-         return CoerceModFrmElt(M,x);
+      when ModFrmAElt:
+         return CoerceModFrmAElt(M,x);
       else
          return false, "Illegal coercion -- the given object has the wrong type";
    end case;
 end intrinsic;
 
 
-intrinsic BaseExtend(M::ModFrm, R::Rng) -> ModFrm, Map
+intrinsic BaseExtend(M::ModFrmA, R::Rng) -> ModFrmA, Map
 {The base extension of M to the commutative ring R and the induced map
 from M to BaseExtend(M,R).  The only requirement on R is that
 there is a natural coercion map from BaseRing(M) to R.    For 
@@ -669,7 +669,7 @@ ring R is allowed.}
 end intrinsic;
 
 
-intrinsic BaseExtend(M::ModFrm, phi::Map) -> ModFrm, Map
+intrinsic BaseExtend(M::ModFrmA, phi::Map) -> ModFrmA, Map
 {The base extension of M to R using the map phi:BaseRing(M) --> R, 
 and the induced map from M to BaseExtend(M,R).}
    require IsCommutative(Codomain(phi)) : "Argument 2 must be commutative.";
@@ -694,12 +694,12 @@ and the induced map from M to BaseExtend(M,R).}
    return M_R, psi;
 end intrinsic;
 
-intrinsic DisownChildren(M::ModFrm) 
+intrinsic DisownChildren(M::ModFrmA) 
 {No longer necessary -- do not use!}
    return;
 end intrinsic;
 
-intrinsic DeleteAllAssociatedData(M::ModFrm : DeleteChars:=false)
+intrinsic DeleteAllAssociatedData(M::ModFrmA : DeleteChars:=false)
 {"} // "
    return;
 end intrinsic;

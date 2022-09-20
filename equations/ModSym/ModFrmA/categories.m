@@ -10,7 +10,7 @@ freeze;
 
    04/06/03: Added attribute t2_eigenvector.
 
-   $Header: /home/was/magma/packages/ModFrm/code/RCS/categories.m,v 1.7 2002/08/26 22:26:59 was Exp $
+   $Header: /home/was/magma/packages/ModFrmA/code/RCS/categories.m,v 1.7 2002/08/26 22:26:59 was Exp $
 
    $Log: categories.m,v $
    Revision 1.7  2002/08/26 22:26:59  was
@@ -37,10 +37,10 @@ freeze;
       
  ***************************************************************************/
 
-declare type ModFrm [ModFrmElt];
-declare type ModFrmElt;
+declare type ModFrmA [ModFrmAElt];
+declare type ModFrmAElt;
 
-declare attributes ModFrm:
+declare attributes ModFrmA:
         ambient_space,  
 
         base_ring,
@@ -116,7 +116,7 @@ declare attributes ModFrm:
    // parent of the which_newform-th newform.
         which_newform,
 
-   // The basis of ModFrmElt's
+   // The basis of ModFrmAElt's
         basis,
  
    // Basis of q-expansions for the full space 
@@ -157,7 +157,7 @@ declare attributes ModFrm:
        ;
        
 
-declare attributes ModFrmElt:
+declare attributes ModFrmAElt:
         degree,
 
    // representation of this element as a vector in the parent space
@@ -229,13 +229,13 @@ declare attributes ModFrmElt:
 
      
 
-function CopyOfModFrm(M)
+function CopyOfModFrmA(M)
    error "Not written";
 end function;
 
-function CopyOfModFrmElt(f)
-   assert Type(f) eq ModFrmElt;
-   g := New(ModFrmElt);
+function CopyOfModFrmAElt(f)
+   assert Type(f) eq ModFrmAElt;
+   g := New(ModFrmAElt);
    if assigned f`degree then
       g`degree := f`degree;
    end if;

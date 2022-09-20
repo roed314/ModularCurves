@@ -1,14 +1,14 @@
 freeze;
 
 
-intrinsic IsCongruence(G::GrpPSL2) -> BoolElt
+intrinsic IsCongruence(G::GrpGL2Hat) -> BoolElt
     {returns true if and only if G is a congruence subgroup}
        return Type(G`BaseRing) eq RngInt and
        (not assigned G`AtkinLehnerInvolutions or
        Dimension(G`AtkinLehnerInvolutions) eq 0);	
 end intrinsic;
     
-intrinsic IsGamma0(G::GrpPSL2) -> BoolElt
+intrinsic IsGamma0(G::GrpGL2Hat) -> BoolElt
     {returns true if and only if G is equal to Gamma_0(N) for some N}
     return IsCongruence(G) and G`IsOfGammaType
     and #G`gammaType_list eq 1 and
@@ -18,7 +18,7 @@ intrinsic IsGamma0(G::GrpPSL2) -> BoolElt
 end intrinsic;
 
 
-intrinsic IsGamma1(G::GrpPSL2) -> BoolElt
+intrinsic IsGamma1(G::GrpGL2Hat) -> BoolElt
     {returns true if and only if G is equal to Gamma_1(N) for some N}
     return IsCongruence(G) and G`IsOfGammaType
     and #G`gammaType_list eq 1
@@ -27,7 +27,7 @@ intrinsic IsGamma1(G::GrpPSL2) -> BoolElt
     and  not assigned G`subgroup_list;
  end intrinsic;
 
-intrinsic IsGamma(G::GrpPSL2) -> BoolElt
+intrinsic IsGamma(G::GrpGL2Hat) -> BoolElt
     {returns true if and only if G is equal to Gamma(N) for some N}
     return IsCongruence(G) and G`IsOfGammaType
     and #G`gammaType_list eq 1 and
@@ -36,7 +36,7 @@ intrinsic IsGamma(G::GrpPSL2) -> BoolElt
     not assigned G`subgroup_list;
 end intrinsic;
  
-intrinsic IsGammaUpper0(G::GrpPSL2) -> BoolElt
+intrinsic IsGammaUpper0(G::GrpGL2Hat) -> BoolElt
     {returns true if and only if G is equal to Gamma^0(N) for some N}
     return IsCongruence(G) and G`IsOfGammaType
     and #G`gammaType_list eq 1 and
@@ -45,7 +45,7 @@ intrinsic IsGammaUpper0(G::GrpPSL2) -> BoolElt
     not assigned G`subgroup_list;
 end intrinsic;
 
-intrinsic IsGammaUpper1(G::GrpPSL2) -> BoolElt
+intrinsic IsGammaUpper1(G::GrpGL2Hat) -> BoolElt
     {returns true if and only if G is equal to Gamma^1(N) for some N}
     return IsCongruence(G) and G`IsOfGammaType
     and #G`gammaType_list eq 1
@@ -54,7 +54,7 @@ intrinsic IsGammaUpper1(G::GrpPSL2) -> BoolElt
     and  not assigned G`subgroup_list;
 end intrinsic;
 
-intrinsic IsOfRealType(G::GrpPSL2) -> BoolElt
+intrinsic IsOfRealType(G::GrpGL2Hat) -> BoolElt
 { returns true if and only if G is of real type (normalized by J).
   In fact we check more - we check that its image in GL(Z/NZ) is of real type}
    if not assigned G`IsReal then
@@ -80,7 +80,7 @@ intrinsic IsOfRealType(G::GrpPSL2) -> BoolElt
   return G`IsReal;
 end intrinsic;
 
-intrinsic IsGammaNS(G::GrpPSL2) -> BoolElt
+intrinsic IsGammaNS(G::GrpGL2Hat) -> BoolElt
 {returns true if and only if G is Gamma non split Cartan}
 // Since there are different orders whose units are GammaNS
    // at the moment we only return true if the group was explicitly built
@@ -106,7 +106,7 @@ intrinsic IsGammaNS(G::GrpPSL2) -> BoolElt
    return G`IsNSCartan;
 end intrinsic;
 
-intrinsic IsGammaNSplus(G::GrpPSL2) -> BoolElt
+intrinsic IsGammaNSplus(G::GrpGL2Hat) -> BoolElt
 {returns true if and only if G is the normalizer of Gamma non split Cartan}
 // Since there are different orders whose units are GammaNS
    // at the moment we only return true if the group was explicitly built
@@ -132,7 +132,7 @@ intrinsic IsGammaNSplus(G::GrpPSL2) -> BoolElt
    return G`IsNSCartanPlus;
 end intrinsic;
 
-intrinsic IsGammaShimura(G::GrpPSL2) -> BoolElt, GrpAb, Map[GrpAb, RngIntRes], GrpAb, RngIntElt
+intrinsic IsGammaShimura(G::GrpGL2Hat) -> BoolElt, GrpAb, Map[GrpAb, RngIntRes], GrpAb, RngIntElt
 {returns true if and only if G is a group of Shimura type, in the sense of GammaShimura.}
    
    N := Level(G);
