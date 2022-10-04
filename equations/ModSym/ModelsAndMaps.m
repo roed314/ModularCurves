@@ -267,12 +267,12 @@ intrinsic CanonicalRing(PG::GrpGL2Hat : Precision := 100) -> Crv[FldRat],
 	fs, K := BoxMethod(G, prec : wt := 2*d);
 	// The Eisenstein series are returned with denominator N = level !!
 	eis := EisensteinSeries(ModularForms(PG,2*d));
-	eis := [qExpansion(f, prec) : f in eis];
 	if (PG`IsOfGammaType) then
 	    gap := 1;
 	else   
 	    gap := level div K;
 	end if;
+	eis := [qExpansion(f, prec*gap) : f in eis];
 	eis_elt := [AbsEltseq(f) : f in eis];
 	assert &and[ &and[f[x] eq 0 : x in [1..#f] | (x-1) mod gap ne 0] : f in eis_elt];
 	eis_elt := [[f[gap*i+1] : i in [0..(#f-1) div gap]] : f in eis_elt];
