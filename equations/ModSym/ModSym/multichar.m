@@ -96,7 +96,7 @@ with basis ...
  *                                                                      *
  ************************************************************************/
 
-intrinsic ModularSymbols(chars::[GrpDrchElt], k::RngIntElt) -> ModSym
+intrinsic ModularSymbols(chars::[GrpDrchAElt], k::RngIntElt) -> ModSym
 {The direct sum of the spaces ModularSymbols(eps,k,sign), 
 where eps runs through representatives of the Galois orbits 
 of the characters in chars, viewed as a spaced defined over the
@@ -109,7 +109,7 @@ modulus.}
    return ModularSymbols(chars,k,0);
 end intrinsic;
 
-intrinsic ModularSymbols(chars::[GrpChrElt], k::RngIntElt, G::GrpPSL2) -> ModSym
+intrinsic ModularSymbols(chars::[GrpChrElt], k::RngIntElt, G::GrpGL2Hat) -> ModSym
 {The direct sum of the spaces ModularSymbols(eps,k,sign,G), 
 where eps runs through representatives of the Galois orbits 
 of the characters in chars, viewed as a spaced defined over the
@@ -122,7 +122,7 @@ modulus.}
    return ModularSymbols(chars,k,0,G);
 end intrinsic;
 
-intrinsic ModularSymbols(chars::[GrpDrchElt], k::RngIntElt, 
+intrinsic ModularSymbols(chars::[GrpDrchAElt], k::RngIntElt, 
                           sign::RngIntElt : F := RationalField()) -> ModSym
 {"} // "
    requirege k,2;   
@@ -153,7 +153,7 @@ intrinsic ModularSymbols(chars::[GrpDrchElt], k::RngIntElt,
 end intrinsic;
 
 intrinsic ModularSymbols(chars::[GrpChrElt], k::RngIntElt,
-			 sign::RngIntElt, G::GrpPSL2) -> ModSym
+			 sign::RngIntElt, G::GrpGL2Hat) -> ModSym
 {Constructs modular symbols with the representations. } 
    requirege k,2;   
    require sign in {-1,0,1} : "Argument 3 must be either -1, 0, or 1.";
@@ -250,7 +250,7 @@ intrinsic DirectSumRestrictionOfScalarsToQ(Spaces::[ModSym]) -> ModSym
    return S;
 end intrinsic;
 
-intrinsic ModularSymbols(G::GrpPSL2, k::RngIntElt, sign::RngIntElt) -> ModSym
+intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt, sign::RngIntElt) -> ModSym
 {The space of modular symbols attached to the congruence subgroup G, weight k and given 'sign'}
    requirege k,2;      
    require sign in {-1,0,1} : "Argument 3 must be either -1, 0, or 1.";
@@ -292,13 +292,13 @@ intrinsic ModularSymbols(G::GrpPSL2, k::RngIntElt, sign::RngIntElt) -> ModSym
    end if;
 end intrinsic;
 
-intrinsic ModularSymbols(G::GrpPSL2, k::RngIntElt) -> ModSym
+intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt) -> ModSym
 {The space of modular symbols attached to the congruence subgroup G and weight k}
    requirege k,2;      
    return ModularSymbols(G, k, 0);
 end intrinsic;
 
-intrinsic ModularSymbols(G::GrpPSL2) -> ModSym
+intrinsic ModularSymbols(G::GrpGL2Hat) -> ModSym
 {Same as ModularSymbols(G,2,0)}
    return ModularSymbols(G, 2, 0);
 end intrinsic;
@@ -405,7 +405,7 @@ intrinsic IsMultiChar(M::ModSym) -> BoolElt
    return M`is_multi;
 end intrinsic;
 
-intrinsic IsTrivial(chars::[GrpDrchElt]) -> BoolElt
+intrinsic IsTrivial(chars::[GrpDrchAElt]) -> BoolElt
 {For internal use only}
    return false;
 end intrinsic;

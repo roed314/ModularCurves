@@ -8,7 +8,7 @@ freeze;
                          
    FILE: modular_symbols.m
 
-   $Header: /home/was/magma/packages/ModFrm/code/RCS/modular_symbols.m,v 1.9 2002/10/26 22:49:01 was Exp $
+   $Header: /home/was/magma/packages/ModFrmA/code/RCS/modular_symbols.m,v 1.9 2002/10/26 22:49:01 was Exp $
 
    $Log: modular_symbols.m,v $
    Revision 1.9  2002/10/26 22:49:01  was
@@ -48,8 +48,8 @@ forward MinimalCharacterModularSymbols,
         MF_NewformModularSymbols;
 
 function MinimalCharacterModularSymbols(eps, k, sign)
-// assert Type(eps) eq GrpDrchElt;
-   assert Type(eps) in {GrpDrchElt, GrpChrElt};
+// assert Type(eps) eq GrpDrchAElt;
+   assert Type(eps) in {GrpDrchAElt, GrpChrElt};
    assert Type(k) eq RngIntElt;
    assert Type(sign) eq RngIntElt; 
    assert sign in {-1, 0, 1};
@@ -64,7 +64,7 @@ end function;
 function MF_ModularSymbols(M, sign)
    // The sequence of characteristic 0 spaces of modular symbols 
    // with given sign associated to M, when this makes sense.
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
    assert Type(sign) eq RngIntElt;
    if not (Weight(M) ge 2 and Weight(M) in Integers()) then
       error "Argument 1 must have integer weight at least 2.";
@@ -130,7 +130,7 @@ end function;
 
 function MF_NewformModularSymbols(f)
    //  The space of modular symbols attached to a newform f, if there is one.
-   assert Type(f) eq ModFrmElt;
+   assert Type(f) eq ModFrmAElt;
    if not assigned f`mf_modular_symbols then 
       error "I don't know how to compute the associated space of modular symbols (yet).";
    end if;
@@ -140,7 +140,7 @@ end function;
 
 
 
-intrinsic ModularSymbols(M::ModFrm, sign::RngIntElt) -> ModSym
+intrinsic ModularSymbols(M::ModFrmA, sign::RngIntElt) -> ModSym
 {The space of modular symbols over Q with given sign corresponding to the space M of modular forms.}
    if not (Weight(M) ge 2 and Weight(M) in Integers()) then
       error "Argument 1 must have integer weight at least 2.";
@@ -152,12 +152,12 @@ intrinsic ModularSymbols(M::ModFrm, sign::RngIntElt) -> ModSym
    return DirectSumRestrictionOfScalarsToQ(m);  
 end intrinsic;
 
-intrinsic ModularSymbols(M::ModFrm) -> ModSym
+intrinsic ModularSymbols(M::ModFrmA) -> ModSym
 {The space of modular symbols over Q corresponding to the space M of modular forms.}
    return ModularSymbols(M,0);
 end intrinsic;
 
-intrinsic ModularSymbols(f::ModFrmElt, sign::RngIntElt) -> ModSym
+intrinsic ModularSymbols(f::ModFrmAElt, sign::RngIntElt) -> ModSym
 {The space of modular symbols over Q with given sign corresponding to the newform f.}
    require IsNewform(f) : "Argument 1 must be newform.";
    require sign in {-1,0,1} : "Argument 2 must be either -1, 0, or 1.";
@@ -167,7 +167,7 @@ intrinsic ModularSymbols(f::ModFrmElt, sign::RngIntElt) -> ModSym
 end intrinsic;
 
 
-intrinsic ModularSymbols(f::ModFrmElt) -> ModSym
+intrinsic ModularSymbols(f::ModFrmAElt) -> ModSym
 {The space of modular symbols over Q corresponding to the newform f.}
    require IsNewform(f) : "Argument 1 must be newform.";
    return ModularSymbols(f,0);

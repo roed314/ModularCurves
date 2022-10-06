@@ -41,7 +41,7 @@ procedure TestCusps(G) // test the routines, for Gamma0(N) or Gamma1(N)
 end procedure;
 
 
-intrinsic Cusps(G::GrpPSL2) -> SeqEnum
+intrinsic Cusps(G::GrpGL2Hat) -> SeqEnum
     {returns a list of coset representatives of G in PSL2(Z);
     only defined for G a subgroup of PSL2(Z)} 
     // the method used is to use the Gluing relations from
@@ -127,7 +127,7 @@ intrinsic Cusps(G::GrpPSL2) -> SeqEnum
 end intrinsic;
 
 
-intrinsic Widths(G::GrpPSL2) -> SeqEnum
+intrinsic Widths(G::GrpGL2Hat) -> SeqEnum
 {Sequence containing the CuspWidth of each element of Cusps(G)}
 
     require Sprint(G`MatrixGroup) eq "GL(2, IntegerRing())" : 
@@ -216,7 +216,7 @@ end function;
 /////////////////////////////////////////////////////
 
 
-intrinsic EllipticPoints(G::GrpPSL2,H::SpcHyp) -> SeqEnum
+intrinsic EllipticPoints(G::GrpGL2Hat,H::SpcHyp) -> SeqEnum
    {returns a list of inequivalent elliptic points of the congruence
    subgroup G acting on the upperhalf plane H}
    FS := FareySymbol(G);
@@ -249,7 +249,7 @@ intrinsic EllipticPoints(G::GrpPSL2,H::SpcHyp) -> SeqEnum
 end intrinsic;
 
 
-intrinsic EllipticPoints(G::GrpPSL2) -> SeqEnum
+intrinsic EllipticPoints(G::GrpGL2Hat) -> SeqEnum
    {returns a list of inequivalent elliptic points of the congruence
    subgroup G acting on the upperhalf plane}
    H := UpperHalfPlaneWithCusps();   
@@ -257,7 +257,7 @@ intrinsic EllipticPoints(G::GrpPSL2) -> SeqEnum
 end intrinsic;
 
 
-intrinsic Width(G::GrpPSL2,x::Any) -> RngIntElt
+intrinsic Width(G::GrpGL2Hat,x::Any) -> RngIntElt
 {Same as CuspWidth}
    require Type(x) in {Infty, FldRatElt, SetCspElt} :
           "The cusp should be given either as a rational number, " *
@@ -266,19 +266,19 @@ intrinsic Width(G::GrpPSL2,x::Any) -> RngIntElt
 end intrinsic;
 
 
-intrinsic CuspWidth(G::GrpPSL2,x::Infty) -> RngIntElt
+intrinsic CuspWidth(G::GrpGL2Hat,x::Infty) -> RngIntElt
 {The width of the cusp x relative to the group G, which should be a subgroup of PSL_2(Z)}
    return CuspWidth(G,Cusps()!x);
 end intrinsic;
 
 
-intrinsic CuspWidth(G::GrpPSL2,x::FldRatElt) -> RngIntElt
+intrinsic CuspWidth(G::GrpGL2Hat,x::FldRatElt) -> RngIntElt
 {"} // "
    return CuspWidth(G,Cusps()!x);
 end intrinsic;
 
 
-intrinsic CuspWidth(G::GrpPSL2,x::SetCspElt) -> RngIntElt
+intrinsic CuspWidth(G::GrpGL2Hat,x::SetCspElt) -> RngIntElt
 {"} // "
 if false and assigned G`cusp_widths then
       S := G`cusps;
@@ -302,7 +302,7 @@ if false and assigned G`cusp_widths then
    end for;
 end intrinsic;
 
-intrinsic CuspInftyElt(cusp::SetCspElt) -> GrpPSL2Elt
+intrinsic CuspInftyElt(cusp::SetCspElt) -> GrpGL2HatElt
 {Computes an element alpha such that alpha sends infinity to the cusp}
   a := Eltseq(cusp);
   PSLZ := PSL2(Integers());
@@ -310,12 +310,12 @@ intrinsic CuspInftyElt(cusp::SetCspElt) -> GrpPSL2Elt
   return PSLZ!Transpose(Matrix(g));
 end intrinsic;
 
-intrinsic CuspInftyElt(cusp::SeqEnum[RngIntElt]) -> GrpPSL2Elt
+intrinsic CuspInftyElt(cusp::SeqEnum[RngIntElt]) -> GrpGL2HatElt
 {Computes an element alpha such that alpha sends infinity to the cusp}
    return CuspInftyElt(Cusp(cusp[1], cusp[2]));
 end intrinsic;	  
 
-intrinsic IsRegularCusp(G::GrpPSL2, a::SetCspElt) -> BoolElt
+intrinsic IsRegularCusp(G::GrpGL2Hat, a::SetCspElt) -> BoolElt
 {Returns whether a is a regular cusp for G.}
     GL2Q := GL(2, Rationals());
     alpha := GL2Q!Matrix(CuspInftyElt(Eltseq(a)));
@@ -330,7 +330,7 @@ intrinsic IsRegularCusp(G::GrpPSL2, a::SetCspElt) -> BoolElt
     return not ((g_m in im_sl2) and (g_p notin im_sl2));
 end intrinsic;
 
-intrinsic RegularCusps(G::GrpPSL2) -> SeqEnum
+intrinsic RegularCusps(G::GrpGL2Hat) -> SeqEnum
     {returns a list of coset representatives of G in PSL2(Z);
      only defined for G a subgroup of PSL2(Z)}
     return [cusp : cusp in Cusps(G) | IsRegularCusp(G, cusp)];

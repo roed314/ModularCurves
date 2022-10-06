@@ -1,4 +1,4 @@
-// freeze;
+freeze;
 
 /*********************************************************************************
                                                                           
@@ -9,8 +9,8 @@
   FILE: Box.m (modular curve algorithm based on J. Box's paper)
 
   exports intrinsics:
-  JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt);
-  ModularCurve(G::GrpPSL2);
+  JMap(G::GrpGL2Hat, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt);
+  ModularCurve(G::GrpGL2Hat);
   WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
 		     E4::FldFunRatMElt, E6::FldFunRatMElt, name::MonStgElt);
   LMFDBWriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
@@ -1918,7 +1918,7 @@ function ModularCurveBox(G, genus : Precision := 0, Proof := false,
     return X, fs, type, K;
 end function;
 
-intrinsic ModularCurve(G::GrpPSL2 : Proof := false, Al := "Canonical") -> Crv[FldRat],SeqEnum[RngSerPowElt], MonStgElt
+intrinsic ModularCurve(G::GrpGL2Hat : Proof := false, Al := "Canonical") -> Crv[FldRat],SeqEnum[RngSerPowElt], MonStgElt
 {Returns the canonical embedding of the modular curve associated to G,
  together with the q-expansions of a basis of cusp forms, and the type of model.}
 /*

@@ -32,7 +32,7 @@ end intrinsic;
 
 function init_psl2_group(N,R) 
     /* The basic internal creation function. */
-    G := New(GrpPSL2);
+    G := New(GrpGL2Hat);
     // warning!  Need to check for which
     // rings GL(2,R) works or not!!!
     if (Type(R) in {Rng,RngInt,FldRat}) then 
@@ -55,7 +55,7 @@ function init_psl2_group_char(N,R,char)
     return G;
 end function;
  
-intrinsic PSL2(R::Rng) -> GrpPSL2
+intrinsic PSL2(R::Rng) -> GrpGL2Hat
     {The projective special linear matrix group PSL(2,R).}
     require Type(R) in {RngInt, FldRat, FldQuad, FldNum, FldRe}: 
            "The Argument must have type RngInt, FldRat, FldQuad, or FldRe";
@@ -79,7 +79,7 @@ intrinsic PSL2(R::Rng) -> GrpPSL2
     return G;
 end intrinsic;
 
-intrinsic CongruenceSubgroup(A::SeqEnum) -> GrpPSL2
+intrinsic CongruenceSubgroup(A::SeqEnum) -> GrpGL2Hat
     {Given A = [n,m,p], this returns
     the congruence subgroup consisting of 2 by 2 matrices
     with integer coefficients [a,b,c,d]
@@ -98,13 +98,13 @@ intrinsic CongruenceSubgroup(A::SeqEnum) -> GrpPSL2
     return G;
 end intrinsic;
 
-intrinsic CongruenceSubgroup(A::SeqEnum,char::GrpDrchElt) -> GrpPSL2
+intrinsic CongruenceSubgroup(A::SeqEnum,char::GrpDrchAElt) -> GrpGL2Hat
     {Given N = [n,m,p], this returns
     the congruence subgroup consisting of 2 by 2 matrices
     with integer coefficients [a,b,c,d]
     with  b = 0 mod p, and c = 0 mod n, and char(a) = 1
     for char a Dirichlet character mod m}
-    require Type(char) eq GrpDrchElt: "second argument must be a Dirichlet character";
+    require Type(char) eq GrpDrchAElt: "second argument must be a Dirichlet character";
     require A[2] mod Conductor(char) eq 0: 
       "The second argument must be a Dirichlet character with conductor dividing A[2]";    
     A[2] := Conductor(char);
@@ -118,7 +118,7 @@ intrinsic CongruenceSubgroup(A::SeqEnum,char::GrpDrchElt) -> GrpPSL2
     return G;
 end intrinsic;
 
-intrinsic CongruenceSubgroup(k::RngIntElt,N::RngIntElt) -> GrpPSL2
+intrinsic CongruenceSubgroup(k::RngIntElt,N::RngIntElt) -> GrpGL2Hat
     {The congruence subgroup 
     Gamma_0(N), Gamma_1(N), Gamma(N), Gamma^1(N), or Gamma^0(N),
     when k = 0,1,2,3, or 4  respectively.}
@@ -145,7 +145,7 @@ intrinsic CongruenceSubgroup(k::RngIntElt,N::RngIntElt) -> GrpPSL2
     end case;
 end intrinsic;
 
-intrinsic CongruenceSubgroup(N::RngIntElt) -> GrpPSL2
+intrinsic CongruenceSubgroup(N::RngIntElt) -> GrpGL2Hat
    {The full projective congruence subgroup Gamma(N).}
    return CongruenceSubgroup(2,N);
 end intrinsic;
@@ -158,14 +158,14 @@ end intrinsic;
 //////////////////////////////////////////////////////////
 
 
-intrinsic Gamma0(N::RngIntElt) -> GrpPSL2
+intrinsic Gamma0(N::RngIntElt) -> GrpGL2Hat
     {creates the congruence subgroup Gamma_0(N)}
     require N gt 0: "Argument must be a positive integer";
     G := CongruenceSubgroup([N,1,1]);    
     return G;
 end intrinsic;
 
-intrinsic Gamma1(N::RngIntElt) -> GrpPSL2
+intrinsic Gamma1(N::RngIntElt) -> GrpGL2Hat
    {creates the congruence subgroup Gamma_1(N)}
    require N gt 0: "Argument must be a positive integer";
     G := CongruenceSubgroup([N,N,1]);    
@@ -173,21 +173,21 @@ intrinsic Gamma1(N::RngIntElt) -> GrpPSL2
  end intrinsic;
 
 
-intrinsic GammaUpper0(N::RngIntElt) -> GrpPSL2
+intrinsic GammaUpper0(N::RngIntElt) -> GrpGL2Hat
     {creates the congruence subgroup Gamma^0(N)}
     require N gt 0: "Argument must be a positive integer";
     G := CongruenceSubgroup([1,1,N]);    
     return G;
 end intrinsic;
 
-intrinsic GammaUpper1(N::RngIntElt) -> GrpPSL2
+intrinsic GammaUpper1(N::RngIntElt) -> GrpGL2Hat
    {creates the congruence subgroup Gamma^1(N)}
    require N gt 0: "Argument must be a positive integer";
     G := CongruenceSubgroup([1,N,N]);    
     return G;
 end intrinsic;
 
-intrinsic GammaS(N::RngIntElt) -> GrpPSL2
+intrinsic GammaS(N::RngIntElt) -> GrpGL2Hat
 {creates the congruence subgroup Gamma_s(N) which is split at all primes dividing N}
   Z_N := Integers(N);
   U, psi := UnitGroup(Z_N);
@@ -201,7 +201,7 @@ intrinsic GammaS(N::RngIntElt) -> GrpPSL2
   return G;
 end intrinsic;
 
-intrinsic GammaNS(N::RngIntElt, f::RngUPolElt[RngInt]) -> GrpPSL2
+intrinsic GammaNS(N::RngIntElt, f::RngUPolElt[RngInt]) -> GrpGL2Hat
 {creates the congruence subgroup Gamma_ns(N), choosing alpha as the root of the polynomial f, which should be irreducible modulo each prime dividing N. Currently supports only the case where ZZ[alpha] is a maximal order, where alpha is a root of f.}
    require N gt 0 : "N must be a positive integer";
    
@@ -245,7 +245,7 @@ intrinsic GammaNS(N::RngIntElt, f::RngUPolElt[RngInt]) -> GrpPSL2
 end intrinsic;
 
 
-intrinsic GammaNS(N::RngIntElt, u::RngIntResElt) -> GrpPSL2
+intrinsic GammaNS(N::RngIntElt, u::RngIntResElt) -> GrpGL2Hat
 {creates the congruence subgroup Gamma_ns(N), choosing u as the nonsquare
     such that N | a-d, N | b-uc}
   require N gt 0: "N must be a positive integer";
@@ -283,7 +283,7 @@ intrinsic GammaNS(N::RngIntElt, u::RngIntResElt) -> GrpPSL2
   return G;
 end intrinsic;
 
-intrinsic GammaNS(N::RngIntElt) -> GrpPSL2
+intrinsic GammaNS(N::RngIntElt) -> GrpGL2Hat
 {creates the congruence subgroup Gamma_ns(N)}
    if IsPrime(N) then
        return GammaNS(N, Integers(N)!Nonsquare(GF(N)));
@@ -305,23 +305,23 @@ intrinsic GammaNS(N::RngIntElt) -> GrpPSL2
 //   u := PrimitiveElement(IntegerRing(N));
 end intrinsic;
 
-intrinsic GammaSplus(N::RngIntElt) -> GrpPSL2
+intrinsic GammaSplus(N::RngIntElt) -> GrpGL2Hat
 {creates the congruence subgroup Gamma_s^plus(N)}
    return Normalizer(GammaS(N));
 end intrinsic;
 
-intrinsic GammaNSplus(N::RngIntElt, u::RngIntResElt) -> GrpPSL2
+intrinsic GammaNSplus(N::RngIntElt, u::RngIntResElt) -> GrpGL2Hat
 {creates the congruence subgroup Gamma_ns^plus(N)}
    return Normalizer(GammaNS(N,u));
 end intrinsic;
 
-intrinsic GammaNSplus(N::RngIntElt) -> GrpPSL2
+intrinsic GammaNSplus(N::RngIntElt) -> GrpGL2Hat
 {creates the congruence subgroup Gamma_ns^plus(N)}
    return Normalizer(GammaNS(N));
 end intrinsic;
 
 intrinsic GammaShimura(U::GrpAb, phi::Map,
-		       H::GrpAb, t::RngIntElt) -> GrpPSL2
+		       H::GrpAb, t::RngIntElt) -> GrpGL2Hat
 {creates the congruence subgroup Gamma(H,t), defined by Shimura.
     H is a subgroup of UnitGroup(ZZ / N ZZ), and t divides N.
     These are matrices such that modulo N they are upper triangular,
@@ -337,7 +337,7 @@ end intrinsic;
 
 // Creation of Quotient
 
-intrinsic '/'(G::GrpPSL2, H::GrpPSL2) -> GrpPSL2
+intrinsic '/'(G::GrpGL2Hat, H::GrpGL2Hat) -> GrpGL2Hat
 	     {Currently assumes the same level.}
 
 //   require ModLevelGL(G) eq ModLevelGL(H) :
@@ -352,7 +352,7 @@ intrinsic '/'(G::GrpPSL2, H::GrpPSL2) -> GrpPSL2
 */
 end intrinsic;
 
-intrinsic Transversal(G::GrpPSL2, H::GrpPSL2) -> GrpPSL2
+intrinsic Transversal(G::GrpGL2Hat, H::GrpGL2Hat) -> GrpGL2Hat
 {Return coset representatives for H\G}
   require H subset G : "argument 2 must a subgroup of argument 1.";
   im_G := ImageInLevel(G : N := Level(H));
@@ -366,7 +366,7 @@ end intrinsic;
 //                                                      //
 //////////////////////////////////////////////////////////
 
-intrinsic Normalizer(G::GrpPSL2) -> GrpPSL2
+intrinsic Normalizer(G::GrpGL2Hat) -> GrpGL2Hat
    {The normalizer of a congruence subgroup in SL_2(R)}
    // require IsGamma0(G): "the argument must be Gamma_0(N) for some integer N";
    if Level(G) eq 1 then return G; end if;
@@ -439,7 +439,7 @@ intrinsic MaximalNormalizingWithAbelianQuotient(G_prime::GrpMat,
     return A_pre;
 end intrinsic;
 
-intrinsic MaximalNormalizingWithAbelianQuotient(G::GrpPSL2) -> GrpPSL2
+intrinsic MaximalNormalizingWithAbelianQuotient(G::GrpGL2Hat) -> GrpGL2Hat
 {}
     if Level(G) eq 1 then return G; end if;
     im_G  := ImageInLevelGL(G);
@@ -466,7 +466,7 @@ end intrinsic;
 //////////////////////////////////////////////////////////
 
 
-intrinsic Random(G::GrpPSL2,m::RngIntElt) -> GrpPSL2Elt
+intrinsic Random(G::GrpGL2Hat,m::RngIntElt) -> GrpGL2HatElt
     {returns a random element of the projective linear group G,
     m determines the size of the coefficients}    
     // assume the group is congruence, given by [N,M,P]
@@ -527,7 +527,7 @@ end intrinsic;
 //                                                      //
 //////////////////////////////////////////////////////////
 
-intrinsic Conjugate(G::GrpPSL2, A::GrpMatElt : IsExactLevel := false) -> GrpPSL2
+intrinsic Conjugate(G::GrpGL2Hat, A::GrpMatElt : IsExactLevel := false) -> GrpGL2Hat
 {This function returns the conjugation of G by A, i.e. A^(-1)*G*A
      At the moment we only support the case where
      both input and output are subgroups of PSL2(Z)}
@@ -584,7 +584,7 @@ intrinsic Conjugate(G::GrpPSL2, A::GrpMatElt : IsExactLevel := false) -> GrpPSL2
   return PSL2Subgroup(im_in_level, IsExactLevel);
 end intrinsic;
 
-intrinsic '^'(G::GrpPSL2, A::GrpMatElt) -> GrpPSL2
+intrinsic '^'(G::GrpGL2Hat, A::GrpMatElt) -> GrpGL2Hat
 {}
   return Conjugate(G,A);
 end intrinsic;
@@ -598,7 +598,7 @@ function get_coercion_hom(G,H)
   return hom<G->H | [H!G.i : i in [1..NumberOfGenerators(G)]]>;
 end function;
 
-intrinsic Intersection(G::GrpPSL2,H::GrpPSL2) -> GrpPSL2
+intrinsic Intersection(G::GrpGL2Hat,H::GrpGL2Hat) -> GrpGL2Hat
     {returns the intersection of two congruence subgroups.}
 
   require Type(G`BaseRing) eq RngInt : "G, H must be congruence subgroups";
@@ -668,7 +668,7 @@ red_H := get_coercion_hom(ImageInLevelGL(H), target);
 end intrinsic;
  
 
-intrinsic 'meet' (G::GrpPSL2,H::GrpPSL2) -> GrpPSL2
+intrinsic 'meet' (G::GrpGL2Hat,H::GrpGL2Hat) -> GrpGL2Hat
     {returns the intersection of two congruence subgroups.}
     return Intersection(G,H);
 end intrinsic;
@@ -676,7 +676,7 @@ end intrinsic;
 // This is not good enough -
 // we want level as a GL2 subgroup
 
-intrinsic CalcLevel(G::GrpPSL2) -> RngIntElt
+intrinsic CalcLevel(G::GrpGL2Hat) -> RngIntElt
 {calculates the level of a subgroup of PSL2}
   if Degree(ModLevel(G)) eq 1 then return 1; end if;
   mlist := ManinSymbolGenList(2,G,G`BaseRing);
@@ -720,10 +720,10 @@ end intrinsic;
  // Eventually we would like to compute the level and check
  // whether it is a congruence subgroup ourselves
  
-intrinsic SubgroupFromGens(G::GrpPSL2, gens::SeqEnum, N::RngIntElt,
-			   IsExactLevel::BoolElt) -> GrpPSL2
+intrinsic SubgroupFromGens(G::GrpGL2Hat, gens::SeqEnum, N::RngIntElt,
+			   IsExactLevel::BoolElt) -> GrpGL2Hat
      {returns the subgroup of G generated by gens.}
-     H := New(GrpPSL2);
+     H := New(GrpGL2Hat);
      H`MatrixGroup := G`MatrixGroup;
      H`BaseRing := G`BaseRing;
      H`IsOfGammaType := false;
@@ -742,14 +742,14 @@ intrinsic SubgroupFromGens(G::GrpPSL2, gens::SeqEnum, N::RngIntElt,
 end intrinsic;
 
 intrinsic PSL2SubgroupFromGens(gens::SeqEnum, R::Rng, N::RngIntElt,
-			       IsExactLevel::BoolElt) -> GrpPSL2
+			       IsExactLevel::BoolElt) -> GrpGL2Hat
      {returns the subgroup of PSL2(R) generated by gens}
     return SubgroupFromGens(PSL2(R), gens, N, IsExactLevel);
 end intrinsic;
 
 // Lift an element of SL2(Z/NZ) to an element of SL2(Z)
  
-intrinsic FindLiftToSL2(g::GrpMatElt) -> GrpPSL2Elt
+intrinsic FindLiftToSL2(g::GrpMatElt) -> GrpGL2HatElt
 {finds a lift in SL2 for g}
      elt_g := ElementToSequence(g);
      if #elt_g eq 1 then return PSL2(Integers())!1; end if;
@@ -826,10 +826,10 @@ function get_mod_level(H, N)
      return ModLevel, ModLevelGL;
 end function;
 
-intrinsic SubgroupFromMod(G::GrpPSL2, N::RngIntElt, H0::GrpMat,
-			  IsExactLevel::BoolElt) -> GrpPSL2
+intrinsic SubgroupFromMod(G::GrpGL2Hat, N::RngIntElt, H0::GrpMat,
+			  IsExactLevel::BoolElt) -> GrpGL2Hat
      {returns the subgroup of G generated whose image is H0.}
-     H := New(GrpPSL2);
+     H := New(GrpGL2Hat);
      H`MatrixGroup := G`MatrixGroup;
      H`BaseRing := G`BaseRing;
      H`IsOfGammaType := false;
@@ -872,7 +872,7 @@ intrinsic SubgroupFromMod(G::GrpPSL2, N::RngIntElt, H0::GrpMat,
      return H;
 end intrinsic;
 
-intrinsic PSL2Subgroup(H::GrpMat, IsExactLevel::BoolElt) -> GrpPSL2
+intrinsic PSL2Subgroup(H::GrpMat, IsExactLevel::BoolElt) -> GrpGL2Hat
  {returns a subgroup of PSL2(Z) whose image is H (assumes -I in H)}
      require Type(BaseRing(H)) eq RngIntRes : "Image group must be Z/NZ";
      if Dimension(H) eq 1 then
@@ -885,12 +885,12 @@ intrinsic PSL2Subgroup(H::GrpMat, IsExactLevel::BoolElt) -> GrpPSL2
      return SubgroupFromMod(PSL2(Integers()), N, H, IsExactLevel);
 end intrinsic;
 
-intrinsic PSL2Subgroup(H::GrpMat) -> GrpPSL2
+intrinsic PSL2Subgroup(H::GrpMat) -> GrpGL2Hat
  {returns a subgroup of PSL2(Z) whose image is H (assumes -I in H)}
    return PSL2Subgroup(H, true);
 end intrinsic;
 
-intrinsic PSL2Subgroup(H::GrpMat,label::MonStgElt) -> GrpPSL2
+intrinsic PSL2Subgroup(H::GrpMat,label::MonStgElt) -> GrpGL2Hat
  {returns a subgroup of PSL2(Z) whose image is H (assumes -I in H)}
    ret :=  PSL2Subgroup(H, true);
    ret`Label := label;

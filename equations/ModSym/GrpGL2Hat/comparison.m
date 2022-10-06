@@ -19,9 +19,9 @@ freeze;
 
 import "coercion.m":  MemberTest;
 
-intrinsic 'in'(A::., G::GrpPSL2) -> BoolElt
+intrinsic 'in'(A::., G::GrpGL2Hat) -> BoolElt
    {Returns true if A is in G.}
-   if ISA(Type(A), GrpPSL2Elt) then
+   if ISA(Type(A), GrpGL2HatElt) then
        return MemberTest(G,Matrix(A));
    elif ISA(Type(A), Mtrx) then
        return MemberTest(G,A);
@@ -30,12 +30,8 @@ intrinsic 'in'(A::., G::GrpPSL2) -> BoolElt
 end intrinsic;
 
 
-intrinsic 'eq' (A::GrpPSL2Elt,B::GrpPSL2Elt) -> BoolElt
+intrinsic 'eq' (A::GrpGL2HatElt,B::GrpGL2HatElt) -> BoolElt
     {Equality of elements of PSL_2(Z)}
-
-    if assigned Parent(A)`IsShimuraGroup and Parent(A)`IsShimuraGroup then
-      return A`Element eq B`Element;
-    end if;
 
     R1 := BaseRing(Parent(A));
     R2 := BaseRing(Parent(B));
@@ -72,7 +68,7 @@ intrinsic 'eq' (A::GrpPSL2Elt,B::GrpPSL2Elt) -> BoolElt
 end intrinsic;
 
 
-intrinsic 'eq' (G::GrpPSL2,H::GrpPSL2) -> BoolElt
+intrinsic 'eq' (G::GrpGL2Hat,H::GrpGL2Hat) -> BoolElt
     {True iff the given congruence subgroups of PSL_2(Z) are equal.}
     // Warning! this may not work well for non congruence groups!
     if G`BaseRing cmpne H`BaseRing then return false; end if;
@@ -142,7 +138,7 @@ function is_in_gamma(H,N, type)
   return true;
 end function;
 
-intrinsic 'subset'(H::GrpPSL2,G::GrpPSL2) -> BoolElt
+intrinsic 'subset'(H::GrpGL2Hat,G::GrpGL2Hat) -> BoolElt
     {True iff H is a subgroup of G, where G and H are subgroups of PSL_2(Z).}
     if (assigned G`Level) and (G`Level eq 1) then
        return Type(H`BaseRing) eq Type(G`BaseRing);
@@ -235,7 +231,7 @@ end intrinsic;
 
 /*
 // TO DO: make this do something non trivial!
-intrinsic IsFiniteIndex(G::GrpPSL2,H::GrpPSL2) -> BoolElt
+intrinsic IsFiniteIndex(G::GrpGL2Hat,H::GrpGL2Hat) -> BoolElt
     {tests whether G is finite index in H}
     if not G subset H then
 	return false;
@@ -244,7 +240,7 @@ intrinsic IsFiniteIndex(G::GrpPSL2,H::GrpPSL2) -> BoolElt
 end intrinsic;
 */
 
-intrinsic Index(G::GrpPSL2,H::GrpPSL2) -> RngIntElt
+intrinsic Index(G::GrpGL2Hat,H::GrpGL2Hat) -> RngIntElt
     { returns index of H in G, if this is finite}
     require H subset G: "second argument must be a subgroup of the first argument";
     //require IsFiniteIndex(G,H): "First argument must have finite index in the second argument";

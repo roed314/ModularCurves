@@ -176,7 +176,7 @@ freeze;
  
  ***************************************************************************/
 
-import "../GrpPSL2/GrpPSL2/misc.m" : Conjugates, IsConjugate, NormalizerGrpMat;
+import "../GrpGL2Hat/GrpGL2Hat/misc.m" : Conjugates, IsConjugate, NormalizerGrpMat;
 
 import "arith.m" : ReductionMap,
                    SmallestPrimeNondivisor;
@@ -478,7 +478,7 @@ intrinsic ModularSymbols(N::RngIntElt, k::RngIntElt, F::Fld) -> ModSym
    return ModularSymbols(DirichletGroup(N,F)!1,k);
 end intrinsic;
 
-intrinsic ModularSymbols(G::GrpPSL2, k::RngIntElt, F::Fld) -> ModSym
+intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt, F::Fld) -> ModSym
 {The space of modular symbols of level G, weight k, 
  over the field F.}
    requirege k,2;
@@ -513,7 +513,7 @@ intrinsic ModularSymbols(N::RngIntElt, k::RngIntElt,
    return ModularSymbols(x,k,sign);
 end intrinsic;
 
-intrinsic ModularSymbols(G::GrpPSL2, k::RngIntElt, 
+intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt, 
 				  sign::RngIntElt) -> ModSym
 {The space of modular symbols of level G, weight k, 
  and given sign over the rational numbers.
@@ -530,7 +530,7 @@ end intrinsic;
 forward GetRealConjugate;
 forward GetGLModel;
 
-intrinsic ModularSymbols(G::GrpPSL2, k::RngIntElt, 
+intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt, 
 			 F::Fld, sign::RngIntElt) -> ModSym
 {The space of modular symbols of level G, weight k, 
  and given sign over the field F.
@@ -564,7 +564,7 @@ intrinsic ModularSymbols(G::GrpPSL2, k::RngIntElt,
    return ModularSymbols(eps,ZG,k,F,sign);
 end intrinsic;
 
-intrinsic ModularSymbols(eps::GrpDrchElt, k::RngIntElt) -> ModSym
+intrinsic ModularSymbols(eps::GrpDrchAElt, k::RngIntElt) -> ModSym
 {The space of modular symbols of weight k and character eps.}
    requirege k,2;
    require IsSupportedField(BaseRing(eps)) : SupportMessage;
@@ -580,7 +580,7 @@ end intrinsic;
 
 forward CreateTrivialSpace;
 
-intrinsic ModularSymbols(eps::GrpDrchElt, k::RngIntElt, 
+intrinsic ModularSymbols(eps::GrpDrchAElt, k::RngIntElt, 
                          sign::RngIntElt) -> ModSym
 {The space of modular symbols of weight k and character eps.
  The level and base field are specified as part of eps.
@@ -689,7 +689,7 @@ end intrinsic;
 
 forward CreateTrivialSpaceGenEps;
 
-intrinsic ModularSymbols(eps::GrpChrElt, G::GrpPSL2, k::RngIntElt,
+intrinsic ModularSymbols(eps::GrpChrElt, G::GrpGL2Hat, k::RngIntElt,
 				  F::Fld, sign::RngIntElt) -> ModSym
 {The space of modular symbols of weight k and level G, with character eps.
  The third argument "sign" allows for working in certain
@@ -975,7 +975,7 @@ intrinsic Level(M::ModSym) -> RngIntElt
    return Level(AmbientSpace(M));
 end intrinsic;
 
-intrinsic LevelSubgroup(M::ModSym) -> GrpPSL2
+intrinsic LevelSubgroup(M::ModSym) -> GrpGL2Hat
 {The level subgroup of the space M of modular symbols.}
    if IsAmbientSpace(M) then
       return M`G;
@@ -2263,8 +2263,8 @@ function GetRealConjugate(H)
   return real_H; 
 end function;
 
-// TODO - move this to GrpPSL2
-intrinsic RealTypeConjugate(G::GrpPSL2) -> GrpPSL2
+// TODO - move this to GrpGL2Hat
+intrinsic RealTypeConjugate(G::GrpGL2Hat) -> GrpGL2Hat
 {R a conjugate group which is of real type, if it exists.}
   H := ImageInLevelGL(G);
   real_H := GetRealConjugate(H);

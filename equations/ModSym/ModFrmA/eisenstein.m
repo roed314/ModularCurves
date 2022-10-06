@@ -167,7 +167,7 @@ function ExtendBaseMaximal(eps)
 
    assert Type(eps) eq SeqEnum;
    assert #eps gt 0;
-   if Type(eps[1]) eq GrpDrchElt then
+   if Type(eps[1]) eq GrpDrchAElt then
      N := Modulus(eps[1]);
      g := ExponentOfZModN(N);
      if g eq 1 then
@@ -190,7 +190,7 @@ function ExtendBaseMaximal(eps)
 			 Parent(eps[1])`GammaPrime, Parent(eps[1])`Gamma);
      ans := [G!e : e in eps];
    else
-     assert false; // Characters are only allowed to be GrpChrElt or GrpDrchElt
+     assert false; // Characters are only allowed to be GrpChrElt or GrpDrchAElt
    end if;
 
    return ans;
@@ -198,13 +198,13 @@ end function;
 
 
 function MakeEisensteinSeries(M,chi,psi,t)
-   assert Type(M) eq ModFrm;
-   assert Type(chi) eq GrpDrchElt;
-   assert Type(psi) eq GrpDrchElt;
+   assert Type(M) eq ModFrmA;
+   assert Type(chi) eq GrpDrchAElt;
+   assert Type(psi) eq GrpDrchAElt;
    assert Type(t) eq RngIntElt;
    assert Level(M) mod (Conductor(chi)*Conductor(psi)*t) eq 0;
 
-   f := New(ModFrmElt);
+   f := New(ModFrmAElt);
    f`parent :=
           BaseExtend(EisensteinSubspace(M), QZeta(LCM(Order(chi),Order(psi))));
    f`eisenstein :=<MinimalBaseRingCharacter(AssociatedPrimitiveCharacter(chi)),
@@ -215,9 +215,9 @@ end function;
 
 /*
 function MakeEisensteinSeriesNotGamma(M, vecs, vecs0, eps_vals)
-    assert Type(M) eq ModFrm;
+    assert Type(M) eq ModFrmA;
     
-    f := New(ModFrmElt);
+    f := New(ModFrmAElt);
     // Check here if we need in general to extend
     f`parent := EisensteinSubspace(M);
     f`eisenstein := <vecs, vecs0, eps_vals>;
@@ -226,9 +226,9 @@ end function;
 */
 
 function MakeEisensteinSeriesNotGamma(M, basislist, rel_dict, coeffs)
-    assert Type(M) eq ModFrm;
+    assert Type(M) eq ModFrmA;
     
-    f := New(ModFrmElt);
+    f := New(ModFrmAElt);
     // Check here if we need in general to extend
     f`parent := EisensteinSubspace(M);
     f`eisenstein := <basislist, rel_dict, coeffs>;
@@ -247,7 +247,7 @@ end function;
 forward act;
 
 function ActionOnEisensteinSeries(gamma, f)
-    if Type(gamma) eq GrpPSL2Elt then
+    if Type(gamma) eq GrpGL2HatElt then
 	gamma := Matrix(gamma);
     end if;
     M := AmbientSpace(Parent(f));
@@ -753,7 +753,7 @@ function EisensteinRouse(M, eps)
 end function;
 
 function ComputeAllEisensteinSeries(M : all:=false)
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
    assert SpaceType(M) in {"full", "eis"};
    ans := [* *]; 
    N   := Level(M);
@@ -865,7 +865,7 @@ function ComputeAllEisensteinSeries(M : all:=false)
    eps := ExtendBaseMaximal(DirichletCharacters(M));
    K   := BaseRing(eps[1]);
    Chi := Universe(eps);
-   if Type(Chi) eq GrpDrch then
+   if Type(Chi) eq GrpDrchA then
      Chi1 := DirichletGroupCopy(Chi);
    elif Type(Chi) eq GrpChr then
      Chi1 := CharacterGroupCopy(Chi);
@@ -952,7 +952,7 @@ function ComputeAllEisensteinSeries(M : all:=false)
 end function;
 
 
-intrinsic EisensteinSeries(M::ModFrm : AllCharacters:=false) -> List
+intrinsic EisensteinSeries(M::ModFrmA : AllCharacters:=false) -> List
 {List of the Eisenstein series associated to M.}
 /*   
    chi is a primitive character of conductor L
@@ -997,7 +997,7 @@ end intrinsic;
 
 
 function DimensionOfEisensteinSpace(M)
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
    assert IsAmbientSpace(M);
    
    if not IsOfGammaType(M) then
@@ -1072,7 +1072,7 @@ end function;
 
 // Return obj_q, obj_qq (the q- and q-prime parts of obj)
 // satisfying obj = obj_q * obj_qq,
-// where obj is either a RngIntElt or a GrpDrchElt.
+// where obj is either a RngIntElt or a GrpDrchAElt.
 
 function q_qprime_split(obj,q)  
    if Type(obj) eq RngIntElt then
@@ -1080,7 +1080,7 @@ function q_qprime_split(obj,q)
       qq := obj div q;
       assert q*qq eq obj and GCD(q,qq) eq 1;
       return q, qq;
-   elif Type(obj) eq GrpDrchElt then
+   elif Type(obj) eq GrpDrchAElt then
       q, qq := q_qprime_split( Modulus(obj), q);
       chis := Decomposition(obj);
       assert &and[ Modulus(obj) mod Modulus(chi) eq 0 : chi in chis ];
@@ -1099,7 +1099,7 @@ function q_qprime_split(obj,q)
 end function;
 
 function AtkinLehnerOnEisensteinSeries(E,q)
-   assert Type(E) eq ModFrmElt;
+   assert Type(E) eq ModFrmAElt;
    assert IsEisensteinSeries(E);
    k := Weight(E);
    assert IsEven(k);   // This is not strictly necessary!
@@ -1167,7 +1167,7 @@ function AtkinLehnerOnEisensteinSeries(E,q)
 end function;
 
 function AtkinLehnerOnEisensteinSeriesBasis(M,q)
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
    ES := EisensteinSeries(M);
    if #ES eq 0 then
       return MatrixAlgebra(RationalField(),0)!1;
@@ -1195,7 +1195,7 @@ function AtkinLehnerOnEisensteinSeriesBasis(M,q)
 end function;
 
 function ChangeOfBasis_EisensteinSeries_To_CanonicalBasis(M)
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
    assert IsEisenstein(M);
 
    B  := Basis(M);   
@@ -1219,12 +1219,12 @@ end function;
 
 function AtkinLehnerOnEisensteinModularFormsSpace(M, q)
    assert Type(q) eq RngIntElt;
-   assert Type(M) eq ModFrm;
+   assert Type(M) eq ModFrmA;
    assert IsEisenstein(M);
    if Dimension(M) eq 0 then  
       // Need field of fractions, since Atkin-Lehner doesn't
       // preserve integrality, and "function compute_Wq(M, q)"
-      // in ModFrm/operators.m assumes this. 
+      // in ModFrmA/operators.m assumes this. 
       return MatrixAlgebra(FieldOfFractions(BaseRing(M)),0)!1;
    end if;
 

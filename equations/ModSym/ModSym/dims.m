@@ -255,7 +255,7 @@ function CO_delta(r, p, N, eps)
    assert Type(r) eq RngIntElt and r gt 0;
    assert Type(p) eq RngIntElt;
    assert Type(N) eq RngIntElt;
-   assert Type(eps) eq GrpDrchElt;
+   assert Type(eps) eq GrpDrchAElt;
 
    K := BaseRing(eps);
 
@@ -294,7 +294,7 @@ function CO_nu(r, p, N, eps)
    assert Type(r) eq RngIntElt and r gt 0;
    assert Type(p) eq RngIntElt;
    assert Type(N) eq RngIntElt;
-   assert Type(eps) eq GrpDrchElt;
+   assert Type(eps) eq GrpDrchAElt;
 
    K := BaseRing(eps);
 
@@ -418,7 +418,7 @@ end function;
 
 
 
-intrinsic DimensionCuspForms(eps::GrpDrchElt, k::RngIntElt) -> RngElt
+intrinsic DimensionCuspForms(eps::GrpDrchAElt, k::RngIntElt) -> RngElt
 {Compute the dimension of the space of cusp forms of weight k and
 character eps.}
    require Characteristic(BaseRing(eps)) eq 0 :
@@ -529,7 +529,7 @@ intrinsic DimensionNewCuspFormsGamma1(N::RngIntElt, k::RngIntElt, p::RngIntElt) 
    return DimensionCuspFormsGamma1(N,k) - 2*DimensionCuspFormsGamma1(N div p, k);
 end intrinsic;
 
-intrinsic DimensionNewCuspForms(eps::GrpDrchElt, k::RngIntElt) -> RngElt
+intrinsic DimensionNewCuspForms(eps::GrpDrchAElt, k::RngIntElt) -> RngElt
 {Compute the dimension of the new subspace of cusp forms of weight k and
  character eps.}
    require Characteristic(BaseRing(eps)) eq 0 :
@@ -541,7 +541,7 @@ intrinsic DimensionNewCuspForms(eps::GrpDrchElt, k::RngIntElt) -> RngElt
                 *mumu(N div M) : M in D];
 end intrinsic;
 
-intrinsic DimensionNewCuspForms(eps::GrpDrchElt, k::RngIntElt, p::RngIntElt) -> RngElt
+intrinsic DimensionNewCuspForms(eps::GrpDrchAElt, k::RngIntElt, p::RngIntElt) -> RngElt
 {Compute the dimension of the p-new subspace of cusp forms of weight k and
  character eps.}
    require Characteristic(BaseRing(eps)) eq 0 :

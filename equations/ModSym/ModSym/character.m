@@ -15,7 +15,7 @@ declare attributes GrpChr:  // Call this GrpChr object G.
    BaseRing,      // The base ring R over which the characters are defined
    Domain,        // The domain of the characters (the finite group Q)
    OriginalDomain, // The domain before the quotient - the finite level group
-   Gamma,              // the GrpPSL2 group
+   Gamma,              // the GrpGL2Hat group
    GammaPrime,         // the larger group
    QuotientMap,   // The quotient map from the finite level group
    Exponent,      // Exponent of the group Q
@@ -54,7 +54,7 @@ declare attributes GrpChrElt:
 ////////////////////////////////////////////////////////////////
 
 intrinsic CharacterGroup(pi_Q::HomGrp, R::Rng,
-			 GammaPrime::GrpPSL2,Gamma::GrpPSL2) -> GrpChr
+			 GammaPrime::GrpGL2Hat,Gamma::GrpGL2Hat) -> GrpChr
  {The group of characters of Q with image in the ring R.}
    require Type(R) in {RngInt, FldRat, FldCyc, FldFin, FldQuad, FldNum} :
        "Argument 2 must be of type RngInt, FldRat, FldCyc, FldFin, FldQuad, or FldNum.";
@@ -80,12 +80,12 @@ intrinsic CharacterGroup(pi_Q::HomGrp, R::Rng,
    return G;
 end intrinsic;
 
-intrinsic CharacterGroup(pi_Q::HomGrp, G_prime::GrpPSL2, G::GrpPSL2) -> GrpChr
+intrinsic CharacterGroup(pi_Q::HomGrp, G_prime::GrpGL2Hat, G::GrpGL2Hat) -> GrpChr
  {The group of characters of Q with image in the rationals.}
    return CharacterGroup(pi_Q,Rationals(), G_prime, G);
 end intrinsic;
 
-intrinsic FullCharacterGroup(pi_Q::HomGrp, G_prime::GrpPSL2, G::GrpPSL2) -> GrpChr
+intrinsic FullCharacterGroup(pi_Q::HomGrp, G_prime::GrpGL2Hat, G::GrpGL2Hat) -> GrpChr
 {The group of characters of Q with values in Q(zeta_m), where
 m is the exponent of Q.}
    mu := Exponent(Codomain(pi_Q));
@@ -491,7 +491,7 @@ intrinsic Evaluate(x::GrpChrElt,g::GrpMatElt) -> RngElt
    return Evaluate(x, x`Parent`QuotientMap(g));
 end intrinsic;
 
-intrinsic Evaluate(x::GrpChrElt,g::GrpPSL2Elt) -> RngElt
+intrinsic Evaluate(x::GrpChrElt,g::GrpGL2HatElt) -> RngElt
 {Evaluation x(g).}
    G := Parent(x)`OriginalDomain;
    if Dimension(G) eq 1 then return 1; end if;
@@ -516,7 +516,7 @@ intrinsic '@'(g::GrpMatElt, x::GrpChrElt) -> RngElt
    return Evaluate(x,g);
 end intrinsic;
 
-intrinsic '@'(g::GrpPSL2Elt, x::GrpChrElt) -> RngElt
+intrinsic '@'(g::GrpGL2HatElt, x::GrpChrElt) -> RngElt
 {"} // "
    return Evaluate(x,g);
 end intrinsic;
