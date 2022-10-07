@@ -1,4 +1,4 @@
-// freeze;
+freeze;
 
 /*********************************************************************************
                                                                           
@@ -9,16 +9,23 @@
   FILE: Box.m (modular curve algorithm based on J. Box's paper)
 
   exports intrinsics:
-  JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt);
-  ModularCurve(G::GrpPSL2);
+  JMap(G::GrpGL2Hat, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt);
+  ModularCurve(G::GrpGL2Hat);
   WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
-		     E4::FldFunRatMElt, E6::FldFunRatMElt, name::MonStgElt);                                
+		     E4::FldFunRatMElt, E6::FldFunRatMElt, name::MonStgElt);
+  LMFDBWriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
+		          E4::FldFunRatMElt, E6::FldFunRatMElt, fname::MonStgElt);                           
                                                                       
 *************************************************************************************
 */
 
 import "ModSym/linalg.m" : KernelOn, Restrict, RelativeBasis, RelativeEltseq;
 import "ModSym/operators.m" : ActionOnModularSymbolsBasis;
+
+import "ModelsAndMaps.m" : FindCurveSimple,
+       FindHyperellipticCurve,
+       FindFormAsRationalFunction,
+       FindRationalCurve;
 
 // function : gen_to_mat
 // input: g - a matrix in GL(2,Q)
@@ -714,6 +721,7 @@ function fixed_cusp_forms_QQ(as, primes, Tpluslist, Kf_to_KKs, prec,
 //		B_pd_mat := B_imgs_block * ChangeRing(pd_mat, Kf)^(-1);
                 B_pd_mat := B_imgs_block * ChangeRing(pd_mat, Kf);
 		B_pd_cfs := Solution(fixed_basis_block, B_pd_mat);
+		//B_pd_cfs := Transpose(Solution(Transpose(B_pd_mat), Transpose(fixed_basis_block)));
 		I_mat := IdentityMatrix(Kf,EulerPhi(K)*#fixed_space_basis);
 		fixed_B_pd := Kernel(B_pd_cfs - eps_BPd_gens[k]^(-1)*I_mat);
 		fixed_ms_space_QQ meet:= fixed_B_pd;
@@ -1007,6 +1015,9 @@ end function;
 function get_gens(G, eps)
     N := Modulus(BaseRing(G));
     M, K := get_M_K_normalizer(G, Kernel(eps));
+    if Dimension(G) eq 1 then
+	return [[1,0,0,1]], [], 1, 1, [];
+    end if;
     H := G meet SL(2, Integers(N));
     gens := [Eltseq(FindLiftToSL2(g)) : g in Generators(H)];
     if IsEmpty(gens) then
@@ -1431,174 +1442,7 @@ function qExpansions(fs, prec, q, K, integral)
     return qexps;
 end function;
 
-// function: FindCurveSimple
-// input: qexps - a list of q-expansions
-//        prec - precision
-//        n_rel - maximal degree in which we expect to find a relation.
-// output: X - a curve describing the image of the canonical embedding using these q-expansions 
 
-function FindCurveSimple(qexps, prec, n_rel)
-    R<q> := Universe(qexps);
-    K := BaseRing(R);
-    zeta := K.1;
-    fs := [f + O(q^prec) : f in qexps];
-    g := #fs;
-    R<[x]> := PolynomialRing(K,g);
-    degmons := [MonomialsOfDegree(R, d) : d in [1..n_rel]];
-    prods := [[Evaluate(m, fs) + O(q^prec) : m in degmons[d]] :
-	      d in [1..n_rel]];
-    kers := [Kernel(Matrix([AbsEltseq(f) : f in prod])) : prod in prods];
-    rels := [[&+[Eltseq(kers[d].i)[j]*degmons[d][j] : j in [1..#degmons[d]]] :
-	      i in [1..Dimension(kers[d])]] : d in [1..n_rel]];
-    // We want to generate the ideal with the lowest possible degree
-    is_all := false;
-    d := 1;
-    not_in_I := rels;
-    I := ideal<R | 0>;
-    while not is_all do
-	I +:= ideal<R | &cat not_in_I[1..d]>;
-	not_in_I := [[x : x in r | x notin I] : r in rels];
-	is_all := &and[IsEmpty(x) : x in not_in_I];
-	d +:= 1;
-    end while;
-    // This might throw an error in the hyperelliptic case. 
-    X := Curve(ProjectiveSpace(R),I);
-    return X;
-end function;
-
-function FindHyperellipticCurve(qexps, prec)
-    R<q> := Universe(qexps);
-    K := BaseRing(R);
-    fs := [f + O(q^prec) : f in qexps];
-    g := #fs;
-    T, E := EchelonForm(Matrix([&cat[Eltseq(x)
-				     : x in AbsEltseq(f)] : f in fs]));
-    fs := [&+[E[j][i]*fs[i] : i in [1..g]] : j in [1..g]];
-    x := fs[g-1] / fs[g];
-    y := q * Derivative(x) / fs[g];
-    mons := [x^i : i in [0..2*g+2]] cat [-y^2];
-    denom := q^(-(2*g+2)*Valuation(x));
-    f_mons := [denom*m + O(q^AbsolutePrecision(y)) : m in mons];
-    ker := Kernel(Matrix([AbsEltseq(f : FixedLength) : f in f_mons]));
-    assert Dimension(ker) eq 1;
-    ker_b := Basis(ker)[1];
-    ker_b /:= -ker_b[2*g+4];
-    R<x> := PolynomialRing(K);
-    poly := &+[ker_b[i+1]*x^i : i in [0..2*g+2]];
-    X := HyperellipticCurve(-poly);
-    return X, fs;
-end function;
-
-intrinsic JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt) ->
-  FldFunRatMElt, FldFunRatMElt, FldFunRatMElt
-{Computes E4, E6 and j as rational function, when the given qexpansions are the variables.}
-    g := Genus(G);
-    nu_infty := #Cusps(G);
-    // nu_ell := #EllipticPoints(G);
-    H := Universe(EllipticPoints(G)); 
-    nu_2 := #[H | pt : pt in EllipticPoints(G) |
-	      Order(Matrix(Stabilizer(pt, G))) eq 4];
-    nu_3 := #[H | pt : pt in EllipticPoints(G) |
-	      Order(Matrix(Stabilizer(pt, G))) eq 6];
-    // This bounds are from Rouse, DZB and Drew's paper
-    E4_k := Ceiling((2*nu_infty + nu_2 + nu_3 + 5*g-4)/(g-1));  
-    E6_k := Ceiling((3*nu_infty + nu_2 + 2*nu_3 + 7*g-6)/(g-1));
-    if IsOdd(E4_k) then
-	E4_k +:= 1;
-    end if;
-    if IsOdd(E6_k) then
-	E6_k +:= 1;
-    end if;
-    R<q> := Universe(qexps);
-    K := BaseRing(R);
-    fs := [f + O(q^prec) : f in qexps];
-    assert g eq #fs;
-    R<[x]> := PolynomialRing(K,g);
-    degmons := AssociativeArray();
-    // we add this because there is something wrong with the bounds.
-    // computing E4
-    E4_found := false;
-    while (not E4_found) do
-	vprintf ModularCurves, 1:
-	    "Trying to find E4 with weight %o\n", E4_k;
-	//    for d in {E4_k-4, E4_k, E6_k-6, E6_k} do
-	for d in {E4_k-4, E4_k} do
-	    degmons[d] := MonomialsOfDegree(R, d div 2);
-	end for;
-	E4 := qExpansion(EisensteinSeries(ModularForms(1,4))[1],prec);
-	prods_E4 := [Evaluate(m, fs) + O(q^prec) : m in degmons[E4_k]];
-	prods_E4 cat:= [E4*Evaluate(m, fs)*q^4 + O(q^prec) : m in degmons[E4_k-4]];
-	ker_E4 := Kernel(Matrix([AbsEltseq(f) : f in prods_E4]));
-	E4_found :=  exists(v_E4){v : v in Basis(ker_E4)
-			| not &and[v[i] eq 0 :
-				   i in [1..#degmons[E4_k]]] and
-			not &and[v[#degmons[E4_k]+i] eq 0 :
-				 i in [1..#degmons[E4_k-4]]]};
-	E4_k +:= 2;
-    end while;
-    E6_found := false;
-    while (not E6_found) do
-	vprintf ModularCurves, 1:
-	    "Trying to find E6 with weight %o\n", E6_k;
-	for d in {E6_k-6, E6_k} do
-	    degmons[d] := MonomialsOfDegree(R, d div 2);
-	end for;
-	E6 := qExpansion(EisensteinSeries(ModularForms(1,6))[1],prec);
-	prods_E6 := [Evaluate(m, fs) + O(q^prec) : m in degmons[E6_k]];
-	prods_E6 cat:= [E6*Evaluate(m, fs)*q^6 + O(q^prec) : m in degmons[E6_k-6]];
-	ker_E6 := Kernel(Matrix([AbsEltseq(f) : f in prods_E6]));
-	E6_found := exists(v_E6){v : v in Basis(ker_E6) |
-			not &and[v[i] eq 0 :
-				   i in [1..#degmons[E6_k]]] and
-			not &and[v[#degmons[E6_k]+i] eq 0 :
-				 i in [1..#degmons[E6_k-6]]]};
-	E6_k +:= 2;
-    end while;
-
-    E4_k -:= 2;
-    E6_k -:= 2;
-    
-    E4_num := &+[v_E4[i]*degmons[E4_k][i] : i in [1..#degmons[E4_k]]];
-    E4_denom := &+[v_E4[#degmons[E4_k]+i]*degmons[E4_k-4][i]
-		   : i in [1..#degmons[E4_k-4]]];
-    E6_num := &+[v_E6[i]*degmons[E6_k][i] : i in [1..#degmons[E6_k]]];
-    E6_denom := &+[v_E6[#degmons[E6_k]+i]*degmons[E6_k-6][i]
-		   : i in [1..#degmons[E6_k-6]]];
-    E4 := E4_num / E4_denom;
-    E6 := E6_num / E6_denom;
-    j := 1728*E4^3/(E4^3-E6^2);
-    _<[x]> := Parent(E4);
-    return E4, E6, j;
-end intrinsic;
-
-// This only works when conjugating one eigenform
-// gives you another eigenform
-function FindRationalCurve(qexps, prec, n_rel)
-    _<q> := PowerSeriesRing(Rationals());
-    fs := [];
-    for qexp in qexps do
-      K := BaseRing(Parent(qexp));
-      zeta := K.1;
-      for j in [0..Degree(K)-1] do
-        f := &+[Trace(zeta^j*Coefficient(qexp, n))*q^n : n in [1..prec-1]];
-        f +:= O(q^prec);
-        Append(~fs, f);
-      end for;
-    end for;
-    T, E := EchelonForm(Matrix([AbsEltseq(f) : f in fs]));
-    fs := [&+[E[j][i]*fs[i] : i in [1..#fs]] : j in [1..#fs]];
-    n := #fs;
-    R<[x]> := PolynomialRing(Rationals(),n);
-    degmons := [MonomialsOfDegree(R, d) : d in [1..n_rel]];
-    prods := [[Evaluate(m, fs) + O(q^prec) : m in degmons[d]] :
-	      d in [1..n_rel]];
-    kers := [Kernel(Matrix([AbsEltseq(f) : f in prod])) : prod in prods];
-    rels := [[&+[Eltseq(kers[d].i)[j]*degmons[d][j] : j in [1..#degmons[d]]] :
-	      i in [1..Dimension(kers[d])]] : d in [1..n_rel]];
-    I := ideal<R | &cat rels>;
-    X := Curve(ProjectiveSpace(R),I);
-    return X;
-end function;
 
 // This function takes a list of characters and outputs its product
 // X is  a character group from which to take the trivial character in the default scenario
@@ -1627,7 +1471,7 @@ end function;
 function compute_ms_action(G, eps, gens, Bgens, K, M, ds, AtkinLehner : wt := 2)
 
     GL_N := GL(2, BaseRing(G));
-    eps_gens := [eps(G!g) : g in gens];
+    eps_gens := [eps(GL_N!g) : g in gens];
     // the value of eps on BP_d
     // eps_BPd_gens := [eps(GL_N!Bgens[i]*GL_N![1,0,0,ds[i]]) : i in [1..#Bgens]]; 
     eps_BPd_gens := [eps(GL_N!Bgens[i]*GL_N![ds[i],0,0,1]) : i in [1..#Bgens]]; 
@@ -1850,7 +1694,8 @@ end function;
 // output: fs - a list of coefficients of q-expansions for a basis of cusp forms in S_2(G, Q)
 //         tos - indices indicating from which twist orbit each of them was taken.
 
-function BoxMethod(G, prec : AtkinLehner := [], Chars := [], M := 0, wt := 2)
+function BoxMethod(G, prec : AtkinLehner := [], Chars := [],
+			     M := 0, wt := 2)
 
     eps := create_character(G, Chars);
     
@@ -1961,8 +1806,14 @@ function BoxMethod(G, prec : AtkinLehner := [], Chars := [], M := 0, wt := 2)
     fs := &cat[[&+[xi_conj[l]^j * fs_conj[l][i] : l in [1..#auts]]
 		: j in [0..Degree(F)-1]]
 	       : i in [1..#fs] ];
-   
-    return fs, tos;
+
+    if not IsEmpty(fs) then
+	fs_field := BaseRing(Universe(fs));
+	_<q> := PowerSeriesRing(fs_field);
+	fs := qExpansions(fs, prec, q, fs_field, false);
+    end if;
+    // We return K so we know that q is secretly q^(1/K)
+    return fs, K;
 end function;
 
 function precisionForCurve(PG : Proof := false)
@@ -1993,37 +1844,43 @@ function getCurveFromForms(fs, prec, max_deg, genus : CheckGenus := true)
     assert genus ge 2;
 
     assert Minimum([AbsolutePrecision(f) : f in fs]) ge prec;
+
+    type := "canonical";
+    try
+	X := FindCurveSimple(fs, prec, max_deg);
+    catch e
+	g := 0;
+	X := ProjectiveSpace(Rationals(),1);
+    end try;
     
-    X := FindCurveSimple(fs, prec, max_deg);
-    
-    // If could not find equations, magma now spits an error
-    // when trying to compute the genus
-    // g := Genus(X);
-    
-    // if g eq 0 then
     if DefiningPolynomials(X) eq [0] then
-	//print "Curve is Hyperelliptic. Finding equations not implemented yet.";
-	X, fs := FindHyperellipticCurve(fs, prec);
-	return X, fs;
+	vprintf ModularCurves, 1:
+	    "Curve is Hyperelliptic. Returned scheme is not the Curve!\n";
+	// X, fs := FindHyperellipticCurve(fs, prec);
+	// type := "hyperelliptic";
+	return X, fs, "hyperelliptic";
     else
 	if CheckGenus then
 	    vprintf ModularCurves, 1: "Computing genus of curve...\n";
-	    g := Genus(X);
-	    vprintf ModularCurves, 1: "Done.";
+	    try
+		g := Genus(X);
+	    catch e
+		g := 0;
+	    end try;	    
+	    vprintf ModularCurves, 1: "Done.\n";
 	    if g eq 0 then
-		// print "Curve is Hyperelliptic. Finding equations not implemented yet.";
-		X, fs := FindHyperellipticCurve(fs, prec);
-		return X, fs;
+		vprintf ModularCurves, 1:
+		    "Curve is Hyperelliptic. Returned scheme is not the Curve!\n";
+		// X, fs := FindHyperellipticCurve(fs, prec);
+		// type := "hyperelliptic";
+		return X, fs, "hyperelliptic";
 	    else
 		assert g eq genus;
-		X_Q := ChangeRing(X, Rationals());
-		return X_Q, fs;
 	    end if;
-	else
-	    X_Q := ChangeRing(X, Rationals());
-	    return X_Q, fs;
 	end if;
     end if;
+    X_Q := ChangeRing(X, Rationals());
+    return X_Q, fs, type;
 end function;
 
 // function: ModularCurve
@@ -2034,7 +1891,7 @@ end function;
 //         fs - the q-expansions of a basis of cusp forms
 
 function ModularCurveBox(G, genus : Precision := 0, Proof := false,
-			 chars := false)
+			 chars := false, Al := "Canonical")
     assert genus ge 2;
     N := Modulus(BaseRing(G));
     PG := PSL2Subgroup(G);
@@ -2046,25 +1903,33 @@ function ModularCurveBox(G, genus : Precision := 0, Proof := false,
       MS := CuspidalSubspace(ModularSymbols(PG));
       fs := qExpansionBasis(MS, prec : Al := "Box");
     else  
-      fs := BoxMethod(G, prec);
-      K := BaseRing(Universe(fs));
-      _<q> := PowerSeriesRing(K);
-      fs := qExpansions(fs, prec, q, K, true);
+      fs, K := BoxMethod(G, prec);
+      // K := BaseRing(Universe(fs));
+      // _<q> := PowerSeriesRing(K);
+      // fs := qExpansions(fs, prec, q, K, true);
+      // fs := qExpansions(fs, prec, q, K, false);
     end if;
-    return getCurveFromForms(fs, prec, max_deg, genus);
+    if Al eq "LogCanonical" then
+	eis := EisensteinSeries(ModularForms(PG));
+	fs cat:= [qExpansion(f,prec) : f in eis];
+	max_deg := 2;
+    end if;
+    X, fs, type := getCurveFromForms(fs, prec, max_deg, genus);
+    return X, fs, type, K;
 end function;
 
-intrinsic ModularCurve(G::GrpPSL2 : Proof := false) -> Crv[FldRat],
-                                                       SeqEnum[RngSerPowElt]
+intrinsic ModularCurve(G::GrpGL2Hat : Proof := false, Al := "Canonical") -> Crv[FldRat],SeqEnum[RngSerPowElt], MonStgElt
 {Returns the canonical embedding of the modular curve associated to G,
- together with the q-expansions of a basis of cusp forms.}
+ together with the q-expansions of a basis of cusp forms, and the type of model.}
+/*
   if IsGamma0(G) then
       db := ModularCurveDatabase("Canonical");
       return ModularCurve(db, Level(G));
   end if;
+*/
   genus := Genus(G);
   require genus ge 2 : "Currenty not implemented for genus < 2";
-  return ModularCurveBox(ImageInLevelGL(G), genus : Proof := Proof);
+  return ModularCurveBox(ImageInLevelGL(G), genus : Proof := Proof, Al := Al);
 end intrinsic;
 
 // procedure: testBoxExample
@@ -2079,12 +1944,15 @@ procedure testBoxExample()
 	Append(~fs, BoxMethod(G, prec : AtkinLehner := ws));
     end for;
     assert &and[#fs[1] eq 6, #fs[2] eq 5, #fs[3] eq 8];
+    /*
     fs_qexps := [* *];
     for num in [1..3] do
         Q_K_plus := BaseRing(Universe(fs[num]));
         _<qKp> := PowerSeriesRing(Q_K_plus);
         Append(~fs_qexps, qExpansions(fs[num],prec,qKp,Q_K_plus,true));
     end for;
+   */
+    fs_qexps := fs;
     curves := [* FindCurveSimple(fs, prec, 2) : fs in fs_qexps *];
     assert [Genus(X) : X in curves] eq [6,5,8];
 end procedure;
@@ -2161,107 +2029,3 @@ procedure testBox(grps_by_name : Proof := false,
 
     testBoxExample();
 end procedure;
-
-intrinsic WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
-		     E4::FldFunRatMElt, E6::FldFunRatMElt, name::MonStgElt)
-{Write the model, the q-expansions, E4, E6 and j to a file, which can be loaded in magma,
-    which is named name.m. They will be named X_name, fs_name, E4_name, etc.}
-
-    preamble := Sprintf("
-    /****************************************************
-    Loading this file in magma loads the objects fs_%o,
-    X_%o, E4_%o, E6_%o, j_%o. fs_%o is a list of power series which form 
-    a basis for the space of cusp forms. X_%o is a 
-    representation of the corresponding modular curve in 
-    projective space, using the canonical embedding.
-    E4_%o, E6_%o and j_%o are rational functions representing 
-    E4, E6 and j in terms of the coordinates.
-    *****************************************************/
-    ",name, name, name, name, name,
-		     name, name, name, name, name);
-
-    fname := name cat ".m";
-    Kq<q> := Parent(fs[1]);
-    K := BaseRing(Kq);
-    if Type(K) ne FldRat then
-	AssignNames(~K, ["zeta"]);
-    end if;
-    zeta := K.1;
-    poly<x> := DefiningPolynomial(K);
-    // This should always be the rational field, but just in case
-    F := BaseRing(K);
-    suf := "";
-    Proj<[x]> := AmbientSpace(X);
-    if Type(K) ne FldRat then
-	field_def_str := Sprintf("f<x> := Polynomial(F, %m);
-	      K<zeta%o> := ext<F|f>;", Eltseq(poly), suf);
-    else
-	field_def_str := "K := F;";
-    end if;
-    write_str := Sprintf("
-    	      F := %m;	
-	      %o
-	      Kq<q> := PowerSeriesRing(K);
-	      fs_%o := [Kq | %m", F, field_def_str, name, fs[1]);
-    if #fs gt 1 then
-      write_str cat:= &cat[Sprintf(", %m", f) : f in fs[2..#fs]];
-    end if;
-    write_str cat:= "] ;";
-
-    wts := Gradings(X)[1];
-    is_weighted := Set(wts) ne {1};
-    if is_weighted then
-	proj_string := Sprintf("P_Q<[x]> := WeightedProjectiveSpace(Rationals(), %o);", wts);
-    else
-	proj_string := Sprintf("P_Q<[x]> := ProjectiveSpace(Rationals(), %o);", Dimension(Proj));
-    end if;
-
-    write_str cat:= Sprintf("
-    	      %o
-    	      X_%o := Curve(P_Q, %m);",
-			    proj_string, name, DefiningPolynomials(X));
-
-    write_str cat:= Sprintf("\nE4_num_%o := %m;\n", name, Numerator(E4));
-    write_str cat:= Sprintf("E4_denom_%o := %m;\n", name, Denominator(E4));
-    write_str cat:= Sprintf("E6_num_%o := %m;\n", name, Numerator(E6));
-    write_str cat:= Sprintf("E6_denom_%o := %m;\n", name, Denominator(E6));
-    write_str cat:= Sprintf("E4_%o := E4_num_%o / E4_denom_%o;\n", name, name, name);   
-    write_str cat:= Sprintf("E6_%o := E6_num_%o / E6_denom_%o;\n", name, name, name); 
-    write_str cat:= Sprintf("j_num_%o := 1728*E4_%o^3;\n", name, name);     
-    write_str cat:= Sprintf("j_denom_%o := E4_%o^3-E6_%o^2;\n", name, name, name);
-    write_str cat:= Sprintf("j_%o := j_num_%o / j_denom_%o;\n", name, name, name);
-    fname := name cat ".m";
-    Write(fname, write_str);
-    return;
-end intrinsic;
-
-function strip(X)
-    // Strips spaces and carraige returns from string; much faster than StripWhiteSpace.
-    return Join(Split(Join(Split(X," "),""),"\n"),"");
-end function;
-
-function sprint(X)
-    // Sprints object X with spaces and carraige returns stripped.
-    if Type(X) eq Assoc then return Join(Sort([ $$(k) cat "=" cat $$(X[k]) : k in Keys(X)]),":"); end if;
-    return strip(Sprintf("%o",X));
-end function;
-
-intrinsic LMFDBWriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
-		          E4::FldFunRatMElt, E6::FldFunRatMElt, fname::MonStgElt)
-{Write the model, the q-expansions, E4, and E6 to a file for input into the LMFDB database}
-    Kq<q> := Parent(fs[1]);
-    K := BaseRing(Kq);
-    if Type(K) ne FldRat then
-        AssignNames(~K, ["zeta"]);
-    end if;
-    // Need to figure out what to do about q-expansions
-    uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
-    lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
-    DP := DefiningPolynomials(X);
-    R := Parent(DP[1]);
-    AssignNames(~R, uvars[1..Rank(R)]);
-    S := Parent(E4);
-    AssignNames(~S, lvars[1..Rank(R)]);
-    Write(fname, Sprintf("{%o}|{%o}|{%o,%o}", Join([sprint(f) : f in DefiningPolynomials(X)], ","), Join([sprint(f) : f in fs], ","), sprint(E4), sprint(E6)));
-    return;
-end intrinsic;

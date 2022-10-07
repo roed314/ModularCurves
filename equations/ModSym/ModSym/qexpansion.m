@@ -129,7 +129,7 @@ import "arith.m"  :   DotProd,
                       SmallestPrimeNondivisor,
                       ToLowerCaseLetter;
 
-import "Box.m" : BoxMethod, qExpansions;
+import "../Box.m" : BoxMethod, qExpansions;
 
 import "linalg.m" :   EchelonPolySeq,
                       MyCharpoly,
@@ -416,7 +416,7 @@ function Compute_qExpansion(num_known, f, prec, Tpei, eps,
             // a_{p^r} := a_p * a_{p^{r-1}} - eps(p)p^{k-1} a_{p^{r-2}}.
             p  := fac[1][1];
             r  := fac[1][2];
-	    if Type(eps) eq GrpDrchElt then
+	    if Type(eps) eq GrpDrchAElt then
 	      eps_p := Evaluate(eps,p);
 	      an := Coefficient(f,p) * Coefficient(f,p^(r-1))
                      - eps_p*p^(k-1)*Coefficient(f,p^(r-2));

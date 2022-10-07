@@ -1,0 +1,93 @@
+Magma V2.26-12    Thu Sep  8 2022 15:07:49 on euler    [Seed = 1546049059]
+Type ? for help.  Type <Ctrl>-D to quit.
+
+Loading startup file "X74_37.m"
+
+Loading "main.m"
+Loading "X0p_NiceModel.m"
+Loading "new_models.m"
+Loading "auxiliary.m"
+Loading "Chabauty_MWSieve_new.m"
+Loading "ChabautyHelp.m"
+Loading "auxiliary.m"
+Loading "rank_calcs.m"
+Genus of X_0(74) is: 8
+d is 37
+rk J_0(74)(Q) = rk J_0(74)(Q)/w_37 
+Nice model for X_0(74) is: Curve over Rational Field defined by
+x[1]^2 - x[5]^2 - 2*x[5]*x[7] + 8*x[6]^2 + 8*x[6]*x[7] - x[7]^2,
+x[1]*x[2] + x[1]*x[4] - x[5]*x[8] - 2*x[6]*x[8] - x[7]*x[8],
+x[1]*x[3] - x[6]*x[8] - 2*x[7]*x[8],
+x[1]*x[5] - x[1]*x[7] - x[2]*x[8] - 2*x[3]*x[8] + x[4]*x[8],
+x[1]*x[6] - x[3]*x[8] - 2*x[4]*x[8],
+x[1]*x[8] - x[2]*x[5] + 2*x[3]*x[5] - 2*x[3]*x[7] + 2*x[4]*x[5] + 4*x[4]*x[6] - 
+3*x[4]*x[7],
+148*x[2]^2 - 123*x[5]^2 - 100*x[5]*x[6] + 190*x[5]*x[7] - 40*x[6]^2 + 
+192*x[6]*x[7] + 81*x[7]^2 - 25*x[8]^2,
+74*x[2]*x[3] - 5*x[5]^2 - 54*x[5]*x[6] - 38*x[5]*x[7] + 8*x[6]^2 + 80*x[6]*x[7] 
++ 43*x[7]^2 + 5*x[8]^2,
+148*x[2]*x[4] + 5*x[5]^2 - 20*x[5]*x[6] - 110*x[5]*x[7] - 8*x[6]^2 - 
+80*x[6]*x[7] - 43*x[7]^2 - 5*x[8]^2,
+x[2]*x[6] - x[3]*x[5],
+x[2]*x[7] - x[4]*x[5] + 2*x[4]*x[7],
+37*x[3]^2 + x[5]^2 - 4*x[5]*x[6] - 22*x[5]*x[7] - 9*x[6]^2 - 16*x[6]*x[7] + 
+21*x[7]^2 - x[8]^2,
+74*x[3]*x[4] - x[5]^2 + 4*x[5]*x[6] + 22*x[5]*x[7] - 28*x[6]^2 - 58*x[6]*x[7] - 
+21*x[7]^2 + x[8]^2,
+2*x[3]*x[6] + x[3]*x[7] - 2*x[4]*x[5] - x[4]*x[6] + 2*x[4]*x[7],
+148*x[4]^2 + x[5]^2 - 4*x[5]*x[6] + 126*x[5]*x[7] - 120*x[6]^2 - 16*x[6]*x[7] + 
+21*x[7]^2 - x[8]^2
+
+w_74 on X_0(74) is given by: Mapping from: Crv: XN to Crv: XN
+with equations : 
+x[1]
+-x[2]
+-x[3]
+-x[4]
+x[5]
+x[6]
+x[7]
+-x[8]
+and inverse
+x[1]
+-x[2]
+-x[3]
+-x[4]
+x[5]
+x[6]
+x[7]
+-x[8]
+Genus of X_0(74) is 8
+We have found these points on X_0(74):
+[
+Place at (1 : 1 : 0 : 0 : 1 : 0 : 0 : 1),
+Place at (-1 : -1 : 0 : 0 : 1 : 0 : 0 : 1),
+Place at (1 : -1 : 0 : 0 : -1 : 0 : 0 : 1),
+Place at (-1 : 1 : 0 : 0 : -1 : 0 : 0 : 1)
+]
+We have found 10 points on X_0(74)^2(Q).
+p = 3 (1/3): Getting deg 1 places on Xp...
+Getting deg 2 places on Xp...
+Combining them into divisors...
+There are  30  of them!
+out of 27: ...........................The number of possible cosets unknown points can land in is 13.
+p = 5 (2/3): Getting deg 1 places on Xp...
+Getting deg 2 places on Xp...
+Combining them into divisors...
+There are  84  of them!
+out of 13: .............The number of possible cosets unknown points can land in is 3.
+p = 7 (3/3): Getting deg 1 places on Xp...
+Getting deg 2 places on Xp...
+Combining them into divisors...
+There are  131  of them!
+out of 3: ...The number of possible cosets unknown points can land in is 3.
+
+For unknown Q in X_0(74)^2(Q) we have (1 - w_74)[Q - bp] is in a coset of 
+Abelian Group of order 1 represented by an element of [
+0,
+A.1 + 57*A.2,
+2*A.1 + 114*A.2
+].
+Runtime error: TODO: Sieve did not prove what we wanted.
+
+Total time: 510.509 seconds, Total memory usage: 160.22MB

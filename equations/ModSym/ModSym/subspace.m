@@ -114,7 +114,7 @@ freeze;
 
 import "linalg.m" : KernelOn;
 
-import "../GrpPSL2/GrpPSL2/misc.m" : IsConjugate,
+import "../GrpGL2Hat/GrpGL2Hat/misc.m" : IsConjugate,
        MinimalOvergroups,
        NormalizerGrpMat;
 

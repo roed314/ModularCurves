@@ -148,7 +148,7 @@ import "arith.m"  : DotProd,
 import "linalg.m" : KernelOn,
                     MyCharpoly;
 
-import "../GrpPSL2/GrpPSL2/misc.m" : IntermediateSubgroups;
+import "../GrpGL2Hat/GrpGL2Hat/misc.m" : IntermediateSubgroups;
 
 import "modsym.m" : GetDegeneracyReps,
 		    ModularSymbolsDual,
