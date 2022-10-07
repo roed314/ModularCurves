@@ -188,7 +188,7 @@ def generate_db_files(data_folder):
     point_counts = defaultdict(Counter)
     # Things to add: isolated, coordinates in terms of model, LMFDB curve label (when not containing -1
     with open(os.path.join(data_folder, "modcurve_ratpoints.txt"), "w") as F:
-        _ = F.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm\ntext|text|smallint|integer|smallint|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint\n\n")
+        _ = F.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint\n\n")
         for ctr, (label, degree, field_of_definition, jorig, jinv, field_of_j, cm, quo_info, Elabel, known_isolated, conductor_norm) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
             if ctr and ctr % 10000 == 0:
                 print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
@@ -215,16 +215,41 @@ def generate_db_files(data_folder):
                     rank = gdat["rank"]
                     simp = gdat["simple"]
                     name = gdat["name"]
-                    if label == plabel and known_isolated:
-                        isolated = "1"
+                    # We encode the isolatedness in a small integer, p + a, where
+                    # p = 3,0,-3 for P1 isolated/unknown/parameterized and
+                    # a = 1,0,-1 for AV isolated/unknown/parameterized
+                    # 4 = isolated (both P1 isolated and AV isolated)
+                    # 0 = unknown for both
+                    # -4 = both P1 and AV parameterized
+                    if label == plabel and known_isolated: # both AV and P1
+                        isolated = "4"
                     elif degree == 1:
-                        isolated = "-1" if (g == 0 or g == 1 and rank > 0) else "1"
+                        if g == 0:
+                            # Always P1 parameterized and AV isolated
+                            isolated = "-2"
+                        elif g == 1 and rank > 0:
+                            # Always P1 isolated and AV parameterized
+                            isolated = "2"
+                        else:
+                            isolated = "4"
                     elif degree < QQ(gonlow) / 2 or degree < gonlow and (rank == 0 or simp and degree < g):
-                        isolated = "1"
+                        isolated = "4"
                     elif degree > g:
-                        isolated = "-1"
+                        # Always P1 parameterized; AV parameterized if and only if rank positive
+                        if rank > 0:
+                            isolated = "-4"
+                        else:
+                            isolated = "-2"
+                    elif degree == g and rank > 0:
+                        isolated = "-1" # AV parameterized; can compute if P1 parameterized by Riemann Roch with a model
                     else:
-                        isolated = r"0"
+                        if rank == 0 or degree <= min(dims): # for second part, using degree < g
+                            # Actually only need to check the minimum of the dimensions where the rank is positive
+                            # Always AV isolated; can try to computed whether P1 parameterized by Riemann roch
+                            isolated = "1"
+                        else:
+                            isolated = "0"
+                    # Construct the divisor given by the galois orbit on the Q-curve, then compute Dimension(RiemannRochSpace(D)).  If dim > 1 then P1 parameterized, otherwise not.  If rank = 0 then not AV-parameterized
                     _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, field_of_j, str(j_height), str(cm), quo_info, Elabel, isolated, conductor_norm]) + "\n")
     with open(os.path.join(data_folder, "modcurve_ptcount_update.txt"), "w") as F:
         _ = F.write("label|" + "|".join(f"known_degree{d}_points" for d in range(1,7)) + "\ntext" + "|smallint"*6 + "\n\n")
