@@ -2,7 +2,7 @@ freeze;
 
 // exports intrinsic JMap
 
-import "Box.m" : BoxMethod, qExpansions;
+import "Box.m" : BoxMethod, qExpansions, restrict_scalars_to_Q;
 
 // function: FindCurveSimple
 // input: qexps - a list of q-expansions
@@ -272,12 +272,18 @@ intrinsic CanonicalRing(PG::GrpGL2Hat : Precision := 100) -> Crv[FldRat],
 	else   
 	    gap := level div K;
 	end if;
-	eis := [qExpansion(f, prec*gap) : f in eis];
-	eis_elt := [AbsEltseq(f) : f in eis];
-	assert &and[ &and[f[x] eq 0 : x in [1..#f] | (x-1) mod gap ne 0] : f in eis_elt];
-	eis_elt := [[f[gap*i+1] : i in [0..(#f-1) div gap]] : f in eis_elt];
-	eis := [Universe(eis)!f_elt : f_elt in eis_elt];
-	ring_gens[d] := fs cat eis;
+	if not IsEmpty(eis) then
+	    eis_tmp := [qExpansion(f, prec*gap) : f in eis];
+	    F := BaseRing(Universe(eis_tmp));
+	    eis := [qExpansion(f, prec*gap*Degree(F)) : f in eis];
+	    eis_elt := [AbsEltseq(f) : f in eis];
+	    assert &and[ &and[f[x] eq 0 : x in [1..#f] | (x-1) mod gap ne 0] : f in eis_elt];
+	    eis_elt := [[f[gap*i+1] : i in [0..(#f-1) div gap]] : f in eis_elt];
+	    res_eis := restrict_scalars_to_Q(eis_elt, F, CyclotomicOrder(F), F.1, prec, false);
+	else
+	    res_eis := [];
+	end if;
+	ring_gens[d] := fs cat res_eis;
     end for;
     fs := &cat [ring_gens[d] : d in [1..gen_deg]];
     grading := &cat[[d : x in ring_gens[d]] : d in [1..gen_deg]];
@@ -292,7 +298,7 @@ intrinsic CanonicalRing(PG::GrpGL2Hat : Precision := 100) -> Crv[FldRat],
 	     : c in coeffs];
     rels := [[&+[Eltseq(kers[d].i)[j]*degmons[d][j] : j in [1..#degmons[d]]] :
 	      i in [1..Dimension(kers[d])]] : d in [1..rel_deg]];
-    is_all := false;
+    is_all := rel_deg eq 0;
     d := 1;
     not_in_I := rels;
     I := ideal<R | 0>;
