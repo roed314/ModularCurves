@@ -1687,6 +1687,74 @@ function get_aut_extensions(Ps_Q_huge, Q_huge)
     return Ps;
 end function;
 
+function restrict_scalars_to_Q(fs, F, K, zeta_K, prec, is_cusp)
+    // We now have the forms over BaseField(eps)
+    // and we still need to get restriction of scalars to Q.
+    // (summing over the Galois orbit of the character)
+
+    cyc_base := Order(UnitGroup(F).1);
+    
+    powers := [CRT([1,a],[K div GCD(K, cyc_base),cyc_base]) : a in [1..cyc_base] |
+	       GCD(a,cyc_base) eq 1];
+    Q_K := Parent(zeta_K);
+
+    if is_cusp then
+	eps := 0;
+    else
+	eps := 1;
+    end if;
+    
+    if (Type(Q_K) eq FldRat) then
+	if not IsEmpty(fs) then
+	    fs_field := Q_K;
+	    _<q> := PowerSeriesRing(fs_field);
+	    fs := qExpansions([Vector(f) : f in fs], prec+eps, q, fs_field, false);
+	    if (not is_cusp) then
+		fs := [f div q : f in fs];
+	    end if;
+	end if;
+
+	return fs;
+    end if;
+    
+    aut_Q_K := [hom<Q_K -> Q_K | zeta_K^pow> : pow in powers];
+    
+    // auts := Automorphisms(F);
+    auts := aut_Q_K;
+    xi := F.1;
+    fs_conj := [[Vector([sig(a) : a in Eltseq(f)])
+		 : f in fs] : sig in auts];
+    //    fs := &cat fs_conj;
+    
+    xi_conj := [sig(xi) : sig in auts];
+    fs := &cat[[&+[xi_conj[l]^j * fs_conj[l][i] : l in [1..#auts]]
+		: j in [0..Degree(F)-1]]
+	       : i in [1..#fs] ];
+
+    // we don't want extraneous forms, in case some were already defined over Q
+
+    Q_mat := Matrix([&cat[Eltseq(a) : a in Eltseq(f)]
+		     : f in fs]);
+    Q_basis := Basis(RowSpace(Q_mat));
+    
+    fs := [Vector([Rationals()!b[i] : i in [1..(prec+eps)*Degree(F)]]) : b in Q_basis];
+
+    gap := Degree(F);
+    assert &and[ &and[f[x] eq 0 : x in [1..Degree(f)] | (x-1) mod gap ne 0] : f in fs];
+    fs := [Vector([f[gap*i+1] : i in [0..(Degree(f)-1) div gap]]) : f in fs];
+    
+    if not IsEmpty(fs) then
+	fs_field := BaseRing(Universe(fs));
+	_<q> := PowerSeriesRing(fs_field);
+	fs := qExpansions(fs, prec+eps, q, fs_field, false);
+	if (not is_cusp) then
+	    fs := [f div q : f in fs];
+	end if;
+    end if;
+
+    return fs;
+end function;
+
 // function: BoxMethod
 // input: G - a subgroup of GL(2, N) for some N
 //        prec - a required precision for the q-expansions
