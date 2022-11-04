@@ -139,7 +139,7 @@ MWSieve := function(X, AtkinLehner, genusC, primes, A, divs, Dpull, B0, iA0, W0,
             /*Z:=FreeAbelianGroup(1);
             degr:=hom<CGp->Z | [ Degree(phi(a))*Z.1 : a in OrderedGenerators(CGp)]>;
             JFp:=Kernel(degr); // This is isomorphic to J_X(\F_p).*/
-			JFp := TorsionSubgroup(GGp);
+			JFp := TorsionSubgroup(CGp);
         catch e;
             Exclude(~primes,p);
             continue;

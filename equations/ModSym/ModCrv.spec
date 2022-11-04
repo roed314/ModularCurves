@@ -1,9 +1,10 @@
 {
     Box.m
     
-    GrpPSL2
+    GrpGL2Hat
     {
 	access.m
+	arithmetic.m
 	attributes.m
 	boolean.m
 	coercion.m
@@ -12,16 +13,36 @@
 	cusps.m
 	farey_symbol.m
 	misc.m
+	signature.m
+	words_for_matrices.m
+
+	SpcHyp
+	{
+	    action.m
+	    attributes.m
+	    creation.m
+	    arithmetic.m
+	    boolean.m
+	    equivalence.m
+	    access.m
+	    comparison.m
+	    geo_intersect.m
+	    metric.m
+	}
     }
+
+    io.m
 
     ModelsAndMaps.m
     
-    ModFrm
+    ModFrmA
     {
 	categories.m
+	cohen_oesterle_formulas.m
 	creation.m
 	eisenstein.m
 	predicates.m
+	subspaces.m
 	q-expansions.m
     }
     
