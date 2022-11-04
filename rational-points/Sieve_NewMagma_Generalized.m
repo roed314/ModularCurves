@@ -60,6 +60,63 @@ Eq15:=2*x_1^2 - 2*x_1*x_2 + x_1*x_4 + 3*x_1*x_5 - 2*x_1*x_6 - 2*x_1*x_7 - 2*x_1*
 + x_4*x_7 + x_4*x_8 + 2*x_5^2 - 4*x_5*x_6 - 2*x_5*x_8 +2*x_6*x_7 + x_7^2 -2*x_7*x_8 + x_8^2;
 eqns:=[Eq1,Eq2,Eq3,Eq4,Eq5,Eq6,Eq7,Eq8,Eq9,Eq10,Eq11,Eq12,Eq13,Eq14,Eq15]; // List of equations
 
+// Checking if there are exceptional points in residue disc of the point
+// X: curve
+// p: prime
+// Xpp: reduction of X at prime above p
+// WMatrix: matrix of involution w
+// Qtaa: reduction of quadratic point to Xpp
+// Qtbb: reduction of conjugate quadratic point to Xpp 
+AreLonelyRanks := function (X, p, Xpp, WMatrix, Qtaa, Qtbb, doublePoint)
+    //Rks := [];      // Ranks of residue disc matrices
+
+    //print X;
+	AmbientDim := Dimension(AmbientSpace(X)); //Assuming X is given in projective space
+	CoordRing<[u]> := CoordinateRing(AmbientSpace(Xpp));
+
+	row := [&+[RowSequence(WMatrix)[k][j] * u[j] : j in [1..AmbientDim + 1]] : k in [1..AmbientDim + 1]];
+	wpp := iso<Xpp -> Xpp | row, row>; // w on Xpp
+
+	V, phiD := SpaceOfDifferentialsFirstKind(Xpp);  // Holomorphic differentials on Xpp
+	t := hom< V -> V | [(Pullback(wpp, phiD(V.k)))@@phiD - V.k : k in [1..Dimension(V)]] >; 
+	T := Image(t);                                 // The space red(V_0)
+	omegas := [phiD(T.k) : k in [1..Dimension(T)]]; 
+						
+	plQtaa := Place(Qtaa);
+	plQtbb := Place(Qtbb);
+			
+	tQta := UniformizingParameter(Qtaa);  
+	tQtb := UniformizingParameter(Qtbb);
+
+	if doublePoint then
+		"We have a double rational point.";
+		matrixSeq := [];
+		
+		//matrix is different if Q is a double point
+		Append(~matrixSeq, [Evaluate(omega/Differential(tQta), plQtaa) : omega in omegas]);
+		Append(~matrixSeq, [Evaluate((omega/Differential(tQta) - Evaluate(omega/Differential(tQta), plQtaa))/tQta, plQtaa) : omega in omegas]); 
+
+		Ata := Matrix(matrixSeq);
+		//Atb := Matrix(matrixSeq);
+	else
+		Ata := Matrix([[Evaluate(omega/Differential(tQta), plQtaa) : omega in omegas]]);
+		//Atb := Matrix([[Evaluate(omega/Differential(tQtb), plQtbb) : omega in omegas]]);
+	end if;	
+
+	ra := Rank(Ata);
+	//rb := Rank(Atb);  // Rank 1 means no exceptional points in residue class
+
+	// TODO: rb never used again
+			
+	// An alert to say that there could potentially be an exceptional point in the residue class. 
+	if ra eq 0 then 
+		printf "WARNING: Point not lonely when Qtaa = %o and p = %o.\n", Qtaa, p;
+	end if; 
+	
+	return ra;
+end function;
+
+
 // Change of coordinates map 
 g:=hom<R->R | x_2,x_3,1/2*x_2-1/2*x_3-1/2*x_5,1/2*x_1+1/2*x_8,-1/2*x_1+1/2*x_8,1/2*x_2-1/2*x_6,
 1/2*x_3-1/2*x_7,1/2*x_2-1/2*x_4>; 
@@ -93,214 +150,194 @@ SvnPts:=PointSearch(XNSplus13,100);
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-pinsieve:=[3,5,31,43,53,61,73];  // Primes to be used in sieve 
+MWPrimes:=[3,5,31,43,53,61,73];  // Primes to be used in sieve 
 
-M:=3^10*5^10*13^10*29^10;
-A:=AbelianGroup([0,0,0]);
+M := 3^10*5^10*13^10*29^10;
 
 //add known quadratic places, takes a minute or two, don't know why so slow...
 
-TQ<x> := PolynomialRing(Integers());
+_<x> := PolynomialRing(Integers());
 
 Discriminants := [11, 67, 7, 2, 19, 163, 7];       
-flds := [NumberField(x^2 + discriminant) : discriminant in Discriminants];   
+QuadraticFields := [NumberField(x^2 + discriminant) : discriminant in Discriminants];   
 
-pts := [];
+points := [];
 
-"Adding qudratic places...";
+"Adding quadratic places ...";
    
-pts := Append(pts, Place(NX(flds[1])![-5/13*flds[1].1, 2/13*flds[1].1, 3/13*flds[1].1, 0, -1, -2, 1, 1]));
-pts := Append(pts, Place(NX(flds[2])![-3/13*flds[2].1, -4/13*flds[2].1, -6/13*flds[2].1, 0, 4, -4, -2, 1]));
-pts := Append(pts, Place(NX(flds[3])![-7/13*flds[3].1, -5/13*flds[3].1, -1/13*flds[3].1, -1, 0, -1, 1, 1]));
-pts := Append(pts, Place(NX(flds[4])![4/13*flds[4].1, 1/13*flds[4].1, -5/13*flds[4].1, 0, 0, 1, 0, 0]));
-pts := Append(pts, Place(NX(flds[5])![-1/13*flds[5].1, 3/13*flds[5].1, -2/13*flds[5].1, 1, 1, 1, 0, 1]));
-pts := Append(pts, Place(NX(flds[6])![-3/13*flds[6].1, -2/91*flds[6].1, -3/91*flds[6].1, -12/7, -5/7, -10/7, 25/7, 1]));
-pts := Append(pts, Place(NX(flds[7])![-1/13*flds[7].1, 3/13*flds[7].1, 11/13*flds[7].1, 1, 0, -3, -1, 1]));
+time Append(~points, Place(NX(QuadraticFields[1])![-5/13*QuadraticFields[1].1, 2/13*QuadraticFields[1].1, 3/13*QuadraticFields[1].1, 0, -1, -2, 1, 1]));
+time Append(~points, Place(NX(QuadraticFields[2])![-3/13*QuadraticFields[2].1, -4/13*QuadraticFields[2].1, -6/13*QuadraticFields[2].1, 0, 4, -4, -2, 1]));
+time Append(~points, Place(NX(QuadraticFields[3])![-7/13*QuadraticFields[3].1, -5/13*QuadraticFields[3].1, -1/13*QuadraticFields[3].1, -1, 0, -1, 1, 1]));
+time Append(~points, Place(NX(QuadraticFields[4])![ 4/13*QuadraticFields[4].1, 1/13*QuadraticFields[4].1, -5/13*QuadraticFields[4].1, 0, 0, 1, 0, 0]));
+/*time Append(~points, Place(NX(QuadraticFields[5])![-1/13*QuadraticFields[5].1, 3/13*QuadraticFields[5].1, -2/13*QuadraticFields[5].1, 1, 1, 1, 0, 1]));
+time Append(~points, Place(NX(QuadraticFields[6])![-3/13*QuadraticFields[6].1, -2/91*QuadraticFields[6].1, -3/91*QuadraticFields[6].1, -12/7, -5/7, -10/7, 25/7, 1]));
+time Append(~points, Place(NX(QuadraticFields[7])![-1/13*QuadraticFields[7].1, 3/13*QuadraticFields[7].1, 11/13*QuadraticFields[7].1, 1, 0, -3, -1, 1]));*/
 
-"Known quadratic places are: ", pts;
+"Known quadratic places are: ", points;
 
-gens := [1*pts[1] - 1*pts[4], 1*pts[2] - 1*pts[4], 1*pts[3] - 1*pts[4]];
-basePoint := 1*pts[4];
+Generators := [1*points[1] - 1*points[4], 1*points[2] - 1*points[4], 1*points[3] - 1*points[4]]; // generators of subgroup of MW group of finite index
+basePoint := 1*points[4];
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Generators, BasePoint, MWPrimes)
-	"Started sieve function...";
+// X: curve
+// QuotientX: quotient curve of X mod involution given by WMatrix
+// WMatrix: matrix describing involution on X with quotient QuotientX
+// QuadraticPts: known quadratic points on X with
+// Fields: quadratic fields over which the QuadraticPoints are defined (field of definition of QuadraticPts[i] is Fields[i])
+// Generators: degree 0 divisors on X which generate a subgroup A of finite index of J(Q), J = Jacobian(X)
+// BasePoint: base point in X(Q)
+// MWPrimes: primes p for the MW sieve
+// M: modulus for the MW sieve
+MWSieveFiniteIndex := function(X, QuotientX, WMatrix, QuadraticPts, Fields, Generators, BasePoint, MWPrimes, M)
+	printf "Started sieve function ...\n";
 
-	Ws:=[**]; 
-	Bs:=[**];
+	// abstract free abelian group A isomorphic to subgroup of J(Q) of finite indexgenerated by Generators (TODO: allow torsion?)
+	A := AbelianGroup([0 : i in [1..#Generators]]);
 
+	// data for sieve
+	B, iA := sub< A | A >; 
+	W := {Zero(A)};    
+
+	// for all MWS primes, determine cosets W_{p,M}
 	for p in MWPrimes do 
+		printf "Sieving mod p = %o ...\n", p;
 
-		redpL := {};    // Build up to list of known divisors reduced mod p
-		divsp := [];    // Build up to list of generators for G reduced mod p
+		known_divisors_mod_p := [];    // Build up to list of known divisors reduced mod p
 		Rks := [];      // Ranks of residue disc matrices
-		TQ<x> := PolynomialRing(Integers()); 
 		Fp := GF(p);
 		Xp := ChangeRing(X, Fp);
 
 		// assert IsNonSingular(Xp); // Long for each prime.
 
-	///////////////////////////////////////////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////////////////////////////////
 
+		// loop over all known points, compute their reductions mod p
 		for i in [1..#QuadraticPts] do     
-        
 			Qa := Coordinates(RepresentativePoint(QuadraticPts[i]));
 			Aut := Automorphisms(Fields[i]);
-			Qb := [Aut[2](crd) : crd in Qa];
+			Qb := Qa;
+			doublePoint := true;
+			
+			if #Aut ne 1 then
+				Qb := [Aut[2](crd) : crd in Qa]; // conjugate of Qa if it is not a double point
+				doublePoint := false;
+			end if;
 
 			OK := RingOfIntegers(Fields[i]);
-			dec := Factorization(p*OK);        
+			dec := Factorization(p * OK);        
 			pp := dec[1][1];                   // A prime above the rational prime p
 			f := InertiaDegree(pp);            
 			Fpp<t> := ResidueClassField(pp);  // Either GF(p) or GF(p^2) depending on inertia degree
-			Xpp := ChangeRing(X,Fpp);
+			Xpp := ChangeRing(X, Fpp);
 
 			unif := UniformizingElement(pp);   // Use to reduce point modulo p
-			m := Minimum([Valuation(a, pp) : a in Qa | not a eq 0]);  
+			m := Minimum([Valuation(a, pp) : a in Qa | a ne 0]);  
 			Qared := [unif^(-m)*a : a in Qa]; 
-			Qtaa := Xpp![Evaluate(a,Place(pp)) : a in Qared]; // Reduction of quadratic point to Xpp
+			Qtaa := Xpp![Evaluate(a, Place(pp)) : a in Qared]; // Reduction of quadratic point to Xpp
 			Qta := Xp(Fpp) ! Eltseq(Qtaa);      
-			plQtaa := Place(Qtaa); 
+ 
 			plQta := Place(Qta);               
 
-			m := Minimum([Valuation(a, pp) : a in Qb | not a eq 0]); // Repeat with conjugate
+			m := Minimum([Valuation(a, pp) : a in Qb | a ne 0]); // Repeat with conjugate
 			Qbred := [unif^(-m)*a : a in Qb];
-			Qtbb := Xpp![Evaluate(a,Place(pp)) : a in Qbred];
+			Qtbb := Xpp![Evaluate(a, Place(pp)) : a in Qbred];
 			Qtb := Xp(Fpp) ! Eltseq(Qtbb);
-			plQtbb := Place(Qtbb);
+			
 			plQtb := Place(Qtb);
 
-	////////////////////////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////////////////////
+			// Checking if there are exceptional points in residue disc of the point
+			Append(~Rks, AreLonelyRanks(X, p, Xpp, WMatrix, Qtaa, Qtbb, doublePoint));
+      		//print Rks;
 
-	// Checking if there are exceptional points in residue disc of the point
-			AmbientDim := Dimension(AmbientSpace(X)); //Assuming X is given in projective space
-			CoordRing<[u]>:=CoordinateRing(AmbientSpace(Xpp));
-
-			row := [&+[RowSequence(WMatrix)[i][j] * u[j] : j in [1..AmbientDim + 1]] : i in [1..AmbientDim + 1]];
-			wpp := iso<Xpp -> Xpp | row, row>;
-
-			V, phiD := SpaceOfDifferentialsFirstKind(Xpp);  // Holomorphic differentials on Xpp
-			t := hom<V -> V | [ (Pullback(wpp, phiD(V.i)))@@phiD -V.i : i in [1..8] ]>; 
-			T := Image(t);                                 // The space red(V_0)
-			oms := [phiD(T.i) : i in [1..Dimension(T)]]; 
-			tQta := UniformizingParameter(Qtaa);  
-			tQtb := UniformizingParameter(Qtbb);
-			Ata := Matrix([[Evaluate(omega/Differential(tQta), plQtaa) : omega in oms]]);
-			Atb := Matrix([[Evaluate(omega/Differential(tQtb), plQtbb) : omega in oms]]);  
-			ra := Rank(Ata);
-			rb := Rank(Atb);  // Rank 1 means no exceptional points in residue class
-			
-			// An alert to say that there could potentially be an exceptional point in the residue class. 
-			if ra eq 0 then 
-				print "Point Not Lonely When i =", i;
-				print"and p =", p;
-			end if; 
-	
-			Rks := Rks cat [ra];
-
-	////////////////////////////////////////////////////////////////////////////////
-
-			if Degree(plQta) eq 1 then   // if a point is defined over Fp
-			   DivQ := plQta+plQtb;        // then form a divisor from the point and its conjugate
+			if Rks[#Rks] eq 0 then
+				if Degree(plQta) eq 1 then   // if a point is defined over Fp
+					DivQ := plQta + plQtb;        // then form a divisor from the point and its conjugate
+				elif Degree(plQta) eq 2 then   // if a point is defined over Fp^2
+					DivQ := Divisor(plQta);     // then form the divisor of its place
+				else
+					error "only places of degree <= 2 are implemented.";
+				end if;
+			else
+				DivQ := 0 * plQta; // don't need divisor if rank is non-zero
 			end if;
 
-			if Degree(plQta) eq 2 then   // if a point is defined over Fp^2
-			   DivQ := Divisor(plQta);     // then form the divisor of its place
-			end if;
+			Append(~known_divisors_mod_p, DivQ);    // Include divisors in the reductions of our known points
+		end for;  // End of loop over known quadratic points
 
-			redpL := redpL join {DivQ};    // Include  divisors in the reductions of our known points
-		end for;  // End of loop
-
-		divsp := [NewReduce(X, Xp, genDiv) : genDiv in Generators];
-		bpp := NewReduce(X, Xp, BasePoint);
+		divisors_mod_p := [NewReduce(X, Xp, divisor) : divisor in Generators]; // reductions of (generators of subgroup of MW group) mod p
+		base_point_mod_p := NewReduce(X, Xp, BasePoint); // reduction of base point mod p
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////
 
-		pls1p := Places(Xp, 1);   // The degree 1 places on Xp 
-		pls2p := Places(Xp, 2);   //  The degree 2 places on Xp 
-		//Degree 2 divisors on Xp
-		degr2 := {1*pl1 + 1*pl2 : pl1 in pls1p, pl2 in pls1p} join {1*pl : pl in pls2p}; 
+		places_of_degree_1_mod_p := Places(Xp, 1);   // The degree 1 places on Xp 
+		places_of_degree_2_mod_p := Places(Xp, 2);   // The degree 2 places on Xp 
+		// degree 2 divisors on Xp
+		degree2divisors_mod_p := {1*place1 + 1*place2 : place1, place2 in places_of_degree_1_mod_p} join {1*place : place in places_of_degree_2_mod_p}; 
 		
-		time C, phi, psi := ClassGroup(Xp); 
-		/*Z := FreeAbelianGroup(1);
-		degr := hom<C -> Z | [ Degree(phi(a))*Z.1 : a in OrderedGenerators(C)]>;  
-		JFp := Kernel(degr);     // This is isomorphic to J_X(\F_p)*/
-		JFp := TorsionSubgroup(C);
+		time PicXp, _, divisor_class := ClassGroup(Xp); 
+		JFp := TorsionSubgroup(PicXp); // Jac(X)(F_p) =: J(F_p), take Pic^0(X)(F_p)
 
-		JFpmodM, pi := quo<JFp | M*JFp>; 
+		JFpmodM, modM := quo< JFp | M * JFp >; // MJ(F_p)
 
-		imGhat := sub<JFpmodM | [pi(JFp!psi(divp)) : divp in divsp]>; // Image of G in JFpmodM
-		poshat := {DD : DD in degr2 |pi((JFp!(psi(DD - bpp)))) in imGhat};  // Set S_{p,M}
-		posP := {DD : DD in poshat | not DD in redpL};   // Remove reductions of all known points,
+		image_A_in_JFpmodM := sub< JFpmodM | [modM(JFp!divisor_class(divisor_mod_p)) : divisor_mod_p in divisors_mod_p] >; // Image of A in J(F_p)/M
+		// Set S_{p,M} = {degree 2 divisors D of X/F_p with D - bp in im(A in J(F_p)/M)}
+		SpM := {divisor_mod_p : divisor_mod_p in degree2divisors_mod_p | modM((JFp!(divisor_class(divisor_mod_p - base_point_mod_p)))) in image_A_in_JFpmodM};
+		TpM := {divisor_mod_p : divisor_mod_p in SpM | divisor_mod_p notin known_divisors_mod_p};   // Remove reductions of all known points,
 		
-		for i in [1..#QuadraticPts] do  // then add back in those that don't pass the Chabuaty test
+		for i in [1..#QuadraticPts] do  // then add back in those that don't pass the Chabauty test
 			if Rks[i] eq 0 then
-				posP := posP join {redpL[i]};
+				TpM join:= {known_divisors_mod_p[i]};
 			end if; 
 		end for;
 		
-		// posP is now T_{p,M}
-		jposP := Setseq({pi(JFp!(psi(DD - bpp))) : DD in posP});  // The set iota_{p,M}(T_{p,M}).
+		// TpM is now T_{p,M}
+		iotaTpM := {modM(JFp!(divisor_class(divisor_mod_p - base_point_mod_p))) : divisor_mod_p in TpM};  // The set iota_{p,M}(T_{p,M}).
 
-		h := hom<A -> JFpmodM | [pi(JFp!psi(divp)) : divp in divsp]>; // The map phi_{p,M}.
-		Bp := Kernel(h);  
-		Bp, iAp := sub<A|Bp>; 
-		"Index of Bp in A: ", Index(A, Bp);
-		Wp := {x@@h : x in jposP}; 
-		"#Wp is: ", #Wp;
-		Ws := Ws cat [* Wp *];  
-		Bs := Bs cat [* Bp *];
-		print "Calculations completed for p =", p;  
-	end for;
+		// The map phi_{p,M}. (A is isomorphic to the subgroup of J(Q) of finite index generated by divs Generators)
+		phi_pM := hom< A -> JFpmodM | [modM(JFp!divisor_class(divisor_mod_p)) : divisor_mod_p in divisors_mod_p] >;
+		Bp := sub< A | Kernel(phi_pM) >; // ker(A -> J(F_p)/M)
+		printf "Index of Bp in A: %o\n", Index(A, Bp);
+		Wp := {x@@phi_pM : x in iotaTpM}; // Bp-cosets W_{p,M} in A
+		printf "#Wp is: %o\n", #Wp;
+		printf "Calculations completed for p = %o.\n", p;  
 
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////
+		// perform the intersection of the W_{p,M} directly after each p to save time
+		// We now intersect the coset lists W_{p,M}
 
-	// We now intersect the coset lists W_{p,M}
+		if #Wp eq 0 then
+			printf "no cosets for p = %o => done.\n", p;
+			return true;
+		end if;
 
-	B, iA := sub<A|A>; 
-	W := {0*A.1};     
-
-	for i in [1..#MWPrimes] do 
-		if Ws[1] eq {} then
-			print true;
-		end if;  
+		Bp, iAp := sub < A | Bp >;   
+		Bnew, iBp := sub < Bp | B meet Bp >; // Now intersect Bp + Wp and B + W.
+		iAnew := iBp * iAp;
 		
-		Bs[i], iAp := sub<A | Bs[i]>;   
-		Bnew, iBp := sub<Bs[i] | B meet Bs[i]>; // Now intersect Bp+Wp and B+W.
-		iAnew := iBp*iAp;
+		A0, pi0  := quo<  A | iAnew(Bnew) >;
+		Ap, pi0p := quo< A0 | pi0(iAp(Bp)) >;
+		A1, pi01 := quo< A0 | pi0(iA(B)) >;
 		
-		A0, pi0 := quo<A | iAnew(Bnew)>;
-		Ap, pi0p := quo<A0 | pi0(iAp(Bs[i]))>;
-		A1, pi01 := quo<A0 | pi0(iA(B))>;
+		pi1 := pi0 * pi01;
+		pip := pi0 * pi0p;
 		
-		pi1 := pi0*pi01;
-		pip := pi0*pi0p;
-		
-		W := {x@@pi0 : x in {(pi1(y))@@pi01 + k : y in W, k in Kernel(pi01)} | pi0p(x) in pip(Ws[i])};
-		"#W is: ", #W;
+		W := {x@@pi0 : x in {(pi1(y))@@pi01 + k : y in W, k in Kernel(pi01)} | pi0p(x) in pip(Wp)};
+		printf "new #W after sieving mod %o is: %o\n", p, #W;
 		
 		B := Bnew;
-		"Index of B in A: ", Index(A, B);
+		printf "Index of B in A: %o\n", Index(A, B);
 		iA := iAnew;
 		
-		if W eq {} then
-			print "true at i =", i;
+		if #W eq 0 then
+			printf "no cosets for p = %o => done.\n", p;
+			return true;
 		end if; 
-	end for;
-	
-	Wsieved := W; // Output of the final sieved cosets
-	Bsieved := B; // Wsieved are cosets in Z^3 of Bsieved
-	
-	if Wsieved eq {} then
-		print true;
-	end if; // This means we have found all the quadratic points! 
+	end for; // end of loop over MWprimes
+
+	printf "WARNING: Cosets left: It is not clear whether we have found all quadratic points!\n";
+	return false;
 end function;
 
-MWSieveFiniteIndex(NX, XNSplus13, Matrix(Nw), pts, flds, gens, basePoint, pinsieve);
-
-/*N := 137;
-X, Xplus, pi, cusps, bp, Xplus_pts, bp_plus, divsX := finiteindexsubgrpofJ0N(N);*/
+MWSieveFiniteIndex(NX, XNSplus13, Matrix(Nw), points, QuadraticFields, Generators, basePoint, MWPrimes, M);

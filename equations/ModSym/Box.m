@@ -1,4 +1,4 @@
-// freeze;
+freeze;
 
 /*********************************************************************************
                                                                           
@@ -9,8 +9,8 @@
   FILE: Box.m (modular curve algorithm based on J. Box's paper)
 
   exports intrinsics:
-  JMap(G::GrpPSL2, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt);
-  ModularCurve(G::GrpPSL2);
+  JMap(G::GrpGL2Hat, qexps::SeqEnum[RngSerPowElt], prec::RngIntElt);
+  ModularCurve(G::GrpGL2Hat);
   WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
 		     E4::FldFunRatMElt, E6::FldFunRatMElt, name::MonStgElt);
   LMFDBWriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
@@ -1015,6 +1015,9 @@ end function;
 function get_gens(G, eps)
     N := Modulus(BaseRing(G));
     M, K := get_M_K_normalizer(G, Kernel(eps));
+    if Dimension(G) eq 1 then
+	return [[1,0,0,1]], [], 1, 1, [];
+    end if;
     H := G meet SL(2, Integers(N));
     gens := [Eltseq(FindLiftToSL2(g)) : g in Generators(H)];
     if IsEmpty(gens) then
@@ -1468,7 +1471,7 @@ end function;
 function compute_ms_action(G, eps, gens, Bgens, K, M, ds, AtkinLehner : wt := 2)
 
     GL_N := GL(2, BaseRing(G));
-    eps_gens := [eps(G!g) : g in gens];
+    eps_gens := [eps(GL_N!g) : g in gens];
     // the value of eps on BP_d
     // eps_BPd_gens := [eps(GL_N!Bgens[i]*GL_N![1,0,0,ds[i]]) : i in [1..#Bgens]]; 
     eps_BPd_gens := [eps(GL_N!Bgens[i]*GL_N![ds[i],0,0,1]) : i in [1..#Bgens]]; 
@@ -1684,6 +1687,74 @@ function get_aut_extensions(Ps_Q_huge, Q_huge)
     return Ps;
 end function;
 
+function restrict_scalars_to_Q(fs, F, K, zeta_K, prec, is_cusp)
+    // We now have the forms over BaseField(eps)
+    // and we still need to get restriction of scalars to Q.
+    // (summing over the Galois orbit of the character)
+
+    cyc_base := Order(UnitGroup(F).1);
+    
+    powers := [CRT([1,a],[K div GCD(K, cyc_base),cyc_base]) : a in [1..cyc_base] |
+	       GCD(a,cyc_base) eq 1];
+    Q_K := Parent(zeta_K);
+
+    if is_cusp then
+	eps := 0;
+    else
+	eps := 1;
+    end if;
+    
+    if (Type(Q_K) eq FldRat) then
+	if not IsEmpty(fs) then
+	    fs_field := Q_K;
+	    _<q> := PowerSeriesRing(fs_field);
+	    fs := qExpansions([Vector(f) : f in fs], prec+eps, q, fs_field, false);
+	    if (not is_cusp) then
+		fs := [f div q : f in fs];
+	    end if;
+	end if;
+
+	return fs;
+    end if;
+    
+    aut_Q_K := [hom<Q_K -> Q_K | zeta_K^pow> : pow in powers];
+    
+    // auts := Automorphisms(F);
+    auts := aut_Q_K;
+    xi := F.1;
+    fs_conj := [[Vector([sig(a) : a in Eltseq(f)])
+		 : f in fs] : sig in auts];
+    //    fs := &cat fs_conj;
+    
+    xi_conj := [sig(xi) : sig in auts];
+    fs := &cat[[&+[xi_conj[l]^j * fs_conj[l][i] : l in [1..#auts]]
+		: j in [0..Degree(F)-1]]
+	       : i in [1..#fs] ];
+
+    // we don't want extraneous forms, in case some were already defined over Q
+
+    Q_mat := Matrix([&cat[Eltseq(a) : a in Eltseq(f)]
+		     : f in fs]);
+    Q_basis := Basis(RowSpace(Q_mat));
+    
+    fs := [Vector([Rationals()!b[i] : i in [1..(prec+eps)*Degree(F)]]) : b in Q_basis];
+
+    gap := Degree(F);
+    assert &and[ &and[f[x] eq 0 : x in [1..Degree(f)] | (x-1) mod gap ne 0] : f in fs];
+    fs := [Vector([f[gap*i+1] : i in [0..(Degree(f)-1) div gap]]) : f in fs];
+    
+    if not IsEmpty(fs) then
+	fs_field := BaseRing(Universe(fs));
+	_<q> := PowerSeriesRing(fs_field);
+	fs := qExpansions(fs, prec+eps, q, fs_field, false);
+	if (not is_cusp) then
+	    fs := [f div q : f in fs];
+	end if;
+    end if;
+
+    return fs;
+end function;
+
 // function: BoxMethod
 // input: G - a subgroup of GL(2, N) for some N
 //        prec - a required precision for the q-expansions
@@ -1843,7 +1914,12 @@ function getCurveFromForms(fs, prec, max_deg, genus : CheckGenus := true)
     assert Minimum([AbsolutePrecision(f) : f in fs]) ge prec;
 
     type := "canonical";
-    X := FindCurveSimple(fs, prec, max_deg);
+    try
+	X := FindCurveSimple(fs, prec, max_deg);
+    catch e
+	g := 0;
+	X := ProjectiveSpace(Rationals(),1);
+    end try;
     
     if DefiningPolynomials(X) eq [0] then
 	vprintf ModularCurves, 1:
@@ -1910,7 +1986,7 @@ function ModularCurveBox(G, genus : Precision := 0, Proof := false,
     return X, fs, type, K;
 end function;
 
-intrinsic ModularCurve(G::GrpPSL2 : Proof := false, Al := "Canonical") -> Crv[FldRat],SeqEnum[RngSerPowElt], MonStgElt
+intrinsic ModularCurve(G::GrpGL2Hat : Proof := false, Al := "Canonical") -> Crv[FldRat],SeqEnum[RngSerPowElt], MonStgElt
 {Returns the canonical embedding of the modular curve associated to G,
  together with the q-expansions of a basis of cusp forms, and the type of model.}
 /*
@@ -2021,115 +2097,3 @@ procedure testBox(grps_by_name : Proof := false,
 
     testBoxExample();
 end procedure;
-
-intrinsic WriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
-		     E4::FldFunRatMElt, E6::FldFunRatMElt, name::MonStgElt)
-{Write the model, the q-expansions, E4, E6 and j to a file, which can be loaded in magma,
-    which is named name.m. They will be named X_name, fs_name, E4_name, etc.}
-
-    preamble := Sprintf("
-    /****************************************************
-    Loading this file in magma loads the objects fs_%o,
-    X_%o, E4_%o, E6_%o, j_%o. fs_%o is a list of power series which form 
-    a basis for the space of cusp forms. X_%o is a 
-    representation of the corresponding modular curve in 
-    projective space, using the canonical embedding.
-    E4_%o, E6_%o and j_%o are rational functions representing 
-    E4, E6 and j in terms of the coordinates.
-    *****************************************************/
-    ",name, name, name, name, name,
-		     name, name, name, name, name);
-
-    fname := name cat ".m";
-    Kq<q> := Parent(fs[1]);
-    K := BaseRing(Kq);
-    if Type(K) ne FldRat then
-	AssignNames(~K, ["zeta"]);
-    end if;
-    zeta := K.1;
-    poly<x> := DefiningPolynomial(K);
-    // This should always be the rational field, but just in case
-    F := BaseRing(K);
-    suf := "";
-    Proj<[x]> := AmbientSpace(X);
-    if Type(K) ne FldRat then
-	field_def_str := Sprintf("f<x> := Polynomial(F, %m);
-	      K<zeta%o> := ext<F|f>;", Eltseq(poly), suf);
-    else
-	field_def_str := "K := F;";
-    end if;
-    write_str := Sprintf("
-    	      F := %m;	
-	      %o
-	      Kq<q> := PowerSeriesRing(K);
-	      fs_%o := [Kq | %m", F, field_def_str, name, fs[1]);
-    if #fs gt 1 then
-      write_str cat:= &cat[Sprintf(", %m", f) : f in fs[2..#fs]];
-    end if;
-    write_str cat:= "] ;";
-
-    wts := Gradings(X)[1];
-    is_weighted := Set(wts) ne {1};
-    if is_weighted then
-	proj_string := Sprintf("P_Q<[x]> := WeightedProjectiveSpace(Rationals(), %o);", wts);
-    else
-	proj_string := Sprintf("P_Q<[x]> := ProjectiveSpace(Rationals(), %o);", Dimension(Proj));
-    end if;
-
-    write_str cat:= Sprintf("
-    	      %o
-    	      X_%o := Curve(P_Q, %m);",
-			    proj_string, name, DefiningPolynomials(X));
-
-    write_str cat:= Sprintf("\nE4_num_%o := %m;\n", name, Numerator(E4));
-    write_str cat:= Sprintf("E4_denom_%o := %m;\n", name, Denominator(E4));
-    write_str cat:= Sprintf("E6_num_%o := %m;\n", name, Numerator(E6));
-    write_str cat:= Sprintf("E6_denom_%o := %m;\n", name, Denominator(E6));
-    write_str cat:= Sprintf("E4_%o := E4_num_%o / E4_denom_%o;\n", name, name, name);   
-    write_str cat:= Sprintf("E6_%o := E6_num_%o / E6_denom_%o;\n", name, name, name); 
-    write_str cat:= Sprintf("j_num_%o := 1728*E4_%o^3;\n", name, name);     
-    write_str cat:= Sprintf("j_denom_%o := E4_%o^3-E6_%o^2;\n", name, name, name);
-    write_str cat:= Sprintf("j_%o := j_num_%o / j_denom_%o;\n", name, name, name);
-    fname := name cat ".m";
-    Write(fname, write_str);
-    return;
-end intrinsic;
-
-function strip(X)
-    // Strips spaces and carraige returns from string; much faster than StripWhiteSpace.
-    return Join(Split(Join(Split(X," "),""),"\n"),"");
-end function;
-
-function sprint(X)
-    // Sprints object X with spaces and carraige returns stripped.
-    if Type(X) eq Assoc then return Join(Sort([ $$(k) cat "=" cat $$(X[k]) : k in Keys(X)]),":"); end if;
-    return strip(Sprintf("%o",X));
-end function;
-
-intrinsic LMFDBWriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
-		          E4::FldFunRatMElt, E6::FldFunRatMElt, fname::MonStgElt)
-{Write the model, the q-expansions, E4, and E6 to a file for input into the LMFDB database}
-    Kq<q> := Parent(fs[1]);
-    K := BaseRing(Kq);
-    if Type(K) ne FldRat then
-        AssignNames(~K, ["zeta"]);
-    end if;
-    // Need to figure out what to do about q-expansions
-    uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
-    lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
-    DP := DefiningPolynomials(X);
-    R := Parent(DP[1]);
-    AssignNames(~R, uvars[1..Rank(R)]);
-    S := Parent(E4);
-    AssignNames(~S, lvars[1..Rank(R)]);
-    Write(fname, Sprintf("{%o}|{%o}|{%o,%o}", Join([sprint(f) : f in DefiningPolynomials(X)], ","), Join([sprint(f) : f in fs], ","), sprint(E4), sprint(E6)));
-    return;
-end intrinsic;
-
-intrinsic LMFDBWriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
-		          E4::RngMPolElt, E6::RngMPolElt, fname::MonStgElt)
-{Write the model, the q-expansions, E4, and E6 to a file for input into the LMFDB database}
-  FF := FieldOfFractions(Parent(E4));
-  LMFDBWriteModel(X, fs, FF!E4, FF!E6, fname);
-  return;
-end intrinsic;

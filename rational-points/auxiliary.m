@@ -1,4 +1,17 @@
 load "Progs/quadPts.m";
+load "torsion_data.m";
+
+computeI:=function(N)
+  a:=torsion_data[N];
+  if a[2] then return 1;
+  else
+    c:=a[4];
+    k:=#a[4]-#a[3];
+    d:=[1: i in [1..k]] cat a[3];
+    b:=[a[4][i] div d[i]: i in [1..#a[4]]];
+    return LCM(b);
+  end if;
+end function;
 
 //the following function checks if rank J0(N)(Q) = rank J0(N)+(Q) as suggested by Philippe
 IsRankOfALQuotEqual := function(N)

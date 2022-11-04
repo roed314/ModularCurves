@@ -252,7 +252,7 @@ end function;
 
 // This function finds an element in PSL2 mapping the cusp at infinity to
 // a.
-// These are now intrinsics in GrpPSL2/cusps.m
+// These are now intrinsics in GrpGL2Hat/cusps.m
 /*
 function CuspInftyElt(a)
   cusp := ReduceCusp(a);
