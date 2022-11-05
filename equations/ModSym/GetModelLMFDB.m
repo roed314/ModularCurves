@@ -7,7 +7,8 @@ AttachSpec("ModCrv.spec");
 SetVerbose("ModularCurves", 1);
 
 level := StringToInteger(Split(label, ".")[1]);
-input_lines := ReadLines("input_data/" * label);
+input := Read("input_data/" * label);
+input_lines := Split(input, "\n");
 if IsEmpty(input_lines) then
     assert level eq 1;
     PG := Gamma0(1);
