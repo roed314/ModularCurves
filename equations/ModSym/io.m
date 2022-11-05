@@ -130,7 +130,9 @@ end function;
 intrinsic LMFDBReadModel(fname::MonStgElt) ->
 	    Crv, SeqEnum[RngSerPowElt], FldFunRatMElt, FldFunRatMElt
 {Read the model, the q-expansions, E4, and E6 from a file for input into the LMFDB database}
-  r := ReadLines(fname)[1];
+  input := Read(fname);
+  input_lines := Split(input, "\n");
+  r := input_lines[1];
   split_r := Split(r, "|");
   data := [Split(t[2..#t-1], ",") : t in split_r];
   rank := #data[2];
