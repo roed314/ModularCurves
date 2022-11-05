@@ -45,6 +45,13 @@ if type eq "hyperelliptic" then
     X<[x]>, fs, K := CanonicalRing(PG);
     LogCanonical := true;
 end if;
+// We do that, otherwise Magma gets upset...
+if (not is_cover) then
+    X_cov := X;
+    fs_cov := fs;
+    E4_cov := fs[1];
+    E6_cov := fs[1];
+end if;
 if is_cover then
     // !! TODO - if K != K_cov has to take it into account
     cov_map := CoveringMap(X_cov, X, fs_cov, fs);
