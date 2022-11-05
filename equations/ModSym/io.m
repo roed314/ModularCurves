@@ -165,5 +165,5 @@ intrinsic LMFDBReadModel(fname::MonStgElt) ->
   rats := [eval StringToPoly(s, S, "X") : s in data[3]];
   E4 := rats[1];
   E6 := rats[2];
-  return C, qexps, E4, E6;
+  return C, qexps, E4, E6, cyc_ord, weights;
 end intrinsic;
