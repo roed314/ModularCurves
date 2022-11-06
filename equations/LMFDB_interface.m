@@ -2,7 +2,7 @@
 // AttachSpec("~/github/CHIMP/CHIMP.spec");
 
 // Expects a line as in modular_curves_data.txt
-function GetModularCurveGeneratorsForLine(line) do
+function GetModularCurveGeneratorsForLine(line) 
     cid, label, level, gen_str := Explode(Split(line, "|"));
     N := StringToInteger(level);
     gen_str := ReplaceCharacter(gen_str, "{", "[");
