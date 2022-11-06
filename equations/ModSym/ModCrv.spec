@@ -57,6 +57,7 @@
 	dirichlet.m
 	linalg.m
 	maps.m
+	misc.m
 	modsym.m
 	multichar.m
 	operators.m
