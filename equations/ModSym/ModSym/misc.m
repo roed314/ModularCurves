@@ -113,11 +113,11 @@ end if;
 	end for;
 	return true;
     end function;
-    
+*/    
     IdentifyKroneckerCharacter := function(chi)
 	chi:=AssociatedPrimitiveCharacter(chi);
 	if Order(chi) eq 1 then return 1; end if; C:=Conductor(chi);
 	return chi eq KroneckerCharacter(C) select C else -C;
     end function;
-*/
+    
 //    _, PowerSeriesSeq := IsIntrinsic("AbsolutePrecision");
