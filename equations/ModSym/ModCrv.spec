@@ -51,12 +51,14 @@
 	arith.m
 	boundary.m
 	character.m
+	charpolyhecke.m
 	core.m
 	decomp.m
 	dims.m
 	dirichlet.m
 	linalg.m
 	maps.m
+	misc.m
 	modsym.m
 	multichar.m
 	operators.m

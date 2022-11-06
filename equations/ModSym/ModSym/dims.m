@@ -7,13 +7,13 @@ freeze;
                                                                             
    FILE: dims.m (Dimension formulas)                                        
                                                                             
-   $Header: /home/was/magma/packages/ModSym/code/RCS/dims.m,v 1.11 2002/05/21 18:36:30 was Exp $
+   $Header: /home/was/magma/packages/ModSymA/code/RCS/dims.m,v 1.11 2002/05/21 18:36:30 was Exp $
  
    $Log: dims.m,v $
    Revision 1.11  2002/05/21 18:36:30  was
    fixed a bug!
     I just found a potentially-very-annoying bug in dims.m, which
-   resulting from some slopiness.  Line 542 of ModSym/dims.m should be
+   resulting from some slopiness.  Line 542 of ModSymA/dims.m should be
               DimensionNewCuspForms(eps,k);
    instead of
               DimensionNewCuspFormsGamma1(eps,k);

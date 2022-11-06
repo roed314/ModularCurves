@@ -99,6 +99,10 @@ intrinsic LMFDBWriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
     lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
     DP := DefiningPolynomials(X);
     R := Parent(DP[1]);
+    if (#uvars lt Rank(R)) then
+	uvars := uvars cat lvars; // adding variables
+	lvars := uvars cat lvars;
+    end if;
     AssignNames(~R, uvars[1..Rank(R)]);
     S := Parent(E4);
     AssignNames(~S, lvars[1..Rank(R)]);

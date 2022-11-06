@@ -79,7 +79,7 @@ forward           CuspEquiv,
 /////////////////////////////////////////////////////////////
 
 
-intrinsic BoundaryMap(M::ModSym) -> ModMatFldElt
+intrinsic BoundaryMap(M::ModSymA) -> ModMatFldElt
 {A matrix that represents the boundary map from M to the 
 vector space whose basis consists of the weight-k cusps.}
    if not assigned M`boundary_map then
@@ -134,7 +134,7 @@ vector space whose basis consists of the weight-k cusps.}
 end intrinsic;
 
 
-intrinsic Cusps(M::ModSym) -> SeqEnum
+intrinsic Cusps(M::ModSymA) -> SeqEnum
 {The cusps of M.  The weight must be two and the character trivial.}
    require IsTrivial(DirichletCharacter(M)) :
     "The dirichlet character of M must be trivial.";
@@ -164,7 +164,7 @@ function IsRational(M, alpha)
    return true;
 end function;
 
-intrinsic RationalCusps(M::ModSym) -> SeqEnum
+intrinsic RationalCusps(M::ModSymA) -> SeqEnum
 {The rational cusps of M.  The weight must be two and the character trivial.}
    require IsTrivial(DirichletCharacter(M)) :
       "The character of M must be trivial.";
@@ -176,7 +176,7 @@ intrinsic RationalCusps(M::ModSym) -> SeqEnum
    return [alpha : alpha in C | IsRational(M,alpha)];
 end intrinsic;
 
-intrinsic StandardCusp(M::ModSym, x::FldRatElt) -> FldRatElt
+intrinsic StandardCusp(M::ModSymA, x::FldRatElt) -> FldRatElt
 {The unique element of Cusps(M) that is equivalent to x.}
    require IsTrivial(DirichletCharacter(M)) :
             "The dirichlet character of M must be trivial.";
@@ -187,7 +187,7 @@ intrinsic StandardCusp(M::ModSym, x::FldRatElt) -> FldRatElt
    return Cusps(M)[i];
 end intrinsic;
 
-intrinsic StandardCusp(M::ModSym, x::RngIntElt) -> FldRatElt
+intrinsic StandardCusp(M::ModSymA, x::RngIntElt) -> FldRatElt
 {The unique element of Cusps(M) that is equivalent to x.}
    require IsTrivial(DirichletCharacter(M)) :
          "The dirichlet character of M must be trivial.";
