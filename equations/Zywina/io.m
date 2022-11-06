@@ -1,3 +1,6 @@
+declare type JMapData;
+declare attributes JMapData: E4,E6,J;
+
 function strip(X)
     // Strips spaces and carraige returns from string; much faster than StripWhiteSpace.
     return Join(Split(Join(Split(X," "),""),"\n"),"");
@@ -9,9 +12,8 @@ function sprint(X)
     return strip(Sprintf("%o",X));
 end function;
 
-intrinsic LMFDBWriteModel(X::Rec, E4::FldFunRatMElt, 
-		          E6::FldFunRatMElt, fname::MonStgElt)
-{Write the model, the q-expansions, E4, and E6 to a file for input into the LMFDB database}
+intrinsic LMFDBWriteModel(X::Rec, j::JMapData, fname::MonStgElt)
+{Write the model, the q-expansions, and j-map to a file for input into the LMFDB database}
     Kq<q> := Parent(X`F0[1][1]);
     K := BaseRing(Kq);
     if Type(K) ne FldRat then
@@ -30,18 +32,13 @@ intrinsic LMFDBWriteModel(X::Rec, E4::FldFunRatMElt,
 	lvars := [Sprintf("x_{%o}", i) : i in [1..Rank(R)]];
     end if;
     AssignNames(~R, uvars[1..Rank(R)]);
-    S := Parent(E4);
+    S := Parent(j`J);
     AssignNames(~S, lvars[1..Rank(R)]);
-    Write(fname, Sprintf("{%o}|{%o}|{%o,%o}|{%o}", Join([sprint(f) : f in DP], ","), Join([Join([sprint(f) : f in fs],",") : fs in X`F0], ","), sprint(E4), sprint(E6), cyc_ord));
+    E4_str := (assigned j`E4) select sprint(j`E4) else "";
+    E6_str := (assigned j`E6) select sprint(j`E6) else "";
+    Write(fname, Sprintf("{%o}|{%o}|{%o,%o}|{%o}", Join([sprint(f) : f in DP], ","), Join([Join([sprint(f) : f in fs],",") : fs in X`F0], ","), E4_str, E6_str, sprint(j`J), cyc_ord));
     return;
 end intrinsic;
 
-intrinsic LMFDBWriteModel(X::Rec,
-		          E4::RngMPolElt, E6::RngMPolElt, fname::MonStgElt)
-{Write the model, the q-expansions, E4, and E6 to a file for input into the LMFDB database}
-  FF := FieldOfFractions(Parent(E4));
-  LMFDBWriteModel(X, FF!E4, FF!E6, fname);
-  return;
-end intrinsic;
 
 
