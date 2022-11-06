@@ -51,6 +51,7 @@
 	arith.m
 	boundary.m
 	character.m
+	charpolyhecke.m
 	core.m
 	decomp.m
 	dims.m

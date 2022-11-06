@@ -7,7 +7,7 @@ freeze;
                                                                             
    FILE: core.m (core reduction routines.)
 
-   $Header: /home/was/magma/packages/ModSym/code/RCS/core.m,v 1.13 2002/10/01 06:01:13 was Exp $
+   $Header: /home/was/magma/packages/ModSymA/code/RCS/core.m,v 1.13 2002/10/01 06:01:13 was Exp $
 
    $Log: core.m,v $
    Revision 1.13  2002/10/01 06:01:13  was
@@ -139,7 +139,7 @@ import "linalg.m" : Pivots;
 
 import "multichar.m" : MC_ConvToModularSymbol, 
                        MC_ManinSymToBasis,
-                       MC_ModSymToBasis;;
+                       MC_ModSymAToBasis;;
 
 /* ZZ Dangerous bend ZZ
    The code in this files lies at the very core of all of the other modular
@@ -151,11 +151,11 @@ import "multichar.m" : MC_ConvToModularSymbol,
 
 forward convergent,
         ConvFromManinSymbol ,
-        ConvFromModSym,
+        ConvFromModSymA,
         ConvFromModularSymbol,
         ConvFromModularSymbol_helper,
         ConvToManinSymbol,
-        ConvToModSym,
+        ConvToModSymA,
         ConvToModularSymbol,
         LiftToCosetRep,
         ManinSymbolApply,
@@ -1369,7 +1369,7 @@ function ConvToManinSymbol(M, i)
 end function;
 
 
-function ConvToModSym(M, i) 
+function ConvToModSymA(M, i) 
    mlist := M`mlist;
    uv, w, ind   := UnwindManinSymbol (
         M`quot`Sgens[M`quot`Tgens[i]], mlist);
@@ -1410,7 +1410,7 @@ function ConvToModularSymbol(M, v)
    M := AmbientSpace(M);
    w := Representation(v);
    nz := [i : i in [1..Dimension(M)] | w[i] ne 0];
-   return [ <w[i]*x[1],x[2]> : i in nz | true where x is ConvToModSym(M, i)];
+   return [ <w[i]*x[1],x[2]> : i in nz | true where x is ConvToModSymA(M, i)];
 end function;
 
 
@@ -1460,7 +1460,7 @@ function ManSymGenListToSquot(m,M,Tmat)
 end function;
 */
 
-intrinsic ConvertFromManinSymbol(M::ModSym, x::Tup) -> ModSymElt
+intrinsic ConvertFromManinSymbol(M::ModSymA, x::Tup) -> ModSymAElt
 {The modular symbol in the ambient space of M 
 associated to the 2-tuple x=<P(X,Y),[u,v]>, 
 where P(X,Y) is homogeneous of degree k-2 and 
@@ -1572,7 +1572,7 @@ function ConvFromManinSymbols (M, mlist, P, uvs)
 end function;
 
 // Compute P*{0,a/b}
-function ConvFromModSym(M, V, ZN, P, a, b)
+function ConvFromModSymA(M, V, ZN, P, a, b)
    if Dimension(M) eq 0 then
       return Representation(M)!0;
    end if;
@@ -1680,8 +1680,8 @@ function ConvFromModularSymbol_helper(M, V, ZN, Px)
    P, x := Explode(Px);
    a,b := Explode(Eltseq(x[1]));
    c,d := Explode(Eltseq(x[2]));
-   return ConvFromModSym(M,V,ZN,P,c,d)
-           -ConvFromModSym(M,V,ZN,P,a,b);
+   return ConvFromModSymA(M,V,ZN,P,c,d)
+           -ConvFromModSymA(M,V,ZN,P,a,b);
           
 end function;
 
@@ -1703,7 +1703,7 @@ function ConvFromModularSymbol(M, Px)
     pair of elements of P^1(Q), where [a,b] <--> a/b and [c,d] <--> c/d.*/
    
    if IsMultiChar(M) then
-      return M!MC_ModSymToBasis(M, Px);
+      return M!MC_ModSymAToBasis(M, Px);
    end if;
 
    R := AmbientSpace(M);
@@ -1719,7 +1719,7 @@ function ConvFromModularSymbol(M, Px)
 end function;
 
 
-intrinsic ModularSymbolRepresentation(x::ModSymElt) -> SeqEnum
+intrinsic ModularSymbolRepresentation(x::ModSymAElt) -> SeqEnum
 {The standard represenation of the modular symbol x,
  as a sequence of tuples <coeff,[cusp1,cusp2]>.}
    if not assigned x`modsym_rep then

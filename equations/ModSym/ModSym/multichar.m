@@ -7,7 +7,7 @@ freeze;
                                                                             
    FILE: multichar.m  (Spaces defined by multiple characters.)
  
-   $Header: /home/was/magma/packages/ModSym/code/RCS/multichar.m,v 1.1 2002/08/25 17:11:35 was Exp was $
+   $Header: /home/was/magma/packages/ModSymA/code/RCS/multichar.m,v 1.1 2002/08/25 17:11:35 was Exp was $
 
    $Log: multichar.m,v $
    Revision 1.1  2002/08/25 17:11:35  was
@@ -42,8 +42,8 @@ forward   AssociatedNewformSpace,
           MC_HeckeOperator,
           MC_Lattice,
           MC_ManinSymToBasis,
-          MC_ModSymBasis,
-          MC_ModSymToBasis,
+          MC_ModSymABasis,
+          MC_ModSymAToBasis,
           MC_NewformDecompositionOfCuspidalSubspace,
           MC_NewformDecompositionOfNewCuspidalSubspace,
           MC_SubspaceOfSummandToSubspace
@@ -96,7 +96,7 @@ with basis ...
  *                                                                      *
  ************************************************************************/
 
-intrinsic ModularSymbols(chars::[GrpDrchAElt], k::RngIntElt) -> ModSym
+intrinsic ModularSymbols(chars::[GrpDrchAElt], k::RngIntElt) -> ModSymA
 {The direct sum of the spaces ModularSymbols(eps,k,sign), 
 where eps runs through representatives of the Galois orbits 
 of the characters in chars, viewed as a spaced defined over the
@@ -109,7 +109,7 @@ modulus.}
    return ModularSymbols(chars,k,0);
 end intrinsic;
 
-intrinsic ModularSymbols(chars::[GrpChrElt], k::RngIntElt, G::GrpGL2Hat) -> ModSym
+intrinsic ModularSymbols(chars::[GrpChrElt], k::RngIntElt, G::GrpGL2Hat) -> ModSymA
 {The direct sum of the spaces ModularSymbols(eps,k,sign,G), 
 where eps runs through representatives of the Galois orbits 
 of the characters in chars, viewed as a spaced defined over the
@@ -123,7 +123,7 @@ modulus.}
 end intrinsic;
 
 intrinsic ModularSymbols(chars::[GrpDrchAElt], k::RngIntElt, 
-                          sign::RngIntElt : F := RationalField()) -> ModSym
+                          sign::RngIntElt : F := RationalField()) -> ModSymA
 {"} // "
    requirege k,2;   
    require sign in {-1,0,1} : "Argument 3 must be either -1, 0, or 1.";
@@ -131,7 +131,7 @@ intrinsic ModularSymbols(chars::[GrpDrchAElt], k::RngIntElt,
    require Type(BaseRing(Parent(chars[1]))) in {FldCyc, FldRat} : 
        "The base ring of argument 1 must be the rationals or cyclotomic.";
    chars := GaloisConjugacyRepresentatives(chars);
-   M := New(ModSym);
+   M := New(ModSymA);
    M`is_ambient_space := true;
    M`k    := k;
    M`N    := Modulus(chars[1]);
@@ -153,7 +153,7 @@ intrinsic ModularSymbols(chars::[GrpDrchAElt], k::RngIntElt,
 end intrinsic;
 
 intrinsic ModularSymbols(chars::[GrpChrElt], k::RngIntElt,
-			 sign::RngIntElt, G::GrpGL2Hat) -> ModSym
+			 sign::RngIntElt, G::GrpGL2Hat) -> ModSymA
 {Constructs modular symbols with the representations. } 
    requirege k,2;   
    require sign in {-1,0,1} : "Argument 3 must be either -1, 0, or 1.";
@@ -162,7 +162,7 @@ intrinsic ModularSymbols(chars::[GrpChrElt], k::RngIntElt,
        "The base ring of argument 1 must be the rationals or cyclotomic.";
   
    chars := GaloisConjugacyRepresentatives(chars);
-   M := New(ModSym);
+   M := New(ModSymA);
    M`is_ambient_space := true;
    M`k    := k;
    pi_Q := Parent(chars[1])`QuotientMap;
@@ -189,7 +189,7 @@ intrinsic ModularSymbols(chars::[GrpChrElt], k::RngIntElt,
 end intrinsic;
 
   
-intrinsic RestrictionOfScalarsToQ(M::ModSym) -> ModSym
+intrinsic RestrictionOfScalarsToQ(M::ModSymA) -> ModSymA
 {Restriction of scalars down to Q.  Here M must be defined 
 over a finite extension of the rationals.}
    if IsMultiChar(M) or Type(BaseField(M)) eq FldRat then
@@ -202,7 +202,7 @@ over a finite extension of the rationals.}
    return DirectSumRestrictionOfScalarsToQ([M]);
 end intrinsic;
 
-intrinsic DirectSumRestrictionOfScalarsToQ(Spaces::[ModSym]) -> ModSym
+intrinsic DirectSumRestrictionOfScalarsToQ(Spaces::[ModSymA]) -> ModSymA
 {Restriction of scalars to Q of the direct sum of the given modular
  symbols spaces, which are assumed distinct.  The modular symbols
  spaces must be defined over a finite extension of the rationals, and
@@ -228,7 +228,7 @@ intrinsic DirectSumRestrictionOfScalarsToQ(Spaces::[ModSym]) -> ModSym
    C := CyclotomicField(EulerPhi(N));
    G := DirichletGroup(N,C);
    chars := [ G | Eltseq(BaseExtend(DirichletCharacter(M), C)) : M in Spaces];
-   A := New(ModSym);
+   A := New(ModSymA);
    A`is_ambient_space := true;
    A`k    := k;
    A`N    := N;
@@ -250,7 +250,7 @@ intrinsic DirectSumRestrictionOfScalarsToQ(Spaces::[ModSym]) -> ModSym
    return S;
 end intrinsic;
 
-intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt, sign::RngIntElt) -> ModSym
+intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt, sign::RngIntElt) -> ModSymA
 {The space of modular symbols attached to the congruence subgroup G, weight k and given 'sign'}
    requirege k,2;      
    require sign in {-1,0,1} : "Argument 3 must be either -1, 0, or 1.";
@@ -292,19 +292,19 @@ intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt, sign::RngIntElt) -> ModSym
    end if;
 end intrinsic;
 
-intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt) -> ModSym
+intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt) -> ModSymA
 {The space of modular symbols attached to the congruence subgroup G and weight k}
    requirege k,2;      
    return ModularSymbols(G, k, 0);
 end intrinsic;
 
-intrinsic ModularSymbols(G::GrpGL2Hat) -> ModSym
+intrinsic ModularSymbols(G::GrpGL2Hat) -> ModSymA
 {Same as ModularSymbols(G,2,0)}
    return ModularSymbols(G, 2, 0);
 end intrinsic;
 
 intrinsic ModularSymbolsH(N::RngIntElt, gens::[RngIntElt], 
-                          k::RngIntElt, sign::RngIntElt) -> ModSym
+                          k::RngIntElt, sign::RngIntElt) -> ModSymA
 {The Modular symbols space corresponding to the subgroup Gamma_H of 
 Gamma_0(N) of matrices that that modulo N have lower-right entry in 
 the subgroup H of (Z/NZ)^* generated by gens.  This space corresponds 
@@ -331,7 +331,7 @@ on H.}
 end intrinsic;
 
 intrinsic ModularSymbolsH(N::RngIntElt, ord::RngIntElt, 
-                          k::RngIntElt, sign::RngIntElt) -> ModSym
+                          k::RngIntElt, sign::RngIntElt) -> ModSymA
 {Let H be a cyclic subgroup of order ord of (Z/NZ)^*.  This function
 computes the space of modular symbols corresponding to the subgroup
 Gamma_H of Gamma_0(N) of matrices that that modulo N have lower-right
@@ -351,7 +351,7 @@ Dirichlet character that is trivial on H.}
 end intrinsic;
 
 intrinsic ModularSymbolsH(N::RngIntElt, gens::[RngIntElt], 
-                           k::RngIntElt, sign::RngIntElt, chi::GrpChrElt) -> ModSym
+                           k::RngIntElt, sign::RngIntElt, chi::GrpChrElt) -> ModSymA
  {The Modular symbols space corresponding to the subgroup Gamma_H of 
  Gamma_0(N) of matrices that that modulo N have lower-right entry in 
  the subgroup H of (Z/NZ)^* generated by gens, with character chi on H.  This space corresponds to the direct sum of spaces with Dirichlet character that restrict to chi
@@ -394,7 +394,7 @@ intrinsic ModularSymbolsH(N::RngIntElt, gens::[RngIntElt],
  *                                                                      *
  ************************************************************************/
 
-intrinsic IsMultiChar(M::ModSym) -> BoolElt
+intrinsic IsMultiChar(M::ModSymA) -> BoolElt
 {True if M is defined by more than one Dirichlet character.}
    // added attribute is_multi for faster access 
    // (some frequently called functions need to check it) -- SRD
@@ -421,7 +421,7 @@ end intrinsic;
  *                                                                      *
  ************************************************************************/
 
-intrinsic MultiSpaces(M::ModSym) -> SeqEnum
+intrinsic MultiSpaces(M::ModSymA) -> SeqEnum
 {Sequence of spaces with characters attached to M.}
    if not IsMultiChar(M) then
       return [M];
@@ -438,7 +438,7 @@ end intrinsic;
 
 forward MC_Eltseq;
 
-intrinsic MultiQuotientMaps(M::ModSym) -> List
+intrinsic MultiQuotientMaps(M::ModSymA) -> List
 {List of quotient maps (with inverse) from M to each of the spaces 
  that define the multi-character space M.}
 
@@ -499,7 +499,7 @@ intrinsic MultiQuotientMaps(M::ModSym) -> List
    return maps;
 end intrinsic;
 
-intrinsic MultiTuple(x::ModSymElt) -> List
+intrinsic MultiTuple(x::ModSymAElt) -> List
 {If x is an element of the multicharacter space M, which is 
 isomorphic to the direct sum of the restrictions of the restriction
 of scalars of spaces M_i, this returns the tuple in the product
@@ -525,7 +525,7 @@ end intrinsic;
  ************************************************************************/
 
 function MC_Operator(M, f)
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsMultiChar(M);
    assert IsAmbientSpace(M);
    // S := MatrixAlgebra(RationalField(),Dimension(M))!0;
@@ -552,7 +552,7 @@ function MC_HeckeOperator(M, n)
 end function;
 
 function MC_DualHeckeOperator(M, n) 
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert Type(n) eq RngIntElt;
    assert IsAmbientSpace(M);
    return Transpose(HeckeOperator(M,n));
@@ -563,7 +563,7 @@ function MC_StarInvolution(M)
 end function;
 
 function MC_DualStarInvolution(M)
-    assert Type(M) eq ModSym;
+    assert Type(M) eq ModSymA;
     assert IsAmbientSpace(M);
     return Transpose(StarInvolution(M));
 end function;
@@ -577,7 +577,7 @@ function MC_AtkinLehnerOperator(M, q)
 end function;
 
 function MC_DualAtkinLehnerOperator(M, q)
-    assert Type(M) eq ModSym;
+    assert Type(M) eq ModSymA;
     assert Type(q) eq RngIntElt;
     assert IsAmbientSpace(M);
     return Transpose(AtkinLehnerOperator(M,q));
@@ -595,12 +595,12 @@ function MC_Eltseq(M, MS, a)
     return RelativeEltseq(a, Base);
 end function;
 
-function MC_ModSymToBasis(M, sym)
+function MC_ModSymAToBasis(M, sym)
    // Given a modular symbols (more precisely, something that can be 
    // coerced into each modular symbols space that defines M), returns 
    // the corresponding element of M. 
    
- //assert Type(M) eq ModSym;
+ //assert Type(M) eq ModSymA;
  //assert IsMultiChar(M);
    if not IsAmbientSpace(M) then
       M := AmbientSpace(M);
@@ -627,7 +627,7 @@ function MC_ManinSymToBasis(M, sym)
    // Given a manin symbol sym, returns the corresponding
    // element of M. 
  //assert Type(sym) eq Tup;      
- //assert Type(M) eq ModSym;
+ //assert Type(M) eq ModSymA;
  //assert IsMultiChar(M);
  //assert IsAmbientSpace(M); // these checks take too long!
 
@@ -648,17 +648,17 @@ function MC_ManinSymToBasis(M, sym)
    return v;   
 end function;
 
-function MC_ModSymBasis(M : cache_raw_basis:=false )
+function MC_ModSymABasis(M : cache_raw_basis:=false )
    // A sequence of modular symbols <P(X,Y),[alpha,beta]> such that
    // the ith element of the sequence maps to the ith basis vector 
-   // of M under MC_ModSymToBasis. 
+   // of M under MC_ModSymAToBasis. 
 
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsMultiChar(M);
    assert IsAmbientSpace(M);
 
    if not assigned M`multi_modsymgens or 
-      cache_raw_basis and not assigned M`MC_ModSymBasis_raw 
+      cache_raw_basis and not assigned M`MC_ModSymABasis_raw 
    then
       G := [* *]; 
       // R<X,Y> := PolynomialRing(RationalField(),2);
@@ -715,7 +715,7 @@ function MC_ModSymBasis(M : cache_raw_basis:=false )
       end for;
       
       if cache_raw_basis then
-         M`MC_ModSymBasis_raw := [* raw_basis, mat, matinv *];
+         M`MC_ModSymABasis_raw := [* raw_basis, mat, matinv *];
       end if;
         
       gens := [* *];
@@ -738,11 +738,11 @@ function MC_ConvToModularSymbol(M,v)
    // Convert the element v of M to a sequences of pairs 
    // <P(X,Y), [alpha,beta]>, where alpha=[a,b], beta=[c,d] 
    // are cusps, so alpha=a/b, beta=c/d.
-   assert Type(M) eq ModSym;
-   assert Type(v) eq ModSymElt;
+   assert Type(M) eq ModSymA;
+   assert Type(v) eq ModSymAElt;
    assert IsMultiChar(M);
 
-   basis := MC_ModSymBasis(M);
+   basis := MC_ModSymABasis(M);
    Z := [];
    w := Eltseq(v);
    for i in [1..Dimension(M)] do   
@@ -796,14 +796,14 @@ function MC_MatrixActionOnSubspace(g, V, m)
    
    // Get nice_basis (consisting of one-term symbols) 
    // Rows of T give Basis(M) in terms of nice_basis 
-   _ := MC_ModSymBasis(M : cache_raw_basis);
-   nice_basis, _, T := Explode(M`MC_ModSymBasis_raw); 
+   _ := MC_ModSymABasis(M : cache_raw_basis);
+   nice_basis, _, T := Explode(M`MC_ModSymABasis_raw); 
 
    // action on nice_basis, with images w.r.t standard basis
    g_Mnice_to_M := ZeroMatrix(RM, Degree(V), Degree(V)); 
    for i := 1 to #nice_basis do
       image := ModularSymbolApply(M, g, [nice_basis[i]]);
-      g_Mnice_to_M[i] := MC_ModSymToBasis(M, image[1]);
+      g_Mnice_to_M[i] := MC_ModSymAToBasis(M, image[1]);
    end for;
 
    // Action g_M on Basis(M) is given by T * g_Mnice_to_M 
@@ -824,7 +824,7 @@ end function;
 function MC_Lattice(M)
    // Compute the lattice of integral modular symbols in 
    // the multicharacter ambient space M.
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsMultiChar(M);
    assert IsAmbientSpace(M);
    vprint ModularSymbols, 2: "Creating multi-character lattice";
@@ -869,7 +869,7 @@ function MC_CutSubspace(M, cut_function)
    // the result of applying the function "cut_function" to each of 
    // the spaces that make up M.
 
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsMultiChar(M);
    assert IsAmbientSpace(M);
    
@@ -902,7 +902,7 @@ end function;
 
 
 function MC_CuspidalSubspace(M)
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsMultiChar(M);
    assert IsAmbientSpace(M);
 
@@ -912,7 +912,7 @@ end function;
 function MC_SubspaceOfSummandToSubspace(M, S)
    // Given a subspace S of one of the summands that makes up M, returns the
    // corresponding subspace of M. 
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsMultiChar(M);
    assert IsAmbientSpace(M);
    assert not IsMultiChar(AmbientSpace(S));
@@ -950,7 +950,7 @@ function MC_Decomposition(M, bound)
    // Compute the decomposition of the ambient multi-character space M using
    // Hecke operators of index <= bound.
 
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsMultiChar(M);
    assert IsAmbientSpace(M);
    assert Type(bound) eq RngIntElt;
@@ -965,7 +965,7 @@ function MC_Decomposition(M, bound)
 end function;
 
 function MC_RestrictDualVectorOfSummandToSummand(M, S, v)
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsMultiChar(M);
    assert IsAmbientSpace(M);
    assert not IsMultiChar(AmbientSpace(S));
@@ -991,7 +991,7 @@ function MC_DecompositionOfCuspidalSubspace(M, bound)
    // ambient multi-character space M using Hecke operators 
    // of index <= bound.
 
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsMultiChar(M);
    assert IsAmbientSpace(M);
    assert Type(bound) eq RngIntElt;
@@ -1011,7 +1011,7 @@ function MC_DecompositionOfNewCuspidalSubspace(M, bound)
    // ambient multi-character space M using Hecke operators 
    // of index <= bound.
 
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsMultiChar(M);
    assert IsAmbientSpace(M);
    assert Type(bound) eq RngIntElt;
@@ -1031,7 +1031,7 @@ function MC_NewformDecompositionOfCuspidalSubspace(M)
    // of the ambient multi-character space M using Hecke operators 
    // of index <= bound.
 
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsMultiChar(M);
    assert IsAmbientSpace(M);
    
@@ -1052,7 +1052,7 @@ function MC_NewformDecompositionOfNewCuspidalSubspace(M)
    // Compute the newform decomposition of the new cuspidal subspace 
    // of the ambient multi-character space M using Hecke operators 
    // of index <= bound.
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsMultiChar(M);
    assert IsAmbientSpace(M);
    
@@ -1084,7 +1084,7 @@ function HasAssociatedNewformSpace(M)
 end function;
 
 function MC_ModularSymbols_of_LevelN(M, N)
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert Type(N) eq RngIntElt;
    assert IsMultiChar(M);
 
@@ -1100,7 +1100,7 @@ function MC_ModularSymbols_of_LevelN(M, N)
 end function;
 
 function MC_ModularSymbols_of_LevelG(M, G)
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert Type(G) eq GrpMat;
    assert IsMultiChar(M);
 
