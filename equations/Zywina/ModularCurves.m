@@ -1,6 +1,6 @@
 // This contains our basic functions for working with modular forms and modular curves.
 // Assumes that "GL2GroupTheory.m" has been loaded already.     
-
+import "GL2GroupTheory.m" : gl2Level, sl2Level, LiftMatrix, gl2Lift;
 
 
 // A record of type "ModularCurveRec" encodes information about the curve X_G where G is a subgroup of GL(2,Z/NZ) with 
