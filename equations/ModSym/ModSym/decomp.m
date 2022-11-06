@@ -7,7 +7,7 @@ freeze;
                                                                          
   FILE: decomp.m (Decomposition)                                        
                                                                        
-  $Header: /home/was/magma/packages/ModSym/code/RCS/decomp.m,v 1.20 2002/10/01 06:02:33 was Exp $
+  $Header: /home/was/magma/packages/ModSymA/code/RCS/decomp.m,v 1.20 2002/10/01 06:02:33 was Exp $
 
   $Log: decomp.m,v $
   Revision 1.21  2020/09/07 11:23:27  was
@@ -15,7 +15,7 @@ freeze;
   image_of_old_newform_factor_using_operators to use divisors 
   of the quotient of levels.
   Modified get_NN to identify all subgroups that are conjugate in SL(2,Z/NZ), and use the 
-  method GetModSymPrimes defined in subspace.m, to prevent code duplication.
+  method GetModSymAPrimes defined in subspace.m, to prevent code duplication.
 
   Revision 1.20  2002/10/01 06:02:33  was
   nothing.
@@ -74,7 +74,7 @@ freeze;
 
   Revision 1.2  2001/04/29 02:56:19  was
   Cleaned up comment for "intrinsic ModularSymbols(E::CrvEll, K::Fld, sign::RngIntElt
-     : stop := 0 ) -> ModSym"
+     : stop := 0 ) -> ModSymA"
 
   Revision 1.1  2001/04/20 04:46:07  was
   Initial revision
@@ -163,7 +163,7 @@ import "multichar.m": MC_Decomposition,
 
 import "operators.m":FastTn;
 
-import "subspace.m":  GetModSymPrimes,
+import "subspace.m":  GetModSymAPrimes,
 		      MinusSubspaceDual,
                       PlusSubspaceDual,
 		      MinusSubspace,
@@ -249,7 +249,7 @@ end function;
 function Decomposition_recurse(M, p, stop, 
                                proof, elliptic_only, random_op)
 
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert Type(p) eq RngIntElt;
    assert IsPrime(p);
    assert Type(stop) eq RngIntElt;
@@ -347,7 +347,7 @@ procedure SortDecomp(~D)
    Sort(~D, cmp);
 end procedure;
 
-intrinsic Decomposition(M::ModSym, bound::RngIntElt :
+intrinsic Decomposition(M::ModSymA, bound::RngIntElt :
    Proof := true) -> SeqEnum
 {Decomposition of M with respect to the Hecke operators T_p with
 p coprime to the level of M and p<= bound. }
@@ -405,9 +405,9 @@ end intrinsic;
 
 
 function build_dual_modsym_from_plus_and_minus(M, Dplus, Dminus)
-   assert Type(M) eq ModSym;
-   assert Type(Dplus) eq ModSym;
-   assert Type(Dminus) eq ModSym;
+   assert Type(M) eq ModSymA;
+   assert Type(Dplus) eq ModSymA;
+   assert Type(Dminus) eq ModSymA;
    Vplus := DualVectorSpace(Dplus);
    Vminus := DualVectorSpace(Dminus);
 
@@ -419,7 +419,7 @@ function index_of_newform_space_with_same_traces(A,D)
    /* Exactly one of the modular symbols spaces in D is 
       the minus one version of A.  This function returns
       that space. */
-   assert Type(A) eq ModSym;
+   assert Type(A) eq ModSymA;
    assert Type(D) eq SeqEnum;
 
    // first, consider only those spaces with the same dimension.
@@ -445,7 +445,7 @@ end function;
 
 
 function match_up_plus_and_minus(M, Dplus, Dminus)
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert Type(Dplus) eq SeqEnum;
    assert Type(Dminus) eq SeqEnum;
 
@@ -465,7 +465,7 @@ end function;
 
 
 function complete_decomposition_of_a_new_subspace(M)
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsNew(M);
 
    t := Cputime();
@@ -512,14 +512,14 @@ function complete_decomposition_of_a_new_subspace(M)
 end function;
 
 function image_of_old_newform_factor_using_degen_maps(M, A)
-   assert Type(M) eq ModSym;
-   assert Type(A) eq ModSym;
+   assert Type(M) eq ModSymA;
+   assert Type(A) eq ModSymA;
    return AmbientSpace(M)!!A;
 end function;
 
 function image_of_old_newform_factor_using_operators(M, A)
-   assert Type(M) eq ModSym;
-   assert Type(A) eq ModSym;
+   assert Type(M) eq ModSymA;
+   assert Type(A) eq ModSymA;
    if IsOfGammaType(M) then
        numdiv := NumberOfDivisors(Level(M) div Level(A));
        d := Dimension(A) * numdiv;
@@ -551,8 +551,8 @@ function image_of_old_newform_factor_using_operators(M, A)
 end function;
 
 function image_of_old_newform_factor(M, A)
-   assert Type(M) eq ModSym;
-   assert Type(A) eq ModSym;
+   assert Type(M) eq ModSymA;
+   assert Type(A) eq ModSymA;
    assert IsNew(A);
    assert IsIrreducible(A);
    assert IsCuspidal(M);
@@ -647,7 +647,7 @@ function GetNN(M)
    return NN;
 end function;
 
-intrinsic NewformDecomposition(M::ModSym
+intrinsic NewformDecomposition(M::ModSymA
            : Proof := true, Sort := true) -> SeqEnum
 {Decomposition of M into factors corresponding to 
 the Galois conjugacy classes of newforms of level 
@@ -710,7 +710,7 @@ IsCuspidal(M) is true.}
           G := Parent(eps)`Gamma;
 	  N := ImageInLevelGL(G);
 	  NN := GetNN(M);
-	  primes := GetModSymPrimes(M);
+	  primes := GetModSymAPrimes(M);
 	  G_N := ImageInLevelGL(LevelSubgroup(M));
 	  pnew := [p : p in primes | IsNew(M,p)];
       end if;
@@ -783,7 +783,7 @@ IsCuspidal(M) is true.}
 end intrinsic;
 
 
-intrinsic AssociatedNewSpace (M::ModSym) -> ModSym
+intrinsic AssociatedNewSpace (M::ModSymA) -> ModSymA
 {The space of modular symbols corresponding to the 
 Galois-conjugacy class of newforms associated to M.  
 The level of the newforms is allowed to be a proper divisor of the
@@ -804,7 +804,7 @@ NewformDecomposition.}
 end intrinsic;
 
 
-intrinsic HasAssociatedNewSpace(M::ModSym) -> BoolElt
+intrinsic HasAssociatedNewSpace(M::ModSymA) -> BoolElt
 {True if and only if M was constructed using NewFormDecomposition.}
    return assigned M`associated_new_space;
 end intrinsic;
@@ -814,7 +814,7 @@ end intrinsic;
 // the decomposition by the associated newspace (TraceSortDecomposition)
 // However, when working with single character spaces, he doesn't. Why?
 
-intrinsic SortDecomposition(D::[ModSym]) -> SeqEnum
+intrinsic SortDecomposition(D::[ModSymA]) -> SeqEnum
 {Sort the sequence of spaces of modular symbols with respect to
 the 'lt' comparison operator.  Each space must corresponding to
 a single Galois-conjugacy class of newforms of some level.}
@@ -826,7 +826,7 @@ a single Galois-conjugacy class of newforms of some level.}
    return D;
 end intrinsic;
 
-intrinsic TraceSortDecomposition(D::[ModSym]) -> SeqEnum
+intrinsic TraceSortDecomposition(D::[ModSymA]) -> SeqEnum
 {Sort the sequence of spaces of modular symbols with respect to
 the very simple sequence of traces comparison.  The sequence of
 traces associated to D[i] is [Trace(HeckeOperator(D[i],n)) : n in [1...]].
@@ -867,7 +867,7 @@ of traces is sorted in increasing dictionary order.}
 end intrinsic;
 
 
-intrinsic EllipticFactors(M::ModSym, bound::RngIntElt
+intrinsic EllipticFactors(M::ModSymA, bound::RngIntElt
          : Proof := true) -> SeqEnum
 {Decomposition of subspace of M obtained using 
  T_2 - a_2, T_3 - a_3, ..., where a_p varies over all 
@@ -895,7 +895,7 @@ intrinsic EllipticFactors(M::ModSym, bound::RngIntElt
    return D;
 end intrinsic;
 
-intrinsic AtkinLehnerSubspace(M::ModSym, p::RngIntElt, eps::RngIntElt) -> ModSym
+intrinsic AtkinLehnerSubspace(M::ModSymA, p::RngIntElt, eps::RngIntElt) -> ModSymA
 {Subspace of M where the Atkin-Lehner involution W_q acts as eps, where q 
  is the power of p that exactly divides the level of M and eps is 1 or -1.}
    //   require IsPrime(p) : "Argument 2 must be prime.";
@@ -916,7 +916,7 @@ intrinsic AtkinLehnerSubspace(M::ModSym, p::RngIntElt, eps::RngIntElt) -> ModSym
 end intrinsic;
 
 
-intrinsic AtkinLehnerDecomposition(M::ModSym) -> SeqEnum
+intrinsic AtkinLehnerDecomposition(M::ModSymA) -> SeqEnum
 {Decompose M with respect to the Atkin-Lehner involutions.}
    require IsTrivial(DirichletCharacter(M)) : "Character of argument 1 must be trivial";
    require IsEven(Weight(M)) : "Weight of argument 1 must be even.";
@@ -969,7 +969,7 @@ function Kernel_helper(M, W, polyprimes)
 end function;
 
 
-intrinsic Kernel(I::[Tup], M::ModSym) -> ModSym
+intrinsic Kernel(I::[Tup], M::ModSymA) -> ModSymA
 {The kernel of I on M.  This is the subspace of M obtained 
 by intersecting the kernels of
 the operators f_n(T_\{p_n\}), where I is
@@ -1012,9 +1012,9 @@ end intrinsic;
 /* WARNING: very nonoptimized code. */
 function LiftToFullSpace(M, plus, minus) 
    vprint ModularSymbols,2: "LiftToFullSpace ... 'WARNING: very nonoptimized code'";
-   assert Type(M) eq ModSym;
-   assert Type(plus) eq ModSym;
-   assert Type(minus) eq ModSym;
+   assert Type(M) eq ModSymA;
+   assert Type(plus) eq ModSymA;
+   assert Type(minus) eq ModSymA;
    assert Level(M) eq Level(plus);
    assert Level(M) eq Level(minus);
    assert Sign(M) eq 0;
@@ -1045,7 +1045,7 @@ end function;
 
 
 
-intrinsic ModularSymbols(E::CrvEll : Al := "") -> ModSym
+intrinsic ModularSymbols(E::CrvEll : Al := "") -> ModSymA
 {The space M of modular symbols associated to the elliptic curve E.
 The existence of M is guaranteed by the Shimura-Taniyama conjecture,
 which has been proved by Breuil, Conrad, Diamond, Taylor, and Wiles.  
@@ -1075,7 +1075,7 @@ is on the order of 10000.}
 end intrinsic;
 
 
-intrinsic ModularSymbols(E::CrvEll, sign::RngIntElt) -> ModSym
+intrinsic ModularSymbols(E::CrvEll, sign::RngIntElt) -> ModSymA
 {The 0, +1 or -1 quotient of the space M of modular symbols associated
 to the elliptic curve E.  The existence of M is guaranteed by the Shimura-Taniyama conjecture,
 which has been proved by Breuil, Conrad, Diamond, Taylor, and Wiles.  
@@ -1087,7 +1087,7 @@ is on the order of 10000.}
 end intrinsic;
 
 intrinsic ModularSymbols(E::CrvEll, K::Fld, sign::RngIntElt
-   : stop := 0 ) -> ModSym
+   : stop := 0 ) -> ModSymA
 {The 0, +1 or -1 quotient of the space M of modular symbols over K 
 cut out by the system of eigenvalues corresponding to E.}
 
@@ -1181,7 +1181,7 @@ function IsNumeric(s)
 end function;
 
 
-intrinsic ModularSymbols(s::MonStgElt, sign::RngIntElt) -> ModSym
+intrinsic ModularSymbols(s::MonStgElt, sign::RngIntElt) -> ModSymA
 {The space of modular symbols "[Level]k[Weight][IsogenyClass]"
  with trivial character and given sign corresponding to 
  a Galois-conjugacy class of newforms.  Here [Level] is the 
@@ -1244,7 +1244,7 @@ intrinsic ModularSymbols(s::MonStgElt, sign::RngIntElt) -> ModSym
 
 end intrinsic;
 
-intrinsic ModularSymbols(s::MonStgElt) -> ModSym
+intrinsic ModularSymbols(s::MonStgElt) -> ModSymA
 {The full space of modular symbols "Nk[Weight][IsogenyClass]"
  with trivial character and corresponding to 
  a Galois-conjugacy class of newforms. }
@@ -1373,7 +1373,7 @@ end function;
 // Figure out why !!!!
 
 function NewformDecompositionOfNewNonzeroSignSpaceOverQ(M)
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsNew(M) and Sign(M) ne 0;
    assert Type(BaseField(M)) eq FldRat;
    debug := false;
@@ -1657,7 +1657,7 @@ end function;
 
  
 function NewformDecompositionOfNewNonzeroSignSpaceOverCyclo(M);
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert IsNew(M) and Sign(M) ne 0;
    assert Type(BaseField(M)) eq FldCyc;
 
@@ -1718,7 +1718,7 @@ end procedure;
 */
 
 
-intrinsic ChangeSign(M::ModSym, sign::RngIntElt) -> ModSym
+intrinsic ChangeSign(M::ModSymA, sign::RngIntElt) -> ModSymA
 {Use this intrinsic if M has one sign and you're interested in the
 same space of modular symbols as M, but with a different sign.
 We require that M is either cuspidal or its ambient space.}
@@ -1763,7 +1763,7 @@ end intrinsic;
 function Decomposition_dimension_recurse(M, p, stop, 
                                          proof, elliptic_only, random_op)
 
-   assert Type(M) eq ModSym;
+   assert Type(M) eq ModSymA;
    assert Type(p) eq RngIntElt;
    assert IsPrime(p);
    assert Type(stop) eq RngIntElt;
@@ -1958,7 +1958,7 @@ function  NewformDimensionDecomposition(M, V : Proof := true, Sort := true)
    return D;
 end function;
 
-intrinsic IsotypicDimensionDecomposition(M::ModSym : Proof := false)
+intrinsic IsotypicDimensionDecomposition(M::ModSymA : Proof := false)
   -> SeqEnum[RngIntElt], BoolElt
 {Return the dimensions of the isotypic components of M.}
    D, verified := Decomposition_dimension_recurse(M, 2,

@@ -7,7 +7,9 @@ AttachSpec("ModCrv.spec");
 SetVerbose("ModularCurves", 1);
 
 level := StringToInteger(Split(label, ".")[1]);
-input_lines := ReadLines("input_data/" * label);
+input := Read("input_data/" * label);
+input_lines := Split(input, "\n");
+is_cover := false;
 if IsEmpty(input_lines) then
     assert level eq 1;
     PG := Gamma0(1);
@@ -17,7 +19,8 @@ else
     genera := [StringToInteger(Split(cover, ".")[3]) : cover in coverings];
     if not IsEmpty(genera) then
 	_, idx := Maximum(genera);
-	X<[x]>, fs, K := LMFDBReadModel("output_data/" * coverings[idx]);
+	X_cov<[x]>, fs_cov, E4_cov, E6_cov, K_cov := LMFDBReadModel("output_data/" * coverings[idx]);
+	is_cover := true;
     end if;
     // Should be a list of 2x2 matrices, so number of elements divisible by 4.
     assert #gens mod 4 eq 0;
@@ -42,8 +45,21 @@ if type eq "hyperelliptic" then
     X<[x]>, fs, K := CanonicalRing(PG);
     LogCanonical := true;
 end if;
-E4, E6, j := JMap(PG, X, fs, K
+// We do that, otherwise Magma gets upset...
+if (not is_cover) then
+    X_cov := X;
+    fs_cov := fs;
+    E4_cov := fs[1];
+    E6_cov := fs[1];
+end if;
+if is_cover then
+    // !! TODO - if K != K_cov has to take it into account
+    cov_map := CoveringMap(X_cov, X, fs_cov, fs);
+    E4, E6, j := JMap(cov_map, E4_cov, E6_cov);
+else
+    E4, E6, j := JMap(PG, X, fs, K
 		  : LogCanonical := LogCanonical);
+end if;
 LMFDBWriteModel(X, fs, E4, E6, "output_data/" * label);
 
 exit;

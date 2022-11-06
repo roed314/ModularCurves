@@ -12,10 +12,10 @@ freeze;
 
    11/19/03: (WAS)  Modified DisownChildren.
 
-   11/17/02: (WAS)  Fixed nontermination bug in 'lt' for ModSym's 
+   11/17/02: (WAS)  Fixed nontermination bug in 'lt' for ModSymA's 
              when the character is nontrivial.
                                                                              
-   $Header: /home/was/magma/packages/ModSym/code/RCS/modsym.m,v 1.18 2002/08/25 19:39:33 was Exp was $
+   $Header: /home/was/magma/packages/ModSymA/code/RCS/modsym.m,v 1.18 2002/08/25 19:39:33 was Exp was $
 
    $Log: modsym.m,v $
    Revision 1.19  2002/09/07 11:30:11  was
@@ -37,7 +37,7 @@ freeze;
    changed atkin_lehner to al_decomp!
 
    Revision 1.13  2002/02/19 00:14:04  was
-   Added atkin_lehner attribute to ModSym type.
+   Added atkin_lehner attribute to ModSymA type.
 
    Revision 1.12  2001/07/17 07:55:43  was
    Added attribute field_embedding.
@@ -100,7 +100,7 @@ freeze;
    Revision 1.20  2001/02/03 18:17:31  was
    Fixed a tiny bug
 
-      "in intrinsic 'eq'(M1::ModSym, M2::ModSym) -> BoolElt",
+      "in intrinsic 'eq'(M1::ModSymA, M2::ModSymA) -> BoolElt",
 
    Previously this intrinsic did not compare the base fields of M1 and M2.
 
@@ -193,7 +193,7 @@ import "core.m" :  CManSymList,
                    ManSym2termQuotientGen,
                    ManSym3termQuotientGen;
 
-import "multichar.m" : MC_ModSymToBasis,
+import "multichar.m" : MC_ModSymAToBasis,
                        AssociatedNewformSpace,
                        HasAssociatedNewformSpace;
 
@@ -206,16 +206,16 @@ forward ModularSymbolsDual,
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
-//    ModSym: The modular symbols object.                        //
+//    ModSymA: The modular symbols object.                        //
 //                                                               //
 ///////////////////////////////////////////////////////////////////
 
 // In the comments in the attributes section declaration that follows, 
-// we refer to "this" ModSym object as "M".
+// we refer to "this" ModSymA object as "M".
 
-declare type ModSym [ModSymElt];
+declare type ModSymA [ModSymAElt];
 
-declare attributes ModSym:
+declare attributes ModSymA:
 // these attributes completely determine this
          eps,                // Dirichlet character
          G,                  // a level subgroup
@@ -224,7 +224,7 @@ declare attributes ModSym:
          is_multi,           // IsMultiChar is true (if eps is a sequence)
          multi_modsymgens,   // generating modular symbols in that case
          multi_quo_maps,
-         MC_ModSymBasis_raw, // see function MC_ModSymBasis
+         MC_ModSymABasis_raw, // see function MC_ModSymABasis
          
          associated_newform_space,  // used by multi; the usual space of modular symbols underlying a 
                                    // multi space corresponding to a newform.
@@ -415,9 +415,9 @@ declare attributes ModSym:
 // Atkin-Lehner decomposition
          al_decomp;       // sequence of pairs <p, eps_p>.
 
-declare type ModSymElt;
+declare type ModSymAElt;
 
-declare attributes ModSymElt:
+declare attributes ModSymAElt:
    parent,
    element,
    modsym_rep,
@@ -426,11 +426,11 @@ declare attributes ModSymElt:
 ///////////////////////////////////////////////////////////////
 // Manual deletion (from before the era of memory management)
 
-intrinsic DisownChildren(M::ModSym) 
+intrinsic DisownChildren(M::ModSymA) 
 {No longer necessary -- do not use!}
 end intrinsic;
 
-intrinsic DeleteAllAssociatedData(M::ModSym : DeleteChars:=false)
+intrinsic DeleteAllAssociatedData(M::ModSymA : DeleteChars:=false)
 {"} // "
 end intrinsic;
 
@@ -452,7 +452,7 @@ end function;
 SupportMessage := "Modular symbols are only supported over fields of type FldRat, FldQuad, FldCyc, FldNum, or FldFin.";
 
 
-intrinsic ModularSymbols(N::RngIntElt) -> ModSym
+intrinsic ModularSymbols(N::RngIntElt) -> ModSymA
 {The space of modular symbols 
  of level N, weight 2, and trivial character over the rational numbers.}
    requirege N,1;
@@ -460,7 +460,7 @@ intrinsic ModularSymbols(N::RngIntElt) -> ModSym
 end intrinsic;
 
 
-intrinsic ModularSymbols(N::RngIntElt, k::RngIntElt) -> ModSym
+intrinsic ModularSymbols(N::RngIntElt, k::RngIntElt) -> ModSymA
 {The space of modular symbols of level N, weight k, and trivial character,
  over the rational numbers.}
    requirege N,1;
@@ -469,7 +469,7 @@ intrinsic ModularSymbols(N::RngIntElt, k::RngIntElt) -> ModSym
 end intrinsic;
 
 
-intrinsic ModularSymbols(N::RngIntElt, k::RngIntElt, F::Fld) -> ModSym
+intrinsic ModularSymbols(N::RngIntElt, k::RngIntElt, F::Fld) -> ModSymA
 {The space of modular symbols of level N, weight k, and trivial character, 
  over the field F.}
    requirege N,1;
@@ -478,7 +478,7 @@ intrinsic ModularSymbols(N::RngIntElt, k::RngIntElt, F::Fld) -> ModSym
    return ModularSymbols(DirichletGroup(N,F)!1,k);
 end intrinsic;
 
-intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt, F::Fld) -> ModSym
+intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt, F::Fld) -> ModSymA
 {The space of modular symbols of level G, weight k, 
  over the field F.}
    requirege k,2;
@@ -486,7 +486,7 @@ intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt, F::Fld) -> ModSym
    return ModularSymbols(G,k,F,0);
 end intrinsic;
 
-intrinsic ModularSymbols(N::RngIntElt, k::RngIntElt, F::Fld, sign::RngIntElt) -> ModSym
+intrinsic ModularSymbols(N::RngIntElt, k::RngIntElt, F::Fld, sign::RngIntElt) -> ModSymA
 {The space of modular symbols of level N, weight k, trivial
  character, and given sign, over the field F.}
    requirege N,1;
@@ -498,7 +498,7 @@ end intrinsic;
 
 
 intrinsic ModularSymbols(N::RngIntElt, k::RngIntElt, 
-                               sign::RngIntElt) -> ModSym
+                               sign::RngIntElt) -> ModSymA
 {The space of modular symbols of level N, weight k, 
  trivial character, and given sign over the rational numbers.
  If sign=+1 then returns the +1 quotient, if sign=-1
@@ -514,7 +514,7 @@ intrinsic ModularSymbols(N::RngIntElt, k::RngIntElt,
 end intrinsic;
 
 intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt, 
-				  sign::RngIntElt) -> ModSym
+				  sign::RngIntElt) -> ModSymA
 {The space of modular symbols of level G, weight k, 
  and given sign over the rational numbers.
  If sign=+1 then returns the +1 quotient, if sign=-1
@@ -531,7 +531,7 @@ forward GetRealConjugate;
 forward GetGLModel;
 
 intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt, 
-			 F::Fld, sign::RngIntElt) -> ModSym
+			 F::Fld, sign::RngIntElt) -> ModSymA
 {The space of modular symbols of level G, weight k, 
  and given sign over the field F.
  If sign=+1 then returns the +1 quotient, if sign=-1
@@ -564,14 +564,14 @@ intrinsic ModularSymbols(G::GrpGL2Hat, k::RngIntElt,
    return ModularSymbols(eps,ZG,k,F,sign);
 end intrinsic;
 
-intrinsic ModularSymbols(eps::GrpDrchAElt, k::RngIntElt) -> ModSym
+intrinsic ModularSymbols(eps::GrpDrchAElt, k::RngIntElt) -> ModSymA
 {The space of modular symbols of weight k and character eps.}
    requirege k,2;
    require IsSupportedField(BaseRing(eps)) : SupportMessage;
    return ModularSymbols(eps,k,0);
 end intrinsic;
 
-intrinsic ModularSymbols(eps::GrpChrElt, k::RngIntElt) -> ModSym
+intrinsic ModularSymbols(eps::GrpChrElt, k::RngIntElt) -> ModSymA
 {The space of modular symbols of weight k and character eps.}
    requirege k,2;
    require IsSupportedField(BaseRing(eps)) : SupportMessage;
@@ -581,7 +581,7 @@ end intrinsic;
 forward CreateTrivialSpace;
 
 intrinsic ModularSymbols(eps::GrpDrchAElt, k::RngIntElt, 
-                         sign::RngIntElt) -> ModSym
+                         sign::RngIntElt) -> ModSymA
 {The space of modular symbols of weight k and character eps.
  The level and base field are specified as part of eps.
  The third argument "sign" allows for working in certain
@@ -659,7 +659,7 @@ intrinsic ModularSymbols(eps::GrpDrchAElt, k::RngIntElt,
        return CreateTrivialSpace(k,eps,sign);
    end if; 
  
-   M := New(ModSym);
+   M := New(ModSymA);
    M`G := G;
    M`is_ambient_space := true;
    M`sub_representation  := VectorSpace(F,dim);
@@ -690,7 +690,7 @@ end intrinsic;
 forward CreateTrivialSpaceGenEps;
 
 intrinsic ModularSymbols(eps::GrpChrElt, G::GrpGL2Hat, k::RngIntElt,
-				  F::Fld, sign::RngIntElt) -> ModSym
+				  F::Fld, sign::RngIntElt) -> ModSymA
 {The space of modular symbols of weight k and level G, with character eps.
  The third argument "sign" allows for working in certain
  quotients.  The possible values are -1, 0, or +1, which correspond
@@ -760,7 +760,7 @@ intrinsic ModularSymbols(eps::GrpChrElt, G::GrpGL2Hat, k::RngIntElt,
      return CreateTrivialSpaceGenEps(k,eps,sign,G);
    end if;
 
-   M := New(ModSym);
+   M := New(ModSymA);
    M`G    := G;
    M`is_ambient_space := true;
    M`sub_representation  := VectorSpace(F,dim);
@@ -803,7 +803,7 @@ end intrinsic;
 
 
 intrinsic ModularSymbols(eps::GrpChrElt, k::RngIntElt, 
-                         sign::RngIntElt) -> ModSym
+                         sign::RngIntElt) -> ModSymA
 {The space of modular symbols of weight k and character eps,
     as a subspace of the modular symbols of weight k and level G.
  The level and base field are specified as part of overM.
@@ -850,14 +850,14 @@ function ModularSymbolsSub(M, V)
    the corresponding space of modular symbols. 
    This function is not exported because it allows the user too much
    power to create nasty objects that don't satisfy the definition
-   of a ModSym.
+   of a ModSymA.
 */
   assert Degree(V) eq Dimension(AmbientSpace(M)) or
          Degree(V) eq Dimension(AmbientSpace(M)) * NumComponents(M);
    // assert V subset Representation(M);
    // This is obviously nontrivial in large dimensions
 
-   MM := New(ModSym);
+   MM := New(ModSymA);
    MM`root := AmbientSpace(M);
    MM`is_ambient_space := false;
    MM`sub_representation := V;
@@ -875,10 +875,10 @@ function ModularSymbolsDual(M, V)
    the corresponding space of modular symbols.
    This function is not exported because it allows the user too much
    power to create nasty objects that don't satisfy the definition
-   of a ModSym.
+   of a ModSymA.
 */
    assert V subset DualRepresentation(M);
-   MM := New(ModSym);
+   MM := New(ModSymA);
    MM`root := AmbientSpace(M);
    MM`is_ambient_space := false;
    MM`dual_representation := V;
@@ -895,7 +895,7 @@ function CreateTrivialSpace(k,eps,sign)
    F := BaseRing(eps);
    V := VectorSpace(F,0);
    N := Modulus(eps);
-   M := New(ModSym);
+   M := New(ModSymA);
    M`is_ambient_space := true;
    M`sub_representation  := VectorSpace(F,0);
    M`dual_representation  := VectorSpace(F,0);
@@ -924,7 +924,7 @@ end function;
 function CreateTrivialSpaceGenEps(k,eps,sign,G)
    F := BaseRing(eps);
    V := VectorSpace(F,0);
-   M := New(ModSym);
+   M := New(ModSymA);
    M`is_ambient_space := true;
    M`sub_representation  := VectorSpace(F,0);
    M`dual_representation  := VectorSpace(F,0);
@@ -957,7 +957,7 @@ end function;
 //                                                           //
 ///////////////////////////////////////////////////////////////
 
-intrinsic Weight(M::ModSym) -> RngIntElt
+intrinsic Weight(M::ModSymA) -> RngIntElt
 {The weight of the space M of modular symbols.}
    return M`k; // changed 04-09, SRD
    if IsAmbientSpace(M) then
@@ -967,7 +967,7 @@ intrinsic Weight(M::ModSym) -> RngIntElt
 end intrinsic;
 
 
-intrinsic Level(M::ModSym) -> RngIntElt
+intrinsic Level(M::ModSymA) -> RngIntElt
 {The level of the space M of modular symbols.}
    if IsAmbientSpace(M) then
       return M`N;
@@ -975,7 +975,7 @@ intrinsic Level(M::ModSym) -> RngIntElt
    return Level(AmbientSpace(M));
 end intrinsic;
 
-intrinsic LevelSubgroup(M::ModSym) -> GrpGL2Hat
+intrinsic LevelSubgroup(M::ModSymA) -> GrpGL2Hat
 {The level subgroup of the space M of modular symbols.}
    if IsAmbientSpace(M) then
       return M`G;
@@ -983,7 +983,7 @@ intrinsic LevelSubgroup(M::ModSym) -> GrpGL2Hat
    return LevelSubgroup(AmbientSpace(M));
 end intrinsic;
 
-intrinsic IsCuspidal(M::ModSym) -> BoolElt
+intrinsic IsCuspidal(M::ModSymA) -> BoolElt
 {True if and only if M is contained in the cuspidal subspace
  of the ambient space.}
    if not assigned M`is_cuspidal then
@@ -994,7 +994,7 @@ intrinsic IsCuspidal(M::ModSym) -> BoolElt
 end intrinsic;
 
 
-intrinsic IsEisenstein(M::ModSym) -> BoolElt
+intrinsic IsEisenstein(M::ModSymA) -> BoolElt
 {True if and only if M is contained in the Eisenstein 
  subspace of the ambient space.}
    if not assigned M`is_eisenstein then 
@@ -1004,18 +1004,18 @@ intrinsic IsEisenstein(M::ModSym) -> BoolElt
 end intrinsic;
 
 
-intrinsic BaseRing(M::ModSym) -> Rng
+intrinsic BaseRing(M::ModSymA) -> Rng
 {The base ring of the space M of modular symbols.}
    return M`F;
 end intrinsic;
 
 
-intrinsic BaseField(M::ModSym) -> Fld
+intrinsic BaseField(M::ModSymA) -> Fld
 {The base field of the space M of modular symbols.}
    return M`F;
 end intrinsic;
 
-intrinsic IsOfGammaType(M::ModSym) -> BoolElt
+intrinsic IsOfGammaType(M::ModSymA) -> BoolElt
 {True if and only if M is of gamma type}
    if IsAmbientSpace(M) then
       return M`isgamma_type;
@@ -1024,7 +1024,7 @@ intrinsic IsOfGammaType(M::ModSym) -> BoolElt
    end if;
 end intrinsic;
 
-intrinsic DirichletCharacter(M::ModSym) -> SeqEnum
+intrinsic DirichletCharacter(M::ModSymA) -> SeqEnum
 {The Dirichlet character of the space M of modular symbols.}
    if IsAmbientSpace(M) then
       require assigned(M`eps) : "This space of modular symbols is not over a
@@ -1038,7 +1038,7 @@ intrinsic DirichletCharacter(M::ModSym) -> SeqEnum
 end intrinsic;
 
 
-intrinsic IsPlusQuotient(M::ModSym) -> SeqEnum
+intrinsic IsPlusQuotient(M::ModSymA) -> SeqEnum
 {True if and only if the sign of M is +1.}
    if not assigned M`sign then 
       return Sign(AmbientSpace(M)) eq 1;
@@ -1047,7 +1047,7 @@ intrinsic IsPlusQuotient(M::ModSym) -> SeqEnum
 end intrinsic;
 
 
-intrinsic IsMinusQuotient(M::ModSym) -> SeqEnum
+intrinsic IsMinusQuotient(M::ModSymA) -> SeqEnum
 {True if and only if the sign of M is -1.}
    if not assigned M`sign then 
       return Sign(AmbientSpace(M)) eq -1;
@@ -1056,7 +1056,7 @@ intrinsic IsMinusQuotient(M::ModSym) -> SeqEnum
 end intrinsic;
 
 
-intrinsic Sign(M::ModSym) -> RngIntElt
+intrinsic Sign(M::ModSymA) -> RngIntElt
 {The sign of M; either -1, 0, or 1.}
    if not assigned M`sign then
       return Sign(AmbientSpace(M));
@@ -1065,14 +1065,14 @@ intrinsic Sign(M::ModSym) -> RngIntElt
 end intrinsic;
 
 
-intrinsic Dimension(M::ModSym) -> RngIntElt
+intrinsic Dimension(M::ModSymA) -> RngIntElt
 {The dimension of M.}
    if not assigned M`dimension then return -1; end if;
     return M`dimension;
 end intrinsic;
 
 
-intrinsic DimensionComplexTorus(M::ModSym) -> RngIntElt
+intrinsic DimensionComplexTorus(M::ModSymA) -> RngIntElt
 {The dimension of the abelian variety attached to A.}
    require IsCuspidal(M) : "Argument 1 must be cuspidal.";
    return Sign(M) ne 0 select Dimension(M) 
@@ -1080,7 +1080,7 @@ intrinsic DimensionComplexTorus(M::ModSym) -> RngIntElt
 end intrinsic;
 
 
-intrinsic Degree(M::ModSym) -> RngIntElt
+intrinsic Degree(M::ModSymA) -> RngIntElt
 {The degree of M, which is the dimension of the root of M.}
    if IsAmbientSpace(M) then
       return Dimension(M);
@@ -1090,14 +1090,14 @@ intrinsic Degree(M::ModSym) -> RngIntElt
 end intrinsic;
 
 
-intrinsic IsAmbientSpace(M::ModSym) -> BoolElt
+intrinsic IsAmbientSpace(M::ModSymA) -> BoolElt
 {True if and only if M is the ambient space of modular symbols,
  which was created by specifying a weight and character.}
    return M`is_ambient_space;
 end intrinsic;
 
 
-intrinsic AmbientSpace(M::ModSym) -> ModSym
+intrinsic AmbientSpace(M::ModSymA) -> ModSymA
 {The ambient space of modular symbols, in which M lies.}
    if IsAmbientSpace(M) then
       return M;
@@ -1107,7 +1107,7 @@ intrinsic AmbientSpace(M::ModSym) -> ModSym
 end intrinsic;
 
 
-intrinsic IsIrreducible(M::ModSym) -> BoolElt
+intrinsic IsIrreducible(M::ModSymA) -> BoolElt
 {True if and only if the Hecke operators T_p, with p prime to the 
 level of M, do not decompose M into smaller modular symbols spaces.}
 
@@ -1153,7 +1153,7 @@ level of M, do not decompose M into smaller modular symbols spaces.}
 end intrinsic;
 
 
-intrinsic IsNew (M::ModSym) -> BoolElt
+intrinsic IsNew (M::ModSymA) -> BoolElt
 {True if and only if M is contained in the new 
  cuspidal subspace of the ambient space.}
    if not assigned M`is_new then
@@ -1163,7 +1163,7 @@ intrinsic IsNew (M::ModSym) -> BoolElt
 end intrinsic;
 
 
-intrinsic IsNew (M::ModSym, p::RngIntElt) -> BoolElt
+intrinsic IsNew (M::ModSymA, p::RngIntElt) -> BoolElt
 {True if and only if M is contained in the p-new cuspidal 
 subspace of the ambient space.}
 
@@ -1184,7 +1184,7 @@ subspace of the ambient space.}
    return t;
 end intrinsic;
 
-intrinsic IsNew (M::ModSym, p::GrpMat[RngIntRes]) -> BoolElt
+intrinsic IsNew (M::ModSymA, p::GrpMat[RngIntRes]) -> BoolElt
 {True if and only if M is contained in the p-new cuspidal 
 subspace of the ambient space.}
 
@@ -1208,12 +1208,12 @@ subspace of the ambient space.}
    return t;
 end intrinsic;
 
-intrinsic Basis(M::ModSym) -> SeqEnum
+intrinsic Basis(M::ModSymA) -> SeqEnum
 {The basis of M.}
    return [M!b : b in Basis(Representation(M))];
 end intrinsic;
 
-intrinsic IntegralBasis(M::ModSym) -> SeqEnum
+intrinsic IntegralBasis(M::ModSymA) -> SeqEnum
 {A basis over the integers for the integral modular symbols.
 This is the intersection of M with the Z-lattice generated by 
 all modular symbols X^iY^(k-2-i)\{a,b\}. 
@@ -1229,7 +1229,7 @@ of scalars.
    return [phi(b) : b in Basis(L)];
 end intrinsic;
 
-intrinsic NumComponents(M::ModSym) -> SeqEnum
+intrinsic NumComponents(M::ModSymA) -> SeqEnum
 {The number of connected components of the modular curve.}
   if not assigned M`num_components then
      if IsOfGammaType(M) then
@@ -1281,13 +1281,13 @@ function MakeCusps(x)
 end function;
 
 
-//intrinsic IsCoercible(M::ModSym,x::.) -> BoolElt, ModSymElt
-intrinsic IsCoercible(M::ModSym,x::.) -> BoolElt, ModSymElt
+//intrinsic IsCoercible(M::ModSymA,x::.) -> BoolElt, ModSymAElt
+intrinsic IsCoercible(M::ModSymA,x::.) -> BoolElt, ModSymAElt
 {Coerce x into M.}
    case Type(x):
       when RngIntElt:
          if x eq 0 then
-            y := New(ModSymElt);
+            y := New(ModSymAElt);
             y`parent := AmbientSpace(M);
             y`element := VectorSpace(M)!0;
             return true, y;
@@ -1299,7 +1299,7 @@ intrinsic IsCoercible(M::ModSym,x::.) -> BoolElt, ModSymElt
             return false, "Cannot coerce vector into space -- the dimension of the ambient space "*
                           "of the space of modular symbols should equal the dimension of the vector.";
          end if;
-         y := New(ModSymElt);
+         y := New(ModSymAElt);
          y`parent := AmbientSpace(M);
          y`element := el;
          return true, y;
@@ -1312,9 +1312,9 @@ intrinsic IsCoercible(M::ModSym,x::.) -> BoolElt, ModSymElt
 
          if Type(x[1]) eq Tup then
             if IsMultiChar(M) then
-               // changed so it returns a ModSymElt in M (04-09, SRD)
-               //return true, MC_ModSymToBasis(M,x);
-               vector := MC_ModSymToBasis(M,x);
+               // changed so it returns a ModSymAElt in M (04-09, SRD)
+               //return true, MC_ModSymAToBasis(M,x);
+               vector := MC_ModSymAToBasis(M,x);
                return true, M!vector;
             end if;
             R := AmbientSpace(M)`mlist`R;
@@ -1357,7 +1357,7 @@ intrinsic IsCoercible(M::ModSym,x::.) -> BoolElt, ModSymElt
          if valid eq false then
             return false, "Argument 2 is not coercible into the vector space of argument 1.";
          end if;
-         y := New(ModSymElt);
+         y := New(ModSymAElt);
          y`parent := AmbientSpace(M);
          y`element := el;
          return true, y;
@@ -1366,7 +1366,7 @@ intrinsic IsCoercible(M::ModSym,x::.) -> BoolElt, ModSymElt
          return $$(M, [x]); //IsCoercible(M,[x]);
 
 
-      when ModSymElt:
+      when ModSymAElt:
          if Parent(x) subset M then
             // TO DO: isn't this dangerous??  
             // should make a new copy of x instead of changing x's attributes -- SRD
@@ -1481,7 +1481,7 @@ function GetDegeneracyReps(M1, M2, divisors)
 end function;
 
 
-intrinsic '!!'(M1::ModSym, M2::ModSym) -> ModSym
+intrinsic '!!'(M1::ModSymA, M2::ModSymA) -> ModSymA
 {The modular symbols subspace of M1 associated to M2.
 Let N1 be the level of M1.  If ModularSymbols(M2,N1) is 
 defined, let M3 be this modular symbols space, otherwise 
@@ -1589,7 +1589,7 @@ end intrinsic;
 //                                                            // 
 ////////////////////////////////////////////////////////////////
 
-intrinsic Print(M::ModSym, level::MonStgElt)
+intrinsic Print(M::ModSymA, level::MonStgElt)
 {}
    if IsAmbientSpace(M) then
       full := "Full m";
@@ -1641,7 +1641,7 @@ intrinsic Print(M::ModSym, level::MonStgElt)
 end intrinsic;
 
 
-intrinsic Print(x::ModSymElt, level::MonStgElt)
+intrinsic Print(x::ModSymAElt, level::MonStgElt)
 {}
    if IsZero(x`element) then
       printf "0"; 
@@ -1681,7 +1681,7 @@ end intrinsic;
 //                                                            //
 ////////////////////////////////////////////////////////////////
 
-intrinsic 'in'(x::ModSymElt, M::ModSym) -> BoolElt
+intrinsic 'in'(x::ModSymAElt, M::ModSymA) -> BoolElt
 {True if and only if x is an element of M.}
 
    return AmbientSpace(Parent(x)) eq AmbientSpace(M) and 
@@ -1690,7 +1690,7 @@ intrinsic 'in'(x::ModSymElt, M::ModSym) -> BoolElt
 end intrinsic;
 
 
-intrinsic Parent(x::ModSymElt) -> ModSym
+intrinsic Parent(x::ModSymAElt) -> ModSymA
    {}
    return x`parent;
 end intrinsic;
@@ -1703,7 +1703,7 @@ end intrinsic;
 //                                                            // 
 ////////////////////////////////////////////////////////////////
 
-intrinsic 'subset'(M1::ModSym, M2::ModSym) -> BoolElt
+intrinsic 'subset'(M1::ModSymA, M2::ModSymA) -> BoolElt
 {}
    if not (AmbientSpace(M1) cmpeq AmbientSpace(M2)) then
       return false;
@@ -1718,7 +1718,7 @@ intrinsic 'subset'(M1::ModSym, M2::ModSym) -> BoolElt
 end intrinsic;
 
 
-intrinsic 'eq'(M1::ModSym, M2::ModSym) -> BoolElt
+intrinsic 'eq'(M1::ModSymA, M2::ModSymA) -> BoolElt
 {}
    if IsOfGammaType(M1) ne IsOfGammaType(M2) then
       return false;
@@ -1738,24 +1738,24 @@ intrinsic 'eq'(M1::ModSym, M2::ModSym) -> BoolElt
 end intrinsic;
 
 
-intrinsic 'eq' (x::ModSymElt,y::ModSymElt) -> BoolElt
+intrinsic 'eq' (x::ModSymAElt,y::ModSymAElt) -> BoolElt
    {}
    return x`parent eq y`parent and x`element eq y`element;
 end intrinsic;
 
-intrinsic 'eq' (x::ModSymElt, y::RngIntElt) -> BoolElt
+intrinsic 'eq' (x::ModSymAElt, y::RngIntElt) -> BoolElt
 {}
    require y eq 0 : "Argument 2 must equal 0.";
    return x eq Parent(x)!y;
 end intrinsic;
 
-intrinsic 'eq' (y::RngIntElt, x::ModSymElt) -> BoolElt
+intrinsic 'eq' (y::RngIntElt, x::ModSymAElt) -> BoolElt
 {}
    require y eq 0 : "Argument 1 must equal 0.";
    return x eq Parent(x)!y;
 end intrinsic;
 
-intrinsic 'meet'(M1::ModSym, M2::ModSym) -> ModSym
+intrinsic 'meet'(M1::ModSymA, M2::ModSymA) -> ModSymA
 {The intersection of spaces of modular symbols M1 and M2 
 (which must be subspaces of a common ambient)}
 
@@ -1804,7 +1804,7 @@ intrinsic 'meet'(M1::ModSym, M2::ModSym) -> ModSym
 end intrinsic;
 
 
-intrinsic '+'(M1::ModSym, M2::ModSym) -> ModSym
+intrinsic '+'(M1::ModSymA, M2::ModSymA) -> ModSymA
 {}
    require AmbientSpace(M1) eq AmbientSpace(M2) : "Arguments 1 and 2 must have the same root.";
    if assigned M1`al_decomp or assigned M2`al_decomp then
@@ -1828,7 +1828,7 @@ intrinsic '+'(M1::ModSym, M2::ModSym) -> ModSym
 end intrinsic;
 
 
-intrinsic '-'(M1::ModSym, M2::ModSym) -> ModSym
+intrinsic '-'(M1::ModSymA, M2::ModSymA) -> ModSymA
 {}
    require AmbientSpace(M1) eq AmbientSpace(M2) : "Arguments 1 and 2 must have the same root.";
    if assigned M1`al_decomp or assigned M2`al_decomp then
@@ -1841,14 +1841,14 @@ end intrinsic;
 
 // This function must be defined and has to return a ModTupFldElt 
 // in order for the system "subset" command to work.
-intrinsic '+'(x::ModSymElt, y::ModTupFldElt) -> ModTupFldElt
+intrinsic '+'(x::ModSymAElt, y::ModTupFldElt) -> ModTupFldElt
 {}
    require Dimension(Parent(x)) eq Degree(y) : "Bad argument types";
    return x`element+y;
 end intrinsic;
 
 
-intrinsic '.'(M::ModSym, i::RngIntElt) -> ModSymElt
+intrinsic '.'(M::ModSymA, i::RngIntElt) -> ModSymAElt
 {}
    requirege i,1;
    require i le Dimension(M) : "Argument 2 must be at most", Dimension(M);
@@ -1856,7 +1856,7 @@ intrinsic '.'(M::ModSym, i::RngIntElt) -> ModSymElt
 end intrinsic;
 
 
-intrinsic 'lt' (M1::ModSym, M2::ModSym) -> BoolElt
+intrinsic 'lt' (M1::ModSymA, M2::ModSymA) -> BoolElt
 {Compare spaces of modular symbols that corresponding to
 Galois-conjugacy classes of newforms of some level.  See the
 manual for the definition of the ordering.}
@@ -1952,7 +1952,7 @@ manual for the definition of the ordering.}
 end intrinsic;
 
 
-intrinsic ManinSymbol(x::ModSymElt) -> SeqEnum
+intrinsic ManinSymbol(x::ModSymAElt) -> SeqEnum
 {An expression of x in terms of Manin symbols, which are
 represented  as 2-tuples < P(X,Y),[u,v] >.}
    M := AmbientSpace(Parent(x));
@@ -1964,7 +1964,7 @@ represented  as 2-tuples < P(X,Y),[u,v] >.}
 end intrinsic;
 
 
-intrinsic ModularSymbol(x::ModSymElt) -> SeqEnum
+intrinsic ModularSymbol(x::ModSymAElt) -> SeqEnum
 {An expression of x in terms of modular symbols.}
    return ModularSymbolRepresentation(x);
 end intrinsic;
@@ -1977,7 +1977,7 @@ end intrinsic;
 ////////////////////////////////////////////////////////////////
 
 
-intrinsic BaseExtend(M::ModSym, F::Fld) -> ModSym
+intrinsic BaseExtend(M::ModSymA, F::Fld) -> ModSymA
 {Base extension of M to F.}
 
    require IsSupportedField(F) : SupportMessage;
@@ -2044,7 +2044,7 @@ intrinsic BaseExtend(M::ModSym, F::Fld) -> ModSym
    end function;
    
 
-   N := New(ModSym);
+   N := New(ModSymA);
    N`is_ambient_space := true;
 
 
@@ -2072,13 +2072,13 @@ intrinsic BaseExtend(M::ModSym, F::Fld) -> ModSym
 end intrinsic;
 
 
-intrinsic Eltseq(M::ModSymElt) -> SeqEnum
+intrinsic Eltseq(M::ModSymAElt) -> SeqEnum
 {For internal use}
    return Eltseq(M`element);
 end intrinsic;
 
 
-intrinsic BaseExtend(M::ModSym, f::Map) -> ModSym
+intrinsic BaseExtend(M::ModSymA, f::Map) -> ModSymA
 {Base extension of M to Codomain(f) using the map f : BaseField(M) --> F.}
 
    F := Codomain(f);
@@ -2155,7 +2155,7 @@ intrinsic BaseExtend(M::ModSym, f::Map) -> ModSym
    end function;
    
 
-   N := New(ModSym);
+   N := New(ModSymA);
    N`is_ambient_space := true;
 
    V := VectorSpace(F,Dimension(AmbientSpace(M)));
@@ -2189,25 +2189,25 @@ end intrinsic;
 //                                                            // 
 ////////////////////////////////////////////////////////////////
 
-function init_ModSymElt(M,v)
-   x := New(ModSymElt);
+function init_ModSymAElt(M,v)
+   x := New(ModSymAElt);
    x`parent := M;
    x`element := v;
    return x;
 end function;
 
-intrinsic '*'(a::RngElt,x::ModSymElt) -> ModSymElt
+intrinsic '*'(a::RngElt,x::ModSymAElt) -> ModSymAElt
    {}
    M := Parent(x);
    require Type(Parent(a)) eq RngInt or 
       Parent(a) cmpeq BaseRing(M) : "Elements have different parents."; 
-   z := New(ModSymElt);
+   z := New(ModSymAElt);
    z`parent := M;
    z`element := a*x`element;
    return z;
 end intrinsic;
 
-intrinsic '*'(x::ModSymElt,a::RngElt) -> ModSymElt
+intrinsic '*'(x::ModSymAElt,a::RngElt) -> ModSymAElt
    {}
    M := Parent(x);
    if Type(Parent(a)) eq AlgMat then
@@ -2221,10 +2221,10 @@ intrinsic '*'(x::ModSymElt,a::RngElt) -> ModSymElt
          Parent(a) cmpeq BaseField(M) : 
          "Arguments have different coefficient rings."; 
    end if;
-   return init_ModSymElt(M,x`element * a);
+   return init_ModSymAElt(M,x`element * a);
 end intrinsic;
 
-intrinsic '*'(x::ModSymElt,T::AlgMatElt) -> ModSymElt
+intrinsic '*'(x::ModSymAElt,T::AlgMatElt) -> ModSymAElt
    {}
    M := Parent(x);
    require Type(BaseRing(Parent(T))) eq RngInt or 
@@ -2232,21 +2232,21 @@ intrinsic '*'(x::ModSymElt,T::AlgMatElt) -> ModSymElt
       "Arguments have different coefficient rings."; 
    require Degree(Parent(T)) eq Dimension(M) : 
       "Arguments have incompatible dimensions."; 
-   return init_ModSymElt(M,x`element * T);
+   return init_ModSymAElt(M,x`element * T);
 end intrinsic;
 
-intrinsic '+'(x::ModSymElt,y::ModSymElt) -> ModSymElt
+intrinsic '+'(x::ModSymAElt,y::ModSymAElt) -> ModSymAElt
    {}
    M := Parent(x);
    require Parent(y) eq M : "Elements have different parents."; 
-   return init_ModSymElt(M,x`element + y`element);
+   return init_ModSymAElt(M,x`element + y`element);
 end intrinsic;
 
-intrinsic '-'(x::ModSymElt,y::ModSymElt) -> ModSymElt
+intrinsic '-'(x::ModSymAElt,y::ModSymAElt) -> ModSymAElt
    {}
    M := Parent(x);
    require Parent(y) eq M : "Elements have different parents."; 
-   return init_ModSymElt(M,x`element - y`element);
+   return init_ModSymAElt(M,x`element - y`element);
 end intrinsic;
 
 // Helper functions for creation

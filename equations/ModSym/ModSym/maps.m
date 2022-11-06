@@ -7,7 +7,7 @@ freeze;
                                                                             
    FILE: maps.m (Maps between spaces of modular symbols)
                                                                             
-   $Header: /home/was/magma/packages/ModSym/code/RCS/maps.m,v 1.8 2002/10/01 06:03:10 was Exp was $
+   $Header: /home/was/magma/packages/ModSymA/code/RCS/maps.m,v 1.8 2002/10/01 06:03:10 was Exp was $
 
    $Log: maps.m,v $
    Revision 1.9  2020/09/07 11:28:29  was
@@ -186,7 +186,7 @@ function EvaluateOnMatrix(eps, gamma)
 end function;
 
 
-intrinsic DegeneracyMap(M1::ModSym, M2::ModSym, d::RngIntElt) -> Map
+intrinsic DegeneracyMap(M1::ModSymA, M2::ModSymA, d::RngIntElt) -> Map
 {The degneracy map M_1 ---> M_2 associated to d. 
 Let N_i be the level of M_i for i=1,2. Suppose that d 
 is a divisor of either the numerator or denominator of 
@@ -250,7 +250,7 @@ Runtime error in 'eq': Element is not in the domain of the map
 end intrinsic;
 
 
-intrinsic DegeneracyMatrix(M1::ModSym, M2::ModSym, d::RngIntElt) -> AlgMatElt
+intrinsic DegeneracyMatrix(M1::ModSymA, M2::ModSymA, d::RngIntElt) -> AlgMatElt
 {The matrix of DegeneracyMap(M1,M2,d) with respect to Basis(M1) and
 Basis(M2).  Both IsAmbientSpace(M1) and IsAmbientSpace(M2) must be true.}
 
@@ -368,7 +368,7 @@ Basis(M2).  Both IsAmbientSpace(M1) and IsAmbientSpace(M2) must be true.}
       R   := DegeneracyCosetReps(N1, N2, d);
       eps := DirichletCharacter(M1);
       if IsTrivial(eps) then
-         RB := [ &cat[ModularSymbolApply(M1, r, B[i]) : r in R] 
+         RB := [ &cat[ModularSymbolApply(r, B[i]) : r in R] 
                                                   : i in [1..#B]];
          // This step takes a lot of time.
          A := [Representation(ConvFromModularSymbol(M2,RB[i])) 
@@ -376,7 +376,7 @@ Basis(M2).  Both IsAmbientSpace(M1) and IsAmbientSpace(M2) must be true.}
       else
          A   := [ &+[EvaluateOnMatrix(eps,r)*
                       Representation(ConvFromModularSymbol(M2,
-                              ModularSymbolApply(M1, r, B[i]))) : r in R] 
+                              ModularSymbolApply(r, B[i]))) : r in R] 
                : i in [1..#B]];
       end if;
    else
@@ -400,7 +400,7 @@ Basis(M2).  Both IsAmbientSpace(M1) and IsAmbientSpace(M2) must be true.}
 
 end intrinsic;
 
-intrinsic DegeneracyMatrix(M1::ModSym, M2::ModSym,
+intrinsic DegeneracyMatrix(M1::ModSymA, M2::ModSymA,
 			   d::GrpMatElt[FldRat]) -> AlgMatElt
 {The matrix of DegeneracyMap(M1,M2,d) with respect to Basis(M1) and
 Basis(M2).  Both IsAmbientSpace(M1) and IsAmbientSpace(M2) must be true.}
@@ -581,7 +581,7 @@ assert false;
 end intrinsic;
 
 
-intrinsic ModularSymbols(M::ModSym, N::RngIntElt) -> ModSym
+intrinsic ModularSymbols(M::ModSymA, N::RngIntElt) -> ModSymA
 {The modular symbols space of level N associated to M.
 Let NN be the level of M.
 If NN divides N, then
@@ -653,7 +653,7 @@ then the 0 space is returned.
    return M`other_levels[pos][2];
 end intrinsic;
 
-intrinsic ModularSymbols(M::ModSym, G::GrpMat) -> ModSym
+intrinsic ModularSymbols(M::ModSymA, G::GrpMat) -> ModSymA
 {The modular symbols space of level G associated to M.
 Let GG be the image mod N of the (smaller) level subgroup of M.
 If GG is a subgroup of G, then

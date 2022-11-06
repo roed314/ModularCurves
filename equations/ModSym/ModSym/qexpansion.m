@@ -26,7 +26,7 @@ freeze;
              newforms, the default was to order the factors.  This
              is wasteful, so we set it to false.
 
-   $Header: /home/was/magma/packages/ModSym/code/RCS/qexpansion.m,v 1.15 2002/08/26 03:54:38 was Exp was $
+   $Header: /home/was/magma/packages/ModSymA/code/RCS/qexpansion.m,v 1.15 2002/08/26 03:54:38 was Exp was $
 
    $Log: qexpansion.m,v $
    Revision 1.15  2002/08/26 03:54:38  was
@@ -78,7 +78,7 @@ freeze;
    *** empty log message ***
 
    Revision 1.10  2001/02/04 18:10:56  was
-   Added some commented-out code to function EigenvectorModSym(A)
+   Added some commented-out code to function EigenvectorModSymA(A)
    that might be useful later when computing eigenvectors over finite fields.
 
    Revision 1.9  2001/02/04 15:57:45  was
@@ -95,7 +95,7 @@ freeze;
    when prec is too small.  It is still there as a WARNING.
 
    Revision 1.7  2001/01/16 03:30:06  was
-   Fixed a bug in function EigenvectorModSym(A):
+   Fixed a bug in function EigenvectorModSymA(A):
    Before if it couldn't find an irreducible eigenvector after trying
    10 times it gave up.  Now it will try forever.    Enrique gave me
    an example of level 408 that killed the old version!
@@ -155,12 +155,12 @@ import "subspace.m":  MinusSubspaceDual,
 forward Compute_qExpansion,
         DenominatorOf,
         EigenvectorOfMatrixWithCharpoly,
-        EigenvectorModSym,
-        EigenvectorModSymSign,
+        EigenvectorModSymA,
+        EigenvectorModSymASign,
         EisensteinConstantCoefficient,
         SpaceGeneratedByImages;
 
-intrinsic PowerSeries(M::ModSym, prec::RngIntElt) -> RngSerPowElt
+intrinsic PowerSeries(M::ModSymA, prec::RngIntElt) -> RngSerPowElt
 {The q-expansion of one of the Galois-conjugate newforms
 associated to M, computed to absolute precision prec.  The
 coefficients of the q-expansion lie in a quotient of a polynomial
@@ -168,23 +168,23 @@ extension of the base field of M.}
    return qEigenform(M,prec);
 end intrinsic;
 
-intrinsic PowerSeries(M::ModSym) -> RngSerPowElt
+intrinsic PowerSeries(M::ModSymA) -> RngSerPowElt
 {"} // "
    return qEigenform(M);
 end intrinsic;
 
-intrinsic Eigenform(M::ModSym) -> RngSerPowElt
+intrinsic Eigenform(M::ModSymA) -> RngSerPowElt
 {Same as qEigenform}
    prec := assigned M`qeigenform select M`qeigenform[1] else 8;
    return qEigenform(M,prec);
 end intrinsic;
 
-intrinsic Eigenform(M::ModSym, prec::RngIntElt) -> RngSerPowElt
+intrinsic Eigenform(M::ModSymA, prec::RngIntElt) -> RngSerPowElt
 {"} // "
    return qEigenform(M,prec);
 end intrinsic;
 
-intrinsic qEigenform(M::ModSym) -> RngSerPowElt
+intrinsic qEigenform(M::ModSymA) -> RngSerPowElt
 {The q-expansion of one of the Galois-conjugate newforms
 associated to M, computed to absolute precision prec.  The
 coefficients of the q-expansion lie in a quotient of a polynomial
@@ -194,7 +194,7 @@ extension of the base field of M.}
    return qEigenform(M,prec);
 end intrinsic;
 
-intrinsic eigenvecToEigenform(M::ModSym, eig::ModTupFldElt,
+intrinsic eigenvecToEigenform(M::ModSymA, eig::ModTupFldElt,
 			      prec::RngIntElt) -> RngSerPowElt
 {.}
    if IsVerbose("ModularSymbols") then
@@ -254,7 +254,7 @@ intrinsic eigenvecToEigenform(M::ModSym, eig::ModTupFldElt,
   return qeigenform[2] + O((Parent(qeigenform[2]).1)^prec);
 end intrinsic;   
  
-intrinsic qEigenform(M::ModSym, prec::RngIntElt : debug:=false) -> RngSerPowElt
+intrinsic qEigenform(M::ModSymA, prec::RngIntElt : debug:=false) -> RngSerPowElt
 {"} // "
    if IsMultiChar(M) then
       return qEigenform(AssociatedNewformSpace(M), prec);
@@ -294,9 +294,9 @@ intrinsic qEigenform(M::ModSym, prec::RngIntElt : debug:=false) -> RngSerPowElt
          "Finding eigenvector for newform modular symbols space of dimension %o ... \n", Dimension(M);
       time0 := Cputime();
       if Sign(M) ne 0 or Dimension(M) eq 1 then
-         eig := EigenvectorModSym(M);    
+         eig := EigenvectorModSymA(M);    
       else
-         eig := EigenvectorModSymSign(M,IsMinusQuotient(M) 
+         eig := EigenvectorModSymASign(M,IsMinusQuotient(M) 
                                            select -1 else +1);
       end if;
 
@@ -504,7 +504,7 @@ forward qExpansionBasisBox,
         qExpansionBasisUniversal;
 
 
-intrinsic qExpansionBasis(D::[ModSym],
+intrinsic qExpansionBasis(D::[ModSymA],
                           prec::RngIntElt :
                           Al := "Newform") -> SeqEnum
 {The K-vector space basis of q-expansions in reduced row echelon
@@ -527,7 +527,7 @@ The absolute precision of the q-expansions is prec.}
    return S;
 end intrinsic;
 
-intrinsic qExpansionBasis(M::ModSym:
+intrinsic qExpansionBasis(M::ModSymA:
                           Al := "Newform") -> SeqEnum
 {The K-vector space basis of q-expansions in reduced row echelon
 form for the space of modular forms associated to M, where K is
@@ -552,7 +552,7 @@ of more Hecke operators.}
    return qExpansionBasis(M, prec : Al := Al);
 end intrinsic;
 
-intrinsic qExpansionBasis(M::ModSym, prec::RngIntElt :
+intrinsic qExpansionBasis(M::ModSymA, prec::RngIntElt :
                           Al := "Newform", M_val := 0) -> SeqEnum
 {"} // "
    prec := Max(2,prec);
@@ -628,7 +628,7 @@ intrinsic qExpansionBasis(M::ModSym, prec::RngIntElt :
 end intrinsic;
 
 
-intrinsic qIntegralBasis(A::ModSym:
+intrinsic qIntegralBasis(A::ModSymA:
                          Al := "Newform") -> SeqEnum
 {The integral basis of q-expansions in reduced form for the
 space of modular forms associated to M, computed to absolute precision prec.  
@@ -643,7 +643,7 @@ The base field must be either the rationals or a cyclotomic field.}
    return qIntegralBasis(A, prec : Al := Al);
 end intrinsic;
 
-intrinsic qIntegralBasis(A::ModSym, prec::RngIntElt :
+intrinsic qIntegralBasis(A::ModSymA, prec::RngIntElt :
                          Al := "Newform") -> SeqEnum
 {"} // "
    prec := Max(2,prec);
@@ -886,7 +886,7 @@ function qExpansionBasisNewform(A, prec, do_saturate)
       if (not IsOfGammaType(A)) and
 	 (LevelSubgroup(A) ne LevelSubgroup(Anew)) then
 	  /*
-        orig_eigvec := EigenvectorModSymSign(Anew,
+        orig_eigvec := EigenvectorModSymASign(Anew,
 				      IsMinusQuotient(Anew) 
                                         select -1 else +1);
         F := BaseRing(orig_eigvec);
@@ -1433,7 +1433,7 @@ function my_eigenvector(A, M)
    return sum;
 end function;
 
-function EigenvectorModSym(A)
+function EigenvectorModSymA(A)
    // Returns an eigenvector of the Hecke algebra on A over
    // a polynomial extension of the ground field.
    // The eigenvector lies in DualSpace(A) tensor Qbar.
@@ -1454,26 +1454,26 @@ function EigenvectorModSym(A)
 end function;
 
 
-function EigenvectorModSymSign(A, sign)
+function EigenvectorModSymASign(A, sign)
 // Compute eigenvector for sign subspace of A.
    assert sign eq -1 or sign eq 1 ;
    if IsPlusQuotient(A) then
       assert sign ne -1;
-      return EigenvectorModSym(A);
+      return EigenvectorModSymA(A);
    end if ;
    if IsMinusQuotient(A) then
       assert sign ne +1 ;
-      return EigenvectorModSym(A);
+      return EigenvectorModSymA(A);
    end if ;
    if sign eq +1 then
       if not assigned A`eigenplus then
-         A`eigenplus := EigenvectorModSym(PlusSubspaceDual(A));   
+         A`eigenplus := EigenvectorModSymA(PlusSubspaceDual(A));   
       end if;
       return A`eigenplus;
    end if;
    if sign eq -1 then
       if not assigned A`eigenminus then
-         A`eigenminus := EigenvectorModSym(MinusSubspaceDual(A));   
+         A`eigenminus := EigenvectorModSymA(MinusSubspaceDual(A));   
       end if;
       return A`eigenminus;
    end if;
@@ -1558,7 +1558,7 @@ intrinsic qEigenform(E::CrvEll, prec::RngIntElt) -> RngSerPowElt
 end intrinsic;
 
 
-intrinsic CompactSystemOfEigenvaluesVector(M::ModSym, prec::RngIntElt) 
+intrinsic CompactSystemOfEigenvaluesVector(M::ModSymA, prec::RngIntElt) 
                                                     -> SeqEnum
 {Exactly the same as CompactSystemOfEigenvalues, but returns
 only the vector and not the map.}
@@ -1586,7 +1586,7 @@ only the vector and not the map.}
 end intrinsic;
 
 // suggested by John Cremona.
-intrinsic CompactSystemOfEigenvalues(M::ModSym, prec::RngIntElt) 
+intrinsic CompactSystemOfEigenvalues(M::ModSymA, prec::RngIntElt) 
                                                     -> SeqEnum, Map
 {Elements [v_2, v_3, v_5, v_7, ...,v_p] of a vector space and a
 map psi such that psi(v_i) = a_i, where a_i is the ith Fourier
@@ -1623,7 +1623,7 @@ is defined over a cyclotomic extension, use CompactSystemOfEigenvaluesOverQ.}
 end intrinsic;
 
 // needed for the modular forms database
-intrinsic CompactSystemOfEigenvaluesOverQ(M::ModSym, prec::RngIntElt) -> SeqEnum, Map
+intrinsic CompactSystemOfEigenvaluesOverQ(M::ModSymA, prec::RngIntElt) -> SeqEnum, Map
 {Exactly the same as CompactSystemOfEigenvalues, but coefficients of the answer are in
 Q instead of a cyclotomic extension of Q.}
    require Sign(M) ne 0 : "Argument 1 must have nonzero sign.";
@@ -1671,7 +1671,7 @@ end intrinsic;
 
 
 
-intrinsic SystemOfEigenvalues(M::ModSym, prec::RngIntElt) -> SeqEnum
+intrinsic SystemOfEigenvalues(M::ModSymA, prec::RngIntElt) -> SeqEnum
 {The system of Hecke eigenvalues [a2, a3, a5, a7, ..., a_p] attached to M, where
  p is the largest prime less or equal to prec.  The a_i lie in a quotient of 
  a polynomial extension of the base field of M.  It is assumed that M corresponds
@@ -1698,9 +1698,9 @@ intrinsic SystemOfEigenvalues(M::ModSym, prec::RngIntElt) -> SeqEnum
    end if;
 
    if Sign(M) ne 0 or Dimension(M) eq 1 then
-      eig := EigenvectorModSym(M);    
+      eig := EigenvectorModSymA(M);    
    else
-      eig := EigenvectorModSymSign(M,IsMinusQuotient(M) 
+      eig := EigenvectorModSymASign(M,IsMinusQuotient(M) 
                                         select -1 else +1);
    end if;
 
@@ -1716,7 +1716,7 @@ intrinsic SystemOfEigenvalues(M::ModSym, prec::RngIntElt) -> SeqEnum
 end intrinsic;
 
 
-intrinsic qExpansion(M::ModSym, f::RngSerPowElt, prec::RngIntElt) -> RngSerPowElt
+intrinsic qExpansion(M::ModSymA, f::RngSerPowElt, prec::RngIntElt) -> RngSerPowElt
 {Let f be an element of qExpansionBasis(M,AbsolutePrecision(f)).  This
 intrinsic computes and returns the q-expansion of the modular form
 associated to f, to precision prec.}
@@ -1751,7 +1751,7 @@ associated to f, to precision prec.}
 end intrinsic;
 
 /*
-intrinsic XXXEigenvectorInTermsOfIntegralBasis(M::ModSym) -> SeqEnum, RngIntElt
+intrinsic XXXEigenvectorInTermsOfIntegralBasis(M::ModSymA) -> SeqEnum, RngIntElt
 {A sequence v of elements of the field generated by the eigenvalues of a newform 
 associated to M and an integer d such that the linear combination of qIntegralBasis(M,prec) 
 defined by v is a d*(a newform).  M must have nonzero sign and have been constructed 
@@ -1809,7 +1809,7 @@ end intrinsic;
 */
 
 
-intrinsic EigenvectorInTermsOfExpansionBasis(M::ModSym) -> SeqEnum, RngIntElt, RngIntElt
+intrinsic EigenvectorInTermsOfExpansionBasis(M::ModSymA) -> SeqEnum, RngIntElt, RngIntElt
 {A sequence v of elements of the field generated by the eigenvalues of a newform 
 associated to M and an integer d such that the linear combination of qIntegralBasis(M,prec) 
 defined by v is a d*(a newform).  Also, the lcm of the denominators of the numbers appearing
@@ -1875,7 +1875,7 @@ using NewformDecomposition.}
    return Explode(M`eigenvector_in_terms_of_expansion_basis);
 end intrinsic;
 
-intrinsic qEigenformReductions(M::ModSym, p::RngIntElt, prec::RngIntElt) -> List
+intrinsic qEigenformReductions(M::ModSymA, p::RngIntElt, prec::RngIntElt) -> List
 {List of all reductions to characteristic p of a normalized eigenform corresponding 
 to M.  The list of reductions is divided up into sequences corresponding to each
 prime over p.}
@@ -2104,7 +2104,7 @@ function get_eigenvector_galois_orbit(v, K0)
   return orbit;
 end function;
 
-intrinsic qEigenformBasis(M::ModSym, prec::RngIntElt) -> SeqEnum[RngSerPowElt]
+intrinsic qEigenformBasis(M::ModSymA, prec::RngIntElt) -> SeqEnum[RngSerPowElt]
 {Computes a basis of eigenforms for M.}
   S := CuspidalSubspace(M);
 // D := Decomposition(S, HeckeBound(S));
@@ -2168,7 +2168,7 @@ function find_echelon_forms_vecs(M)
   return X * t_eigvecs_in_M;
 end function;
 
-intrinsic ActionOnEchelonFormBasis(g::GrpMatElt, M::ModSym) -> AlgMatElt
+intrinsic ActionOnEchelonFormBasis(g::GrpMatElt, M::ModSymA) -> AlgMatElt
 {Computes the action of g on the cuspidal subspace of M with respect to the
     basis of modular forms given in echelon form with respect to q-expansions.}
   Z := find_echelon_forms_vecs(M);
