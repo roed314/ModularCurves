@@ -32,7 +32,7 @@ intrinsic LMFDBWriteModel(X::Rec, E4::FldFunRatMElt,
     AssignNames(~R, uvars[1..Rank(R)]);
     S := Parent(E4);
     AssignNames(~S, lvars[1..Rank(R)]);
-    Write(fname, Sprintf("{%o}|{%o}|{%o,%o}|{%o}", Join([sprint(f) : f in DP], ","), Join([sprint(f[1]) : f in X`F0], ","), sprint(E4), sprint(E6), cyc_ord));
+    Write(fname, Sprintf("{%o}|{%o}|{%o,%o}|{%o}", Join([sprint(f) : f in DP], ","), Join([Join([sprint(f) : f in fs],",") : fs in X`F0], ","), sprint(E4), sprint(E6), cyc_ord));
     return;
 end intrinsic;
 
