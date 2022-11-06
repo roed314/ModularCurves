@@ -8,34 +8,31 @@ function FindFormAsRationalFunction(form, R, all_fs, wt_diff : min_k := 0)
     found := false;
     if min_k eq 0 then min_k := wt_diff; end if;
     k := min_k;
-    while (not found) do
- 	printf "Trying to find form with weight %o\n", k;
- 	for d in {k-wt_diff, k} do
- 	    degmons[d] := MonomialsOfWeightedDegree(R, d div 2);
- 	end for;
-	all_prods := [[Evaluate(m, all_fs[i]) + O(q^precs[i]) 
-		       : m in degmons[k]] : i in [1..#all_fs]];
-	// That's relevant when we compare differentials
-	for i in [1..#all_fs] do
-	    all_prods[i] cat:= [form*Evaluate(m, all_fs[i]) 
-				+ O(q^precs[i]) : m in degmons[k-wt_diff]];
-	end for;
-	// We should look for relations over QQ
-	mats := [* Matrix([&cat[Eltseq(x) : x in AbsEltseq(f)] 
-			   : f in prods]) : prods in all_prods *];
-	mat := mats[1];
-	for i in [2..#mats] do
-	    mat := HorizontalJoin(mat, mats[i]);
-	end for;
-	ker := Kernel(mat);
- 	found :=  exists(v){v : v in Basis(ker)
- 			    | not &and[v[i] eq 0 :
- 				       i in [1..#degmons[k]]] and
- 				  not &and[v[#degmons[k]+i] eq 0 :
- 					   i in [1..#degmons[k-wt_diff]]]};
- 	k +:= 2;
-    end while;
-    k -:= 2;
+    printf "Trying to find form with weight %o\n", k;
+    for d in {k-wt_diff, k} do
+ 	degmons[d] := MonomialsOfWeightedDegree(R, d div 2);
+    end for;
+    all_prods := [[Evaluate(m, all_fs[i]) + O(q^precs[i]) 
+		   : m in degmons[k]] : i in [1..#all_fs]];
+    // That's relevant when we compare differentials
+    for i in [1..#all_fs] do
+	all_prods[i] cat:= [form*Evaluate(m, all_fs[i]) 
+			    + O(q^precs[i]) : m in degmons[k-wt_diff]];
+    end for;
+    // We should look for relations over QQ
+    mats := [* Matrix([&cat[Eltseq(x) : x in AbsEltseq(f)] 
+		       : f in prods]) : prods in all_prods *];
+    mat := mats[1];
+    for i in [2..#mats] do
+	mat := HorizontalJoin(mat, mats[i]);
+    end for;
+    ker := Kernel(mat);
+    found :=  exists(v){v : v in Basis(ker)
+ 			| not &and[v[i] eq 0 :
+ 				   i in [1..#degmons[k]]] and
+ 			      not &and[v[#degmons[k]+i] eq 0 :
+ 				       i in [1..#degmons[k-wt_diff]]]};
+    assert found;
     v := ChangeRing(v*Denominator(v), Integers());
     num := &+[v[i]*degmons[k][i] : i in [1..#degmons[k]]];
     denom := -&+[v[#degmons[k]+i]*degmons[k-wt_diff][i]
@@ -96,6 +93,10 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt
       found := #I2 in {(g-1)*(g-2) div 2,((g-2)*(g-3)) div 2};
       prec +:= 1;
   end while;
+  d :=  Ceiling((3*M`vinf + M`v2 + 2*M`v3 + 7*g-6)/(g-1));
+  if IsOdd(d) then d+:= 1; end if; 
+  prec_for_j := Floor(d/6) + 1 + M`N;
+  prec := Maximum(prec, prec_for_j);
   return prec;
 end intrinsic;	  
 	  
