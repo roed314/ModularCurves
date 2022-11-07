@@ -1,0 +1,2 @@
+cd Zywina
+magma -b label:=30.30.3.1 GetModelLMFDB.m
