@@ -13,7 +13,9 @@ function GetModularCurveGeneratorsForLine(line)
 end function;
 
 // Given an LMFDB label for a modular curve, return corresponding generators
-function GetModularCurveGenerators(label : path_to_data := "modular_curves_data.txt")
+//function GetModularCurveGenerators(label : path_to_data := "modular_curves_data.txt")
+intrinsic GetModularCurveGenerators(label::MonStgElt : path_to_data := "modular_curves_data.txt") -> Any
+  {}
   for elt in getrecs(path_to_data : Delimiter:="|") do
     if elt[2] eq label then
       N := StringToInteger(elt[3]);
@@ -26,4 +28,5 @@ function GetModularCurveGenerators(label : path_to_data := "modular_curves_data.
     end if;
   end for;
   return false;
-end function;
+end intrinsic;
+//end function;

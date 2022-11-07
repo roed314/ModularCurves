@@ -1,3 +1,4 @@
+import "GL2GroupTheory.m" : gl2Level, sl2Level, LiftMatrix, gl2Lift;
 import "ModularCurves.m" : FindModularForms, FindCuspForms, FindRelations;
 
 // getting the JMap from the q-expansions
@@ -38,6 +39,20 @@ function FindFormAsRationalFunction(form, R, all_fs, wt_diff : min_k := 0)
     denom := -&+[v[#degmons[k]+i]*degmons[k-wt_diff][i]
  		 : i in [1..#degmons[k-wt_diff]]];
     return num / denom;
+end function;
+
+//intrinsic MakeCurve(~rec::Rec)
+intrinsic MakeCurve(rec::Rec) -> Any
+  {assign the curve to rec`C}
+  C := Curve(Proj(Parent(rec`psi[1])),rec`psi);
+  rec`C := C;
+  //print Sprintf("%o assigned to rec`C", C);
+  return Sprintf("%o assigned to rec`C", C);
+end intrinsic;
+
+// convert FldFunRatMElt to FldFunFracSchElt
+function RationalFunctionToFunctionFieldElement(j)
+  return false;
 end function;
 
 intrinsic JMap(X::Rec) -> FldFunRatMElt, FldFunRatMElt, FldFunRatMElt

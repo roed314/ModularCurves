@@ -5,4 +5,5 @@
     Hyperelliptic.m
     JMap.m
   }
+  LMFDB_interface.m
 }
