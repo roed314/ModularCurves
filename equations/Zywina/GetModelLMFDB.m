@@ -1,7 +1,7 @@
 // Usage: ls input_data | parallel --timeout 600 magma -b label:={1} GetModelLMFDB.m
 // where input_data is a folder containing one file for each label, consisting of the generators as a comma-separated list of integers
 
-AttachSpec("ModCrv.spec");
+AttachSpec("../equations.spec");
 import "findjinvmap.m" : FindJMapInv, GetPrecisionAndDegrees;
 import "ModularCurves.m" : CreateModularCurveRec, FindCanonicalModel;
 
