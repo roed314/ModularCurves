@@ -12,7 +12,8 @@ import "Box.m" : BoxMethod, qExpansions, restrict_scalars_to_Q;
 
 function FindCurveSimple(qexps, prec, n_rel)
     R<q> := Universe(qexps);
-    K := BaseRing(R);
+    K := FieldOfFractions(BaseRing(R));
+    _<q> := PowerSeriesRing(K);
     zeta := K.1;
     fs := [f + O(q^prec) : f in qexps];
     g := #fs;
