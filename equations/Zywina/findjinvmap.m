@@ -26,7 +26,8 @@ function FindJMapInv(M, maxprec, mind, maxd)
     // Build canonical ring
     assert M`k eq 2;
     assert #M`F0 eq M`genus;
-    
+
+    tttt := Cputime();
     numcusps := M`vinf;
     N := M`N;
     cuspforms := M`F0;
@@ -34,6 +35,7 @@ function FindJMapInv(M, maxprec, mind, maxd)
     polyring := PolynomialRing(Rationals(),M`genus,"grevlex");
     vars := [ polyring.i : i in [1..M`genus]];
     gens := [ Evaluate(M`psi[j],vars) : j in [1..#M`psi]];
+
     ttemp := Cputime();
     printf "Computing Grobner basis for canonical ideal.\n";
     I := ideal<polyring | gens>;
@@ -197,6 +199,8 @@ function FindJMapInv(M, maxprec, mind, maxd)
     Cvars := [ C.i : i in [1..M`genus]];
     jmap := map<C -> ProjectiveSpace(Rationals(),1) | [num,denom]>;
 
+    printf "Skipping point search.";
+/*	       
     ttime := Cputime();
     pts := PointSearch(C,1000);
     pttime := Cputime(ttime);
@@ -207,13 +211,14 @@ function FindJMapInv(M, maxprec, mind, maxd)
     end for;
     jtime := Cputime(ttime);
     printf "Done.\n";
-
+*/
+    
     printf "GB time = %o.\n",gbtime;
     printf "Canonical ring time = %o.\n",canringtime;
     printf "Linear algebra time = %o.\n",lintime;
-    printf "Point search time = %o.\n",pttime;
-    printf "j-map time = %o.\n",jtime;
-    printf "Total time was %o sec.\n",Cputime(ttemp);
-    return jmap, num, denom, pts;
+//    printf "Point search time = %o.\n",pttime;
+//    printf "j-map time = %o.\n",jtime;
+    printf "Total time was %o sec.\n",Cputime(tttt);
+    return jmap, num, denom;
 end function;
 
