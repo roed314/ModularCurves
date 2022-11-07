@@ -13,8 +13,8 @@ function GetModularCurveGeneratorsForLine(line)
 end function;
 
 // Given an LMFDB label for a modular curve, return corresponding generators
-function GetModularCurveGenerators(label)
-  for elt in getrecs("modular_curves_data.txt":Delimiter:="|") do
+function GetModularCurveGenerators(label : path_to_data := "modular_curves_data.txt")
+  for elt in getrecs(path_to_data : Delimiter:="|") do
     if elt[2] eq label then
       N := StringToInteger(elt[3]);
       gen_str := elt[4];
