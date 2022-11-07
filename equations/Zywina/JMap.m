@@ -51,9 +51,18 @@ intrinsic MakeCurve(rec::Rec) -> Any
 end intrinsic;
 
 // convert FldFunRatMElt to FldFunFracSchElt
-function RationalFunctionToFunctionFieldElement(j)
-  return false;
-end function;
+intrinsic RationalFunctionToFunctionFieldElement(C::Crv,j::FldFunRatMElt) -> Any
+  {}
+  C_aff := AffinePatch(C,1);
+  ngens := Ngens(CoordinateRing(C_aff));
+  KC := FunctionField(C_aff);
+  j_Cs := [];
+  for f in [Numerator(j), Denominator(j)] do
+    f_C := Evaluate(f, [KC.i : i in [1..ngens]] cat [KC!1]);
+    Append(~j_Cs,f_C);
+  end for;
+  return j_Cs[1]/j_Cs[2];
+end intrinsic;
 
 intrinsic JMap(X::Rec) -> FldFunRatMElt, FldFunRatMElt, FldFunRatMElt
 {Computes E4, E6 and j as rational function, when the given qexpansions are the variables.}
