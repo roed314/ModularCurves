@@ -76,7 +76,7 @@ end intrinsic;
 intrinsic RequiredPrecision(M::Rec) -> RngIntElt
 {.}
   M := FindModularForms(2,M,1);
-  prec := Integers()!(M`N * Maximum([1/M`widths[i] : i in [1..#M`cusps]]));
+  prec := Integers()!(M`N * Maximum([1/M`widths[i] : i in [1..#M`cusps]])) + 1;
   found := false;
   g := M`genus;
   // for now, doing that naively
