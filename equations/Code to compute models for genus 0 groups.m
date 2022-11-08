@@ -108,6 +108,7 @@ for k in Keys(CPlist) do
  P<t> := FunctionField(L); 
  R<q>:=PuiseuxSeriesRing(L);
  h := CPlist[Gamma`sl2label]`hauptmodul; 
+ hq:=CPlist[Gamma`sl2label]`h;
  H_:= Gconj meet SL(2,Integers(M));
  
  H1,q1:=quo<Gconj|H_>;
