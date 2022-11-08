@@ -6,4 +6,5 @@
     JMap.m
   }
   LMFDB_interface.m
+  plane_model.m
 }
