@@ -37,7 +37,7 @@ intrinsic LMFDBWriteModel(X::Rec, j::JMapData, fname::MonStgElt)
     E4_str := (assigned j`E4) select sprint(j`E4) else "";
     E6_str := (assigned j`E6) select sprint(j`E6) else "";
     j_str := (assigned j`J) select sprint(j`J) else "";
-    Write(fname, Sprintf("{%o}|{%o}|{%o,%o,%o}|{%o}", Join([sprint(f) : f in DP], ","), Join([Join([sprint(f) : f in fs],",") : fs in X`F0], ","), E4_str, E6_str, j_str, cyc_ord));
+    Write(fname, Sprintf("{%o}|{%o}|{%o,%o,%o}|{%o}", Join([sprint(f) : f in DP], ","), Join([Join([sprint(f) : f in fs],";") : fs in X`F0], ","), E4_str, E6_str, j_str, cyc_ord));
     return;
 end intrinsic;
 
@@ -76,7 +76,7 @@ intrinsic LMFDBReadModel(fname::MonStgElt) ->
   polys := [R | eval StringToPoly(s, R, "x") : s in data[1]];
   C := Curve(P, polys);
   Kq<q> := PowerSeriesRing(K);
-  qexps := [eval f : f in data[2]];
+  qexps := [[eval f : f in Split(fs, ";")] : fs in data[2]];
   S<[X]> := FieldOfFractions(PolynomialRing(Rationals(), rank));
   AssignNames(~S, lvars[1..rank]);
   rats_J := [eval StringToPoly(s, S, "X") : s in data[3]];
