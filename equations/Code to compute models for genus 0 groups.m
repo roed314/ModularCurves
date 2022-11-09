@@ -154,7 +154,8 @@ boolean,_:=HasRationalPoint(Q);
 		           pol := Evaluate(DefiningPolynomial(Q),[x,yy,1]);
 		           FFQ<y> := FunctionField(pol);
 		           F:=(A[1]*x+A[2]*y+A[3])/(A[4]*x+A[5]*y+A[6]);
-		           J1:=Evaluate(CPlist[Gamma`sl2label]`J,F);return Q,J1;
+		           J1:=Evaluate(CPlist[Gamma`sl2label]`J,F);
+			   return Q,J1,boolean;
             end if;
             if boolean eq true then
                 B := (Transpose(ParametrizationMatrix(Q)))^(-1); //Transpose to make it left action 
@@ -164,7 +165,7 @@ boolean,_:=HasRationalPoint(Q);
                 g1 := (C[1,1]*t+C[1,2])/(C[2,1]*t+C[2,2]); 
                 
                 J1:=  Evaluate(CPlist[Gamma`sl2label]`J,g1); assert J1 in FunctionField(Rationals()); 
-                return Q, J1;
+                return Q, J1, boolean;
 
 end if;
 

@@ -1,4 +1,4 @@
-import "Zywina/ModularCurves.m" : FindModularForms;
+import "OpenImage/main/ModularCurves.m" : FindModularForms;
 
 intrinsic CanonicalRing(M::Rec : Precision := 0) -> SeqEnum, SeqEnum
 {Return the curve, q-expansions (denominator of the power in q-expansions) for the model of the canonical ring.}
@@ -146,7 +146,7 @@ intrinsic CanonicalRing(M::Rec : Precision := 0) -> SeqEnum, SeqEnum
 	Append(~kers, ker);
     end for; 
     // For the other cases we haven't implemented this sanity check
-    if ((g ge 2) or ((g eq 1) and (r le 3))) then
+    if (r le 3) then
 	require [Dimension(k) : k in kers] in rel_dims : 
 	  "Not sufficient precision!";
     end if;
