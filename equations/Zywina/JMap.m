@@ -46,8 +46,8 @@ intrinsic MakeCurve(rec::Rec) -> Any
   {assign the curve to rec`C}
   C := Curve(Proj(Parent(rec`psi[1])),rec`psi);
   rec`C := C;
+  return C;
   //print Sprintf("%o assigned to rec`C", C);
-  return Sprintf("%o assigned to rec`C", C);
 end intrinsic;
 
 intrinsic JMap(X::Rec) -> FldFunRatMElt, FldFunRatMElt, FldFunRatMElt
