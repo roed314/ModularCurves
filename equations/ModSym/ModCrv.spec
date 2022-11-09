@@ -53,6 +53,7 @@
 	character.m
 	charpolyhecke.m
 	core.m
+	cusps.m
 	decomp.m
 	dims.m
 	dirichlet.m

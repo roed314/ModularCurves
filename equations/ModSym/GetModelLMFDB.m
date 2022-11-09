@@ -1,13 +1,13 @@
 // Usage: ls input_data | parallel --timeout 600 magma -b label:={1} GetModelLMFDB.m
 // where input_data is a folder containing one file for each label, consisting of the generators as a comma-separated list of integers
 
-System("mkdir -p output_data");
+System("mkdir -p ../output_data");
 SetColumns(0);
 AttachSpec("ModCrv.spec");
 SetVerbose("ModularCurves", 1);
 
 level := StringToInteger(Split(label, ".")[1]);
-input := Read("input_data/" * label);
+input := Read("../input_data/" * label);
 input_lines := Split(input, "\n");
 is_cover := false;
 if IsEmpty(input_lines) then
@@ -60,6 +60,6 @@ else
     E4, E6, j := JMap(PG, X, fs, K
 		  : LogCanonical := LogCanonical);
 end if;
-LMFDBWriteModel(X, fs, E4, E6, "output_data/" * label);
+LMFDBWriteModel(X, fs, E4, E6, "../output_data/" * label);
 
 exit;
