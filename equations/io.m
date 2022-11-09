@@ -41,7 +41,7 @@ intrinsic LMFDBWriteModel(X::Rec, j::JMapData, fname::MonStgElt)
     return;
 end intrinsic;
 
-intrinsic LMFDBWriteModel(X::CrvCon, j::JMapData, fname::MonStgElt)
+intrinsic LMFDBWriteModel(X::Crv, j::JMapData, fname::MonStgElt)
 {Write the model and j-map to a file for input into the LMFDB}
     uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
     lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
@@ -53,11 +53,16 @@ intrinsic LMFDBWriteModel(X::CrvCon, j::JMapData, fname::MonStgElt)
     end if;
     AssignNames(~R, uvars[1..Rank(R)]);
     S := (assigned j`J) select Parent(j`J) else Parent(j`E4);
-    AssignNames(~S, lvars[1..1]);
+    if Type(S) eq FldFunFracSch then
+	AssignNames(~S, lvars[1..1]);
+    else
+	AssignNames(~S, lvars[1..Rank(R)]);
+    end if;
     E4_str := (assigned j`E4) select sprint(j`E4) else "";
     E6_str := (assigned j`E6) select sprint(j`E6) else "";
     j_str := (assigned j`J) select sprint(j`J) else "";
-    Write(fname, Sprintf("{%o}|{%o,%o,%o}", Join([sprint(f) : f in DP], ","), E4_str, E6_str, j_str));
+    Write(fname, Sprintf("{%o}|{%o}|{%o,%o,%o}", Rank(R), 
+	Join([sprint(f) : f in DP], ","), E4_str, E6_str, j_str));
     return;
 end intrinsic;
 
