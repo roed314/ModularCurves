@@ -1,32 +1,40 @@
-// Usage: ls input_data | parallel --timeout 600 magma -b label:={1} GetModelLMFDB.m
-// where input_data is a folder containing one file for each label, consisting of the generators as a comma-separated list of integers
+import "Zywina/findjinvmap.m" : FindJMapInv, GetPrecision, GetDegrees;
+import "Zywina/ModularCurves.m" : CreateModularCurveRec, FindCanonicalModel;
+import "Code to compute models for genus 0 groups.m" : ComputeModel;
 
-AttachSpec("../equations.spec");
-import "findjinvmap.m" : FindJMapInv, GetPrecision, GetDegrees;
-import "ModularCurves.m" : CreateModularCurveRec, FindCanonicalModel;
-
-if (not assigned label) then
-  printf "This script assumes that label, the label of the X_H to compute, is given as a command line paramter.\n";
-  printf "Something like magma label:=7.168.3.1 findjmap.m\n";
-  quit;  
-end if;
-
-function process_label(label)
-    System("mkdir -p ../output_data");
-    SetColumns(0);
-
+intrinsic ProcessModel(label::MonStgElt) -> Rec, RngMPolElt, RngMPolElt
+{.}
     level := StringToInteger(Split(label, ".")[1]);
-    input := Read("../input_data/" * label);
+    genus := StringToInteger(Split(label, ".")[3]);
+    input := Read("input_data/" * label);
     input_lines := Split(input, "\n");
-    gens := [StringToInteger(x) : x in Split(input_lines[1], ",")];
+    if IsEmpty(input_lines) then
+	gens := [];
+    else
+	gens := [StringToInteger(x) : x in Split(input_lines[1], ",")];
+    end if;
     // Should be a list of 2x2 matrices, so number of elements divisible by 4.
     assert #gens mod 4 eq 0;
     // Here we transpose the matrices, because Zywina's code uses the 
     // transposed convention of Galois action
     gens := [[gens[4*i-3],gens[4*i-1],gens[4*i-2],gens[4*i]] 
 	     : i in [1..#gens div 4]];
+    // Apparently, Rakvi's code does not handle X(1)
+    if (genus eq 0) and (not IsEmpty(gens)) then
+	// !! TODO - is this precision always enough?
+	Ggens := {GL(2,Integers(level))!g : g in gens};
+	X, j := ComputeModel(level,Ggens,10);
+	return X, Numerator(j), Denominator(j);
+    end if;
     M := CreateModularCurveRec(level, gens);
-    is_hyp := M`genus le 3;
+    if IsEmpty(gens) then
+	P1<s,t> := ProjectiveSpace(Rationals(),1);
+	_<q> := PowerSeriesRing(Rationals());
+	M`F0 := [[jInvariant(q)]];
+	M`psi := [CoordinateRing(P1) |];
+	return M, s, t;
+    end if;
+    is_hyp := M`genus le 2;
     printf "Starting model computation.\n";
     ttemp := Cputime();
     F := [];
@@ -56,11 +64,5 @@ function process_label(label)
     // eis_time := Cputime();
     // j`E4, j`E6, _ := JMap(M);
     // printf "E4,E6 time taken was %o. \n", eis_time;    
-    return X, jmap, num, denom;
-end function;
-   
-process_label(label);
-j := New(JMapData);
-j`J := num / denom;
-LMFDBWriteModel(X, j, "../output_data/" * label);
-exit;
+    return X, num, denom;
+end intrinsic;

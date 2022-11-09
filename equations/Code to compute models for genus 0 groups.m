@@ -1,4 +1,6 @@
-load "Congruence Subgroups of genus 0.m";
+// load "Congruence Subgroups of genus 0.m";
+import "Required functions.m" : Act, SiegelExpansion, FindRelation;
+import "Congruence Subgroups of genus 0.m" : CPlist,  H90;
 
 function m2(A,K) 
 
