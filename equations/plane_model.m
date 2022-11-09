@@ -37,3 +37,32 @@ intrinsic JMapSanityCheck(j::FldFunFracSchElt) -> BoolElt
   end for;
   return true;
 end intrinsic;
+
+import "OpenImage/main/ModularCurves.m" : FindModularForms, FindCuspForms
+intrinsic PlaneModelFromQExpansions(rec::Rec,prec::RngIntElt) -> Any
+  {}
+
+  if not assigned rec`F then
+    rec := FindModularForms(2,rec,prec);
+  end if;
+  if not assigned rec`F0 then
+    rec := FindCuspForms(rec);
+  end if;
+
+  found_bool := false;
+  m := 5;
+  while not found_bool do
+    printf "trying m = %o\n", m;
+    rels := FindRelations(fs[1..3],m);
+    if #rels gt 0 then
+      print "relation found!";
+      found_bool := true;
+    end if;
+    m +:= 1;
+  end while;
+
+  f := rels[1];
+  C := Curve(Proj(Parent(f)), f);
+  assert Genus(C) eq rec`genus;
+  return C;
+end intrinsic;
