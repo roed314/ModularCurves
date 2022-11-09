@@ -1,4 +1,4 @@
-import "Zywina/ModularCurves.m" : FindModularForms;
+import "OpenImage/main/ModularCurves.m" : FindModularForms;
 
 intrinsic CanonicalRing(M::Rec : Precision := 0) -> SeqEnum, SeqEnum
 {Return the curve, q-expansions (denominator of the power in q-expansions) for the model of the canonical ring.}
