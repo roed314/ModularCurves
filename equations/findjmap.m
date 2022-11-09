@@ -2,7 +2,7 @@
 // It takes the label as a command line parameter.
 // Something like magma l:=7.168.3.1 findjmap.m
 
-AttachSpec("equations.spec");
+// AttachSpec("equations.spec");
 // load "LMFDB_interface.m";
 // load "GL2GroupTheory.m";
 // load "ModularCurvesMy.m";
@@ -73,13 +73,14 @@ function fieldfind(G,K)
   return NumberField(minpoly), prim;
 end function;
 
-intrinsic FindJMap(l::MonStgElt) -> Crv, RngMPolElt, RngMPolElt
-{.}
+//intrinsic FindJMap(N::RngIntElt, gens::SeqEnum) -> Crv, RngMPolElt, RngMPolElt
+//{.}
+function FindJMap(N, gens)
   tttt := Cputime();
-  gens := GetModularCurveGenerators(l);
+//  gens := GetModularCurveGenerators(l);
 
-  N := StringToInteger(Split(l,".")[1],10);
-  gens := [ Transpose(g) : g in gens];
+//  N := StringToInteger(Split(l,".")[1],10);
+//  gens := [ Transpose(g) : g in gens];
   gp := sub<GL(2,Integers(N))|gens>;
 
   M := CreateModularCurveRec(N,gens);
@@ -104,7 +105,9 @@ intrinsic FindJMap(l::MonStgElt) -> Crv, RngMPolElt, RngMPolElt
     printf "Minimal model is %o.\n",M`C;
     printf "j-map is %o.\n",ecjmap;
     // Write data to a file here and then stop.
-    quit;
+    // 5 is the code for hyperelliptic models
+    // For now, we decided it includes Weierstrass equations
+    return M`C, ecjmap, 5;
   end if;
 
   maxd := 0;
@@ -408,5 +411,8 @@ end if;
   printf "Linear algebra time = %o.\n",lintime;
   printf "Total time was %o sec.\n",Cputime(tttt);
 
-  return C, num, denom;
-end intrinsic;
+  // canonical model is 0, other is -1
+  model_type := (geomhyper) select -1 else 0;
+  return C, num/denom, model_type;
+end function;
+//end intrinsic;

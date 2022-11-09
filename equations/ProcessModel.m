@@ -1,6 +1,5 @@
-import "findjinvmap.m" : FindJMapInv, GetPrecision, GetDegrees;
-import "OpenImage/main/ModularCurves.m" : CreateModularCurveRec, 
-       FindCanonicalModel;
+import "findjmap.m" : FindJMap;
+import "OpenImage/main/ModularCurves.m" : CreateModularCurveRec;
 import "Code to compute models for genus 0 groups.m" : ComputeModel;
 
 intrinsic ProcessModel(label::MonStgElt) -> Rec, RngMPolElt, RngMPolElt
@@ -24,20 +23,22 @@ intrinsic ProcessModel(label::MonStgElt) -> Rec, RngMPolElt, RngMPolElt
     if (genus eq 0) and (not IsEmpty(gens)) then
 	// !! TODO - is this precision always enough?
 	Ggens := {GL(2,Integers(level))!g : g in gens};
-	X, j := ComputeModel(level,Ggens,10);
-	return X, Numerator(j), Denominator(j);
+	X, j, has_rational_pt := ComputeModel(level,Ggens,10);
+	model_type := (has_rational_pt) select 1 else 2;
+	return X, j, model_type;
     end if;
-    M := CreateModularCurveRec(level, gens);
     // handling X(1)
     if IsEmpty(gens) then
-	P1<s,t> := ProjectiveSpace(Rationals(),1);
+	M := CreateModularCurveRec(level, gens);
+	P1 := ProjectiveSpace(Rationals(),1);
 	_<q> := PowerSeriesRing(Rationals());
 	M`F0 := [[jInvariant(q)]];
 	M`psi := [CoordinateRing(P1) |];
-	return M, s, t;
+	// 1 is for P1 model
+	return M, FunctionField(P1).1, 1;
     end if;
      // Replacing this by Jeremy's new function
-    X, num, denom := FindJMap(l);
+    X, j, model_type := FindJMap(level, gens);
     /*
     is_hyp := M`genus le 2;
     printf "Starting model computation.\n";
@@ -70,5 +71,5 @@ intrinsic ProcessModel(label::MonStgElt) -> Rec, RngMPolElt, RngMPolElt
     // j`E4, j`E6, _ := JMap(M);
     // printf "E4,E6 time taken was %o. \n", eis_time;   
    */ 
-    return X, num, denom;
+    return X, j, model_type;
 end intrinsic;
