@@ -6,7 +6,7 @@ import os
 import sys
 from collections import defaultdict
 from sage.misc.cachefunc import cached_function
-from sage.all import ZZ
+from sage.all import ZZ, Poset
 opj = os.path.join
 ope = os.path.exists
 
@@ -82,7 +82,7 @@ def intervals_to_save(max_size=60):
                         # Sort by index (reversed), then family
                         S.append((-i, Xfams.index(fam), d))
             S.sort()
-            I = J = set([x] + x.upper_covers()).union(ints[S[0][2]])
+            I = J = set([x] + P.upper_covers(x)).union(ints[S[0][2]])
             num_tops[x] = 1
             for i, f, d in S[1:]:
                 I = I.union(ints[d])
@@ -91,10 +91,10 @@ def intervals_to_save(max_size=60):
                 num_tops[x] += 1
                 J = I
         else:
-            J = list(ints.values())[0] + x.upper_covers()
+            J = list(ints.values())[0].union(P.upper_covers(x))
             num_tops[x] = 1
         if len(J) <= max_size:
-            J.sort(key=sort_key)
+            J = sorted(J, key=sort_key)
             stored_intervals[x] = J
     return stored_intervals, num_tops
 
@@ -163,7 +163,7 @@ splines=line;
     os.remove(outfile)
     return xcoord
 
-os.makedirs(args.outfolder)
+os.makedirs(args.outfolder, exist_ok=True)
 todo = list(db.gps_gl2zhat_test.search({}, "label"))[args.job::args.num_jobs]
 for label in todo:
     xcoord = save_graphviz(label)
