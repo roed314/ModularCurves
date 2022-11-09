@@ -146,7 +146,7 @@ intrinsic CanonicalRing(M::Rec : Precision := 0) -> SeqEnum, SeqEnum
 	Append(~kers, ker);
     end for; 
     // For the other cases we haven't implemented this sanity check
-    if ((g ge 2) or ((g eq 1) and (r le 3))) then
+    if (r le 3) then
 	require [Dimension(k) : k in kers] in rel_dims : 
 	  "Not sufficient precision!";
     end if;
