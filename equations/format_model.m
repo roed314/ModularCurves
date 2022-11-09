@@ -95,7 +95,7 @@ elif genus eq 2 then
     q_high := 2;
     qbar_low := 2;
     qbar_high := 2;
-elif genus le 6 then    
+elif genus le 6 and try_gonal_map then
     ambient := ProjectiveSpace(P);
     curve := Curve(ambient, equations_pol);
     if genus eq 3 then
