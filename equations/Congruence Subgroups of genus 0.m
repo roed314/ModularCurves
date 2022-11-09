@@ -39,8 +39,8 @@ The following is a complete list of the congruence subgroups of genus 0 up to co
 Cummin-Pauli name given. See http://www.uncg.edu/mat/faculty/pauli/congruence/congruence.html
 */
 
-load "Required functions.m";
-
+// load "Required functions.m";
+import "Required functions.m" : FindHauptmodul, SiegelExpansion, SiegelPower, FindRelation, Act;
 
 CPlist:=AssociativeArray();     
 CPlist["1A"]:= rec<CongSubgroup | N:=1,  label:="1A", gens:=[ ], index:=1>;

@@ -41,6 +41,16 @@ function dimension(M,d, is_can)
     end if;
 end function;
 
+function get_row_qexp(qexp, prec)
+    return &cat[Eltseq(x) : x in AbsEltseq(qexp)[1..prec]];
+end function;
+
+function get_row_f(f, precs)
+    numcusps := #f;
+    assert #f eq #precs;
+    return &cat[get_row_qexp(f[i], precs[i]) : i in [1..numcusps]];
+end function;
+
 function FindJMapInv(M, maxprec, mind, maxd)
     // Build canonical ring
     //assert M`k eq 2;
@@ -54,7 +64,9 @@ function FindJMapInv(M, maxprec, mind, maxd)
     modforms := M`F0;
     //polyring := ChangeRing(Parent(M`psi[1]),Rationals());
     // polyring := PolynomialRing(Rationals(),#modforms,"grevlex");
-    polyring := Universe(M`psi);
+    // polyring := ChangeRing(Universe(M`psi), Rationals());
+    polyring := PolynomialRing(Rationals(), 
+			       Grading(Universe(M`psi)), "grevlex");
     vars := [ polyring.i : i in [1..#modforms]];
     gens := [ Evaluate(M`psi[j],vars) : j in [1..#M`psi]];
 
@@ -254,19 +266,19 @@ function FindJMapInv(M, maxprec, mind, maxd)
     // map to a curve in regular projective space
     if (not is_can) then
 	printf "Constructing a model embedded in projective space...\n";
+	invtime :=  Cputime();
 	X := FindModelOfXG(M, maxprec);
 	X_emb := Curve(ProjectiveSpace(Universe(X`psi)), X`psi);
 	// Here we use the fact that David is embedding X 
 	// using forms of weight X`k
-	orig_basis := Matrix(&cat[[&cat[Eltseq(x) : x in AbsEltseq(f)] 
-				   : f in fs] : fs in canring[X`k div 2][1]]);
-	f_rows := Matrix([&cat[&cat[Eltseq(x) : x in AbsEltseq(X`F0[j][i])] 
-			       : i in [1..numcusps]] : j in [1..#X`F0]]); 
-	orig_basis := Submatrix(orig_basis, [1..Nrows(orig_basis)], 
-				[1..Ncols(f_rows)]);
+	precs_orig := [AbsolutePrecision(f) : f in canring[X`k div 2][1][1]];
+	precs_new := [AbsolutePrecision(f) : f in X`F0[1]];
+	precs := [Minimum(precs_orig[i], precs_new[i]) : i in [1..#precs_new]];
+	orig_basis := Matrix([get_row_f(f, precs) : f in canring[X`k div 2][1]]);
+	f_rows := Matrix([get_row_f(f, precs) : f in X`F0]);
 	lin_comb := Solution(orig_basis, f_rows);
 	vec := Vector(canring[X`k div 2][2]);
-	vec := vec * ChangeRing(lin_comb, BaseRing(vec));
+	vec := vec * Transpose(ChangeRing(lin_comb, BaseRing(vec)));
 	iota := map<C->X_emb | Eltseq(vec)>;
 	is_inv, iota_inv := IsInvertible(iota);
 	assert is_inv;
@@ -276,6 +288,7 @@ function FindJMapInv(M, maxprec, mind, maxd)
 	denom := jmap_alg(Domain(jmap_alg).2);
 	jmap := map<X_emb -> ProjectiveSpace(Rationals(),1) | [num,denom]>;
 	printf "Done.\n";
+	invtime := Cputime(invtime);
     else
 	X := M;
     end if;
@@ -283,6 +296,9 @@ function FindJMapInv(M, maxprec, mind, maxd)
     printf "GB time = %o.\n",gbtime;
     printf "Canonical ring time = %o.\n",canringtime;
     printf "Linear algebra time = %o.\n",lintime;
+    if (not is_can) then
+	printf "Inverting map time = %o.\n", invtime; 
+    end if;
 //    printf "Point search time = %o.\n",pttime;
 //    printf "j-map time = %o.\n",jtime;
     printf "Total time was %o sec.\n",Cputime(tttt);

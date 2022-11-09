@@ -26,7 +26,7 @@ intrinsic LMFDBWriteModel(X::Rec, j::JMapData, fname::MonStgElt)
     uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
     lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
     DP := X`psi;
-    R := Parent(DP[1]);
+    R := Universe(DP);
     if (#uvars lt Rank(R)) then
 	uvars := [Sprintf("X%o", i) : i in [1..Rank(R)]];
 	lvars := [Sprintf("x%o", i) : i in [1..Rank(R)]];
@@ -38,6 +38,26 @@ intrinsic LMFDBWriteModel(X::Rec, j::JMapData, fname::MonStgElt)
     E6_str := (assigned j`E6) select sprint(j`E6) else "";
     j_str := (assigned j`J) select sprint(j`J) else "";
     Write(fname, Sprintf("{%o}|{%o}|{%o,%o,%o}|{%o}", Join([sprint(f) : f in DP], ","), Join([Join([sprint(f) : f in fs],";") : fs in X`F0], ","), E4_str, E6_str, j_str, cyc_ord));
+    return;
+end intrinsic;
+
+intrinsic LMFDBWriteModel(X::CrvCon, j::JMapData, fname::MonStgElt)
+{Write the model and j-map to a file for input into the LMFDB}
+    uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
+    lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
+    DP := DefiningPolynomials(X);
+    R := Universe(DP);
+    if (#uvars lt Rank(R)) then
+	uvars := [Sprintf("X%o", i) : i in [1..Rank(R)]];
+	lvars := [Sprintf("x%o", i) : i in [1..Rank(R)]];
+    end if;
+    AssignNames(~R, uvars[1..Rank(R)]);
+    S := (assigned j`J) select Parent(j`J) else Parent(j`E4);
+    AssignNames(~S, lvars[1..Rank(R)]);
+    E4_str := (assigned j`E4) select sprint(j`E4) else "";
+    E6_str := (assigned j`E6) select sprint(j`E6) else "";
+    j_str := (assigned j`J) select sprint(j`J) else "";
+    Write(fname, Sprintf("{%o}|{%o,%o,%o}", Join([sprint(f) : f in DP], ","), E4_str, E6_str, j_str));
     return;
 end intrinsic;
 
