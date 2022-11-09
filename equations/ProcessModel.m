@@ -28,6 +28,7 @@ intrinsic ProcessModel(label::MonStgElt) -> Rec, RngMPolElt, RngMPolElt
 	return X, Numerator(j), Denominator(j);
     end if;
     M := CreateModularCurveRec(level, gens);
+    // handling X(1)
     if IsEmpty(gens) then
 	P1<s,t> := ProjectiveSpace(Rationals(),1);
 	_<q> := PowerSeriesRing(Rationals());
@@ -35,6 +36,9 @@ intrinsic ProcessModel(label::MonStgElt) -> Rec, RngMPolElt, RngMPolElt
 	M`psi := [CoordinateRing(P1) |];
 	return M, s, t;
     end if;
+     // Replacing this by Jeremy's new function
+    X, num, denom := FindJMap(l);
+    /*
     is_hyp := M`genus le 2;
     printf "Starting model computation.\n";
     ttemp := Cputime();
@@ -64,6 +68,7 @@ intrinsic ProcessModel(label::MonStgElt) -> Rec, RngMPolElt, RngMPolElt
     printf "Skipping E4, E6 computation.\n";
     // eis_time := Cputime();
     // j`E4, j`E6, _ := JMap(M);
-    // printf "E4,E6 time taken was %o. \n", eis_time;    
+    // printf "E4,E6 time taken was %o. \n", eis_time;   
+   */ 
     return X, num, denom;
 end intrinsic;

@@ -1,4 +1,5 @@
 {
+  findjmap.m
   io.m
   CanonicalRing.m
   LMFDB_interface.m
