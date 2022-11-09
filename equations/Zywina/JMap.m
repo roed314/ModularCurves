@@ -1,3 +1,4 @@
+import "GL2GroupTheory.m" : gl2Level, sl2Level, LiftMatrix, gl2Lift;
 import "ModularCurves.m" : FindModularForms, FindCuspForms, FindRelations;
 
 // getting the JMap from the q-expansions
@@ -40,6 +41,29 @@ function FindFormAsRationalFunction(form, R, all_fs, wt_diff : min_k := 0)
     return num / denom;
 end function;
 
+//intrinsic MakeCurve(~rec::Rec)
+intrinsic MakeCurve(rec::Rec) -> Any
+  {assign the curve to rec`C}
+  C := Curve(Proj(Parent(rec`psi[1])),rec`psi);
+  rec`C := C;
+  //print Sprintf("%o assigned to rec`C", C);
+  return Sprintf("%o assigned to rec`C", C);
+end intrinsic;
+
+// convert FldFunRatMElt to FldFunFracSchElt
+intrinsic RationalFunctionToFunctionFieldElement(C::Crv,j::FldFunRatMElt) -> Any
+  {}
+  C_aff := AffinePatch(C,1);
+  ngens := Ngens(CoordinateRing(C_aff));
+  KC := FunctionField(C_aff);
+  j_Cs := [];
+  for f in [Numerator(j), Denominator(j)] do
+    f_C := Evaluate(f, [KC.i : i in [1..ngens]] cat [KC!1]);
+    Append(~j_Cs,f_C);
+  end for;
+  return j_Cs[1]/j_Cs[2];
+end intrinsic;
+
 intrinsic JMap(X::Rec) -> FldFunRatMElt, FldFunRatMElt, FldFunRatMElt
 {Computes E4, E6 and j as rational function, when the given qexpansions are the variables.}
     qexps := X`F0;
@@ -76,7 +100,7 @@ end intrinsic;
 intrinsic RequiredPrecision(M::Rec) -> RngIntElt
 {.}
   M := FindModularForms(2,M,1);
-  prec := Integers()!(M`N * Maximum([1/M`widths[i] : i in [1..#M`cusps]]));
+  prec := Integers()!(M`N * Maximum([1/M`widths[i] : i in [1..#M`cusps]])) + 1;
   found := false;
   g := M`genus;
   // for now, doing that naively
