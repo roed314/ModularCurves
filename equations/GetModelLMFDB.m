@@ -16,6 +16,6 @@ System("mkdir -p output_data");
 SetColumns(0);
 output_fname := Sprintf("output_data/%o.%o", label, model_type);
 // Right now all our maps are to P1
-output_fname := Sprintf("%o_1.1.0.1.1_%o", output_fname, Degree(jmap)); 
+output_fname := Sprintf("%o_1.1.0.1.1_%o", output_fname, Degree(Numerator(jmap))); 
 LMFDBWriteModel(X, j, output_fname);
 exit;
