@@ -86,10 +86,11 @@ function FindJMap(N, gens)
   M := CreateModularCurveRec(N,gens);
   printf "Starting model computation with low precision.\n";
   ttemp := Cputime();
-  M := FindModelOfXG(M,20);
+  prec := RequiredPrecision(M);
+  M := FindModelOfXG(M,prec);
   mult := M`mult;
   if (not assigned M`prec) then
-    M`prec := 20;
+    M`prec := prec;
   end if;
 
   if (M`genus eq 1) and (M`has_point) then

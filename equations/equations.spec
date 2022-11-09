@@ -1,8 +1,9 @@
 {
+  CanonicalRing.m
   findjmap.m
   io.m
-  CanonicalRing.m
   LMFDB_interface.m
-  ProcessModel.m
   plane_model.m
+  precision.m
+  ProcessModel.m
 }
