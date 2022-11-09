@@ -53,7 +53,7 @@ intrinsic LMFDBWriteModel(X::CrvCon, j::JMapData, fname::MonStgElt)
     end if;
     AssignNames(~R, uvars[1..Rank(R)]);
     S := (assigned j`J) select Parent(j`J) else Parent(j`E4);
-    AssignNames(~S, lvars[1..Rank(S)]);
+    AssignNames(~S, lvars[1..1]);
     E4_str := (assigned j`E4) select sprint(j`E4) else "";
     E6_str := (assigned j`E6) select sprint(j`E6) else "";
     j_str := (assigned j`J) select sprint(j`J) else "";
