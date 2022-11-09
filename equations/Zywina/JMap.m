@@ -124,3 +124,17 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt
   return prec;
 end intrinsic;	  
 	  
+intrinsic CoveringMap(X::Crv, X_cov::Crv, fs::SeqEnum[RngSerPowElt],
+		      fs_cov::SeqEnum[RngSerPowElt]) -> MapSch[Crv, Crv]
+{Given modular curves X, X_cov with coordinates given by q-expansions fs, fs_cov,
+ such that X_cov is a covering of X, compute the covering map. }
+  prec_fs := Minimum([AbsolutePrecision(f) : f in fs]);
+  prec_fs_cov := Minimum([AbsolutePrecision(f) : f in fs_cov]);
+  prec := Minimum(prec_fs, prec_fs_cov);
+  mat := Matrix([AbsEltseq(f)[1..prec] : f in fs_cov]);
+  v := Matrix([AbsEltseq(f)[1..prec] : f in fs]);
+  T := Solution(mat, v);
+  x := GeneratorsSequence(CoordinateRing(X_cov));
+  cov_map := Vector(x) * ChangeRing(Transpose(T), CoordinateRing(X_cov));
+  return map<X_cov -> X | Eltseq(cov_map)>;
+end intrinsic;
