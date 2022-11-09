@@ -53,7 +53,7 @@ intrinsic CanonicalRing(M::Rec : Precision := 0) -> SeqEnum, SeqEnum
 		[ [0,0,0,0,0,1] ],
 		[ [0,0,0,1] ],
 		[ [0,0,1] ],
-		[ [0, (delta-1)*(delta-4) div 2] ]
+		[ [0, delta*(delta-3) div 2] ]
 		];
 	else
 	    gen_dims := [[],
