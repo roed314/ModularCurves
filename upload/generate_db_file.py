@@ -3,6 +3,7 @@ import os
 import re
 from collections import defaultdict, Counter
 from sage.all import QQ, NumberField, PolynomialRing
+from sage.misc.cachefunc import cached_function
 
 S_LABEL_RE = re.compile(r"^(\d+)(G|B|Cs|Cn|Ns|Nn|A4|S4|A5)(\.\d+){0,3}$")
 LABEL_RE = re.compile(r"^\d+\.\d+\.\d+\.\d+$")
@@ -11,6 +12,13 @@ ZZ_RE = re.compile(r"^(-?\d+)|\\N$")
 QQ_LIST_RE = re.compile(r"^-?\d+(/\d+)?(,-?\d+(/\d+)?)*$") # can't be empty
 NN_LIST_RE = re.compile(r"^(\d+(,\s*\d+)*)?$") # can be empty
 
+@cached_function
+def get_poset():
+    R = []
+    for rec in db.gps_gl2zhat_test.search({}, ["label", "parents"]):
+        for olabel in rec["parents"]:
+            R.append([rec["label"], olabel]) # Use forward direction so that breadth first search is faster
+    return Poset(([],R))
 
 def load_points_files(data_folder):
     ans = []
@@ -53,6 +61,8 @@ def load_points_files(data_folder):
     return ans
 
 def generate_db_files(data_folder):
+    # This should be run AFTER gonality bounds since it uses them in determining isolatedness
+
     lit_data = load_points_files(data_folder)
     lit_fields = sorted(set([datum[2] for datum in lit_data]))
     print("Loaded tables from files")
@@ -116,15 +126,20 @@ def generate_db_files(data_folder):
         )
     print("Constructed GL(2, Zhat) lattice table")
 
+    curvedata_lookup = {}
+    for rec in db.ec_curvedata.search({}, ["lmfdb_label", "ainvs", "jinv", "cm", "conductor"], silent=True):
+        curvedata_lookup[rec["lmfdb_label"]] = rec
     skipped = set()
     ecq_db_data = []
-    for rec in db.ec_curvedata.search({}, ["elladic_images", "lmfdb_label", "ainvs", "jinv", "cm", "conductor"], silent=True):
-        for label in rec["elladic_images"]:
+    for rec in db.ec_galrep.search({"prime":0}, ["adelic_reductions", "lmfdb_label"], silent=True):
+        rec.update(curvedata_lookup[rec["lmfdb_label"]])
+        for label in rec["adelic_reductions"]:
+            if "?" in label: continue
             if label not in all_parents:
                 # Don't have the label yet
                 # This is unfortunate, since we can thus miss points of lower level coming from this curve
                 if label not in skipped:
-                    print(f"Skipping elladic image {label}")
+                    #########print(f"Skipping adelic image {label}")
                     skipped.add(label)
                 continue
             Elabel = rec["lmfdb_label"]
@@ -165,8 +180,8 @@ def generate_db_files(data_folder):
             if "[" in Slabel: # these have nonsurjective determinant
                 continue
             p = int(S_LABEL_RE.fullmatch(Slabel).group(1))
-            if p > 127: # Don't have level larger than this yet
-                continue
+            ######if p > 127: # Don't have level larger than this yet
+            ######    continue
             #if Slabel == "2C2": # broken label from an old mistake
             #    Slabel = "2B"
             #elif Slabel == "3C2.1.1": # broken label from an old mistake
@@ -175,13 +190,15 @@ def generate_db_files(data_folder):
             #    continue
             if Slabel not in from_Slabel:
                 if Slabel not in skipped:
-                    print(f"Skipping Slabel {Slabel}")
+                    ########print(f"Skipping Slabel {Slabel}")
                     skipped.add(Slabel)
                 continue
             label = from_Slabel[Slabel]
             Elabel = rec["label"]
             ecnf_db_data.append((label, rec["degree"], rec["field_label"], jorig, jinv, jfield, rec["cm"], r"\N", Elabel, False, str(rec["conductor_norm"])))
     print("Loaded elliptic curves over number fields")
+    if skipped:
+        print(f"Skipped a total of {len(skipped)} curves:", skipped[:5])
 
     # Check for overlap as we add points
     jinvs_seen = defaultdict(set)
@@ -192,7 +209,7 @@ def generate_db_files(data_folder):
         for ctr, (label, degree, field_of_definition, jorig, jinv, field_of_j, cm, quo_info, Elabel, known_isolated, conductor_norm) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
             if ctr and ctr % 10000 == 0:
                 print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
-            for plabel in [label] + all_parents[label]:
+            for plabel in [label]: # We no longer store points in parents `+ all_parents[label]:`
                 if (field_of_j, jinv) not in jinvs_seen[plabel]:
                     jinvs_seen[plabel].add((field_of_j, jinv))
                     point_counts[plabel][degree] += 1
