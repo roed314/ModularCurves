@@ -1,4 +1,4 @@
-// running in equations/Zywina
+// running in equations
 AttachSpec("equations.spec");
 AttachSpec("~/github/CHIMP/CHIMP.spec");
 AttachSpec("~/github/Gm-Reduce/spec");
