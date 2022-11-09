@@ -1,5 +1,6 @@
-import "Zywina/findjinvmap.m" : FindJMapInv, GetPrecision, GetDegrees;
-import "Zywina/ModularCurves.m" : CreateModularCurveRec, FindCanonicalModel;
+import "findjinvmap.m" : FindJMapInv, GetPrecision, GetDegrees;
+import "OpenImage/main/ModularCurves.m" : CreateModularCurveRec, 
+       FindCanonicalModel;
 import "Code to compute models for genus 0 groups.m" : ComputeModel;
 
 intrinsic ProcessModel(label::MonStgElt) -> Rec, RngMPolElt, RngMPolElt
