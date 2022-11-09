@@ -25,11 +25,14 @@ if not assigned input then
     input := label;
 end if;
 
-// Get genus and model type
-label := Split(label,".");
-genus := StringToInteger(label[3]);
-model_type := StringToInteger(label[5]);
-label := label[1] cat "." cat label[2] cat "." cat label[3] cat "." cat label[4];
+// Get labels and model types
+label := Split(label,"_");
+label1 := label[1];
+label2 := label[2];
+domain_label : label1[1] cat "." cat label1[2] cat "." cat label1[3] cat "." cat label1[4];
+domain_model_type := label1[5];
+codomain_label : label2[1] cat "." cat label2[2] cat "." cat label2[3] cat "." cat label2[4];
+codomain_model_type := label2[5];
 
 // Get equations as stringe
 s := Read(input);
