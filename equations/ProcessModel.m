@@ -2,11 +2,10 @@ import "findjmap.m" : FindJMap;
 import "OpenImage/main/ModularCurves.m" : CreateModularCurveRec;
 import "Code to compute models for genus 0 groups.m" : ComputeModel;
 
-intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
-                                            RngIntElt, SeqEnum[CspDat]
+intrinsic GetLevelAndGensFromLabel(label::MonStgElt) ->
+	  RngIntElt, SeqEnum[SeqEnum[RngIntElt]]
 {.}
     level := StringToInteger(Split(label, ".")[1]);
-    genus := StringToInteger(Split(label, ".")[3]);
     input := Read("input_data/" * label);
     input_lines := Split(input, "\n");
     if IsEmpty(input_lines) then
@@ -20,6 +19,14 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
     // transposed convention of Galois action
     gens := [[gens[4*i-3],gens[4*i-1],gens[4*i-2],gens[4*i]] 
 	     : i in [1..#gens div 4]];
+    return level, gens;
+end intrinsic;			    
+
+intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
+                                            RngIntElt, SeqEnum[CspDat]
+{.}
+    level, gens := GetLevelAndGensFromLabel(label);
+    genus := StringToInteger(Split(label, ".")[3]);
     // Apparently, Rakvi's code does not handle X(1)
     if (genus eq 0) and (not IsEmpty(gens)) then
 	// !! TODO - is this precision always enough?

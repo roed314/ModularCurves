@@ -108,7 +108,7 @@ function FindJMap(N, gens)
     // Write data to a file here and then stop.
     // 5 is the code for hyperelliptic models
     // For now, we decided it includes Weierstrass equations
-    return M`C, ecjmap, 5, M`F0;
+    return M`C, ecjmap, 5, M`f cat [[1 : i in [1..#M`cusps]]];
   end if;
 
   maxd := 0;

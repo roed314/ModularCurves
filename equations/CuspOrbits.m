@@ -113,8 +113,7 @@ intrinsic CuspOrbits(N::RngIntElt, gens::SeqEnum) -> SeqEnum[SeqEnum[CspDat]]
   return cusps;
 end intrinsic;
 
-intrinsic CuspUpdateCoordinates(~cusp::CspDat, X::Crv,
-			  F::SeqEnum[SeqEnum[RngSerPowElt]])
+intrinsic CuspUpdateCoordinates(~cusp::CspDat, X::Crv, F::SeqEnum[SeqEnum])
 {.}
    cuspInd := cusp`ind;
    K := cusp`field;
