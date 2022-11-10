@@ -1,6 +1,7 @@
 import "OpenImage/main/ModularCurves.m" : FindCuspPair, CreateModularCurveRec;
+import "OpenImage/main/GL2GroupTheory.m" : LiftMatrix;
 
-intrinsic CuspOrbits(N::RngIntElt, gens::SeqEnum)
+intrinsic CuspOrbits(N::RngIntElt, gens::SeqEnum) -> SetEnum[SetEnum[SetCspElt]]
 {.}
     // Step 1 - Determine Galois orbits of cusps and choose one representative from each
 
@@ -33,15 +34,12 @@ intrinsic CuspOrbits(N::RngIntElt, gens::SeqEnum)
 
   S:=sub<SymmetricGroup(#M`cusps)|s>;
   ind:=[[i:i in O]: O in Orbits(S)];  // orbits of cusps under the actions of G0 and Gal_Q.
- 
+
+  M_lifts := [[LiftMatrix(M`cusps[i], 1) : i in orb] : orb in ind];
+  cusps := {{Cusp(m_lift[1,1], m_lift[2,1]) : m_lift in orb} : orb in M_lifts};
+  
   printf "Galois orbits of cusps are: %o.\n",{* #ind[j] : j in [1..#ind]*};
-  printf "Orbits are:";
-  for orb in ind do
-      printf "{";
-      for i in orb do
-	  printf "%o,", Cusp(M`cusps[i][1,1], M`cusps[i][2,1]);
-      end for;	 
-      printf "}, ";
-  end for;
-  return;
+  // printf "Orbits are: %o", cusps;
+
+  return cusps;
 end intrinsic;
