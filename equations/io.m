@@ -39,10 +39,11 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
     max_deg := 4;
     cusps_to_write := [c : c in cusps | Degree(c`field) le max_deg];
     coords := Join([sprint(c`coords) : c in cusps_to_write] , ",");
-    fields := Join([sprint(DefiningPolynomial(c`field)) : c in cusps] , ",");
+    Qx<x> := PolynomialRing(Rationals());
+    fields := Join([sprint(Qx!DefiningPolynomial(c`field)) : c in cusps] , ",");
     Write(fname, Sprintf("{%o}|{%o}|{%o,%o,%o}|{%o}|{%o}", Rank(R), 
 			 Join([sprint(f) : f in DP], ","), E4_str, E6_str, j_str,
-			 coords,fields));
+			 coords,fields) : Overwrite);
     return;
 end intrinsic;
 

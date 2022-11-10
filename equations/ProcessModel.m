@@ -31,15 +31,40 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
     if (genus eq 0) and (not IsEmpty(gens)) then
 	// !! TODO - is this precision always enough?
 	Ggens := {GL(2,Integers(level))!g : g in gens};
-	X, j, has_rational_pt := ComputeModel(level,Ggens,10);
+	X<x,y,z>, j, has_rational_pt := ComputeModel(level,Ggens,10);
+	num := Evaluate(ChangeRing(Numerator(j), Rationals()), x);
+	denom := Evaluate(ChangeRing(Denominator(j), Rationals()), x);
+	num := Evaluate(num, [x/z,y/z,1]);
+	denom := Evaluate(denom, [x/z,y/z,1]);
+	j := num / denom;
 	model_type := (has_rational_pt) select 1 else 2;
 	cusps := CuspOrbits(level, gens);
+	// !! TODO - fix this so that the cusps on H will match the cusps on
+	// the model
+	// We only need one representative of each orbit
+	cusps := [orb[1] : orb in cusps];
+	P1 := ProjectiveSpace(Rationals(),1);
+	jmap := map<X->P1 | [Numerator(j), Denominator(j)]>;
+	cusp_scheme := (P1![1,0]) @@ jmap;
+	cusp_coords := AssociativeArray();
+	field_idx := AssociativeArray();
+	for i in [1..#cusps] do
+	    K := cusps[i]`field;
+	    PK := DefiningPolynomial(K);
+	    is_defined, pts := IsDefined(cusp_coords, PK);
+	    if not is_defined then
+		cusp_coords[PK] := Points(cusp_scheme, K);
+		field_idx[PK] := 1;
+	    end if;				     
+	    cusps[i]`coords := cusp_coords[PK][field_idx[PK]];
+	    field_idx[PK] +:= 1;
+	end for;
 	return X, j, model_type, cusps;
     end if;
     // handling X(1)
     if IsEmpty(gens) then
 	M := CreateModularCurveRec(level, gens);
-	P1 := ProjectiveSpace(Rationals(),1);
+	P1<x,y>:=Curve(ProjectiveSpace(Rationals(),1));
 	_<q> := PowerSeriesRing(Rationals());
 	M`F0 := [[jInvariant(q)]];
 	M`psi := [CoordinateRing(P1) |];
