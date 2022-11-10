@@ -7,6 +7,7 @@ intrinsic CreateInputDataFile(label::MonStgElt)
   gens := Split(substr,"|")[2];
   genstr := Join(Split(gens, "{},"), ",");
   genstr := genstr[1..#genstr-2];
+  System("mkdir -p input_data");
   Write("input_data/" * label, genstr : Overwrite);
   return;
 end intrinsic;
