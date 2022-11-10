@@ -42,9 +42,9 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt
 		  if Genus(Q0) ne 0 then
 		      done := false;
 		  end if;
-	      end if;
-	      if (dimQ0 eq 1) then
-		  return prec;
+		  if (dimQ0 eq 1) then
+		      return prec;
+		  end if;
 	      end if;
 	  end if;
 	  if g eq 3 then
