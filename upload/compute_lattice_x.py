@@ -1,5 +1,4 @@
 #!/usr/bin/env -S sage -python
-# Should be attached a Sage session with `from lmfdb import db` already run
 import subprocess
 import argparse
 import os
@@ -172,4 +171,4 @@ for label in todo:
     lat = ",".join(lat)
     xs = ",".join([str(x) for x in xs])
     with open(opj(args.outfolder, label), "w") as F:
-        _ = F.write(f"{label}|{{{lat}}}|{{{xs}}}")
+        _ = F.write(f"{label}|{{{lat}}}|{{{xs}}}\n")

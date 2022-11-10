@@ -17,7 +17,16 @@ if not assigned output then
     exit;
 end if;
 
-if not assigned try_gonal_map then
+if assigned try_gonal_map then
+    if try_gonal_map[1] in ["T", "t", "Y", "y"] then
+        try_gonal_map := true;
+    elif try_gonal_map[1] in ["F", "f", "N", "n"] then
+        try_gonal_map := false;
+    else
+        print("Error: invalid try_gonal_map (should be true/false/yes/no)");
+        exit;
+    end if;
+else
     try_gonal_map := true;
 end if;
 
@@ -95,14 +104,14 @@ elif genus eq 2 then
     q_high := 2;
     qbar_low := 2;
     qbar_high := 2;
-elif genus le 6 then    
+elif genus le 6 then
     ambient := ProjectiveSpace(P);
     curve := Curve(ambient, equations_pol);
     if genus eq 3 then
 	qbar_low, map := Genus3GonalMap(curve);
     elif genus eq 4 then
-	qbar_low, map := Genus4GonalMap(curve);	
-    elif genus le 5 then	
+	qbar_low, map := Genus4GonalMap(curve);
+    elif genus le 5 then
 	qbar_low, map := Genus5GonalMap(curve);
     else
 	qbar_low, _, map := Genus6GonalMap(curve);
@@ -134,7 +143,7 @@ elif genus eq 3 then
 	// Smooth plane quartic
 	smooth := true;
     else
-	smooth := "None";
+	smooth := "\\N";
     end if;
 elif genus eq 6 then
     // Smooth if models contains a degree 3 relation
@@ -142,11 +151,11 @@ elif genus eq 6 then
     if 3 in deg_list then
 	smooth := true;
     else
-	smooth := "None";
+	smooth := "\\N";
     end if;
 else
     // Do not test for smoothness
-    smooth := "None";
+    smooth := "\\N";
 end if;
 
 output_str := "{";
