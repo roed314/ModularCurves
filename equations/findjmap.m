@@ -108,7 +108,7 @@ function FindJMap(N, gens)
     // Write data to a file here and then stop.
     // 5 is the code for hyperelliptic models
     // For now, we decided it includes Weierstrass equations
-    return M`C, ecjmap, 5;
+    return M`C, ecjmap, 5, M`F0;
   end if;
 
   maxd := 0;
@@ -414,6 +414,6 @@ end if;
 
   // canonical model is 0, other is -1
   model_type := (geomhyper) select -1 else 0;
-  return C, num/denom, model_type;
+  return C, num/denom, model_type, M`F0;
 end function;
 //end intrinsic;

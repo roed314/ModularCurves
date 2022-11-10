@@ -2,7 +2,8 @@ import "findjmap.m" : FindJMap;
 import "OpenImage/main/ModularCurves.m" : CreateModularCurveRec;
 import "Code to compute models for genus 0 groups.m" : ComputeModel;
 
-intrinsic ProcessModel(label::MonStgElt) -> Rec, RngMPolElt, RngMPolElt
+intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
+                                            RngIntElt, SeqEnum[CspDat]
 {.}
     level := StringToInteger(Split(label, ".")[1]);
     genus := StringToInteger(Split(label, ".")[3]);
@@ -25,7 +26,8 @@ intrinsic ProcessModel(label::MonStgElt) -> Rec, RngMPolElt, RngMPolElt
 	Ggens := {GL(2,Integers(level))!g : g in gens};
 	X, j, has_rational_pt := ComputeModel(level,Ggens,10);
 	model_type := (has_rational_pt) select 1 else 2;
-	return X, j, model_type;
+	cusps := CuspOrbits(level, gens);
+	return X, j, model_type, cusps;
     end if;
     // handling X(1)
     if IsEmpty(gens) then
@@ -34,42 +36,18 @@ intrinsic ProcessModel(label::MonStgElt) -> Rec, RngMPolElt, RngMPolElt
 	_<q> := PowerSeriesRing(Rationals());
 	M`F0 := [[jInvariant(q)]];
 	M`psi := [CoordinateRing(P1) |];
+	cusps := CuspOrbits(level, gens)[1];
+	cusps[1]`coords := P1![1,0];
 	// 1 is for P1 model
-	return M, FunctionField(P1).1, 1;
+	return P1, FunctionField(P1).1, 1, cusps;
     end if;
      // Replacing this by Jeremy's new function
-    X, j, model_type := FindJMap(level, gens);
-    /*
-    is_hyp := M`genus le 2;
-    printf "Starting model computation.\n";
-    ttemp := Cputime();
-    F := [];
-    psi := [];
-    if (not is_hyp) then
-	mind, maxd := GetDegrees(M, is_hyp);
-	prec := GetPrecision(M, maxd, is_hyp);
-	flag, psi, F := FindCanonicalModel(M, prec);
-	is_hyp := not flag;
-    end if;
-    mind, maxd := GetDegrees(M, is_hyp);
-    prec := GetPrecision(M, maxd, is_hyp);
-    if is_hyp then   
-	F, psi := CanonicalRing(M : Precision := 11+prec);
-	M`F0 := F;
-	M`psi := psi;
-    else
-	M`k := 2;
-	M`F0 := F;
-	M`psi := psi;
-    end if;
-    modeltime := Cputime(ttemp);
-    printf "Done. Time taken was %o.\n",modeltime;
-    printf "Model time = %o.\n",modeltime;    
-    X, jmap, num, denom := FindJMapInv(M, prec, mind, maxd);
-    printf "Skipping E4, E6 computation.\n";
-    // eis_time := Cputime();
-    // j`E4, j`E6, _ := JMap(M);
-    // printf "E4,E6 time taken was %o. \n", eis_time;   
-   */ 
-    return X, j, model_type;
+    X, j, model_type, F := FindJMap(level, gens);
+    cusps := CuspOrbits(level, gens);
+    // We only need one representative of each orbit
+    cusps := [orb[1] : orb in cusps];
+    for i in [1..#cusps] do
+	CuspUpdateCoordinates(~cusps[i], X, F);
+    end for;
+    return X, j, model_type, cusps;
 end intrinsic;
