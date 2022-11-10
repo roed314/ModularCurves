@@ -38,7 +38,7 @@ intrinsic JMapSanityCheck(j::FldFunFracSchElt) -> BoolElt
   return true;
 end intrinsic;
 
-import "OpenImage/main/ModularCurves.m" : FindModularForms, FindCuspForms
+import "OpenImage/main/ModularCurves.m" : FindModularForms, FindCuspForms;
 intrinsic PlaneModelFromQExpansions(rec::Rec,prec::RngIntElt) -> Any
   {}
 

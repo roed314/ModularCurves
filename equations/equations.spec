@@ -1,5 +1,6 @@
 {
   CanonicalRing.m
+  create_input_data.m
   findjmap.m
   io.m
   LMFDB_interface.m
