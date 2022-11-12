@@ -81,6 +81,10 @@ function ReplaceVariables(s, variables)
     return s;
 end function;
 
+// Decide if display
+dont_display := #big_equation gt 1000;
+
+// Get equations as polynomials
 equations_str := Split(big_equation, ",");
 new_equations_str := [];
 if nb_var le 26 then  // Variables are uppercase letters
@@ -91,9 +95,6 @@ end if;
 P := PolynomialRing(Rationals(), nb_var);
 AssignNames(~P, variables);
 equations_pol := [eval(ReplaceVariables(s, variables)): s in equations_str];
-
-// Decide if display
-dont_display := #equations_str gt 1000;
 
 // Get gonality in low genus
 degrees := [[Degree(equations_pol[j], P.i): i in [1..nb_var]]: j in [1..#equations_pol]];

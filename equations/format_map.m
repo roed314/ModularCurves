@@ -6,9 +6,9 @@
 // where a.b.c.d is the domain curve, e is domain model type, similarly for the codomain, and f is the degree
 
 // Format of input file should be:
+// - number of variables
 // - equation for the domain, as one big string separated by commas
 // - equation for coordinates of the map, as one big string separated by commas (no quotients)
-// - number of variables
 // enclosed in {} and separated by |
 
 // See below for conventions on variable names
@@ -131,8 +131,8 @@ function StringifyListOfLists(L)
 end function;
 
 // Decide if display
+dont_display := #big_map_equation gt 1000;
 coordinates_str := Split(big_map_equation, ",");
-dont_display := #coordinates_str gt 1000;
 
 // Get coordinates as polynomials
 if nb_var le 26 then
