@@ -28,14 +28,14 @@ if not assigned output then
 end if;
 
 function ParseBoolean(s)
-    if s eq "true" then
-	b := true;
-    elif s eq "false" then
-	b := false;
+    if s[1] in ["T", "t", "Y", "y"] then
+        return true;
+    elif s[1] in ["F", "f", "N", "n"] then
+        return false;
     else
-	error "Not a boolean:", s;
+        print("Error: invalid boolean (should be true/false/yes/no)");
+        exit;
     end if;
-    return b;
 end function;
 
 if not assigned try_gonal_map then
@@ -118,8 +118,8 @@ elif genus le 6 and try_gonal_map then
     if genus eq 3 then
 	qbar_low, map := Genus3GonalMap(curve);
     elif genus eq 4 then
-	qbar_low, map := Genus4GonalMap(curve);	
-    elif genus le 5 then	
+	qbar_low, map := Genus4GonalMap(curve);
+    elif genus le 5 then
 	qbar_low, map := Genus5GonalMap(curve);
     else
 	qbar_low, _, map := Genus6GonalMap(curve);
@@ -151,7 +151,7 @@ elif genus eq 3 then
 	// Smooth plane quartic
 	smooth := true;
     else
-	smooth := "None";
+	smooth := "\\N";
     end if;
 elif genus eq 6 then
     // Smooth if models contains a degree 3 relation
@@ -159,11 +159,11 @@ elif genus eq 6 then
     if 3 in deg_list then
 	smooth := true;
     else
-	smooth := "None";
+	smooth := "\\N";
     end if;
 else
     // Do not test for smoothness
-    smooth := "None";
+    smooth := "\\N";
 end if;
 
 output_str := "{";

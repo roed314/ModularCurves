@@ -30,14 +30,14 @@ if not assigned output then
 end if;
 
 function ParseBoolean(s)
-    if s eq "true" then
-	b := true;
-    elif s eq "false" then
-	b := false;
+    if s[1] in ["T", "t", "Y", "y"] then
+        return true;
+    elif s[1] in ["F", "f", "N", "n"] then
+        return false;
     else
-	error "Not a boolean:", s;
+        print("Error: invalid boolean (should be true/false/yes/no)");
+        exit;
     end if;
-    return b;
 end function;
 
 if not assigned try_factorization then

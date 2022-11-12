@@ -1,12 +1,11 @@
 {
-  io.m
-  Zywina
-  {   
-    Hyperelliptic.m
-    JMap.m
-  }
   CanonicalRing.m
+  create_input_data.m
+  CuspOrbits.m
+  findjmap.m
+  io.m
   LMFDB_interface.m
-  ProcessModel.m
   plane_model.m
+  precision.m
+  ProcessModel.m
 }

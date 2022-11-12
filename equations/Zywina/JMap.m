@@ -46,8 +46,8 @@ intrinsic MakeCurve(rec::Rec) -> Any
   {assign the curve to rec`C}
   C := Curve(Proj(Parent(rec`psi[1])),rec`psi);
   rec`C := C;
+  return C;
   //print Sprintf("%o assigned to rec`C", C);
-  return Sprintf("%o assigned to rec`C", C);
 end intrinsic;
 
 intrinsic JMap(X::Rec) -> FldFunRatMElt, FldFunRatMElt, FldFunRatMElt
@@ -83,33 +83,6 @@ intrinsic JMap(X::Rec) -> FldFunRatMElt, FldFunRatMElt, FldFunRatMElt
     return E4, E6, j;
 end intrinsic;
 
-intrinsic RequiredPrecision(M::Rec) -> RngIntElt
-{.}
-  M := FindModularForms(2,M,1);
-  prec := Integers()!(M`N * Maximum([1/M`widths[i] : i in [1..#M`cusps]])) + 1;
-  found := false;
-  g := M`genus;
-  // for now, doing that naively
-  while (not found) do
-      M:=FindModularForms(2,M,prec);
-      M:=FindCuspForms(M);
-      F:=M`F0; 
-      assert #F eq g; 
-
-      Pol<[x]>:=PolynomialRing(Rationals(),g);
-      PP:=ProjectiveSpace(Rationals(),g-1);
-      
-      I2:=FindRelations(F,2);
-      found := #I2 in {(g-1)*(g-2) div 2,((g-2)*(g-3)) div 2};
-      prec +:= 1;
-  end while;
-  d :=  Ceiling((3*M`vinf + M`v2 + 2*M`v3 + 7*g-6)/(g-1));
-  if IsOdd(d) then d+:= 1; end if; 
-  prec_for_j := Floor(d/6) + 1 + M`N;
-  prec := Maximum(prec, prec_for_j);
-  return prec;
-end intrinsic;	  
-	  
 intrinsic CoveringMap(X::Crv, X_cov::Crv, fs::SeqEnum[RngSerPowElt],
 		      fs_cov::SeqEnum[RngSerPowElt]) -> MapSch[Crv, Crv]
 {Given modular curves X, X_cov with coordinates given by q-expansions fs, fs_cov,
