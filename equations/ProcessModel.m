@@ -33,16 +33,24 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
 	Ggens := {GL(2,Integers(level))!g : g in gens};
 	X<x,y,z>, j, has_rational_pt := ComputeModel(level,Ggens,10);
 	// converting the function field element to something we can work with
-	fun_coeffs := Eltseq(j);
-	coeff_coeffs := [<Coefficients(Numerator(f)),
-			  Coefficients(Denominator(f))> : f in fun_coeffs];
-	function eval_at(c, a)
-	    return &+([0] cat [Rationals()!c[i]*(x/z)^(i-1) : i in [1..#c]]);
-	end function;
-	ev_coeffs := [eval_at(c[1], x/z)/eval_at(c[2],x/z) 
-		      : c in coeff_coeffs]; 
-	j := &+([0] cat [ev_coeffs[i]*(y/z)^(i-1) 
-			 : i in [1..Degree(Parent(j))]]);
+	if Type(j) eq FldFunRatUElt then
+	    num := Evaluate(ChangeRing(Numerator(j), Rationals()), x);
+ 	    denom := Evaluate(ChangeRing(Denominator(j), Rationals()), x);
+ 	    num := Evaluate(num, [x/z,y/z,1]);
+ 	    denom := Evaluate(denom, [x/z,y/z,1]);
+ 	    j := num / denom;
+	else
+	    fun_coeffs := Eltseq(j);
+	    coeff_coeffs := [<Coefficients(Numerator(f)),
+			      Coefficients(Denominator(f))> : f in fun_coeffs];
+	    function eval_at(c, a)
+		return &+([0] cat [Rationals()!c[i]*(x/z)^(i-1) : i in [1..#c]]);
+	    end function;
+	    ev_coeffs := [eval_at(c[1], x/z)/eval_at(c[2],x/z) 
+			  : c in coeff_coeffs]; 
+	    j := &+([0] cat [ev_coeffs[i]*(y/z)^(i-1) 
+			     : i in [1..Degree(Parent(j))]]);
+	end if;
 	model_type := (has_rational_pt) select 1 else 2;
 	cusps := CuspOrbits(level, gens);
 	// !! TODO - fix this so that the cusps on H will match the cusps on
