@@ -52,6 +52,8 @@ intrinsic DegreeLowerBound(g::RngIntElt) -> RngIntElt
   end if;
 end intrinsic;
 
+import "OpenImage/main/ModularCurves.m": FindRelations;
+
 intrinsic PlaneModelFromQExpansions(rec::Rec,prec::RngIntElt) -> Any
   {}
 
@@ -67,7 +69,6 @@ intrinsic PlaneModelFromQExpansions(rec::Rec,prec::RngIntElt) -> Any
   m := DegreeLowerBound(rec`genus);
   while not found_bool do
     printf "trying m = %o\n", m;
-    printf "q-exansions = %o\n", rec`F0;
     rels := FindRelations((rec`F0)[1..3],m);
     if #rels gt 0 then
       print "relation found!";

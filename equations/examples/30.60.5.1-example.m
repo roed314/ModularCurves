@@ -11,7 +11,8 @@ N := Characteristic(BaseRing(Parent(gens[1])));
 print "Creating modular curve record";
 rec := CreateModularCurveRec(N,gens);
 //bool, polys, fs := FindCanonicalModel(rec,200);
-//PlaneModelFromQExpansions(rec,prec);
+PlaneModelFromQExpansions(rec,prec);
+/*
 rec := FindModularForms(2,rec,prec);
 rec := FindCuspForms(rec);
 fs := rec`F0;
@@ -31,3 +32,4 @@ end while;
 f := rels[1];
 C := Curve(Proj(Parent(f)), f);
 Genus(C);
+*/
