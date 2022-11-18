@@ -90,6 +90,8 @@ intrinsic PlaneModelFromQExpansions(rec::Rec,prec::RngIntElt) -> Any
 
   f := rels[1];
   C := Curve(Proj(Parent(f)), f);
-  assert Genus(C) eq rec`genus;
+  print "Curve found!";
+  print C;
+  assert Genus(C) eq rec`genus; // sanity check
   return C;
 end intrinsic;
