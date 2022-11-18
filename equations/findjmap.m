@@ -97,12 +97,20 @@ function FindJMap(N, gens)
     // I'm just taking a guess on the precision here.
     // Test cases: 6.6.1.1, 6.12.1.1, 11.55.1.1, 8.48.1.3, 9.54.1.1, 20.72.1.23, 8.96.1.109
     // Minimal prec for 11.55.1.1 is 81
-    M := FindModelOfXG(M,2*M`index);
-    PP := Parent(M`f[1][1]);
-    jinv0 := jInvariant(PP.1);
-    jinv := Evaluate(jinv0,PP.1^N);
-    jinv2 := [ jinv : i in [1..M`vinf]];
-    ecjmap := FindRelationElliptic(M,jinv2);
+    success := false;
+    prec := 2*M`index;
+    // I'm pretty sure we only need 2*index + N, 
+    // but just in case we loop
+    while (not success) do
+	M := FindModelOfXG(M,prec);
+	PP := Parent(M`f[1][1]);
+	jinv0 := jInvariant(PP.1);
+	jinv := Evaluate(jinv0,PP.1^N);
+	jinv2 := [ jinv : i in [1..M`vinf]];
+	success, ecjmap := FindRelationElliptic(M,jinv2);
+	prec +:= N;
+    end while;
+    
     printf "Minimal model is %o.\n",M`C;
     printf "j-map is %o.\n",ecjmap;
     // Write data to a file here and then stop.
