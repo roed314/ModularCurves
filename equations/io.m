@@ -1,6 +1,19 @@
 declare type JMapData;
 declare attributes JMapData: E4,E6,J;
 
+intrinsic Print(X::JMapData)
+  {Print X}
+  // Code: Print X with no new line, via printf
+  printf "j-map data\n";
+  if assigned X`J then
+    printf "J %o:\n", X`J;
+  end if;
+  if (assigned X`E4) and (assigned X`E6) then
+    printf "E4 %o:\n", X`E4;
+    printf "E6 %o:\n", X`E6;
+  end if;
+end intrinsic;
+
 function strip(X)
     // Strips spaces and carraige returns from string; much faster than StripWhiteSpace.
     return Join(Split(Join(Split(X," "),""),"\n"),"");
@@ -20,15 +33,15 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
     DP := DefiningPolynomials(X);
     R := Universe(DP);
     if (#uvars lt Rank(R)) then
-	uvars := [Sprintf("X%o", i) : i in [1..Rank(R)]];
-	lvars := [Sprintf("x%o", i) : i in [1..Rank(R)]];
+      uvars := [Sprintf("X%o", i) : i in [1..Rank(R)]];
+      lvars := [Sprintf("x%o", i) : i in [1..Rank(R)]];
     end if;
     AssignNames(~R, uvars[1..Rank(R)]);
     S := (assigned j`J) select Parent(j`J) else Parent(j`E4);
     if Type(S) eq FldFun then 
-	rank := 1;
+      rank := 1;
     else
-	rank := Rank(S);
+      rank := Rank(S);
     end if;
     AssignNames(~S, lvars[1..rank]);
     E4_str := (assigned j`E4) select sprint(j`E4) else "";
@@ -44,7 +57,7 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
     Write(fname, Sprintf("{%o}|{%o}|{%o,%o,%o}|{%o}|{%o}", Rank(R), 
 			 Join([sprint(f) : f in DP], ","), E4_str, E6_str, j_str,
 			 coords,fields) : Overwrite);
-    return;
+    return Sprintf("Data written to %o\n", fname);
 end intrinsic;
 
 function StringToPoly(s, R, name)
