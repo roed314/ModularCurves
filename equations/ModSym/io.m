@@ -99,6 +99,10 @@ intrinsic LMFDBWriteModel(X::Crv, fs::SeqEnum[RngSerPowElt],
     lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
     DP := DefiningPolynomials(X);
     R := Parent(DP[1]);
+    if (#uvars lt Rank(R)) then
+	uvars := uvars cat lvars; // adding variables
+	lvars := uvars cat lvars;
+    end if;
     AssignNames(~R, uvars[1..Rank(R)]);
     S := Parent(E4);
     AssignNames(~S, lvars[1..Rank(R)]);
@@ -130,7 +134,9 @@ end function;
 intrinsic LMFDBReadModel(fname::MonStgElt) ->
 	    Crv, SeqEnum[RngSerPowElt], FldFunRatMElt, FldFunRatMElt
 {Read the model, the q-expansions, E4, and E6 from a file for input into the LMFDB database}
-  r := ReadLines(fname)[1];
+  input := Read(fname);
+  input_lines := Split(input, "\n");
+  r := input_lines[1];
   split_r := Split(r, "|");
   data := [Split(t[2..#t-1], ",") : t in split_r];
   rank := #data[2];
@@ -163,5 +169,5 @@ intrinsic LMFDBReadModel(fname::MonStgElt) ->
   rats := [eval StringToPoly(s, S, "X") : s in data[3]];
   E4 := rats[1];
   E6 := rats[2];
-  return C, qexps, E4, E6;
+  return C, qexps, E4, E6, cyc_ord, weights;
 end intrinsic;

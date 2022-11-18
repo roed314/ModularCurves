@@ -228,7 +228,7 @@ freeze;
 
 
 import "arith.m": ReductionMap;
-// import "misc.m": IsTotallyComplex, IdentifyKroneckerCharacter;
+import "misc.m": IsTotallyComplex, IdentifyKroneckerCharacter;
 
 forward DirichletCharacterFromValuesOnUnitGenerators_internal,
         initGrpDrchAElt ;
