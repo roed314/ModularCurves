@@ -1,7 +1,5 @@
 AttachSpec("equations.spec");
 AttachSpec("~/github/CHIMP/CHIMP.spec");
-AttachSpec("~/github/Gm-Reduce/spec");
-SetVerbose("GmReduce",true);
 load "OpenImage/main/GL2GroupTheory.m";
 load "OpenImage/main/ModularCurves.m";
 import "Zywina/findjinvmap.m": GetDegrees, GetPrecision, FindJMapInv;
@@ -13,6 +11,7 @@ N := Characteristic(BaseRing(Parent(gens[1])));
 print "Creating modular curve record";
 rec := CreateModularCurveRec(N,gens);
 //bool, polys, fs := FindCanonicalModel(rec,200);
+//PlaneModelFromQExpansions(rec,prec);
 rec := FindModularForms(2,rec,prec);
 rec := FindCuspForms(rec);
 fs := rec`F0;

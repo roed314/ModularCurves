@@ -1,7 +1,6 @@
 // running in equations
 AttachSpec("equations.spec");
 AttachSpec("~/github/CHIMP/CHIMP.spec");
-AttachSpec("~/github/Gm-Reduce/spec");
 SetVerbose("GmReduce",true);
 load "OpenImage/main/GL2GroupTheory.m";
 load "OpenImage/main/ModularCurves.m";

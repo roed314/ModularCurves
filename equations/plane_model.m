@@ -40,7 +40,17 @@ intrinsic JMapSanityCheck(j::FldFunFracSchElt) -> BoolElt
   return true;
 end intrinsic;
 
-import "OpenImage/main/ModularCurves.m" : FindModularForms, FindCuspForms;
+intrinsic DegreeLowerBound(g::RngIntElt) -> RngIntElt
+  {A lower bound for the degree of the plane model for a curve of genus g}
+  assert g ge 0;
+  if g eq 0 then
+    return 1;
+  elif g eq 1 then
+    return 3;
+  else
+    return Ceiling((3+Sqrt(1+8*g)/2));
+  end if;
+end intrinsic;
 
 intrinsic PlaneModelFromQExpansions(rec::Rec,prec::RngIntElt) -> Any
   {}
@@ -52,12 +62,13 @@ intrinsic PlaneModelFromQExpansions(rec::Rec,prec::RngIntElt) -> Any
     rec := FindCuspForms(rec);
   end if;
 
-  fs := rec`F0;
   found_bool := false;
-  m := 5;
+  //m := 5;
+  m := DegreeLowerBound(rec`genus);
   while not found_bool do
     printf "trying m = %o\n", m;
-    rels := FindRelations(fs[1..3],m);
+    printf "q-exansions = %o\n", rec`F0;
+    rels := FindRelations((rec`F0)[1..3],m);
     if #rels gt 0 then
       print "relation found!";
       found_bool := true;
