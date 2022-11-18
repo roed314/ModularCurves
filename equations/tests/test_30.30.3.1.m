@@ -1,5 +1,5 @@
 AttachSpec("equations.spec");
-C, fs, j, N := LMFDBReadModel("output_data/30.30.3.1");
+C, j := LMFDBReadModel("output_data/30.30.3.1.0_1.1.0.1.1_8");
 P1 := ProjectiveSpace(PolynomialRing(Rationals(),2));
 j := Evaluate(j`J, GeneratorsSequence(CoordinateRing(C)));
 jmap := map<C->P1|[Numerator(j), Denominator(j)]>;

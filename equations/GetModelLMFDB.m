@@ -9,13 +9,13 @@ if (not assigned label) then
   quit;  
 end if;
 
-X, jmap, model_type := ProcessModel(label);
+X, jmap, model_type, cusps := ProcessModel(label);
 j := New(JMapData);
 j`J := jmap;
 System("mkdir -p output_data");
 SetColumns(0);
 output_fname := Sprintf("output_data/%o.%o", label, model_type);
 // Right now all our maps are to P1
-output_fname := Sprintf("%o_1.1.0.1.1_%o", output_fname, Degree(jmap)); 
-LMFDBWriteModel(X, j, output_fname);
+output_fname := Sprintf("%o_1.1.0.1.1_%o", output_fname, Degree(Numerator(jmap))); 
+LMFDBWriteModel(X, j, cusps, output_fname);
 exit;
