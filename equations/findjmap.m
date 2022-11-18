@@ -93,7 +93,7 @@ function FindJMap(N, gens)
     M`prec := prec;
   end if;
 
-  if (M`genus eq 1) and (M`has_point) then
+  if (M`genus eq 1) and (assigned M`has_point) and (M`has_point) then
     // I'm just taking a guess on the precision here.
     // Test cases: 6.6.1.1, 6.12.1.1, 11.55.1.1, 8.48.1.3, 9.54.1.1, 20.72.1.23, 8.96.1.109
     // Minimal prec for 11.55.1.1 is 81
