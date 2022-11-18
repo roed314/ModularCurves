@@ -27,7 +27,7 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt
 	      found := #I2 in {(g-1)*(g-2) div 2,((g-2)*(g-3)) div 2};
 	      prec +:= 1;
 	  end while;
-	  
+	  prec -:= 1;
 	  Q0:=Scheme(PP,I2);   
 	  dimQ0:=Dimension(Q0);
       until dimQ0 ge 1;
