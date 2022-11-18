@@ -52,6 +52,13 @@ intrinsic DegreeLowerBound(g::RngIntElt) -> RngIntElt
   end if;
 end intrinsic;
 
+intrinsic DegreeUpperBound(g::RngIntElt) -> RngIntElt
+  {A upper bound for the degree of the plane model for a curve of genus g, embedded using}
+  assert g ge 4;
+  return 4*(g-1)-3;
+end intrinsic;
+
+
 import "OpenImage/main/ModularCurves.m": FindRelations;
 
 intrinsic PlaneModelFromQExpansions(rec::Rec,prec::RngIntElt) -> Any
@@ -67,8 +74,9 @@ intrinsic PlaneModelFromQExpansions(rec::Rec,prec::RngIntElt) -> Any
   found_bool := false;
   //m := 5;
   m := DegreeLowerBound(rec`genus);
-  while not found_bool do
-    printf "trying m = %o\n", m;
+  U := DegreeUpperBound(rec`genus);
+  while (not found_bool) and (m le U) do
+    printf "trying relations of degree = %o\n", m;
     rels := FindRelations((rec`F0)[1..3],m);
     if #rels gt 0 then
       print "relation found!";
@@ -76,6 +84,9 @@ intrinsic PlaneModelFromQExpansions(rec::Rec,prec::RngIntElt) -> Any
     end if;
     m +:= 1;
   end while;
+  if #rels eq 0 then
+    error "No relations found!";
+  end if;
 
   f := rels[1];
   C := Curve(Proj(Parent(f)), f);
