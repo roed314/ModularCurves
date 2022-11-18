@@ -129,17 +129,23 @@ function FindJMap(N, gens)
       geomhyper := true;
       k := M`k;
       degL:= ((k*(2*M`genus-2)) div 2 + Floor(k/4)*M`v2 + Floor(k/3)*M`v3 + (k div 2)*#M`cusps) - (&+M`mult);
-      maxd := Floor((M`index + M`genus - 1)/degL) + 1;
-      mind := maxd - 1;
-      printf "Smallest degree that might work = %o. The degree %o definitely works.\n",mind,maxd;
-      maxprec := Floor(N*(M`k*maxd/12 + 1)) + 1;
-      if (maxprec gt M`prec) then
-	  printf "Now that we know it's geometrically hyperelliptic, we need more precision.\n";
-	  printf "New precision chosen = %o.\n",maxprec;
-	  delete M`has_point;
-	  M := FindModelOfXG(M,maxprec);
-	  printf "Recomputation of modular forms done.\n";
-      end if;
+      old_degL := 0;
+      while (old_degL ne degL) do
+	  old_degL := degL;
+	  maxd := Floor((M`index + M`genus - 1)/degL) + 1;
+	  mind := maxd - 1;
+	  printf "Smallest degree that might work = %o. The degree %o definitely works.\n",mind,maxd;
+	  maxprec := Floor(N*(M`k*maxd/12 + 1)) + 1;
+	  if (maxprec gt M`prec) then
+	      printf "Now that we know it's geometrically hyperelliptic, we need more precision.\n";
+	      printf "New precision chosen = %o.\n",maxprec;
+	      delete M`has_point;
+	      M := FindModelOfXG(M,maxprec);
+	      printf "Recomputation of modular forms done.\n";
+	      k := M`k;
+	      degL:= ((k*(2*M`genus-2)) div 2 + Floor(k/4)*M`v2 + Floor(k/3)*M`v3 + (k div 2)*#M`cusps) - (&+M`mult);
+	  end if;
+      end while;
   else
       printf "Curve is not geometrically hyperelliptic.\n";
       maxd := Floor((M`index)/(2*M`genus-2) + 3/2);
