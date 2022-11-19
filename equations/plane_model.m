@@ -58,9 +58,6 @@ intrinsic DegreeUpperBound(g::RngIntElt) -> RngIntElt
   return 4*(g-1)-3;
 end intrinsic;
 
-
-import "OpenImage/main/ModularCurves.m": FindRelations;
-
 intrinsic PlaneModelFromQExpansions(rec::Rec,prec::RngIntElt) -> Any
   {}
 

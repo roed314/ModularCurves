@@ -1,5 +1,5 @@
-import "OpenImage/main/ModularCurves.m" : FindCuspPair, CreateModularCurveRec;
-import "OpenImage/main/GL2GroupTheory.m" : LiftMatrix;
+import "OpenImage/main/ModularCurves.m" : FindCuspPair;
+//import "OpenImage/main/GL2GroupTheory.m" : LiftMatrix;
 import "findjmap.m" : fieldfind;
 
 declare type CspDat;

@@ -57,7 +57,7 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
     Write(fname, Sprintf("{%o}|{%o}|{%o,%o,%o}|{%o}|{%o}", Rank(R), 
 			 Join([sprint(f) : f in DP], ","), E4_str, E6_str, j_str,
 			 coords,fields) : Overwrite);
-    return Sprintf("Data written to %o\n", fname);
+    return;
 end intrinsic;
 
 function StringToPoly(s, R, name)
