@@ -35,11 +35,13 @@ ProvablyComputeQuadPts_X0N := function(N : d:=N)
 	printf "Nice model for X_0(%o) is: %o\n\n", N, XN;
 
 	//wN := ws[#ws]; //this is because ALs are returned in ascending index
-	ListOfDivs := Divisors(N);
-	for i:=1 to #ListOfDivs do
+	ListOfDivs := [Q : Q in Divisors(N) | GCD(Q, ExactQuotient(N,Q)) eq 1 and Q ne 1];
+	/*for i:=1 to #ListOfDivs do
 		if ListOfDivs[i] eq d then wN := ws[i-1]; break;
 		end if;
-	end for;
+	end for;*/
+	i := Index(ListOfDivs, d);
+	wN := ws[i];
 	printf "w_%o on X_0(%o) is given by: %o\n", N, N, wN;
 
 	printf "Genus of X_0(%o) is %o\n", N, Genus(XN);
