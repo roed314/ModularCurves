@@ -16,9 +16,10 @@ end function;
 
 JacobianFp := function(X)
 	CC, phi, psi := ClassGroup(X); //Algorithm of Hess
-	Z := FreeAbelianGroup(1);
-	degr := hom<CC->Z | [ Degree(phi(a))*Z.1 : a in OrderedGenerators(CC)]>;
-	JFp := Kernel(degr); // This is isomorphic to J_X(\F_p).
+	//Z := FreeAbelianGroup(1);
+	//degr := hom<CC->Z | [ Degree(phi(a))*Z.1 : a in OrderedGenerators(CC)]>;
+	//JFp := Kernel(degr); // This is isomorphic to J_X(\F_p).
+	JFp := TorsionSubgroup(CC);
 	return JFp, phi, psi;
 end function;
 
@@ -127,9 +128,10 @@ findGenerators := function(X, divs, P0, p);
 	// J_X(Q)-->J_X(\F_p) is injective (we're assuming rank 0).
 
 	C, phi, psi := ClassGroup(Xp);
-	Z := FreeAbelianGroup(1);
-	degr := hom<C -> Z | [ Degree(phi(a))*Z.1 : a in OrderedGenerators(C)]>;
-	A := Kernel(degr); // This is isomorphic to J_X(\F_p).
+	//Z := FreeAbelianGroup(1);
+	//degr := hom<C -> Z | [ Degree(phi(a))*Z.1 : a in OrderedGenerators(C)]>;
+	//A := Kernel(degr); // This is isomorphic to J_X(\F_p).
+	A := TorsionSubgroup(C);
 	Pp0 := reduce(X, Xp, P0);
 	divsRed := [reduce(X, Xp, D) : D in divs];
 	divsRedA := [psi(D - Degree(D)*Pp0) : D in divsRed]; // The image of the divisors in A;
