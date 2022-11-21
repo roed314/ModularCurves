@@ -1,28 +1,53 @@
 load "ChabautyHelp.m";
 load "auxiliary.m";
 
+//D is an element of an abstract group iso. to JFp which we want to map to divisor class
+//JFpGenerators are generators of JFp - Jacobian modulo p
+//PhiActionTable is the value of phi() on generators
+
+//example how I checked that this works as intended:
+//table := [Decomposition(phi(g)) : g in OrderedGenerators(JFp)];
+//assert BetterPhi(z + k, OrderedGenerators(JFp), table, JFp) eq phi(z + k);
+
+//not used in code yet because we might want to discuss it first
+//testing showed significant speed gains for X0(137)
+
+BetterPhi := function(D, JFpGenerators, PhiActionTable, JFp)
+	rep := Representation(JFpGenerators, D);
+		
+	for j in [1..#JFpGenerators] do
+		for i in [1..#PhiActionTable[j]] do
+			PhiActionTable[j][i][2] := PhiActionTable[j][i][2] * (rep[j] mod Order(JFp.j));
+		end for;
+	end for;
+
+	divNew := &+[Divisor(PhiActionTable[j]) : j in [1..#JFpGenerators]];
+
+	return divNew;
+end function;
+
 // Called by MWSieve, performs step for p_i described in the article
 
 ChabautyInfo := function(X, AtkinLehner, genusC, p, A, divs, Dpull, B, iA, W, deg2)
 	//first get J(X_p)
 	Fp := GF(p);
-	Xp := ChangeRing(X,Fp);
+	Xp := ChangeRing(X, Fp);
 
 	//We reduce the divisors and the basepoint
 	JFp, phi, psi := JacobianFp(Xp);
 	divsp := [reduce(X, Xp, divi) : divi in divs];
 	Dpull_p := reduce(X, Xp, Dpull);
 	
-	"Getting deg 1 places on Xp...";
+	"Getting deg 1 places on Xp ...";
 	places_of_degree_1_mod_p := Places(Xp, 1);   // The degree 1 places on Xp
 
-	"Getting deg 2 places on Xp...";
+	"Getting deg 2 places on Xp ...";
 	places_of_degree_2_mod_p := Places(Xp, 2);   // The degree 2 places on Xp 
 
 	// degree 2 divisors on Xp
-	"Combining them into divisors...";
+	"Combining them into divisors ...";
 	degree2divisors_mod_p := {1*place1 + 1*place2 : place1, place2 in places_of_degree_1_mod_p} join {1*place : place in places_of_degree_2_mod_p};
-	"There are ", #degree2divisors_mod_p, " of them!";
+	"There are", #degree2divisors_mod_p, "of them!";
 
 	deg2Divs_p_set := Setseq(degree2divisors_mod_p);	// turn them into set
 	Abstracts := [JFp!psi(deg2Divs_p_set[i] - Dpull_p) : i in [1..#deg2Divs_p_set]];	// elements on JFp (as abstract group)
@@ -44,8 +69,10 @@ ChabautyInfo := function(X, AtkinLehner, genusC, p, A, divs, Dpull, B, iA, W, de
 	B := newB;
 	iA := newiA;
 
-	//we use that h(W) must be subset of Image(mI)
-	mI:=hom<JFp -> JFp | [JFp!psi(OneMinusWmodp(Xp, phi(g), AtkinLehner, p)) : g in OrderedGenerators(JFp)]>;
+	gensJFp := OrderedGenerators(JFp);
+	table := [Decomposition(phi(g)) : g in gensJFp];
+	// we use that h(W) must be subset of Image(mI)
+	mI := hom<JFp -> JFp | [JFp!psi(OneMinusWmodp(Xp, BetterPhi(g, gensJFp, table, JFp), AtkinLehner, p)) : g in gensJFp]>;
 	imW := {@ h(x) : x in W | h(x) in Image(mI) @}; 
 	K := Kernel(mI);
 	jposP := [];
@@ -55,21 +82,29 @@ ChabautyInfo := function(X, AtkinLehner, genusC, p, A, divs, Dpull, B, iA, W, de
 	//If we can't eliminate at least one z such that (1 - w)*z = x, we keep x.
 	printf "out of %o: ", #imW;
 	
-	// not used right now
-	gensJFp := OrderedGenerators(JFp);
-	table := [Decomposition(phi(g)) : g in gensJFp];
-	
 	for x in imW do
-		printf ".";
     	z := x@@mI;
 		
 		// we check if z + k is one of the candidate divisors from above
 		// this avoids calling phi() and/or Dimension() which can be slow
 		// this can be improved further by avoiding the above preimage x@@mI
 		
-		if &or[(z + k in Abstracts) and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
+		/*if &or[(z + k in Abstracts) and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) : k in K] then
 			Append(~jposP, x);
-    		end if;
+    	end if;*/
+
+		time for k in K do 
+			/*if (z + k in Abstracts) and (not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC)) then 
+				Append(~jposP, x);
+				break;
+			end if;*/
+			if z + k in Abstracts then
+				if not z + k in deg2p2 or not IsLonely(deg2[Index(deg2p2, z + k)], p, X, AtkinLehner, genusC) then
+					Append(~jposP, x);
+					break;
+				end if;
+			end if;
+		end for;
 	end for;
 
 	//We keep those x in W which we were unable to eliminate
@@ -114,8 +149,6 @@ MWSieve := function(X, AtkinLehner, genusC, primes, A, divs, Dpull, B0, iA0, W0,
 		if #W eq 1 and IsIdentity(W[1]) then
 			return B, iA, W;
 		end if;
-
-
 	end for;
 	return B, iA, W;
 end function;

@@ -1,3 +1,4 @@
 load "main.m";
 SetDebugOnError(true);
-ProvablyComputeQuadPts_X0N(121 : d := 121);
+SetLogFile("X_0(121).log");
+ProvablyComputeQuadPts_X0N(121 : d := 121, badPrimes := {});

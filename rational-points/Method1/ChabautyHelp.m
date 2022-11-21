@@ -25,15 +25,15 @@ end function;
 //AtkinLehner matrix on X, genus of X/<AtkinLehner>
 
 IsLonely := function(QQ, p, X, AtkinLehner, genusC)
-	//Condition in Theroem is p > 2
+	// Condition in Theorem is p > 2
 	if p eq 2 then
 		return false;
 	end if;
 
 	ptlist := [];
-	d := 2; //Just there to emphasize that we work on X^{(d)} for d = 2.
+	d := 2; // Just there to emphasize that we work on X^{(d)} for d = 2.
 
-	//We now distinguish between a pair of rational points and a quadratic point
+	// We now distinguish between a pair of rational points and a quadratic point
 	if #Decomposition(QQ) eq 1 then //Quadratic point or double rational point case
 		Q := Decomposition(QQ)[1][1];
 		if not IsIsomorphic(ResidueClassField(Q),Rationals()) then //Quadratic point case
@@ -75,9 +75,9 @@ IsLonely := function(QQ, p, X, AtkinLehner, genusC)
 	Rp<[u]> := CoordinateRing(AmbientSpace(Xp));
 	n := Dimension(AmbientSpace(X)); //Assuming X is given in projective space
 	
-	//mod p Atkin-Lehner involution
-    	row := [&+[RowSequence(AtkinLehner)[i][j]*u[j] : j in [1..n+1]] : i in [1..n+1]];
-    	wp := iso<Xp -> Xp | row, row>;
+	// mod p Atkin-Lehner involution
+    row := [&+[RowSequence(AtkinLehner)[i][j]*u[j] : j in [1..n+1]] : i in [1..n+1]];
+    wp := iso<Xp -> Xp | row, row>;
 
 	//We find the space of vanishing differentials (T)
 	V, phi := SpaceOfDifferentialsFirstKind(Xp);
@@ -91,18 +91,27 @@ IsLonely := function(QQ, p, X, AtkinLehner, genusC)
 	unif := UniformizingElement(pp);
 	matrixseq := [];
 
+	KA, K_to_KA := AlgorithmicFunctionField(FunctionField(Xp));
+
 	//We now construct the matrix Atilde from Theorem
 	for pt in ptlist do 
+		printf ".";
 		m := Minimum([Valuation(a, pp) : a in pt | not a eq 0]);
 		Qred := [unif^(-m)*a : a in pt]; 
 		Qtilde := Xp![Evaluate(a, Place(pp)) : a in Qred]; //The mod p reduction of Q
 		tQtilde := UniformizingParameter(Qtilde);
 		
+		funs := [K_to_KA(omega/Differential(tQtilde)) : omega in omegas];
+		func_tQtilde := K_to_KA(tQtilde);
+		place := FunctionFieldPlace(Place(Qtilde));
+		values := [Evaluate(fun, place) : fun in funs];
+		Append(~matrixseq, values);
 		if dd eq [1, 1] then
-			Append(~matrixseq, [(omega/Differential(tQtilde))(Qtilde) : omega in omegas]);
+			//Append(~matrixseq, [(omega/Differential(tQtilde))(Qtilde) : omega in omegas]);
 		else 
-			Append(~matrixseq, [(omega/Differential(tQtilde))(Qtilde) : omega in omegas]);
-			Append(~matrixseq, [((omega/Differential(tQtilde) - (omega/Differential(tQtilde))(Qtilde))/tQtilde)(Qtilde) : omega in omegas]); 
+			//Append(~matrixseq, [(omega/Differential(tQtilde))(Qtilde) : omega in omegas]);
+			Append(~matrixseq, [Evaluate((funs[i] - KA!values[i])/func_tQtilde, place) : i in [1..#funs]]); 
+			//Append(~matrixseq, [((omega/Differential(tQtilde) - (omega/Differential(tQtilde))(Qtilde))/tQtilde)(Qtilde) : omega in omegas]); 
 		end if;
 	end for;
 

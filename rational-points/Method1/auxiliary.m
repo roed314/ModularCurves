@@ -163,7 +163,7 @@ findGenerators := function(X, divs, P0, p);
 	
 	assert Ksub eq Ksub1;
 	
-	h := hom<Zr -> Ksub | [ Ksub!h(Zr.i) : i in [1..r]]>;
+	h := hom<Zr -> Ksub | [Ksub!h(Zr.i) : i in [1..r]]>;
 	
 	// Restrict the codomain of h so that it is equal to Ksub.
 	bas := [Eltseq(i@@h) : i in OrderedGenerators(Ksub)];
@@ -180,7 +180,6 @@ function TorsionBound(X, BadPrimes : LowerBound := 0, PrimesBound := 20)
 		end if;
     
 		Fp := GF(p);
-		
 		try
 			Xp := ChangeRing(X, Fp);
 		catch e
@@ -209,7 +208,6 @@ function GetTorsion(N, XN, XN_Cusps)
 		
 		A := AbelianGroup([order]);
 		divs := [Dtor];
-
 	else
 		p := 3;
 		while IsDivisibleBy(N, p) do
@@ -221,7 +219,6 @@ function GetTorsion(N, XN, XN_Cusps)
 		XN_Cusps_rational := [c : c in XN_Cusps | Degree(c) eq 1];
 		assert #XN_Cusps_rational ge 1;
 		cusp := XN_Cusps_rational[1];
-		assert Degree(cusp) eq 1;
 		h, Ksub, bas, divsNew := findGenerators(XN, XN_Cusps, cusp, p);
 
 		// Ksub == abstract group isomorphic to cuspidal
