@@ -8,4 +8,8 @@
   plane_model.m
   precision.m
   ProcessModel.m
+  OpenImage
+  {
+    +OpenImage.spec
+  }
 }
