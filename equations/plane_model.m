@@ -1,5 +1,3 @@
-import "OpenImage/main/ModularCurves.m" : FindModularForms, FindCuspForms;
-
 intrinsic IdentifyAffinePatch(KC::FldFunFracSch) -> Any
   {Return the index of the variable used to create affine patch, i.e., the one used as a denominator}
   dens := [Denominator(ProjectiveRationalFunction(KC.i)) : i in [1..Rank(KC)]];

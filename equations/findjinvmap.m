@@ -1,8 +1,5 @@
 // This function computes the map to the j-line for a non-hyperelliptic 
 
-import "OpenImage/main/ModularCurves.m" : CreateModularCurveRec, 
-       FindCanonicalModel, FindModelOfXG;
-
 function GetDegrees(M, is_hyp)
     if is_hyp then
 	return 6,6;

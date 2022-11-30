@@ -6,9 +6,6 @@
 // load "LMFDB_interface.m";
 // load "GL2GroupTheory.m";
 // load "ModularCurvesMy.m";
-import "OpenImage/main/ModularCurves.m" : 
-	CreateModularCurveRec, FindModelOfXG, FindCuspPair, 
-        FindRelationElliptic;
 
 // This will now run in the main script
 
