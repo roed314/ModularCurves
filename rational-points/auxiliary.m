@@ -92,12 +92,11 @@ end function;
 
 //...
 function GetTorsion(N, XN, XN_Cusps)
-
 	if IsPrime(N) then
 		// sanity check
 		assert #XN_Cusps eq 2;
 
-		Dtor := Divisor(XN_Cusps[1]) - Divisor(XN_Cusps[2]);
+		Dtor := Divisor(XN_Cusps[1]) - Divisor(XN_Cusps[2]); // 0, infty are Q-rational
 		order := Integers()!((N - 1) / GCD(N - 1, 12));
 		
 		A := AbelianGroup([order]);
@@ -110,17 +109,19 @@ function GetTorsion(N, XN, XN_Cusps)
 		end while;
 
 		// compute the cuspidal torsion subgroup (= J(Q)_tors assuming the generalized Ogg conjecture)
-		h, Ksub, bas, divsNew := findGenerators(XN, [Place(cusp) : cusp in XN_Cusps], Place(XN_Cusps[1]), p);
+    XN_Cusps_rational := [c : c in XN_Cusps | Degree(c) eq 1];
+		assert #XN_Cusps_rational ge 1;
+		cusp := XN_Cusps_rational[1];
+		h, Ksub, bas, divsNew := findGenerators(XN, [Place(cusp) : cusp in XN_Cusps], Place(cusp), p);
 
 		// Ksub == abstract group isomorphic to cuspidal
 		// "It also returns a subset divsNew such that [[D-deg(D) P_0] : D in divsNew] generates the same subgroup."
 
 		A := Ksub;
 
-		D := [Divisor(divsNew[i]) - Divisor(XN_Cusps[1]) : i in [1..#divsNew]];
+    D := [divisor - Degree(divisor) * Divisor(cusp) where divisor := Divisor(divsNew[i]) : i in [1..#divsNew]];
 		divs := [&+[coeffs[i] * D[i] : i in [1..#coeffs]] : coeffs in bas];
 	end if;
 
 	return A, divs;
-
 end function;

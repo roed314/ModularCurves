@@ -24,7 +24,7 @@ def get_poset():
     for rec in db.gps_gl2zhat_test.search({}, ["label", "parents"]):
         for olabel in rec["parents"]:
             R.append([olabel, rec["label"]]) # Use backward direction so that breadth first search is faster
-    return Poset(([],R))
+    return Poset(([],R), cover_relations=True)
 
 @cached_function
 def distinguished_vertices():

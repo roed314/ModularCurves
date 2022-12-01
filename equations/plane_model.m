@@ -38,7 +38,24 @@ intrinsic JMapSanityCheck(j::FldFunFracSchElt) -> BoolElt
   return true;
 end intrinsic;
 
-import "OpenImage/main/ModularCurves.m" : FindModularForms, FindCuspForms;
+intrinsic DegreeLowerBound(g::RngIntElt) -> RngIntElt
+  {A lower bound for the degree of the plane model for a curve of genus g}
+  assert g ge 0;
+  if g eq 0 then
+    return 1;
+  elif g eq 1 then
+    return 3;
+  else
+    return Ceiling((3+Sqrt(1+8*g)/2));
+  end if;
+end intrinsic;
+
+intrinsic DegreeUpperBound(g::RngIntElt) -> RngIntElt
+  {A upper bound for the degree of the plane model for a curve of genus g, embedded using}
+  assert g ge 4;
+  return 4*(g-1)-3;
+end intrinsic;
+
 intrinsic PlaneModelFromQExpansions(rec::Rec,prec::RngIntElt) -> Any
   {}
 
@@ -50,19 +67,26 @@ intrinsic PlaneModelFromQExpansions(rec::Rec,prec::RngIntElt) -> Any
   end if;
 
   found_bool := false;
-  m := 5;
-  while not found_bool do
-    printf "trying m = %o\n", m;
-    rels := FindRelations(fs[1..3],m);
+  //m := 5;
+  m := DegreeLowerBound(rec`genus);
+  U := DegreeUpperBound(rec`genus);
+  while (not found_bool) and (m le U) do
+    printf "trying relations of degree = %o\n", m;
+    rels := FindRelations((rec`F0)[1..3],m);
     if #rels gt 0 then
       print "relation found!";
       found_bool := true;
     end if;
     m +:= 1;
   end while;
+  if #rels eq 0 then
+    error "No relations found!";
+  end if;
 
   f := rels[1];
   C := Curve(Proj(Parent(f)), f);
-  assert Genus(C) eq rec`genus;
+  print "Curve found!";
+  print C;
+  assert Genus(C) eq rec`genus; // sanity check
   return C;
 end intrinsic;

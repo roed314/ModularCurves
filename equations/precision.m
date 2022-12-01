@@ -1,6 +1,3 @@
-import "OpenImage/main/ModularCurves.m" : FindModularForms, 
-       FindCuspForms, FindRelations;
-
 intrinsic RequiredPrecision(M::Rec) -> RngIntElt
 {Precision required to get a model from David Zywina's code.}
   M := FindModularForms(2,M,1);
