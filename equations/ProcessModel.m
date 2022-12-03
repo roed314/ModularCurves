@@ -35,8 +35,12 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
 	if Type(j) eq FldFunRatUElt then
 	    num := Evaluate(ChangeRing(Numerator(j), Rationals()), x);
  	    denom := Evaluate(ChangeRing(Denominator(j), Rationals()), x);
- 	    num := Evaluate(num, [x/z,y/z,1]);
- 	    denom := Evaluate(denom, [x/z,y/z,1]);
+	    // This assumes Parametrization is consistent with ParametrizationMatrix
+	    // would be better to have this part inside Rakvi's code
+	    param_Q := AlgebraMap(Parametrization(X)^(-1));
+	    t := param_Q(Domain(param_Q).1) / param_Q(Domain(param_Q).2);
+ 	    num := Evaluate(num, [t,1,1]);
+ 	    denom := Evaluate(denom, [t,1,1]);
  	    j := num / denom;
 	else
 	    fun_coeffs := Eltseq(j);
