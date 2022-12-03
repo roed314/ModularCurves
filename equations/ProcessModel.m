@@ -1,5 +1,4 @@
 import "findjmap.m" : FindJMap;
-import "OpenImage/main/ModularCurves.m" : CreateModularCurveRec;
 import "Code to compute models for genus 0 groups.m" : ComputeModel;
 
 intrinsic GetLevelAndGensFromLabel(label::MonStgElt) ->

@@ -2,9 +2,10 @@
 
 JacobianFp := function(X)
 	CC, phi, psi := ClassGroup(X); //Algorithm of Hess
-	Z := FreeAbelianGroup(1);
+	/*Z := FreeAbelianGroup(1);
 	degr := hom<CC->Z | [ Degree(phi(a))*Z.1 : a in OrderedGenerators(CC)]>;
-	JFp := Kernel(degr); // This is isomorphic to J_X(\F_p).
+	JFp := Kernel(degr); // This is isomorphic to J_X(\F_p).*/
+	JFp := TorsionSubgroup(CC);
 	return JFp, phi, psi;
 end function;
 

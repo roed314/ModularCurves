@@ -1,6 +1,3 @@
-import "OpenImage/main/ModularCurves.m" : FindModularForms, 
-       FindCuspForms, FindRelations;
-
 intrinsic RequiredPrecision(M::Rec) -> RngIntElt
 {Precision required to get a model from David Zywina's code.}
   M := FindModularForms(2,M,1);
@@ -35,18 +32,21 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt
       if  #I2 eq (g-1)*(g-2) div 2 then
 	  if dimQ0 gt 1 then
 	      done := false;
+	      continue;
 	  end if;
 	  Q0:=Curve(PP,I2);
 	  if not (IsIrreducible(Q0) and IsReduced(Q0)) then
 	      done := false;
+	      continue;
 	  else
 	      if Genus(Q0) ne 0 then
 		  done := false;
-	      end if;
-	      if (dimQ0 eq 1) then
-		  return prec;
+		  continue;
 	      end if;
 	  end if;
+      end if;
+      if (dimQ0 eq 1) then
+	  return prec;
       end if;
       if g eq 3 then
           I4:=FindRelations(F,4); 

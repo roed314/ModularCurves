@@ -1,5 +1,15 @@
 
 // Call with input := (string) label := (string) output := (string) try_gonal_map:= (true/false)
+// (default: true)
+
+// Label should be a.b.c.d.e where a.b.c.d is the modular curve and e is the model type
+
+// Format of input file should be:
+// - number of variables
+// - equation for the domain, as a big string separated by commas
+// enclosed in {} and separated by |
+
+// See below for conventions on variable names
 
 // Check input values
 if not assigned label then
@@ -17,17 +27,21 @@ if not assigned output then
     exit;
 end if;
 
-if assigned try_gonal_map then
-    if try_gonal_map[1] in ["T", "t", "Y", "y"] then
-        try_gonal_map := true;
-    elif try_gonal_map[1] in ["F", "f", "N", "n"] then
-        try_gonal_map := false;
+function ParseBoolean(s)
+    if s[1] in ["T", "t", "Y", "y"] then
+        return true;
+    elif s[1] in ["F", "f", "N", "n"] then
+        return false;
     else
-        print("Error: invalid try_gonal_map (should be true/false/yes/no)");
+        print("Error: invalid boolean (should be true/false/yes/no)");
         exit;
     end if;
-else
+end function;
+
+if not assigned try_gonal_map then
     try_gonal_map := true;
+else
+    try_gonal_map := ParseBoolean(try_gonal_map);
 end if;
 
 if not assigned input then
@@ -40,11 +54,11 @@ genus := StringToInteger(label[3]);
 model_type := StringToInteger(label[5]);
 label := label[1] cat "." cat label[2] cat "." cat label[3] cat "." cat label[4];
 
-// Get equations as stringe
+// Get equations as string
 s := Read(input);
-s := Split(s, "{}|"); // List containing: model, (qexp?), map, (N?), nb_var
-big_equation := s[1];
-nb_var := StringToInteger(s[#s-1]);
+s := Split(s, "{}|"); // List containing: nb_var, equation
+nb_var := StringToInteger(s[1]);
+big_equation := s[2];
 
 function ReplaceLetter(s, x, subs)
     split := Split(s, x: IncludeEmpty := true);
@@ -57,35 +71,30 @@ function ReplaceLetter(s, x, subs)
 	res cat:= subs;
     end if;
     return res;
-end function;				      
+end function;
 
-equations_str := Split(big_equation, ",");
-new_equations_str := [];
-if nb_var le 26 then    
-    // Variables are uppercase letters; use Split to replace
-    variables := ["ABCDEFGHIJKLMNOPQRSTUVWXYZ"[i]: i in [(26-nb_var+1)..26]];
-    P := PolynomialRing(Rationals(), nb_var);
-    AssignNames(~P, variables); // For beautiful debugging    
-    for e in equations_str do
-	repl := e;
-	for i in [1..nb_var] do
-	    repl := ReplaceLetter(repl, variables[i], "P." cat Sprint(i));
-	end for;
-	Append(~new_equations_str, repl);
+function ReplaceVariables(s, variables)
+    nb := #variables;
+    for i in [1..nb] do
+	s := ReplaceLetter(s, variables[i], "P." cat Sprint(i));
     end for;
-else
-    //Variables are X1,...,Xn: replace X by P.
-    P<[X]> := PolynomialRing(Rationals(), nb_var);
-    for e in equations_str do
-	repl := ReplaceLetter(e, "X", "P.");
-	Append(new_equations_str, repl);
-    end for;
-end if;
-
-equations_pol := [eval(pol): pol in new_equations_str];
+    return s;
+end function;
 
 // Decide if display
-dont_display := #equations_str gt 1000;
+dont_display := #big_equation gt 1000;
+
+// Get equations as polynomials
+equations_str := Split(big_equation, ",");
+new_equations_str := [];
+if nb_var le 26 then  // Variables are uppercase letters
+    variables := [x: x in Eltseq("ABCDEFGHIJKLMNOPQRSTUVWXYZ") | x in big_equation];
+else
+    variables := ["X" cat Sprint(i): i in [1..nb_var]];
+end if;
+P := PolynomialRing(Rationals(), nb_var);
+AssignNames(~P, variables);
+equations_pol := [eval(ReplaceVariables(s, variables)): s in equations_str];
 
 // Get gonality in low genus
 degrees := [[Degree(equations_pol[j], P.i): i in [1..nb_var]]: j in [1..#equations_pol]];
@@ -104,7 +113,7 @@ elif genus eq 2 then
     q_high := 2;
     qbar_low := 2;
     qbar_high := 2;
-elif genus le 6 then
+elif genus le 6 and try_gonal_map then
     ambient := ProjectiveSpace(P);
     curve := Curve(ambient, equations_pol);
     if genus eq 3 then
