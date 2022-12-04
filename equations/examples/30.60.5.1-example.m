@@ -5,13 +5,12 @@ load "OpenImage/main/ModularCurves.m";
 import "Zywina/findjinvmap.m": GetDegrees, GetPrecision, FindJMapInv;
 
 QQ := Rationals();
-prec := 150;
 gens := GetModularCurveGenerators("30.60.5.1");
 N := Characteristic(BaseRing(Parent(gens[1])));
 print "Creating modular curve record";
 rec := CreateModularCurveRec(N,gens);
 //bool, polys, fs := FindCanonicalModel(rec,200);
-PlaneModelFromQExpansions(rec,prec);
+PlaneModelFromQExpansions(rec : prec:=150);
 /*
 rec := FindModularForms(2,rec,prec);
 rec := FindCuspForms(rec);

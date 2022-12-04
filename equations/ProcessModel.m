@@ -22,12 +22,23 @@ intrinsic GetLevelAndGensFromLabel(label::MonStgElt) ->
 end intrinsic;			    
 
 intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
-                                            RngIntElt, SeqEnum[CspDat]
+                                            RngIntElt, SeqEnum[CspDat], SeqEnum[RngMPolElt]
 {.}
     level, gens := GetLevelAndGensFromLabel(label);
     genus := StringToInteger(Split(label, ".")[3]);
     // Apparently, Rakvi's code does not handle X(1)
-    if (genus eq 0) and (not IsEmpty(gens)) then
+    if IsEmpty(gens) then
+        // handle X(1)
+	M := CreateModularCurveRec(level, gens);
+	P1<x,y>:=Curve(ProjectiveSpace(Rationals(),1));
+	_<q> := PowerSeriesRing(Rationals());
+	M`F0 := [[jInvariant(q)]];
+	M`psi := [CoordinateRing(P1) |];
+	cusps := CuspOrbits(level, gens)[1];
+	cusps[1]`coords := P1![1,0];
+	// 1 is for P1 model
+	return P1, FunctionField(P1).1, 1, cusps, [];
+    elif (genus eq 0) then
 	// !! TODO - is this precision always enough?
 	Ggens := {GL(2,Integers(level))!g : g in gens};
 	X<x,y,z>, j, has_rational_pt := ComputeModel(level,Ggens,10);
@@ -68,31 +79,19 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
 	    if not is_defined then
 		cusp_coords[PK] := Points(cusp_scheme, K);
 		field_idx[PK] := 1;
-	    end if;				     
+	    end if;
 	    cusps[i]`coords := cusp_coords[PK][field_idx[PK]];
 	    field_idx[PK] +:= 1;
 	end for;
-	return X, j, model_type, cusps;
-    end if;
-    // handling X(1)
-    if IsEmpty(gens) then
-	M := CreateModularCurveRec(level, gens);
-	P1<x,y>:=Curve(ProjectiveSpace(Rationals(),1));
-	_<q> := PowerSeriesRing(Rationals());
-	M`F0 := [[jInvariant(q)]];
-	M`psi := [CoordinateRing(P1) |];
-	cusps := CuspOrbits(level, gens)[1];
-	cusps[1]`coords := P1![1,0];
-	// 1 is for P1 model
-	return P1, FunctionField(P1).1, 1, cusps;
+	return X, j, model_type, cusps, [];
     end if;
      // Replacing this by Jeremy's new function
-    X, j, model_type, F := FindJMap(level, gens);
+    X, j, model_type, F, plane_model := FindJMap(level, gens);
     cusps := CuspOrbits(level, gens);
     // We only need one representative of each orbit
     cusps := [orb[1] : orb in cusps];
     for i in [1..#cusps] do
 	CuspUpdateCoordinates(~cusps[i], X, F);
     end for;
-    return X, j, model_type, cusps;
+    return X, j, model_type, cusps, plane_model;
 end intrinsic;
