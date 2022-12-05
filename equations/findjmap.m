@@ -189,7 +189,7 @@ function FindJMap(N, gens)
       sigma:=[FindCuspPair(M,SL2!(g^(-1)*GL2!M`cusps[i]*b))[1]: i in [1..#M`cusps]];
       s:=s join {sigma};
   end for;
-  // Let H and H0 be the intersection of G and G0, respectively, with SL(2,Z/N).  We now computes the action of H0/H on the cusps of X_G.
+  // Let H and H0 be the intersection of G and G0, respectively, with SL(2,Z/N).  We now compute the action of H0/H on the cusps of X_G.
   H0:=G0 meet SL(2,Integers(N));
   Q,iotaQ:=quo<H0|M`H>;
   for g_ in Generators(Q) do
