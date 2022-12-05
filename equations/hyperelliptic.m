@@ -1,4 +1,14 @@
+/**********************************************************
+This file implements an algorithm for expressing curves
+that are geometrically hyperelliptic as a double cover
+of a conic.
 
+Implementation by Edgar Costa and Raymond van Bommel, with
+algorithmic help from Bjorn Poonen and Padma Srinivasan.
+
+This version is still under development (primarily in a
+project on chatelet.mit.edu) and still has some bugs.
+**********************************************************/
 
 function GetModularCurveGenerators(label)
   for elt in getrecs("~/projects/ModularCurves/equations/modular_curves_data.txt":Delimiter:="|") do
