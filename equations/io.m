@@ -56,7 +56,7 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
     fields := Join([sprint(Qx!DefiningPolynomial(c`field)) : c in cusps] , ",");
     if #plane_model gt 0 then
         T := Universe(plane_model);
-        AssignNames(~T, "XYZ");
+        AssignNames(~T, Eltseq("XYZ"));
         plane_model_string := Join([sprint(f) : f in plane_model], ",");
     else
         plane_model_string := "";
