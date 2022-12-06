@@ -87,7 +87,7 @@ dont_display := #big_equation gt 1000;
 // Get equations as polynomials
 equations_str := Split(big_equation, ",");
 if nb_var le 26 then  // Variables are uppercase letters
-    variables := [x: x in Eltseq("ABCDEFGHIJKLMNOPQRSTUVWXYZ") | x in big_equation];
+    variables := [x: x in Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ") | x in big_equation];
 else
     variables := ["X" cat Sprint(i): i in [1..nb_var]];
 end if;
