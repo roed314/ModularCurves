@@ -115,29 +115,29 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, cusp
     // Get gonality in low genus
     degrees := [[Degree(X[j], P.i): i in [1..Ngens(P)]]: j in [1..#X]];
     q_high := Min([Min([d: d in degrees[j] | d ne 0]): j in [1..#X]]);
-    if genus eq 0 then
+    if g eq 0 then
         q_low := q_high; // Rakvi's code will give a conic precisely when there are no points
         qbar_low := 1;
         qbar_high := 1;
-    elif genus eq 1 then
+    elif g eq 1 then
         q_low := 2;
         qbar_low := 2;
         qbar_high := 2;
        // don't change q_high: a genus 1 curve can require an arbitrarily large extension to acquire a point
-    elif genus eq 2 then
+    elif g eq 2 then
         q_low := 2;
         q_high := 2;
         qbar_low := 2;
         qbar_high := 2;
     else
-        if genus le 6 and try_gonal_map then
+        if g le 6 and try_gonal_map then
             ambient := ProjectiveSpace(P);
             curve := Curve(ambient, X);
-            if genus eq 3 then
+            if g eq 3 then
 	        qbar_low, gonal_map := Genus3GonalMap(curve : IsCanonical:=true);
-            elif genus eq 4 then
+            elif g eq 4 then
 	        qbar_low, gonal_map := Genus4GonalMap(curve : IsCanonical:=true);
-            elif genus eq 5 then
+            elif g eq 5 then
 	        qbar_low, gonal_map := Genus5GonalMap(curve : IsCanonical:=true);
             else
 	        qbar_low, _, gonal_map := Genus6GonalMap(curve : IsCanonical:=true);
