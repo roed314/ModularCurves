@@ -113,7 +113,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, cusp
     end procedure;
 
     // Get gonality in low genus
-    degrees := [[Degree(X[j], P.i): i in [1..nb_var]]: j in [1..#X]];
+    degrees := [[Degree(X[j], P.i): i in [1..Ngens(P)]]: j in [1..#X]];
     q_high := Min([Min([d: d in degrees[j] | d ne 0]): j in [1..#X]]);
     if genus eq 0 then
         q_low := q_high; // Rakvi's code will give a conic precisely when there are no points
