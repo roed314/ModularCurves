@@ -422,7 +422,7 @@ end if;
   ttemp := Cputime();
   plane_model := [];
   if M`genus gt 3 then
-      success, plane_model := PlaneModelFromQExpansions(M);
+      success, plane_model := PlaneModelFromQExpansions(M:prec:=150);
       if success then
           plane_model := [DefiningEquation(plane_model)];
       end if;
