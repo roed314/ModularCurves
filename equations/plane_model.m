@@ -58,41 +58,40 @@ end intrinsic;
 
 intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv
 {rec should be of type ModularCurveRec, genus larger than 3 and not hyperelliptic}
-
-  if prec eq 0 then
-    prec := rec`prec;
-  end if;
-  if not assigned rec`F then
-    rec := FindModularForms(2,rec,prec);
-  end if;
-  if not assigned rec`F0 then
-    rec := FindCuspForms(rec);
-  end if;
-
-  found_bool := false;
-  //m := 5;
-  m := DegreeLowerBound(rec`genus);
-  U := DegreeUpperBound(rec`genus);
-  while (not found_bool) and (m le U) do
-    printf "Plane model: trying relations of degree = %o\n", m;
-    rels := FindRelations((rec`F0)[1..3],m);
-    if #rels gt 0 then
-      print "Plane model: relation found!";
-      found_bool := true;
+    if prec eq 0 then
+        prec := rec`prec;
     end if;
-    m +:= 1;
-  end while;
-  if #rels eq 0 then
-    print "No relations found!";
-    return false, _;
-  end if;
+    if not assigned rec`F then
+        rec := FindModularForms(2,rec,prec);
+    end if;
+    if not assigned rec`F0 then
+        rec := FindCuspForms(rec);
+    end if;
 
-  f := rels[1];
-  C := Curve(Proj(Parent(f)), f);
-  print "Plane model: curve found!";
-  print C;
-  // assert Genus(C) eq rec`genus; // sanity check
-  return true, C;
+    found_bool := false;
+    //m := 5;
+    m := DegreeLowerBound(rec`genus);
+    U := DegreeUpperBound(rec`genus);
+    while (not found_bool) and (m le U) do
+        printf "Plane model: trying relations of degree = %o\n", m;
+        rels := FindRelations((rec`F0)[1..3],m);
+        if #rels gt 0 then
+            print "Plane model: relation found!";
+            found_bool := true;
+        end if;
+        m +:= 1;
+    end while;
+    if #rels eq 0 then
+        print "No relations found!";
+        return false, _;
+    end if;
+
+    f := rels[1];
+    C := Curve(Proj(Parent(f)), f);
+    print "Plane model: curve found!";
+    print C;
+    // assert Genus(C) eq rec`genus; // sanity check
+    return true, C;
 end intrinsic;
 
 intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp::BoolElt, cusps::SeqEnum : try_gonal_map:=true) -> Tup, SeqEnum
