@@ -57,7 +57,7 @@ intrinsic DegreeUpperBound(g::RngIntElt) -> RngIntElt
 end intrinsic;
 
 intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv
-  {}
+{rec should be of type ModularCurveRec, genus larger than 3 and not hyperelliptic}
 
   if prec eq 0 then
     prec := rec`prec;
@@ -95,13 +95,15 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv
   return true, C;
 end intrinsic;
 
-intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, cusps::SeqEnum : try_gonal_map:=true) -> Tup, SeqEnum
+intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp::BoolElt, cusps::SeqEnum : try_gonal_map:=true) -> Tup, SeqEnum
 {
     Input:
             X:     equations for the modular curve as produced by GetModelLMFDB.m
             C:     a sequence of length 0 or 1 of known plane models (provided as a polynomial in X,Y,Z).  If given, the map from X will
                    just be projection onto the first three coordinates
             g:     the genus of X
+            ghyp:  whether X is geometrically hyperelliptic
+            cusps: the rational cusps on X
     Output:
             bounds a 4-tuple giving gonality bounds: q_low, q_high, qbar_low, qbar_high
             C:     a sequence of length 0 or 1 of known plane models (provided as a tuple, with first entry the defining polynomial and the second entry a sequence of three polynomials giving the map from X to C)
@@ -109,10 +111,15 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, cusp
     P := Parent(X[1]);
     opts := [* <f, [P.1, P.2, P.3]> : f in C *];
     procedure add_opt(mp)
-        Append(~opts, <DefiningEquation(Codomain(mp)), DefiningEquations(mp)>);
+        f := DefiningEquation(Codomain(mp));
+        R := Parent(f);
+        AssignNames(~R, ["X","Y","Z"]);
+        Append(~opts, <f, DefiningEquations(mp)>);
     end procedure;
 
     // Get gonality in low genus
+    q_low := 2; // overwritten in some cases
+    qbar_low := 2; // overwritten in some cases
     degrees := [[Degree(X[j], P.i): i in [1..Ngens(P)]]: j in [1..#X]];
     q_high := Min([Min([d: d in degrees[j] | d ne 0]): j in [1..#X]]);
     if g eq 0 then
@@ -120,27 +127,23 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, cusp
         qbar_low := 1;
         qbar_high := 1;
     elif g eq 1 then
-        q_low := 2;
-        qbar_low := 2;
         qbar_high := 2;
        // don't change q_high: a genus 1 curve can require an arbitrarily large extension to acquire a point
     elif g eq 2 then
-        q_low := 2;
         q_high := 2;
-        qbar_low := 2;
         qbar_high := 2;
     else
         if g le 6 and try_gonal_map then
             ambient := ProjectiveSpace(P);
             curve := Curve(ambient, X);
             if g eq 3 then
-	        qbar_low, gonal_map := Genus3GonalMap(curve : IsCanonical:=true);
+	        qbar_low, gonal_map := Genus3GonalMap(curve : IsCanonical:=not ghyp);
             elif g eq 4 then
-	        qbar_low, gonal_map := Genus4GonalMap(curve : IsCanonical:=true);
+	        qbar_low, gonal_map := Genus4GonalMap(curve : IsCanonical:=not ghyp);
             elif g eq 5 then
-	        qbar_low, gonal_map := Genus5GonalMap(curve : IsCanonical:=true);
+	        qbar_low, gonal_map := Genus5GonalMap(curve : IsCanonical:=not ghyp);
             else
-	        qbar_low, _, gonal_map := Genus6GonalMap(curve : IsCanonical:=true);
+	        qbar_low, _, gonal_map := Genus6GonalMap(curve : IsCanonical:=not ghyp);
             end if;
             q_low := qbar_low;
             qbar_high := qbar_low;
@@ -161,9 +164,19 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, cusp
                 // TODO: Need to use f to get a model, together with maps
 
             end if;
+        elif ghyp then
+            qbar_high := 2;
+            hyp, H, h_map := IsHyperelliptic(curve);
+            if hyp then
+                q_high := 2;
+                // TODO: include H in opts, together with a map
+            else
+                q_low := 4;
+                q_high := 4;
+                // Use IsGeometricallyHyperelliptic or Edgar and Raymond's code to find model as double cover of conic
+            end if;
         else
             // Everything is between 2 and q_high
-            q_low := 2;
             qbar_low := 2;
             qbar_high := q_high;
         end if;
@@ -172,12 +185,16 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, cusp
     // Use rational cusps (and maybe a short rational point search?) to project
 
     if g eq 5 then
-        ok, f := Genus5PlaneCurveModel(X : IsCanonical:=true);
+        ok, f := Genus5PlaneCurveModel(X : IsCanonical:=not ghyp);
         if ok then add_opt(f); end if;
     end if;
     // Sam suggests Ciaran's code for improving coefficients: https://github.com/SamSchiavone/Gm-Reduce/blob/main/linear-program.m#L218
+    function pick_best(L)
+        _, i := Min([#sprint(pair[1]) : pair in L]);
+        return L[i];
+    end function;
     if #opts gt 1 then
-        ; // TODO: reduce number of choices in opts by measuring how good the models are (length of string)
+        opts := [pick_best(opts)];
     end if;
     return <q_low, q_high, qbar_low, qbar_high>, [pair : pair in opts];
 end intrinsic;

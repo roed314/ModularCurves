@@ -421,7 +421,7 @@ end if;
   // Use q-expansions to find an option for a plane model; it will be improved in postprocessing
   ttemp := Cputime();
   plane_model := [];
-  if M`genus gt 3 then
+  if M`genus gt 3 and not geomhyper then
       success, plane_model := PlaneModelFromQExpansions(M);
       if success then
           plane_model := [DefiningEquation(plane_model)];

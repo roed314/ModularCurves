@@ -21,7 +21,7 @@ from lmfdb import db
 @cached_function
 def get_poset():
     R = []
-    for rec in db.gps_gl2zhat_test.search({}, ["label", "parents"]):
+    for rec in db.gps_gl2zhat_test.search({"contains_negative_one":True}, ["label", "parents"]):
         for olabel in rec["parents"]:
             R.append([olabel, rec["label"]]) # Use backward direction so that breadth first search is faster
     return Poset(([],R), cover_relations=True)

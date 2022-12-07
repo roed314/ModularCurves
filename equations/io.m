@@ -14,16 +14,16 @@ intrinsic Print(X::JMapData)
   end if;
 end intrinsic;
 
-function strip(X)
-    // Strips spaces and carraige returns from string; much faster than StripWhiteSpace.
+intrinsic remove_whitespace(X::MonStgElt) -> MonStgElt
+{ Strips spaces and carraige returns from string; much faster than StripWhiteSpace. }
     return Join(Split(Join(Split(X," "),""),"\n"),"");
-end function;
+end intrinsic;
 
-function sprint(X)
-    // Sprints object X with spaces and carraige returns stripped.
+intrinsic sprint(X::.) -> MonStgElt
+{ Sprints object X with spaces and carraige returns stripped. }
     if Type(X) eq Assoc then return Join(Sort([ $$(k) cat "=" cat $$(X[k]) : k in Keys(X)]),":"); end if;
-    return strip(Sprintf("%o",X));
-end function;
+    return remove_whitespace(Sprintf("%o",X));
+end intrinsic;
 
 intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
 		          cusps::SeqEnum[CspDat], fname::MonStgElt, plane_model::SeqEnum[RngMPolElt])
