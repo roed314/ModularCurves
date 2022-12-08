@@ -151,7 +151,7 @@ intrinsic NextProjector(~state::Rec, ~M::ModMatRngElt)
     end if;
 end intrinsic;
 
-intrinsic PlaneModelFromQExpansions(rec::Rec, X::Crv : prec:=0) -> BoolElt, Crv, SeqEnum
+intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Crv, SeqEnum
 {rec should be of type ModularCurveRec, genus larger than 3 and not hyperelliptic}
     if prec eq 0 then
         prec := rec`prec;
@@ -186,7 +186,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, X::Crv : prec:=0) -> BoolElt, Crv,
             if #rels gt 0 then
                 ttmp := Cputime();
                 //vld := ValidPlaneModel(rels[1], g);
-                vld := ValidPlaneModel2(rels[1], X, M);
+                vld := ValidPlaneModel2(R!rels[1], Can, M);
                 tval +:= Cputime() - ttmp;
                 if vld then
                     printf "Plane model: found valid model of degree = %o\n", m;
