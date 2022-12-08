@@ -205,6 +205,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Cr
     end if;
     // Pick the best
     sorter := [];
+    rescaled := [* *];
     ttmp := Cputime();
     adjusted := 0;
     for i in [1..#valid] do
@@ -215,13 +216,13 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Cr
         else
             adjusted +:= 1;
         end if;
-        Append(~sorter, <#sprint(f), f, [valid[i][2][j+1] * adjust[1 + (j div g)] : j in [0..3*g-1]]>);
+        Append(~sorter, <#sprint(f), Max([Height(a) : a in adjust])>);
+        Append(~rescaled, <f, [valid[i][2][j+1] * adjust[1 + (j div g)] : j in [0..3*g-1]]>);
     end for;
     tred := Cputime() - ttmp;
     _, i := Min(sorter);
 
-    f := sorter[i][2];
-    M := sorter[i][3];
+    f, M := Explode(rescaled[i]);
     C := Curve(Proj(Parent(f)), f);
     printf "Plane model: %o model(s) found\n", #valid;
     printf "Plane model: %o adjusted, max projection size %o\n", adjusted, Max([#Sprint(x) : x in M]);
