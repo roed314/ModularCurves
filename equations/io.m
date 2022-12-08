@@ -67,6 +67,11 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
     return;
 end intrinsic;
 
+intrinsic LMFDBWritePlaneModel(C::Crv, proj::SeqEnum, fname::MonStgElt)
+{}
+    Write(fname, Sprintf("%o|%o", DefiningEquation(C), Join([Sprint(c) : c in proj], ",")) : Overwrite);
+end intrinsic;
+
 function StringToPoly(s, R, name)
     i := 0;
     while (i lt #s) do

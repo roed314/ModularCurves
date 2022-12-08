@@ -21,8 +21,10 @@ intrinsic GetLevelAndGensFromLabel(label::MonStgElt) ->
     return level, gens;
 end intrinsic;
 
+BareGenus := recformat<genus>;
+
 intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
-                                            RngIntElt, SeqEnum[CspDat], SeqEnum[RngMPolElt], SeqEnum[RngIntElt]
+                                            RngIntElt, SeqEnum[CspDat], Any
 {.}
     level, gens := GetLevelAndGensFromLabel(label);
     genus := StringToInteger(Split(label, ".")[3]);
@@ -37,7 +39,7 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
 	cusps := CuspOrbits(level, gens)[1];
 	cusps[1]`coords := P1![1,0];
 	// 1 is for P1 model
-	return P1, FunctionField(P1).1, 1, cusps, [], [];
+	return P1, FunctionField(P1).1, 1, cusps, rec<BareGenus|genus:=0>;
     elif (genus eq 0) then
 	// !! TODO - is this precision always enough?
 	Ggens := {GL(2,Integers(level))!g : g in gens};
@@ -87,15 +89,15 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
 	    cusps[i]`coords := cusp_coords[PK][field_idx[PK]];
 	    field_idx[PK] +:= 1;
 	end for;
-	return X, j, model_type, cusps, [], [];
+	return X, j, model_type, cusps, rec<BareGenus|genus:=0>;
     end if;
     // Replacing this by Jeremy's new function
-    X, j, model_type, F, plane_model, proj := FindJMap(level, gens);
+    X, j, model_type, M := FindJMap(level, gens);
     cusps := CuspOrbits(level, gens);
     // We only need one representative of each orbit
     cusps := [orb[1] : orb in cusps];
     for i in [1..#cusps] do
-	CuspUpdateCoordinates(~cusps[i], X, F);
+	CuspUpdateCoordinates(~cusps[i], X, M`F0);
     end for;
-    return X, j, model_type, cusps, plane_model, proj;
+    return X, j, model_type, cusps, M;
 end intrinsic;

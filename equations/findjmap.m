@@ -114,7 +114,7 @@ function FindJMap(N, gens)
     // Write data to a file here and then stop.
     // 5 is the code for hyperelliptic models
     // For now, we decided it includes Weierstrass equations
-    return M`C, ecjmap, 5, M`f cat [[1 : i in [1..#M`cusps]]], [], [];
+    return M`C, ecjmap, 5, M`f cat [[1 : i in [1..#M`cusps]]];
   end if;
 
   maxd := 0;
@@ -418,27 +418,14 @@ end if;
   C := Curve(ProjectiveSpace(Rationals(),#modforms-1),M`psi);
   jmap := map<C -> ProjectiveSpace(Rationals(),1) | [num,denom]>;
 
-  // Use q-expansions to find an option for a plane model; it will be improved in postprocessing
-  ttemp := Cputime();
-  plane_model := [];
-  proj := [];
-  if M`genus gt 3 and not geomhyper then
-      success, plane_model, proj := PlaneModelFromQExpansions(M);
-      if success then
-          plane_model := [DefiningEquation(plane_model)];
-      end if;
-  end if;
-  pmtime := Cputime(ttemp);
-
   printf "Model time = %o.\n",modeltime;
   printf "GB time = %o.\n",gbtime;
   printf "Canonical ring time = %o.\n",canringtime;
   printf "Linear algebra time = %o.\n",lintime;
-  printf "Plane model time = %o.\n",pmtime;
   printf "Total time was %o sec.\n",Cputime(tttt);
 
   // canonical model is 0, other is -1
   model_type := (geomhyper) select -1 else 0;
-  return C, num/denom, model_type, M`F0, plane_model, proj;
+  return C, num/denom, model_type, M;
 end function;
 //end intrinsic;
