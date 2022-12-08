@@ -69,7 +69,7 @@ Applies the matrix M to the expansions, projecting F0 onto 3 modular forms (give
     //vecs := [Vector([F0[i][j] : i in [1..#F0]]) : j in [1..#F0[1]]];
     //vec3s := [v * Transpose(M) : v in vecs];
     //return [[vec3s[i][j] : i in [1..#vec3s]] : j in [1..3]];
-    ans := [[0 : a in [1..#F0[1]]] : j in [1..3]];
+    ans := [[Parent(F0[1][1])!0 : a in [1..#F0[1]]] : j in [1..3]];
     for a in [1..#F0[1]] do
         for j in [1..3] do
             for i in [1..#F0] do
