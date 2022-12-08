@@ -212,7 +212,9 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     C := Curve(Proj(Parent(f)), f);
     printf "Plane model: %o model(s) found\n", #valid;
     printf "Plane model: %o adjusted, max projection size %o\n", adjusted, Max([#Sprint(x) : x in M]);
+    print valid[i][1];
     printf "Plane model: shortened by %o\n", #sprint(valid[i][1]) - sorter[i][1];
+    print f;
     printf "Plane model: first success %o\n", #[x : x in valid[1][2] | x ne 0] - 3;
     print Matrix(Integers(), 3, g, valid[1][2]);
     printf "Plane model: chosen %o\n", #[x : x in valid[i][2] | x ne 0] - 3;
@@ -220,7 +222,6 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     print "Plane model: relation time", trel;
     print "Plane model: validation time", tval;
     print "Plane model: reduction time", tred;
-    print f;
     return true, C, M;
 end intrinsic;
 
