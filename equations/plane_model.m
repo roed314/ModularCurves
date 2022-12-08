@@ -201,10 +201,10 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     f := sorter[i][2];
     M := sorter[i][3];
     C := Curve(Proj(Parent(f)), f);
-    print "Plane model: done!";
-    print "Plane model relation time", trel;
-    print "Plane model validation time", tval;
-    print "Plane model reduction time", tred;
+    printf "Plane model: %o model(s) found\n", #valid;
+    print "Plane model: relation time", trel;
+    print "Plane model: validation time", tval;
+    print "Plane model: reduction time", tred;
     print f;
     return true, C, M;
 end intrinsic;
