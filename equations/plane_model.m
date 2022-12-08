@@ -159,7 +159,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     rels := [];
     state := InitProjectorRec(g);
     M := ZeroMatrix(Integers(), 3, g);
-    valid := [];
+    valid := [* *];
     repeat
         NextProjector(~state, ~M);
         print "Projecting";
