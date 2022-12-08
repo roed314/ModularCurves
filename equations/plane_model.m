@@ -166,6 +166,8 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     t0 := Cputime();
     repeat
         NextProjector(~state, ~M);
+        print "Projecting";
+        print M;
         MF := F0Combination(rec`F0, M);
         for m in [low..high] do
             ttmp := Cputime();
@@ -191,8 +193,15 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     // Pick the best
     sorter := [];
     ttmp := Cputime();
+    adjusted = 0;
     for i in [1..#valid] do
         f, adjust := reducemodel_padic(valid[i][1]);
+        if f eq valid[i][1] then
+            // reducemodel_padic seems to produce giant coefficients in cases where it does nothing
+            adjust := [1 : _ in adjust];
+        else
+            adjusted +:= 1;
+        end if;
         Append(~sorter, <#sprint(f), f, [valid[i][2][j+1] * adjust[1 + (j div g)] : j in [0..3*g-1]]>);
     end for;
     tred := Cputime() - ttmp;
@@ -202,6 +211,12 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     M := sorter[i][3];
     C := Curve(Proj(Parent(f)), f);
     printf "Plane model: %o model(s) found\n", #valid;
+    printf "Plane model: %o adjusted, max projection size %o\n", adjusted, Max([#Sprint(x) : x in M]);
+    printf "Plane model: shortened by %o\n", #sprint(valid[i][1]) - sorter[i][1];
+    printf "Plane model: first success %o\n", #[x : x in valid[1][2] | x ne 0] - 3;
+    print Matrix(Integers(), 3, g, valid[1][2]);
+    printf "Plane model: chosen %o\n", #[x : x in valid[i][2] | x ne 0] - 3;
+    print Matrix(Integers(), 3, g, valid[i][2]);
     print "Plane model: relation time", trel;
     print "Plane model: validation time", tval;
     print "Plane model: reduction time", tred;
