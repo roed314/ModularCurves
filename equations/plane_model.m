@@ -125,7 +125,7 @@ intrinsic NextProjector(~state::Rec, ~M::ModMatRngElt)
     else
         state`cur_idx_pivots +:= 1;
     end if;
-end if;
+end intrinsic;
 
 intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
 {rec should be of type ModularCurveRec, genus larger than 3 and not hyperelliptic}
