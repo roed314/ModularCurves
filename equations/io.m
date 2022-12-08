@@ -26,7 +26,7 @@ intrinsic sprint(X::.) -> MonStgElt
 end intrinsic;
 
 intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
-		          cusps::SeqEnum[CspDat], fname::MonStgElt, plane_model::SeqEnum[RngMPolElt], proj::SeqEnum)
+		          cusps::SeqEnum[CspDat], fname::MonStgElt)
 {Write the model and j-map to a file for input into the LMFDB}
     uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
     lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
@@ -54,16 +54,9 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
     coords := Join([sprint(c`coords) : c in cusps_to_write] , ",");
     Qx<x> := PolynomialRing(Rationals());
     fields := Join([sprint(Qx!DefiningPolynomial(c`field)) : c in cusps] , ",");
-    if #plane_model gt 0 then
-        T := Universe(plane_model);
-        AssignNames(~T, Eltseq("XYZ"));
-        plane_model_string := Join([sprint(f) : f in plane_model], ",");
-    else
-        plane_model_string := "";
-    end if;
     Write(fname, Sprintf("{%o}|{%o}|{%o,%o,%o}|{%o}|{%o}|{%o}|{%o}", Rank(R), 
 			 Join([sprint(f) : f in DP], ","), E4_str, E6_str, j_str,
-			 coords,fields,plane_model_string, Join([Sprint(c) : c in proj], ",")) : Overwrite);
+			 coords,fields) : Overwrite);
     return;
 end intrinsic;
 
