@@ -64,6 +64,8 @@ end intrinsic;
 
 intrinsic ValidPlaneModel2(f::RngMPolElt, X::Crv, proj::ModMatRngElt) -> BoolElt
 {A quick check for whether the plane curve defined by f is a valid reduction}
+    fbar := ChangeRing(f, GF(2147483647)); // largest 31 bit prime
+    if not IsIrreducible(fbar) then return false; end if;
     C := Curve(Proj(Parent(f)), f);
     R := Parent(DefiningEquations(X)[1]);
     Rgens := Generators(R);
