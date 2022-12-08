@@ -169,11 +169,12 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
             rels := FindRelations(MF, m);
             if #rels gt 0 and ValidPlaneModel(rels[1], g) then
                 printf "Plane model: found valid model of degree = %o\n", m;
+                print rels[1];
                 Append(~valid, <rels[1], Eltseq(M)>);
                 break;
             end if;
         end for;
-    until #valid ge 5 or state`nonpiv_ctr[1] ge 728;
+    until #valid ge 25 or state`nonpiv_ctr[1] ge 728;
     if #valid eq 0 then
         return false, _, _;
     end if;
