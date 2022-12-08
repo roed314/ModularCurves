@@ -193,7 +193,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     // Pick the best
     sorter := [];
     ttmp := Cputime();
-    adjusted = 0;
+    adjusted := 0;
     for i in [1..#valid] do
         f, adjust := reducemodel_padic(valid[i][1]);
         if f eq valid[i][1] then
