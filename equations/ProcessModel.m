@@ -92,12 +92,12 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
 	return X, j, model_type, cusps, rec<BareGenus|genus:=0>;
     end if;
     // Replacing this by Jeremy's new function
-    X, j, model_type, M := FindJMap(level, gens);
+    X, j, model_type, F0, M := FindJMap(level, gens);
     cusps := CuspOrbits(level, gens);
     // We only need one representative of each orbit
     cusps := [orb[1] : orb in cusps];
     for i in [1..#cusps] do
-	CuspUpdateCoordinates(~cusps[i], X, M`F0);
+	CuspUpdateCoordinates(~cusps[i], X, F0);
     end for;
     return X, j, model_type, cusps, M;
 end intrinsic;
