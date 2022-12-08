@@ -66,7 +66,7 @@ intrinsic F0Combination(F0::SeqEnum, M::ModMatRngElt) -> SeqEnum
 {F0 is as in ModularCurveRec, M is a 3 by n matrix over the integers with full rank, where n is the length of F0.
 Applies the matrix M to the expansions, projecting F0 onto 3 modular forms (given by expansions at cusps as normal)}
     vecs := [Vector([F0[i][j] : i in [1..#F0]]) : j in [1..#F0[1]]];
-    vec3s := [M * v : v in vecs];
+    vec3s := [v * Transpose(M) : v in vecs];
     return [[vec3s[i][j] : i in [1..#vec3s]] : j in [1..3]];
 end intrinsic;
 
