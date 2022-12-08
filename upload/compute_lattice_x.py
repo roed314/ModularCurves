@@ -24,7 +24,7 @@ from lmfdb import db
 def get_poset():
     t0 = walltime()
     R = []
-    for rec in db.gps_gl2zhat_test.search({}, ["label", "parents"]):
+    for rec in db.gps_gl2zhat_test.search({"contains_negative_one":True}, ["label", "parents"]):
         for olabel in rec["parents"]:
             R.append([olabel, rec["label"]]) # Use backward direction so that breadth first search is faster
     print("DB data loaded in", walltime() - t0)

@@ -56,7 +56,7 @@ label := Join(label[1..4], ".");
 
 // Get equations as string
 s := Read(input);
-s := Split(s, "{}|"); // List containing: nb_var, equation
+s := Split(s, "|"); // List containing: nb_var, equation
 nb_var := StringToInteger(s[1]);
 big_equation := s[2];
 
@@ -98,7 +98,7 @@ equations_pol := [eval(ReplaceVariables(s, variables)): s in equations_str];
 C := []; // TODO: Read curve model from input data
 cusps := []; // TODO: Read cusps from input data
 // TODO: Determine whether to try gonal map from input parameters
-gon_bounds, plane_models := PlaneModelAndGonalityBounds(equations_pol, C, genus, cusps : try_gonal_map:=true);
+gon_bounds, plane_models := PlaneModelAndGonalityBounds(equations_pol, C, genus, (model_type eq -1), cusps : try_gonal_map:=true);
 
 // Figure out smoothness
 triangular_nbs := [i*(i-1)/2: i in [1..17]];

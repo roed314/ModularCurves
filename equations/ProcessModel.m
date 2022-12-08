@@ -19,10 +19,10 @@ intrinsic GetLevelAndGensFromLabel(label::MonStgElt) ->
     gens := [[gens[4*i-3],gens[4*i-1],gens[4*i-2],gens[4*i]] 
 	     : i in [1..#gens div 4]];
     return level, gens;
-end intrinsic;			    
+end intrinsic;
 
 intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
-                                            RngIntElt, SeqEnum[CspDat], SeqEnum[RngMPolElt]
+                                            RngIntElt, SeqEnum[CspDat], SeqEnum[RngMPolElt], SeqEnum[RngIntElt]
 {.}
     level, gens := GetLevelAndGensFromLabel(label);
     genus := StringToInteger(Split(label, ".")[3]);
@@ -89,13 +89,13 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
 	end for;
 	return X, j, model_type, cusps, [];
     end if;
-     // Replacing this by Jeremy's new function
-    X, j, model_type, F, plane_model := FindJMap(level, gens);
+    // Replacing this by Jeremy's new function
+    X, j, model_type, F, plane_model, proj := FindJMap(level, gens);
     cusps := CuspOrbits(level, gens);
     // We only need one representative of each orbit
     cusps := [orb[1] : orb in cusps];
     for i in [1..#cusps] do
 	CuspUpdateCoordinates(~cusps[i], X, F);
     end for;
-    return X, j, model_type, cusps, plane_model;
+    return X, j, model_type, cusps, plane_model, proj;
 end intrinsic;
