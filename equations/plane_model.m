@@ -125,9 +125,11 @@ intrinsic NextProjector(~state::Rec, ~M::ModMatRngElt)
     // Now we update the state
     if v eq (2*vmax+1)^(3*state`n - 9) - 1 then
         state`nonpiv_vecmax[pividx] +:= 1;
-        state`nonpiv_ctr[pividx] := 0;
+        state`nonpiv_ctr[pividx] := 2*state`nonpiv_vecmax[pividx] - 1;
     else
-        state`nonpiv_ctr[pividx] +:= 1;
+        repeat
+            state`nonpiv_ctr[pividx] +:= 1;
+        until Max(IntegerToSequence(state`nonpiv_ctr[pividx], state`nonpiv_vecmax[pividx])) ge 2*state`nonpiv_vecmax[pividx] - 1;
     end if;
     if pividx eq state`max_idx_pivots then
         if state`max_idx_pivots lt #state`poss_pivots then
@@ -179,7 +181,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     for i in [1..#valid] do
         f, adjust := reducemodel_padic(valid[i][1]);
         print "Plane model option:", f;
-        valid[i] := <#sprint(f), f, [valid[i][2][j] * adjust[1 + (j div g)] : j in [0..3*g-1]]>;
+        valid[i] := <#sprint(f), f, [valid[i][2][j+1] * adjust[1 + (j div g)] : j in [0..3*g-1]]>;
     end for;
     _, i := Min(valid);
 
