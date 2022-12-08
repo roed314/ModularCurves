@@ -129,7 +129,7 @@ intrinsic NextProjector(~state::Rec, ~M::ModMatRngElt)
     else
         repeat
             state`nonpiv_ctr[pividx] +:= 1;
-        until Max(IntegerToSequence(state`nonpiv_ctr[pividx], state`nonpiv_vecmax[pividx])) ge 2*state`nonpiv_vecmax[pividx] - 1;
+        until Max(IntegerToSequence(state`nonpiv_ctr[pividx], 2*state`nonpiv_vecmax[pividx]+1)) ge 2*state`nonpiv_vecmax[pividx] - 1;
     end if;
     if pividx eq state`max_idx_pivots then
         if state`max_idx_pivots lt #state`poss_pivots then
