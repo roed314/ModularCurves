@@ -54,9 +54,8 @@ genus := StringToInteger(label[3]);
 model_type := StringToInteger(label[5]);
 label := Join(label[1..4], ".");
 
-// Get equations as string
-s := Read(input);
-s := Split(s, "|"); // List containing: nb_var, equation
+
+
 nb_var := StringToInteger(s[1]);
 big_equation := s[2];
 
@@ -81,8 +80,13 @@ function ReplaceVariables(s, variables)
     return s;
 end function;
 
+// Get equations as string
+s := Read(input);
+s := [ReplaceLetter(ReplaceLetter(x, "{", ""), "}", "") : x in Split(s, "|")]; // List containing:
+nb_var, big_equation, jmaps, cusp_coords, cusp_polys, plane_model := Explode(s);
+nb_var := StringToInteger(nb_var);
 // Decide if display
-dont_display := #big_equation gt 1000;
+dont_display := #big_equation gt 100000;
 
 // Get equations as polynomials
 equations_str := Split(big_equation, ",");
@@ -94,6 +98,21 @@ end if;
 P := PolynomialRing(Rationals(), nb_var);
 AssignNames(~P, variables);
 equations_pol := [eval(ReplaceVariables(s, variables)): s in equations_str];
+
+// Get j-maps
+E4, E6, jmap := Explode(Split(jmaps, "," : IncludeEmpty:=true));
+// Get cusps (for now, we only use rational cusps)
+Qx<x> := PolynomialRing(Rationals());
+cusp_polys := [eval(f) : f in Split(cusp_polys, ",")];
+cusp_coords := [
+for i in [1..#cusp_polys] do
+    f := cusp_polys[i];
+    if Degree(f) gt 1 then
+        K := NumberField(f);
+        AssignNames(~K, Sprintf("a_%o", i));
+    end if;
+end for;
+
 
 C := []; // TODO: Read curve model from input data
 cusps := []; // TODO: Read cusps from input data

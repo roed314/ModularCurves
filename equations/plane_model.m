@@ -62,6 +62,16 @@ intrinsic ValidPlaneModel(f::RngMPolElt, g::RngIntElt) -> BoolElt
     return IsIrreducible(fbar) and Genus(Curve(Proj(Parent(f)), f)) eq g;
 end intrinsic;
 
+intrinsic ValidPlaneModel2(f::RngMPolElt, X::Crv, proj::ModMatRngElt) -> BoolElt
+{A quick check for whether the plane curve defined by f is a valid reduction}
+    C := Curve(Proj(Parent(f)), f);
+    R := Parent(DefiningEquations(X)[1]);
+    Rgens := Generators(R);
+    coords := [&+[Rgens[i] * M[j,i] : i in [1..#Rgens]] : j in [1..3]];
+    pi := map<X -> C | coords>;
+    return Degree(pi) eq 1;
+end intrinsic;
+
 intrinsic F0Combination(F0::SeqEnum, M::ModMatRngElt) -> SeqEnum
 {F0 is as in ModularCurveRec, M is a 3 by n matrix over the integers with full rank, where n is the length of F0.
 Applies the matrix M to the expansions, projecting F0 onto 3 modular forms (given by expansions at cusps as normal)}
@@ -141,7 +151,7 @@ intrinsic NextProjector(~state::Rec, ~M::ModMatRngElt)
     end if;
 end intrinsic;
 
-intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
+intrinsic PlaneModelFromQExpansions(rec::Rec, X::Crv : prec:=0) -> BoolElt, Crv, SeqEnum
 {rec should be of type ModularCurveRec, genus larger than 3 and not hyperelliptic}
     if prec eq 0 then
         prec := rec`prec;
@@ -175,7 +185,8 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
             trel +:= Cputime() - ttmp;
             if #rels gt 0 then
                 ttmp := Cputime();
-                vld := ValidPlaneModel(rels[1], g);
+                //vld := ValidPlaneModel(rels[1], g);
+                vld := ValidPlaneModel2(rels[1], X, M);
                 tval +:= Cputime() - ttmp;
                 if vld then
                     printf "Plane model: found valid model of degree = %o\n", m;
