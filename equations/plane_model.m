@@ -94,6 +94,8 @@ intrinsic NextProjector(~state::Rec, ~M::ModMatRngElt)
                 nonpivs[j] := 1 + (nonpivs[j] div 2);
             else
                 nonpivs[j] := -nonpivs[j] div 2;
+            end if;
+        end for;
     end if;
     nonpivs cat:= [0 : _ in [1..3*state`n - 9]];
     ML := [[0 : i in [1..state`n]] : j in [1..3]];
