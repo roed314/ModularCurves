@@ -68,7 +68,7 @@ intrinsic ValidPlaneModel2(f::RngMPolElt, X::Crv, proj::ModMatRngElt) -> BoolElt
     if not IsIrreducible(fbar) then return false; end if;
     C := Curve(Proj(Parent(f)), f);
     R := Parent(DefiningEquations(X)[1]);
-    Rgens := Generators(R);
+    Rgens := [R.i : i in [1..NumberOfGenerators(R)]];
     coords := [&+[Rgens[i] * proj[j,i] : i in [1..#Rgens]] : j in [1..3]];
     pi := map<X -> C | coords>;
     return Degree(pi) eq 1;
