@@ -163,10 +163,9 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     R<X,Y,Z> := PolynomialRing(Rationals(), 3);
     trel := 0;
     tval := 0;
+    t0 := Cputime();
     repeat
         NextProjector(~state, ~M);
-        print "Projecting";
-        print M;
         MF := F0Combination(rec`F0, M);
         for m in [low..high] do
             ttmp := Cputime();
@@ -178,13 +177,14 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
                 tval +:= Cputime() - ttmp;
                 if vld then
                     printf "Plane model: found valid model of degree = %o\n", m;
-                    print rels[1];
                     Append(~valid, <R!rels[1], Eltseq(M)>);
-                    break;
+                else
+                    printf "Plane model: invalid model of degree = %o\n", m;
                 end if;
+                break;
             end if;
         end for;
-    until #valid ge 25 or state`nonpiv_ctr[1] ge 728;
+    until #valid ge 25 or state`nonpiv_ctr[1] ge 728 or (#valid gt 0 and Cputime() - t0 gt 120);
     if #valid eq 0 then
         return false, _, _;
     end if;
@@ -193,7 +193,6 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     ttmp := Cputime();
     for i in [1..#valid] do
         f, adjust := reducemodel_padic(valid[i][1]);
-        print "Plane model option:", f;
         Append(~sorter, <#sprint(f), f, [valid[i][2][j+1] * adjust[1 + (j div g)] : j in [0..3*g-1]]>);
     end for;
     tred := Cputime() - ttmp;
@@ -203,11 +202,10 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     M := sorter[i][3];
     C := Curve(Proj(Parent(f)), f);
     print "Plane model: done!";
-    print "trel", trel;
-    print "tval", tval;
-    print "tred", tred;
+    print "Plane model relation time", trel;
+    print "Plane model validation time", tval;
+    print "Plane model reduction time", tred;
     print f;
-    print M;
     return true, C, M;
 end intrinsic;
 
