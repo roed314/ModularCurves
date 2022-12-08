@@ -21,7 +21,6 @@ LMFDBWriteModel(X, j, cusps, output_fname);
 if M`genus gt 3 and model_type eq 0 then
     success, plane_model, proj := PlaneModelFromQExpansions(M, X);
     if success then
-        plane_model := [DefiningEquation(plane_model)];
         output_fname := Sprintf("plane_models/%o", label);
         LMFDBWritePlaneModel(plane_model, proj, output_fname);
     end if;
