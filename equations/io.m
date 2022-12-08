@@ -54,7 +54,7 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
     coords := Join([sprint(c`coords) : c in cusps_to_write] , ",");
     Qx<x> := PolynomialRing(Rationals());
     fields := Join([sprint(Qx!DefiningPolynomial(c`field)) : c in cusps] , ",");
-    Write(fname, Sprintf("{%o}|{%o}|{%o,%o,%o}|{%o}|{%o}|{%o}|{%o}", Rank(R), 
+    Write(fname, Sprintf("{%o}|{%o}|{%o,%o,%o}|{%o}|{%o}", Rank(R), 
 			 Join([sprint(f) : f in DP], ","), E4_str, E6_str, j_str,
 			 coords,fields) : Overwrite);
     return;
