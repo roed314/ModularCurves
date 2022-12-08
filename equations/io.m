@@ -26,7 +26,7 @@ intrinsic sprint(X::.) -> MonStgElt
 end intrinsic;
 
 intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
-		          cusps::SeqEnum[CspDat], fname::MonStgElt, plane_model::SeqEnum[RngMPolElt], proj::SeqEnum[RngIntElt])
+		          cusps::SeqEnum[CspDat], fname::MonStgElt, plane_model::SeqEnum[RngMPolElt], proj::SeqEnum)
 {Write the model and j-map to a file for input into the LMFDB}
     uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
     lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
