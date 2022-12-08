@@ -100,13 +100,13 @@ intrinsic NextProjector(~state::Rec, ~M::ModMatRngElt)
     nonpivs cat:= [0 : _ in [1..3*state`n - 9]];
     ML := [[0 : i in [1..state`n]] : j in [1..3]];
     for j in [1..3] do
-        ML[pivots[j]][j] := 1;
+        ML[j][pivots[j]] := 1;
     end for;
     npctr := 1;
     for i in [1..state`n] do
         if i in pivots then continue; end if;
         for j in [1..3] do
-            ML[i][j] := nonpivs[npctr];
+            ML[j][i] := nonpivs[npctr];
             npctr +:= 1;
         end for;
     end for;
