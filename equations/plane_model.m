@@ -216,7 +216,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Cr
         else
             adjusted +:= 1;
         end if;
-        Append(~sorter, <#sprint(f), Max([Height(a) : a in adjust])>);
+        Append(~sorter, <#sprint(f), Max([#sprint(a) : a in adjust])>);
         Append(~rescaled, <f, [valid[i][2][j+1] * adjust[1 + (j div g)] : j in [0..3*g-1]]>);
     end for;
     tred := Cputime() - ttmp;
