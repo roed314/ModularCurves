@@ -56,7 +56,78 @@ intrinsic DegreeUpperBound(g::RngIntElt) -> RngIntElt
   return 4*(g-1)-3;
 end intrinsic;
 
-intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv
+intrinsic ValidPlaneModel(f::RngMPolElt, g::RngIntElt) -> BoolElt
+{A quick check for whether the plane curve defined by f is a valid reduction}
+    fbar := ChangeRing(f, GF(2147483647)); // largest 31 bit prime
+    return IsIrreducible(fbar) and Genus(Curve(Proj(Parent(f)), f)) eq g;
+end intrinsic;
+
+intrinsic F0Combination(F0::SeqEnum, M::ModMatRngElt) -> SeqEnum
+{F0 is as in ModularCurveRec, M is a 3 by n matrix over the integers with full rank, where n is the length of F0.
+Applies the matrix M to the expansions, projecting F0 onto 3 modular forms (given by expansions at cusps as normal)}
+    vecs := [Vector([F0[i][j] : i in [1..#F0]]) : j in [1..#F0[1]]];
+    vec3s := [M * v : v in vecs];
+    return [[vec3s[i][j] : i in [1..#vec3s]] : j in [1..3]];
+end intrinsic;
+
+ProjectorRec := recformat<n, poss_pivots, cur_idx_pivots, max_idx_pivots, nonpiv_vecmax, nonpiv_ctr>;
+
+intrinsic InitProjectorRec(n::RngIntElt) -> Rec
+{INPUT: n >= 4,
+Initializes the state object for iterating over certain full-rank 3xn matrices}
+    poss_pivots := [Reverse(x) : x in Sort([Reverse(SetToSequence(pivs)) : pivs in Subsets({1..n}, 3)])];
+    return rec<ProjectorRec | n:=n, poss_pivots:=poss_pivots, cur_idx_pivots:=1, max_idx_pivots:=2, nonpiv_vecmax:=[0 : _ in [1..#poss_pivots]], nonpiv_ctr:=[0 : _ in [1..#poss_pivots]]>;
+end intrinsic;
+
+intrinsic NextProjector(~state::Rec, ~M::ModMatRngElt)
+{Updates M to be the next projector matrix, as iterated through by the state object}
+    pividx := state`cur_idx_pivots;
+    pivots := state`poss_pivots[pividx];
+    v := state`nonpiv_ctr[pividx];
+    vmax := state`nonpiv_vecmax[pividx];
+    if vmax eq 0 then
+        nonpivs := [];
+    else
+        nonpivs := IntegerToSequence(v, 2*vmax + 1);
+        for j in [1..#nonpivs] do
+            if nonpivs[j] mod 2 eq 1 then
+                nonpivs[j] := 1 + (nonpivs[j] div 2);
+            else
+                nonpivs[j] := -nonpivs[j] div 2;
+    end if;
+    nonpivs cat:= [0 : _ in [1..3*state`n - 9]];
+    ML := [[0 : i in [1..state`n]] : j in [1..3]];
+    for j in [1..3] do
+        ML[pivots[j]][j] := 1;
+    end for;
+    npctr := 1;
+    for i in [1..state`n] do
+        if i in pivots then continue; end if;
+        for j in [1..3] do
+            ML[i][j] := nonpivs[npctr];
+            npctr +:= 1;
+        end for;
+    end for;
+    M := Matrix(ML);
+
+    // Now we update the state
+    if v eq (2*vmax+1)^(3*state`n - 9) - 1 then
+        state`nonpiv_vecmax[pividx] +:= 1;
+        state`nonpiv_ctr[pividx] := 0;
+    else
+        state`nonpiv_ctr[pividx] +:= 1;
+    end if;
+    if pividx eq state`max_idx_pivots then
+        if state`max_idx_pivots lt #state`poss_pivots then
+            state`max_idx_pivots +:= 1;
+        end if;
+        state`cur_idx_pivots := 1;
+    else
+        state`cur_idx_pivots +:= 1;
+    end if;
+end if;
+
+intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
 {rec should be of type ModularCurveRec, genus larger than 3 and not hyperelliptic}
     if prec eq 0 then
         prec := rec`prec;
@@ -68,30 +139,45 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv
         rec := FindCuspForms(rec);
     end if;
 
-    found_bool := false;
-    //m := 5;
-    m := DegreeLowerBound(rec`genus);
-    U := DegreeUpperBound(rec`genus);
-    while (not found_bool) and (m le U) do
-        printf "Plane model: trying relations of degree = %o\n", m;
-        rels := FindRelations((rec`F0)[1..3],m);
-        if #rels gt 0 then
-            print "Plane model: relation found!";
-            found_bool := true;
-        end if;
-        m +:= 1;
-    end while;
-    if #rels eq 0 then
-        print "No relations found!";
-        return false, _;
+    g := rec`genus;
+    low := DegreeLowerBound(g);
+    high := DegreeUpperBound(g);
+    rels := [];
+    state := InitProjectorRec(g);
+    M := ZeroMatrix(Integers(), 3, g);
+    valid := [];
+    repeat
+        NextProjector(~state, ~M);
+        print "Projecting";
+        print M;
+        MF := F0Combination(rec`F0, M);
+        for m in [low..high] do
+            rels := FindRelations(MF, m);
+            if #rels gt 0 and ValidPlaneModel(rels[1], g) then
+                printf "Plane model: found valid model of degree = %o\n", m;
+                Append(~valid, <rels[1], Eltseq(M)>);
+                break;
+            end if;
+        end for;
+    until #valid ge 5 or state`nonpiv_ctr[1] ge 728;
+    if #valid eq 0 then
+        return false, _, _;
     end if;
+    // Pick the best
+    for i in [1..#valid] do
+        f, adjust := reducemodel_padic(valid[i][1]);
+        print "Plane model option:", f;
+        valid[i] := <#sprint(f), f, [valid[i][2][j] * adjust[1 + (j div g)] : j in [0..3*g-1]]>;
+    end for;
+    _, i := Min(valid);
 
-    f := rels[1];
+    f := valid[i][2];
+    M := valid[i][3];
     C := Curve(Proj(Parent(f)), f);
-    print "Plane model: curve found!";
-    print C;
-    // assert Genus(C) eq rec`genus; // sanity check
-    return true, C;
+    print "Plane model: done!";
+    print f;
+    print M;
+    return true, C, M;
 end intrinsic;
 
 intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp::BoolElt, cusps::SeqEnum : try_gonal_map:=true) -> Tup, SeqEnum

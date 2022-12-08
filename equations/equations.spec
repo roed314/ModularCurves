@@ -12,4 +12,8 @@
   {
     +OpenImage.spec
   }
+  Gm-Reduce
+  {
+    +spec
+  }
 }
