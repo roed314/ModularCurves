@@ -159,7 +159,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     rels := [];
     state := InitProjectorRec(g);
     M := ZeroMatrix(Integers(), 3, g);
-    valid := [* *];
+    valid := [];
     repeat
         NextProjector(~state, ~M);
         print "Projecting";
@@ -178,15 +178,16 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
         return false, _, _;
     end if;
     // Pick the best
+    sorter := [];
     for i in [1..#valid] do
         f, adjust := reducemodel_padic(valid[i][1]);
         print "Plane model option:", f;
-        valid[i] := <#sprint(f), f, [valid[i][2][j+1] * adjust[1 + (j div g)] : j in [0..3*g-1]]>;
+        Append(~sorter, <#sprint(f), f, [valid[i][2][j+1] * adjust[1 + (j div g)] : j in [0..3*g-1]]>);
     end for;
-    _, i := Min(valid);
+    _, i := Min(sorter);
 
-    f := valid[i][2];
-    M := valid[i][3];
+    f := sorter[i][2];
+    M := sorter[i][3];
     C := Curve(Proj(Parent(f)), f);
     print "Plane model: done!";
     print f;
