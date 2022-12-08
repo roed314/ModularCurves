@@ -160,6 +160,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
     state := InitProjectorRec(g);
     M := ZeroMatrix(Integers(), 3, g);
     valid := [];
+    R<X,Y,Z> := PolynomialRing(Rationals(), 3);
     repeat
         NextProjector(~state, ~M);
         print "Projecting";
@@ -170,7 +171,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec : prec:=0) -> BoolElt, Crv, SeqEnum
             if #rels gt 0 and ValidPlaneModel(rels[1], g) then
                 printf "Plane model: found valid model of degree = %o\n", m;
                 print rels[1];
-                Append(~valid, <rels[1], Eltseq(M)>);
+                Append(~valid, <R!rels[1], Eltseq(M)>);
                 break;
             end if;
         end for;
