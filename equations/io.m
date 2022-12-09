@@ -25,25 +25,34 @@ intrinsic sprint(X::.) -> MonStgElt
     return remove_whitespace(Sprintf("%o",X));
 end intrinsic;
 
+intrinsic AssignCanonicalNames(~R::Rng : upper:=true)
+{Assign names in a standard order; R should be either a multivariate polynomial ring or a function field}
+    uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
+    lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
+    if Type(R) eq FldFun then
+        rank := 1;
+    else
+        rank := Rank(R);
+    end if;
+    if (#uvars lt rank) then
+        uvars := [Sprintf("X%o", i) : i in [1..rank]];
+        lvars := [Sprintf("x%o", i) : i in [1..rank]];
+    end if;
+    if upper then
+        AssignNames(~R, uvars[1..rank]);
+    else
+        AssignNames(~R, lvars[1..rank]);
+    end if;
+end intrinsic;
+
 intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
 		          cusps::SeqEnum[CspDat], fname::MonStgElt)
 {Write the model and j-map to a file for input into the LMFDB}
-    uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
-    lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
     DP := DefiningPolynomials(X);
     R := Universe(DP);
-    if (#uvars lt Rank(R)) then
-      uvars := [Sprintf("X%o", i) : i in [1..Rank(R)]];
-      lvars := [Sprintf("x%o", i) : i in [1..Rank(R)]];
-    end if;
-    AssignNames(~R, uvars[1..Rank(R)]);
+    AssignCanonicalNames(~R);
     S := (assigned j`J) select Parent(j`J) else Parent(j`E4);
-    if Type(S) eq FldFun then 
-      rank := 1;
-    else
-      rank := Rank(S);
-    end if;
-    AssignNames(~S, lvars[1..rank]);
+    AssignCanonicalNames(~S);
     E4_str := (assigned j`E4) select sprint(j`E4) else "";
     E6_str := (assigned j`E6) select sprint(j`E6) else "";
     j_str := (assigned j`J) select sprint(j`J) else "";
@@ -62,7 +71,11 @@ end intrinsic;
 
 intrinsic LMFDBWritePlaneModel(C::Crv, proj::SeqEnum, fname::MonStgElt)
 {}
-    Write(fname, Sprintf("%o|%o", DefiningEquation(C), Join([Sprint(c) : c in proj], ",")) : Overwrite);
+    g := #proj div 3;
+    R := PolynomialRing(Rationals(), g);
+    AssignCanonicalNames(~R);
+    coords := [&+[proj[3*i + j] * R.j : j in [1..g]] : i in [0..2]];
+    Write(fname, Sprintf("%o|%o", DefiningEquation(C), Join([sprint(c) : c in coords], ",")) : Overwrite);
 end intrinsic;
 
 function StringToPoly(s, R, name)
