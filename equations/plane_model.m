@@ -56,15 +56,30 @@ intrinsic DegreeUpperBound(g::RngIntElt) -> RngIntElt
   return 4*(g-1)-3;
 end intrinsic;
 
+
+// Several methods for checking whether the projection onto the plane curve is birational.
+// It is possible that some of these methods might claim that a projection is invalid when
+// it is actually valid (if we hit some bad points), but the claim that a projection is
+// valid does not rely on avoiding bad points.
+reduction_prime := 997; // should be larger than the level
+
+intrinsic HasIndeterminacy(Igens::SeqEnum, lin_forms::SeqEnum) -> BoolElt
+{Checks whether there is a common zero locus for the linear forms defining the projection.}
+    I := Ideal(Igens cat lin_forms);
+    return not IsProper(I);
+end intrinsic;
+
 intrinsic ValidPlaneModel(f::RngMPolElt, g::RngIntElt) -> BoolElt
 {A quick check for whether the plane curve defined by f is a valid reduction}
-    fbar := ChangeRing(f, GF(2147483647)); // largest 31 bit prime
+    p := reduction_prime;
+    fbar := ChangeRing(f, GF(p));
     return IsIrreducible(fbar) and Genus(Curve(Proj(Parent(f)), f)) eq g;
 end intrinsic;
 
 intrinsic ValidPlaneModel2(f::RngMPolElt, X::Crv, proj::ModMatRngElt) -> BoolElt
 {A quick check for whether the plane curve defined by f is a valid reduction}
-    fbar := ChangeRing(f, GF(2147483647)); // largest 31 bit prime
+    p := reduction_prime;
+    fbar := ChangeRing(f, GF(p));
     if not IsIrreducible(fbar) then return false; end if;
     C := Curve(Proj(Parent(f)), f);
     R := Parent(DefiningEquations(X)[1]);
@@ -76,19 +91,22 @@ end intrinsic;
 
 intrinsic ValidPlaneModel3(f::RngMPolElt, X::Crv, proj::ModMatRngElt) -> BoolElt
 {A quick check for whether the plane curve defined by f is a valid reduction}
-    p := 997;
+    p := reduction_prime;
     fbar := ChangeRing(f, GF(p));
     if not IsIrreducible(fbar) then return false; end if;
     C := Curve(Proj(Parent(fbar)), fbar);
-    repeat
-        P := Random(C(GF(p)));
-    until not IsSingular(C, P);
+    P := Random(C(GF(p)));
     Igens := DefiningEquations(X);
     R := ChangeRing(Parent(Igens[1]), GF(p));
+    Igens := [R!g : g in Igens];
     coords := [&+[R.i * proj[j,i] : i in [1..NumberOfGenerators(R)]] : j in [1..3]];
-    Igens := [R!g : g in Igens] cat [coords[j] - P[j] : j in [1..3]];
+    // If there is some point on the canonical model where all three linear forms vanish, then
+    // computing the degree by counting preimages is not necessarily right
+    if HasIndeterminacy(Igens, coords) then return false; end if;
+    Igens cat:= [coords[j] - P[j] : j in [1..3]];
     I := Ideal(Igens);
-    return IsMaximal(I);
+    // If there's only one preimage (as a point over Fpbar), then the degree will be 1.
+    return IsMaximal(I) and #(R / I) eq p;
 end intrinsic;
 
 intrinsic F0Combination(F0::SeqEnum, M::ModMatRngElt) -> SeqEnum
@@ -172,6 +190,7 @@ end intrinsic;
 
 intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Crv, SeqEnum
 {rec should be of type ModularCurveRec, genus larger than 3 and not hyperelliptic}
+    assert reduction_prime gt rec`level;
     if prec eq 0 then
         prec := rec`prec;
     end if;
