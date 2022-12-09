@@ -138,8 +138,8 @@ coordinates_str := Split(big_map_equation, ",");
 if nb_var le 26 then
     var1 := [];
     var2 := [];
-    low := Eltseq("abcdefghijklmnopqrstuvwxyz");
-    up := Eltseq("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    low := Eltseq("xyzwtuvrsabcdefghijklmnopq");
+    up := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
     for i:=1 to 26 do
 	if up[i] in big_domain_equation then
 	    Append(~var1, low[i]);

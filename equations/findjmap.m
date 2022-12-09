@@ -114,7 +114,7 @@ function FindJMap(N, gens)
     // Write data to a file here and then stop.
     // 5 is the code for hyperelliptic models
     // For now, we decided it includes Weierstrass equations
-    return M`C, ecjmap, 5, M`f cat [[1 : i in [1..#M`cusps]]], [];
+    return M`C, ecjmap, 5, M`f cat [[1 : i in [1..#M`cusps]]], M;
   end if;
 
   maxd := 0;
@@ -189,7 +189,7 @@ function FindJMap(N, gens)
       sigma:=[FindCuspPair(M,SL2!(g^(-1)*GL2!M`cusps[i]*b))[1]: i in [1..#M`cusps]];
       s:=s join {sigma};
   end for;
-  // Let H and H0 be the intersection of G and G0, respectively, with SL(2,Z/N).  We now computes the action of H0/H on the cusps of X_G.
+  // Let H and H0 be the intersection of G and G0, respectively, with SL(2,Z/N).  We now compute the action of H0/H on the cusps of X_G.
   H0:=G0 meet SL(2,Integers(N));
   Q,iotaQ:=quo<H0|M`H>;
   for g_ in Generators(Q) do
@@ -418,25 +418,14 @@ end if;
   C := Curve(ProjectiveSpace(Rationals(),#modforms-1),M`psi);
   jmap := map<C -> ProjectiveSpace(Rationals(),1) | [num,denom]>;
 
-  // Use q-expansions to find an option for a plane model; it will be improved in postprocessing
-  ttemp := Cputime();
-  success, plane_model := PlaneModelFromQExpansions(M);
-  if success then
-      plane_model := [DefiningEquation(plane_model)];
-  else
-      plane_model := [];
-  end if;
-  pmtime := Cputime(ttemp);
-
   printf "Model time = %o.\n",modeltime;
   printf "GB time = %o.\n",gbtime;
   printf "Canonical ring time = %o.\n",canringtime;
   printf "Linear algebra time = %o.\n",lintime;
-  printf "Plane model time = %o.\n",pmtime;
   printf "Total time was %o sec.\n",Cputime(tttt);
 
   // canonical model is 0, other is -1
   model_type := (geomhyper) select -1 else 0;
-  return C, num/denom, model_type, M`F0, plane_model;
+  return C, num/denom, model_type, M`F0, M;
 end function;
 //end intrinsic;

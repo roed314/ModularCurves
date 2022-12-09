@@ -14,19 +14,19 @@ intrinsic Print(X::JMapData)
   end if;
 end intrinsic;
 
-function strip(X)
-    // Strips spaces and carraige returns from string; much faster than StripWhiteSpace.
+intrinsic remove_whitespace(X::MonStgElt) -> MonStgElt
+{ Strips spaces and carraige returns from string; much faster than StripWhiteSpace. }
     return Join(Split(Join(Split(X," "),""),"\n"),"");
-end function;
+end intrinsic;
 
-function sprint(X)
-    // Sprints object X with spaces and carraige returns stripped.
+intrinsic sprint(X::.) -> MonStgElt
+{ Sprints object X with spaces and carraige returns stripped. }
     if Type(X) eq Assoc then return Join(Sort([ $$(k) cat "=" cat $$(X[k]) : k in Keys(X)]),":"); end if;
-    return strip(Sprintf("%o",X));
-end function;
+    return remove_whitespace(Sprintf("%o",X));
+end intrinsic;
 
 intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
-		          cusps::SeqEnum[CspDat], fname::MonStgElt, plane_model::SeqEnum[RngMPolElt])
+		          cusps::SeqEnum[CspDat], fname::MonStgElt)
 {Write the model and j-map to a file for input into the LMFDB}
     uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
     lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
@@ -54,17 +54,15 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData,
     coords := Join([sprint(c`coords) : c in cusps_to_write] , ",");
     Qx<x> := PolynomialRing(Rationals());
     fields := Join([sprint(Qx!DefiningPolynomial(c`field)) : c in cusps] , ",");
-    if #plane_model gt 0 then
-        T := Universe(plane_model);
-        AssignNames(~T, "XYZ");
-        plane_model_string := Join([sprint(f) : f in plane_model], ",");
-    else
-        plane_model_string := "";
-    end if;
-    Write(fname, Sprintf("{%o}|{%o}|{%o,%o,%o}|{%o}|{%o}|{%o}", Rank(R), 
+    Write(fname, Sprintf("{%o}|{%o}|{%o,%o,%o}|{%o}|{%o}", Rank(R), 
 			 Join([sprint(f) : f in DP], ","), E4_str, E6_str, j_str,
-			 coords,fields,plane_model_string) : Overwrite);
+			 coords,fields) : Overwrite);
     return;
+end intrinsic;
+
+intrinsic LMFDBWritePlaneModel(C::Crv, proj::SeqEnum, fname::MonStgElt)
+{}
+    Write(fname, Sprintf("%o|%o", DefiningEquation(C), Join([Sprint(c) : c in proj], ",")) : Overwrite);
 end intrinsic;
 
 function StringToPoly(s, R, name)
