@@ -74,6 +74,21 @@ intrinsic ValidPlaneModel2(f::RngMPolElt, X::Crv, proj::ModMatRngElt) -> BoolElt
     return Degree(pi) eq 1;
 end intrinsic;
 
+intrinsic ValidPlaneModel3(f::RngMPolElt, X::Crv, proj::ModMatRngElt) -> BoolElt
+{A quick check for whether the plane curve defined by f is a valid reduction}
+    p := 997;
+    fbar := ChangeRing(f, GF(p));
+    if not IsIrreducible(fbar) then return false; end if;
+    C := Curve(Proj(Parent(fbar)), fbar);
+    P := Random(C(GF(p)));
+    Igens := DefiningEquations(X);
+    R := ChangeRing(Parent(Igens[1]), GF(p));
+    coords := [&+[R.i * proj[j,i] : i in [1..NumberOfGenerators(R)]] : j in [1..3]];
+    Igens := [R!g : g in Igens] cat [coords[j] - P[j] : j in [1..3]];
+    I := Ideal(Igens);
+    return IsMaximal(I);
+end intrinsic;
+
 intrinsic F0Combination(F0::SeqEnum, M::ModMatRngElt) -> SeqEnum
 {F0 is as in ModularCurveRec, M is a 3 by n matrix over the integers with full rank, where n is the length of F0.
 Applies the matrix M to the expansions, projecting F0 onto 3 modular forms (given by expansions at cusps as normal)}
@@ -188,7 +203,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Cr
             if #rels gt 0 then
                 ttmp := Cputime();
                 //vld := ValidPlaneModel(rels[1], g);
-                vld := ValidPlaneModel2(R!rels[1], Can, M);
+                vld := ValidPlaneModel3(R!rels[1], Can, M);
                 tval +:= Cputime() - ttmp;
                 if vld then
                     printf "Plane model: found valid model of degree = %o\n", m;
