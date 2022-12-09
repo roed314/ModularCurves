@@ -90,13 +90,8 @@ dont_display := #big_equation gt 100000;
 
 // Get equations as polynomials
 equations_str := Split(big_equation, ",");
-if nb_var le 26 then  // Variables are uppercase letters
-    variables := [x: x in Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ") | x in big_equation];
-else
-    variables := ["X" cat Sprint(i): i in [1..nb_var]];
-end if;
 P := PolynomialRing(Rationals(), nb_var);
-AssignNames(~P, variables);
+AssignCanonicalNames(~P);
 equations_pol := [eval(ReplaceVariables(s, variables)): s in equations_str];
 
 // Get j-maps

@@ -80,7 +80,9 @@ intrinsic ValidPlaneModel3(f::RngMPolElt, X::Crv, proj::ModMatRngElt) -> BoolElt
     fbar := ChangeRing(f, GF(p));
     if not IsIrreducible(fbar) then return false; end if;
     C := Curve(Proj(Parent(fbar)), fbar);
-    P := Random(C(GF(p)));
+    repeat
+        P := Random(C(GF(p)));
+    until not IsSingular(C, P);
     Igens := DefiningEquations(X);
     R := ChangeRing(Parent(Igens[1]), GF(p));
     coords := [&+[R.i * proj[j,i] : i in [1..NumberOfGenerators(R)]] : j in [1..3]];
