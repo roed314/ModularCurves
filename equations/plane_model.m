@@ -225,12 +225,14 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Cr
     rescaled := [* *];
     ttmp := Cputime();
     adjusted := 0;
+    QQ := Rationals();
     for i in [1..#valid] do
         f, adjust := reducemodel_padic(valid[i][1]);
         if f eq valid[i][1] then
             // reducemodel_padic seems to produce giant coefficients in cases where it does nothing
             adjust := [1 : _ in adjust];
         else
+            adjust := [QQ!a : a in adjust];
             adjusted +:= 1;
         end if;
         Append(~sorter, <#sprint(f), Max([#sprint(a) : a in adjust])>);
