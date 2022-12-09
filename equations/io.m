@@ -74,7 +74,7 @@ intrinsic LMFDBWritePlaneModel(C::Crv, proj::SeqEnum, fname::MonStgElt)
     g := #proj div 3;
     R := PolynomialRing(Rationals(), g);
     AssignCanonicalNames(~R);
-    coords := [&+[proj[3*i + j] * R.j : j in [1..g]] : i in [0..2]];
+    coords := [&+[proj[g*i + j] * R.j : j in [1..g]] : i in [0..2]];
     Write(fname, Sprintf("%o|%o", DefiningEquation(C), Join([sprint(c) : c in coords], ",")) : Overwrite);
 end intrinsic;
 
