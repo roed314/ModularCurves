@@ -28,7 +28,7 @@ def get_poset():
 
 @cached_function
 def distinguished_vertices():
-    return {rec["label"]: rec["name"] for rec in db.gps_gl2zhat_test.search({"name":{"$ne":""}}, ["label", "name"])}
+    return {rec["label"]: rec["name"] for rec in db.gps_gl2zhat_test.search({"contains_negative_one":True, "name":{"$ne":""}}, ["label", "name"])}
 
 Xfams = ['X', 'X0', 'X1', 'Xsp', 'Xns', 'Xsp+', 'Xns+', 'XS4']
 
@@ -109,16 +109,27 @@ def get_rank(label):
 def sort_key(label):
     return [-get_rank(label)] + [ZZ(c) for c in label.split(".")]
 
+def subposet_cover_relations(P, nodes):
+    # Unlike P.subposet(nodes), we assume that nodes are saturated: if x < y in nodes then there is no z in P with x < z < y
+    H = P._hasse_diagram
+    verts = set([P._element_to_vertex(v) for v in nodes])
+    edges = {}
+    for a in verts:
+        outedges  = [
+            P._vertex_to_element(b)
+            for b in H.neighbor_out_iterator(a)
+            if b in verts]
+        if outedges:
+            edges[P._vertex_to_element(a)] = outedges
+    return edges
+
 def save_graphviz(label):
     P = get_poset()
     D, num_tops = intervals_to_save()
     if label not in D:
         return {}
     nodes = D[label]
-    PP = P.subposet(nodes)
-    edges = defaultdict(list)
-    for a,b in PP.cover_relations():
-        edges[a].append(b)
+    edges = subposet_cover_relations(P, nodes)
     edges = [(a, '","'.join(b)) for (a,b) in edges.items()]
     ranks = defaultdict(list)
     for lab in nodes:
