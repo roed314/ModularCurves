@@ -50,6 +50,7 @@ with open(opj("ecnf_bc", args.nf), "w") as F:
                                 if EK.is_isomorphic(EK1):
                                     desc_labels.add(label1)
                                     break
-                missing = "missing" if (len(desc_labels) < len(Edesc)) else "found"
-                _ = F.write(f"{rec['label']}|{K.defining_polynomial()}|{[Ed.ainvs() for Ed in Edesc]}|{desc_labels}|{missing}\n")
+                if Edesc:
+                    missing = "missing" if (len(desc_labels) < len(Edesc)) else "found"
+                    _ = F.write(f"{rec['label']}|{K.defining_polynomial()}|{[Ed.ainvs() for Ed in Edesc]}|{desc_labels}|{missing}\n")
     _ = F.write("Done")
