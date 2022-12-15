@@ -14,7 +14,7 @@ j := New(JMapData);
 j`J := jmap;
 System("mkdir -p canonical_models");
 SetColumns(0);
-LMFDBWriteModel(X, j, cusps, model_type, output_fname);
+LMFDBWriteModel(X, j, cusps, model_type, label);
 
 // We compute the plane model separately since it can take a long time
 if M`genus gt 3 and model_type eq 0 then

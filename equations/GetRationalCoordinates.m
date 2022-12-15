@@ -10,8 +10,9 @@ if (not assigned label) then
 end if;
 
 jinvs := LMFDBReadJinvPts(label);
-ans := [];
+ans := [* *];
 if #jinvs gt 0 then
+    QQ := Rationals();
     X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
     Cs := LMFDBReadPlaneModel(label);
     X := Curve(Proj(Universe(X)), X);
@@ -21,20 +22,28 @@ if #jinvs gt 0 then
     P1K := AssociativeArray();
     XK := AssociativeArray();
     projK := AssociativeArray();
+    CK := AssociativeArray();
+    CprojK := AssociativeArray();
     for pair in jinvs do
         j, isolated := Explode(pair);
         K := Parent(j);
-        if not IsDefined(P1K, K) then
-            P1K[K] :=ProjectiveSpace(K, 1);
-            XK[K] := ChangeRing(X, K);
-            projK[K] := map<XK[K] -> P1K[K] | [jnum, jden]>;
+        if K eq QQ then
+            k := RationalsAsNumberField();
+        else
+            k := K;
+        end if;
+        if not IsDefined(P1K, k) then
+            P1K[k] :=ProjectiveSpace(K, 1);
+            XK[k] := ChangeRing(X, K);
+            projK[k] := map<XK[k] -> P1K[k] | [jnum, jden]>;
             if #Cs gt 0 then
-                CK[K] := ChangeRing(C, K);
-                CprojK[K] := map<XK[K] -> CK[K]| [ChangeRing(f, K) : f in Cs[1][2]]>;
+                CK[k] := ChangeRing(C, K);
+                T := ChangeRing(Universe(Cs[1][2]), K);
+                CprojK[k] := map<XK[k] -> CK[k]| [T!f : f in Cs[1][2]]>;
             end if;
         end if;
-        P1pt := P1K[K]![j,1];
-        Xpt := P1pt @@ (projK[K]);
+        P1pt := P1K[k]![j,1];
+        Xpt := P1pt @@ (projK[k]);
         Xcoords := RationalPoints(Xpt);
         if #Xcoords eq 0 then
             printf "Error: no point on %o above j=%o!\n", label, j;
@@ -54,14 +63,17 @@ if #jinvs gt 0 then
             end if;
         end if;
         */
-        for coords in Xcoords do
-            Append(~ans, <0, j, coords>);
+        for pt in Xcoords do
+            Append(~ans, <0, j, pt>);
         end for;
         if #Cs gt 0 then
-            Cpt := Xpt @ (CprojK[K]);
-            Ccoords := RationalPoints(Cpt);
-            for coords in Ccoords do
-                Append(~ans, <2, j, coords>);
+            //Cpt := Xpt @ (CprojK[k]);
+            //Ccoords := RationalPoints(Cpt);
+            //for coords in Ccoords do
+            //    Append(~ans, <2, j, coords>);
+            //end for;
+            for pt in Xcoords do
+                Append(~ans, <2, j, (XK[k]!pt) @ CprojK[k]>);
             end for;
         end if;
     end for;

@@ -290,7 +290,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
             C:     a sequence of length 0 or 1 of known plane models (provided as a tuple, with first entry the defining polynomial and the second entry a sequence of three polynomials giving the map from X to C)
 }
     P := Parent(X[1]);
-    opts := [* <f, [P.1, P.2, P.3]> : f in C *];
+    opts := [* f : f in C *];
     procedure add_opt(mp)
         f := DefiningEquation(Codomain(mp));
         R := Parent(f);
@@ -332,6 +332,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
             F := BaseField(Domain(gonal_map));
             if F eq Rationals() then
 	        q_high := qbar_high;
+                /*
                 P1<s,t> := Codomain(gonal_map);
                 X_aff := AffinePatch(curve, 1);
                 gonal_map_polys := [AlgebraMap(gonal_map)(g) : g in [s,t]];
@@ -343,7 +344,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
                     ; // We can eliminate the quadratic term to get y^3 + g(x)y = f(x), then clear denominators
                 end if;
                 // TODO: Need to use f to get a model, together with maps
-
+                */
             end if;
         elif ghyp then
             qbar_high := 2;
@@ -365,10 +366,11 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
 
     // Use rational cusps (and maybe a short rational point search?) to project
 
+    /*
     if g eq 5 then
         ok, f := Genus5PlaneCurveModel(X : IsCanonical:=not ghyp);
         if ok then add_opt(f); end if;
-    end if;
+    end if;*/
     // Sam suggests Ciaran's code for improving coefficients: https://github.com/SamSchiavone/Gm-Reduce/blob/main/linear-program.m#L218
     function pick_best(L)
         _, i := Min([#sprint(pair[1]) : pair in L]);

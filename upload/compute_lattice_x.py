@@ -6,9 +6,10 @@ import re
 import sys
 from collections import defaultdict, Counter
 from sage.misc.cachefunc import cached_function
-from sage.all import ZZ, QQ, Poset, DiGraph
+from sage.all import ZZ, QQ, Poset, DiGraph, flatten
 from sage.combinat.posets.posets import FinitePoset
 from sage.misc.misc import cputime, walltime
+from sage.databases.cremona import class_to_int
 opj = os.path.join
 ope = os.path.exists
 
@@ -68,7 +69,7 @@ def get_rational_poset():
 
 @cached_function
 def distinguished_vertices():
-    return {rec["label"]: rec["name"] for rec in db.gps_gl2zhat_test.search({"contains_negative_one":True, "name":{"$ne":""}}, ["label", "name"])}
+    return {rec["label"]: rec["name"] for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True, "name":{"$ne":""}}, ["label", "name"])}
 
 Xfams = ['X', 'X0', 'X1', 'Xsp', 'Xns', 'Xsp+', 'Xns+', 'XS4']
 
@@ -153,7 +154,7 @@ def get_rank(label):
     return sum(e for (p,e) in ZZ(label.split(".")[1]).factor())
 
 def sort_key(label):
-    return [-get_rank(label)] + [ZZ(c) for c in label.split(".")]
+    return [-get_rank(label)] + [(ZZ(c) if c.isdigit() else class_to_int(c)) for c in label.split(".")]
 
 def subposet_cover_relations(P, nodes):
     # Unlike P.subposet(nodes), we assume that nodes are saturated: if x < y in nodes then there is no z in P with x < z < y
@@ -361,9 +362,17 @@ def load_ecnf_data(fname="ecnf_data.txt"):
     }
     print("Constructed Sutherland label lookup table")
 
+    # db.ec_nfcurves doesn't currently contain information about which curves are base changes
+    # We want to avoid base changes, since they would have incorrect field_of_definition
+    # We computed the set of base change curves separately
+    with open("ecnf_is_bc.txt") as F:
+        isbc = set(line.strip() for line in F)
+
     with open(fname) as F:
         for line in F:
             Slabels, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, conductor_norm = line.strip().split("|")
+            if Elabel in isbc:
+                continue
             for Slabel in Slabels.split(","):
                 if Slabel in from_Slabel:
                     label = from_Slabel[Slabel]
@@ -495,6 +504,7 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
 
 def make_graphviz_files():
     P = get_lattice_poset()
+    os.makedirs(opj("..", "equations", "graphviz_in"), exist_ok=True)
     for label in P:
         make_graphviz_file(label)
 
@@ -504,7 +514,16 @@ def make_picture_input():
             _ = F.write(label + "\n")
 
 def make_gonality_files():
-    os.makedirs(opj("..", "equations", "gonality"), exist_ok=True)
+    folder = opj("..", "equations", "gonality")
+    os.makedirs(folder, exist_ok=True)
     for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"]):
-        with open(opj("..", "equations", "gonality", rec["label"]), "w") as F:
-            _ = F.write(",".join(str(c) for c in rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"]))
+        with open(opj(folder, rec["label"]), "w") as F:
+            #### TODO: Use qbar_gonality_bounds once Drew has computed them
+            _ = F.write(",".join(str(c) for c in rec["q_gonality_bounds"] + [1, rec["q_gonality_bounds"][1]]))
+
+def make_input_data():
+    folder = opj("..", "equations", "input_data")
+    os.makedirs(folder, exist_ok=True)
+    for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "generators"]):
+        with open(opj(folder, rec["label"]), "w") as F:
+            _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))

@@ -21,21 +21,23 @@ import subprocess
 
 opj = os.path.join
 ope = os.path.exists
-parser = argparse.ArgumentParser("Dispatch to appropriate magma script")
-parser.add_argument("job", type=int, help="job number")
+#parser = argparse.ArgumentParser("Dispatch to appropriate magma script")
+#parser.add_argument("job", type=int, help="job number")
 
 # These folders are needed by the scripts to be called below
-os.makedirs("canonical_models", exist_ok=True)
-os.makedirs("plane_models", exist_ok=True)
-os.makedirs("gonality", exist_ok=True)
+#os.makedirs("canonical_models", exist_ok=True)
+#os.makedirs("plane_models", exist_ok=True)
+#os.makedirs("gonality", exist_ok=True)
+#os.makedirs("stdout", exist_ok=True)
+
 
 # These functions use subprocess to actually compute the various needed quantities
 
-args = parser.parse_args()
-job = args.job - 1 # shift from 1-based to 0-based indexing
-with open("todo.txt") as F:
-    L = F.read().strip().split("\n")
-    label = L[job]
+#args = parser.parse_args()
+#job = args.job - 1 # shift from 1-based to 0-based indexing
+#with open("todo.txt") as F:
+#    L = F.read().strip().split("\n")
+#    label = L[job]
 
 def get_lattice_coords(label):
     # We use graphviz to lay out the displayed lattice
@@ -82,9 +84,9 @@ def collate_data(label):
     with open(opj("canonical_models", label)) as F:
         return tuple(F.read().strip().replace("{","").replace("}","").split("|"))
 
-if get_canonical_model(label):
-    if get_plane_and_gonality(label):
-        get_ghyperelliptic_model(label)
-    get_rational_coordinates(label)
-xcoords = get_lattice_coords(label)
-collate_data(label)
+#if get_canonical_model(label):
+#    if get_plane_and_gonality(label):
+#        get_ghyperelliptic_model(label)
+#    get_rational_coordinates(label)
+#xcoords = get_lattice_coords(label)
+#collate_data(label)
