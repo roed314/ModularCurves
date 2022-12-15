@@ -67,6 +67,7 @@ if #jinvs gt 0 then
             Append(~ans, <0, j, pt>);
         end for;
         if #Cs gt 0 then
+            // This produces extra points, which I think are singular
             //Cpt := Xpt @ (CprojK[k]);
             //Ccoords := RationalPoints(Cpt);
             //for coords in Ccoords do

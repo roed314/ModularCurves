@@ -527,3 +527,17 @@ def make_input_data():
     for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "generators"]):
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))
+
+def make_todo():
+    with open(opj("..", "equations", "todo.txt"), "w") as F:
+        for label in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, "label"):
+            _ = F.write(label+"\n")
+
+def prep_all():
+    make_input_data()
+    make_graphviz_files()
+    make_picture_input()
+    make_gonality_files()
+    make_todo()
+    prepare_rational_points()
+    # Make tarball
