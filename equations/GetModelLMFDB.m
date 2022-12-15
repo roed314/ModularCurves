@@ -12,17 +12,15 @@ end if;
 X, jmap, model_type, cusps, M := ProcessModel(label);
 j := New(JMapData);
 j`J := jmap;
-System("mkdir -p output_data");
+System("mkdir -p canonical_models");
 SetColumns(0);
-output_fname := Sprintf("canonical_models/%o.%o", label, model_type);
-LMFDBWriteModel(X, j, cusps, output_fname);
+LMFDBWriteModel(X, j, cusps, model_type, output_fname);
 
 // We compute the plane model separately since it can take a long time
 if M`genus gt 3 and model_type eq 0 then
     success, plane_model, proj := PlaneModelFromQExpansions(M, X);
     if success then
-        output_fname := Sprintf("plane_models/%o", label);
-        LMFDBWritePlaneModel(plane_model, proj, output_fname);
+        LMFDBWritePlaneModel(plane_model, proj, label);
     end if;
 end if;
 exit;

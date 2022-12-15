@@ -2,10 +2,11 @@
 import subprocess
 import argparse
 import os
+import re
 import sys
-from collections import defaultdict
+from collections import defaultdict, Counter
 from sage.misc.cachefunc import cached_function
-from sage.all import ZZ, Poset, DiGraph
+from sage.all import ZZ, QQ, Poset, DiGraph
 from sage.combinat.posets.posets import FinitePoset
 from sage.misc.misc import cputime, walltime
 opj = os.path.join
@@ -21,10 +22,10 @@ sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
 from lmfdb import db
 
 @cached_function
-def get_poset():
+def get_lattice_poset():
     t0 = walltime()
     R = []
-    for rec in db.gps_gl2zhat_test.search({"contains_negative_one":True}, ["label", "parents"]):
+    for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "parents"]):
         for olabel in rec["parents"]:
             R.append([olabel, rec["label"]]) # Use backward direction so that breadth first search is faster
     print("DB data loaded in", walltime() - t0)
@@ -35,7 +36,35 @@ def get_poset():
     t0 = cputime()
     P = FinitePoset(D)
     print("Poset created in", cputime() - t0)
-    #return Poset(([],R), cover_relations=True)
+    return P
+
+@cached_function
+def rational_poset_query():
+    # We need to also include prime levels since ec_nfcurve has prime level galois_images, and many of the hand-curated low-degree points are on curves of prime level
+    ecnf_primes = sorted(set(sum(db.ec_nfcurves.distinct('nonmax_primes'), [])))
+    return {"$or": [{"pointless": False}, {"pointless": None}, {"level": {"$in": ecnf_primes}}]}
+
+@cached_function
+def get_rational_poset():
+    # The poset of modular curves that might have rational points, omitting X(1)
+    t0 = walltime()
+    R = []
+    for rec in db.gps_gl2zhat_fine.search(rational_poset_query(), ["label", "parents", "coarse_label"]):
+        if rec["label"] == "1.1.0.a.1": continue
+        parents = [label for label in rec["parents"] if label != "1.1.0.a.1"]
+        if rec["label"] != rec["coarse_label"] and rec["coarse_label"] != "1.1.0.a.1":
+            parents += [rec["coarse_label"]]
+        for olabel in parents:
+            R.append([rec["label"], olabel]) # note that this is the opposite direction of edges from lattice_poset
+    print("DB data loaded in", walltime() - t0)
+    t0 = cputime()
+    D = DiGraph()
+    D.add_edges(R, loops=False)
+    print("Edges added to graph in", cputime() - t0)
+    t0 = cputime()
+    P = FinitePoset(D)
+    print("Poset created in", cputime() - t0)
+    return P
 
 @cached_function
 def distinguished_vertices():
@@ -45,7 +74,7 @@ Xfams = ['X', 'X0', 'X1', 'Xsp', 'Xns', 'Xsp+', 'Xns+', 'XS4']
 
 @cached_function
 def intervals_to_save(max_size=60):
-    P = get_poset()
+    P = get_lattice_poset()
     H = P._hasse_diagram
     t0 = cputime()
     DV = distinguished_vertices()
@@ -140,13 +169,12 @@ def subposet_cover_relations(P, nodes):
             edges[P._vertex_to_element(a)] = outedges
     return edges
 
-def save_graphviz(label):
-    P = get_poset()
+def make_graphviz_file(label):
+    P = get_lattice_poset()
     D, num_tops = intervals_to_save()
-    print("Constructing graphviz file")
     t0 = cputime()
     if label not in D:
-        return {}
+        return
     nodes = D[label]
     edges = subposet_cover_relations(P, nodes)
     edges = [(a, '","'.join(b)) for (a,b) in edges.items()]
@@ -167,35 +195,291 @@ splines=line;
 {ranks};
 }}
 """
-    infile = f"/tmp/graph{label}.in"
-    outfile = f"/tmp/graph{label}.out"
+    infile = opj("..", "equations", "graphviz_in", label)
     with open(infile, "w") as F:
         _ = F.write(graph)
-    print("Constructed in", cputime() - t0)
-    t0 = walltime()
-    subprocess.run(["dot", "-Tplain", "-o", outfile, infile], check=True)
-    print("Subprocess run in", walltime() - t0)
-    t0 = cputime()
-    xcoord = {}
-    with open(outfile) as F:
-        maxx = 0
-        minx = 10000
+
+def trim_modm_images(images):
+    # Only keep fully-defined images that are maximal (for level-divisibility)
+    images = [label for label in images if "?" not in label and int(label.split(".")[0]) < 24]
+    Ns = [int(label.split(".")[0]) for label in images]
+    locs = [i for i in range(len(Ns)) if not any(Ns[j] % Ns[i] == 0 for j in range(len(Ns)) if i != j)]
+    return [images[i] for i in locs]
+
+S_LABEL_RE = re.compile(r"^(\d+)(G|B|Cs|Cn|Ns|Nn|A4|S4|A5)(\.\d+){0,3}$")
+LABEL_RE = re.compile(r"^\d+\.\d+\.\d+\.[a-z]+\.\d+$")
+NFLABEL_RE = re.compile(r"^\d+\.\d+\.\d+\.\d+$")
+QQ_RE = re.compile(r"^-?\d+(/\d+)?$")
+ZZ_RE = re.compile(r"^(-?\d+)|\\N$")
+QQ_LIST_RE = re.compile(r"^-?\d+(/\d+)?(,-?\d+(/\d+)?)*$") # can't be empty
+NN_LIST_RE = re.compile(r"^(\d+(,\s*\d+)*)?$") # can be empty
+
+def load_points_files(data_folder):
+    all_pieces = []
+    field_labels = set()
+    for fname in os.listdir(data_folder):
+        if fname.endswith("-pts.txt"):
+            with open(os.path.join(data_folder, fname)) as F:
+                for line in F:
+                    if line.startswith("//") or not line.strip():
+                        continue
+                    line = line.replace("'", "").replace('"', '')
+                    pieces = line.strip().split("|")
+                    if len(pieces) != 8:
+                        raise ValueError(f"line has {len(pieces)} when it should have 8: {line}")
+                    all_pieces.append(pieces)
+                    field_labels.add(pieces[4].strip())
+
+    nfs, sub_lookup, embeddings = load_nf_data(list(field_labels))
+
+    ans = []
+    X0s = {rec["name"]: rec["label"] for rec in db.gps_gl2zhat_fine.search({"name": {"$like": "X0%"}}, ["name", "label"], silent=True)}
+    RSZB_lookup = {rec["RSZBlabel"]: rec["label"] for rec in db.gps_gl2zhat_fine.search({"name": {"$exists": True}}, ["label", "RSZBlabel"])}
+    skipped = set()
+    for pieces in all_pieces:
+        name = label = pieces[0].strip()
+        if label.startswith("X0"):
+            label = X0s.get(label)
+            if label is None:
+                # We haven't added X0(56) yet....
+                if name not in skipped:
+                    print(f"Skipping name {name}")
+                    skipped.add(name)
+                continue
+        level = int(label.split(".")[0])
+        if level >= 24: continue
+        if not LABEL_RE.fullmatch(label):
+            label = RSZB_lookup[label]
+        field_of_definition = pieces[2].strip()
+        degree = field_of_definition.split(".")[0]
+        jinv = pieces[3].replace(" ", "").replace("[", "").replace("]", "")
+        jfield = pieces[4].strip()
+        if jfield in ["1.1.1.1", field_of_definition]:
+            jorig = r"\N"
+        else:
+            # Recover the j-invariant in the residue field from our chosen embedding.
+            K = nfs[jfield]
+            j = [QQ(c) for c in jinv.split(",")]
+            j += [0] * (K.degree() - len(j))
+            j = K(j)
+            L = nfs[field_of_definition]
+            root = embeddings[jfield, field_of_definition]
+            emb = K.hom([root])
+            jorig = ",".join(str(c) for c in list(emb(j)))
+        j_height = get_j_height(jinv, jfield, nfs)
+        cm = pieces[6].strip()
+        quo_info = pieces[7].strip().replace("[", "{").replace("]", "}")
+        assert LABEL_RE.fullmatch(label), f"Invalid curve label {label}"
+        assert ZZ_RE.match(degree), f"Invalid degree {degree} for {label}"
+        assert NFLABEL_RE.match(field_of_definition), f"Invalid field of definition {field_of_definition} for {label}"
+        assert QQ_LIST_RE.match(jinv), f"Invalid j-invariant {jinv} for {label}"
+        assert NFLABEL_RE.match(jfield), f"Invalid field of j {jfield} for {label}"
+        assert ZZ_RE.match(cm), f"Invalid CM discriminant {cm} for {label}"
+        assert quo_info == r"\N" or NN_LIST_RE.match(quo_info[1:-1]), f"Invalid quotient information {quo_info} for {label}"
+        ans.append((label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, cm, r"\N", True, r"\N"))
+    return ans
+
+def get_j_height(jinv, j_field, nfs):
+    K = nfs[j_field]
+    j = [QQ(c) for c in jinv.split(",")]
+    j += [0] * (K.degree() - len(j))
+    j = K(j)
+    return j.global_height()
+
+def load_nf_data(field_labels=None):
+    if field_labels is None:
+        field_labels = db.ec_nfcurves.distinct("field_label")
+    R = PolynomialRing(QQ, 'x')
+    field_data = list(db.nf_fields.search({"label": {"$in": field_labels}},
+                                          ["label", "coeffs", "subfields", "degree", "disc_abs"], silent=True))
+    subs = [[int(c) for c in sub.split(".")] for sub in set(sum((rec["subfields"] for rec in field_data), []))]
+    sub_data = list(db.nf_fields.search({"$or": [{"coeffs": sub} for sub in subs]}, ["degree", "disc_abs", "label", "coeffs"], silent=True))
+    if len(subs) != len(sub_data):
+        raise RuntimeError("Sub not labeled or discriminant clash")
+    sub_lookup = {(rec["degree"], rec["disc_abs"]) : (rec["label"], R(rec["coeffs"])) for rec in sub_data}
+    by_coeffs = {tuple(rec["coeffs"]): rec["label"] for rec in sub_data}
+    sub_lookup[1, 1] = ("1.1.1.1", R.gen() - 1)
+    nfs = {"1.1.1.1": QQ}
+    embeddings = {}
+    for rec in field_data:
+        f = R(rec["coeffs"])
+        nfs[rec["label"]] = L = NumberField(f, 'a')
+        sub_lookup[rec["degree"], rec["disc_abs"]] = (rec["label"], f)
+        for sub in rec["subfields"]:
+            sub = [ZZ(c) for c in sub.split(".")]
+            g = R(sub)
+            embeddings[by_coeffs[tuple(sub)], rec["label"]] = g.roots(L, multiplicities=False)[0]
+
+    print("Constructed number field lookup tables")
+    return nfs, sub_lookup, embeddings
+
+def save_ecnf_data(fname="ecnf_data.txt"):
+    # We have to modify ecnf data in a way that's somewhat slow (computing the actual field in which j lies)
+    # We do that once, save it, and then load the result from disc as needed
+    nfs, sub_lookup, _ = load_nf_data()
+
+    # Ideally, we would omit curves that are base changes from any subfield.
+    total = db.ec_nfcurves.count()
+    with open(fname, "w") as F:
+        for progress, rec in enumerate(db.ec_nfcurves.search({}, ["galois_images", "degree", "field_label", "jinv", "cm", "label", "conductor_norm", "base_change"], silent=True)):
+            if progress and progress % 10000 == 0:
+                print(f"ECNF: {progress}/{total}")
+            if rec["base_change"] or not rec["galois_images"]:
+                continue
+            if rec["jinv"].endswith(",0" * (rec["degree"] - 1)):
+                jfield = "1.1.1.1"
+                jinv = rec["jinv"].split(",")[0]
+                # Searching ecnf using a rational j-invariant works even when the residue field is not Q
+                jorig = r"\N"
+            else:
+                K = nfs[rec["field_label"]]
+                j = K([QQ(c) for c in rec["jinv"].split(",")])
+                Qj, jinc = K.subfield(j)
+                if Qj.degree() == rec["degree"]:
+                    jfield = rec["field_label"]
+                    jinv = rec["jinv"]
+                    jorig = r"\N"
+                else:
+                    jfield, f = sub_lookup[Qj.degree(), Qj.discriminant().abs()]
+                    jinv = ",".join(str(c) for c in f.roots(Qj, multiplicities=False)[0].coordinates_in_terms_of_powers()(Qj.gen()))
+                    #root = embeddings[jfield, rec["field_label"]]
+                    #jinv = ",".join(str(c) for c in root.coordinates_in_terms_of_powers()(jinc(Qj.gen())))
+                    jorig = rec["jinv"]
+            Slabels = ",".join(rec["galois_images"])
+            j_height = get_j_height(jinv, jfield, nfs)
+            _ = F.write(f"{Slabels}|{rec['degree']}|{rec['field_label']}|{jorig}|{jinv}|{jfield}|{j_height}|{rec['cm']}|{rec['label']}|{rec['conductor_norm']}\n")
+
+def load_ecnf_data(fname="ecnf_data.txt"):
+    # Galois images are stored for NF curves using Sutherland labels
+    from_Slabel = {
+        rec["Slabel"] : rec["label"]
+        for rec in db.gps_gl2zhat_fine.search(
+                {"Slabel": {"$exists":True}},
+                ["Slabel", "label"],
+                silent=True,
+        )
+    }
+    print("Constructed Sutherland label lookup table")
+
+    with open(fname) as F:
         for line in F:
-            if line.startswith("graph"):
-                scale = float(line.split()[2])
-            elif line.startswith("node"):
-                pieces = line.split()
-                short_label = pieces[1].replace('"', '')
-                diagram_x = int(round(10000 * float(pieces[2]) / scale))
-                xcoord[short_label] = diagram_x
-                if diagram_x > maxx:
-                    maxx = diagram_x
-                if diagram_x < minx:
-                    minx = diagram_x
-    os.remove(infile)
-    os.remove(outfile)
-    print("Finished in", cputime() - t0)
-    return xcoord
+            Slabels, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, conductor_norm = line.strip().split("|")
+            for Slabel in Slabels.split(","):
+                if Slabel in from_Slabel:
+                    label = from_Slabel[Slabel]
+                    yield label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, int(cm), Elabel, False, conductor_norm
+    print("Loaded ECNF data from file")
+
+def load_ecq_data(cm_data_file):
+    t0 = walltime()
+    ecq_db_data = []
+    # CM data computed by Shiva
+    cm_lookup = defaultdict(list)
+    with open(cm_data_file) as F:
+        for line in F:
+            lmfdb_label, ainvs, modcurve_label = line.strip().split("|")
+            if lmfdb_label != "?" and int(modcurve_label.split(".")[0]) < 24:
+                cm_lookup[lmfdb_label].append(modcurve_label)
+
+    for rec in db.ec_curvedata.search({}, ["lmfdb_label", "jinv", "cm", "conductor", "modm_images"]):
+        Elabel = rec["lmfdb_label"]
+        jinv = QQ(tuple(rec["jinv"]))
+        if rec["cm"]:
+            images = cm_lookup.get(rec["lmfdb_label"], [])
+        else:
+            images = rec["modm_images"]
+        images = trim_modm_images(images)
+        for label in images:
+            ecq_db_data.append((label, 1, "1.1.1.1", r"\N", str(jinv), "1.1.1.1", str(jinv.global_height()), rec["cm"], Elabel, False, str(rec["conductor"])))
+    print("Loaded elliptic curves over Q", walltime() - t0)
+    return ecq_db_data
+
+def load_gl2zhat_data():
+    return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds"], silent=True)}
+
+def is_isolated(degree, g, rank, gonlow, simp, dims):
+    # We encode the isolatedness in a small integer, p + a, where
+    # p = 3,0,-3 for P1 isolated/unknown/parameterized and
+    # a = 1,0,-1 for AV isolated/unknown/parameterized
+    # 4 = isolated (both P1 isolated and AV isolated)
+    # 0 = unknown for both
+    # -4 = both P1 and AV parameterized
+    if g == 0:
+        # Always P1 parameterized and AV isolated
+        return "-2"
+    elif degree == 1:
+        if g == 1 and rank > 0:
+            # Always P1 isolated and AV parameterized
+            return "2"
+        else:
+            return "4"
+    elif degree < QQ(gonlow) / 2 or degree < gonlow and (rank == 0 or simp and degree < g):
+        return "4"
+    elif degree > g:
+        # Always P1 parameterized; AV parameterized if and only if rank positive
+        if rank is None:
+            return "-3"
+        if rank > 0:
+            return "-4"
+        else:
+            return "-2"
+    elif degree == g and rank > 0:
+        return "-1" # AV parameterized; can compute if P1 parameterized by Riemann Roch with a model
+    else:
+        if rank == 0 or degree <= min(dims): # for second part, using degree < g
+            # Actually only need to check the minimum of the dimensions where the rank is positive
+            # Always AV isolated; can try to computed whether P1 parameterized by Riemann roch
+            return "1"
+        else:
+            return "0"
+
+def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_folder="../rational-points/data", ecnf_data_file="ecnf_data.txt", cm_data_file="cm_data.txt"):
+    # Writes files with rational points for pullback along j-maps
+    os.makedirs(output_folder, exist_ok=True)
+
+    lit_data = load_points_files(manual_data_folder)
+    lit_fields = sorted(set([datum[2] for datum in lit_data]))
+    print("Loaded tables from files")
+
+    gpdata = load_gl2zhat_data()
+
+    P = get_rational_poset()
+    H = P._hasse_diagram
+    ecq_db_data = load_ecq_data(cm_data_file)
+
+    ecnf_db_data = list(load_ecnf_data(ecnf_data_file))
+
+    fields = list(set(tup[2] for tup in ecq_db_data + ecnf_db_data + lit_data))
+    nf_lookup = {rec["label"]: rec["coeffs"] for rec in db.nf_fields.search({"label": {"$in": fields}})}
+    assert all(K in nf_lookup for K in fields)
+
+    # Check for overlap as we add points
+    jinvs_seen = defaultdict(set)
+    point_counts = defaultdict(Counter)
+    X1intervals = {}
+    jinvs = defaultdict(list)
+    for ctr, (label, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, known_isolated, conductor_norm) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
+        if ctr and ctr % 10000 == 0:
+            print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
+        assert label != "1.1.0.a.1"
+        if label not in X1intervals:
+            X1intervals[label] = [P._vertex_to_element(v) for v in H.breadth_first_search(P._element_to_vertex(label))]
+        for plabel in X1intervals[label]:
+            gdat = gpdata[plabel]
+            if gdat["genus"] == 0: continue
+            if (jfield, jinv) not in jinvs_seen[plabel]:
+                jinvs_seen[plabel].add((jfield, jinv))
+                point_counts[plabel][degree] += 1
+                if label == plabel and known_isolated:
+                    isolated = "4"
+                else:
+                    isolated = is_isolated(degree, gdat["genus"], gdat["rank"], gdat["q_gonality_bounds"][0], gdat["simple"], gdat["dims"])
+                jinvs[plabel].append((jinv, nf_lookup[field_of_definition], isolated))
+    for plabel, pts in jinvs.items():
+        # We only need to compute isolatedness and model-coordinates when genus > 0
+        with open(opj(output_folder, plabel), "w") as F:
+            for jinv, nf, isolated in pts:
+                _ = F.write(f"{jinv}|{str(nf).replace(' ','')[1:-1]}|{isolated}\n")
 
 #os.makedirs(args.outfolder, exist_ok=True)
 #todo = list(db.gps_gl2zhat_test.search({}, "label"))[args.job::args.num_jobs]
@@ -207,3 +491,20 @@ splines=line;
 #    xs = ",".join([str(x) for x in xs])
 #    with open(opj(args.outfolder, label), "w") as F:
 #        _ = F.write(f"{label}|{{{lat}}}|{{{xs}}}\n")
+
+
+def make_graphviz_files():
+    P = get_lattice_poset()
+    for label in P:
+        make_graphviz_file(label)
+
+def make_picture_input():
+    with open("picture_labels.txt", "w") as F:
+        for label in db.gps_gl2zhat_fine.distinct("psl2label"):
+            _ = F.write(label + "\n")
+
+def make_gonality_files():
+    os.makedirs(opj("..", "equations", "gonality"), exist_ok=True)
+    for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"]):
+        with open(opj("..", "equations", "gonality", rec["label"]), "w") as F:
+            _ = F.write(",".join(str(c) for c in rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"]))

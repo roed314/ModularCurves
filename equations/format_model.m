@@ -11,6 +11,8 @@
 
 // See below for conventions on variable names
 
+AttachSpec("equations.spec");
+
 // Check input values
 if not assigned label then
     print("Error: no label assigned, run with 'label := (string)'");
@@ -51,7 +53,6 @@ end if;
 // Get genus and model type
 label := Split(label,".");
 genus := StringToInteger(label[3]);
-model_type := StringToInteger(label[5]);
 label := Join(label[1..4], ".");
 
 
@@ -59,40 +60,18 @@ label := Join(label[1..4], ".");
 nb_var := StringToInteger(s[1]);
 big_equation := s[2];
 
-function ReplaceLetter(s, x, subs)
-    split := Split(s, x: IncludeEmpty := true);
-    res := split[1];
-    for j in [2..#split] do
-	res := res cat subs cat split[j];
-    end for;
-    // Even IncludeEmpty does not add "" when s ends with x
-    if s[#s] eq x then
-	res cat:= subs;
-    end if;
-    return res;
-end function;
-
-function ReplaceVariables(s, variables)
-    nb := #variables;
-    for i in [1..nb] do
-	s := ReplaceLetter(s, variables[i], "P." cat Sprint(i));
-    end for;
-    return s;
-end function;
-
 // Get equations as string
 s := Read(input);
 s := [ReplaceLetter(ReplaceLetter(x, "{", ""), "}", "") : x in Split(s, "|")]; // List containing:
-nb_var, big_equation, jmaps, cusp_coords, cusp_polys, plane_model := Explode(s);
+nb_var, big_equation, jmaps, cusp_coords, cusp_polys, plane_model, model_type := Explode(s);
 nb_var := StringToInteger(nb_var);
+model_type := StringToInteger(model_type);
 // Decide if display
 dont_display := #big_equation gt 100000;
 
 // Get equations as polynomials
 equations_str := Split(big_equation, ",");
-P := PolynomialRing(Rationals(), nb_var);
-AssignCanonicalNames(~P);
-equations_pol := [eval(ReplaceVariables(s, variables)): s in equations_str];
+equations_pol := [ReadPoly(s, nb_var): s in equations_str];
 
 // Get j-maps
 E4, E6, jmap := Explode(Split(jmaps, "," : IncludeEmpty:=true));

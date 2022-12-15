@@ -281,8 +281,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
 {
     Input:
             X:     equations for the modular curve as produced by GetModelLMFDB.m
-            C:     a sequence of length 0 or 1 of known plane models (provided as a polynomial in X,Y,Z).  If given, the map from X will
-                   just be projection onto the first three coordinates
+            C:     a sequence of length 0 or 1 of known plane models (provided as a tuple, with first entry the defining polynomial in X,Y,Z and second entry a sequence of three polynomials giving the map from X to C).
             g:     the genus of X
             ghyp:  whether X is geometrically hyperelliptic
             cusps: the rational cusps on X
