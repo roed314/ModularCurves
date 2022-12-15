@@ -77,7 +77,7 @@ def get_plane_and_gonality(label):
 
 def get_ghyperelliptic_model(label):
     for prec in [100, 200, 300, 400, 600, 1200]:
-        subprocess.run('parallel --timeout 600 magma -b label:={1} prec:=%s GetGHyperellipticModel.m ::: %s' % (prec, label), shell=True)
+        subprocess.run('parallel --timeout 600 "magma -b label:={1} prec:=%s GetGHyperellipticModel.m >> stdout/{1} 2>&1" ::: %s' % (prec, label), shell=True)
         if ope(opj("ghyp_models", label)):
             break
 
