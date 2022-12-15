@@ -28,6 +28,7 @@ parser.add_argument("job", type=int, help="job number")
 os.makedirs("canonical_models", exist_ok=True)
 os.makedirs("plane_models", exist_ok=True)
 os.makedirs("ghyp_models", exist_ok=True)
+os.makedirs("rats", exist_ok=True)
 os.makedirs("gonality", exist_ok=True)
 os.makedirs("stdout", exist_ok=True)
 

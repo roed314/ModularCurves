@@ -108,7 +108,7 @@ function FindJMap(N, gens)
 	success, ecjmap := FindRelationElliptic(M,jinv2);
 	prec +:= N;
     end while;
-    
+
     printf "Minimal model is %o.\n",M`C;
     printf "j-map is %o.\n",ecjmap;
     // Write data to a file here and then stop.

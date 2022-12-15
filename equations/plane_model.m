@@ -251,7 +251,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Cr
             // reducemodel_padic seems to produce giant coefficients in cases where it does nothing
             adjust := [1 : _ in adjust];
         else
-            adjust := [QQ!a : a in adjust];
+            adjust := [1 / QQ!a : a in adjust];
             adjusted +:= 1;
         end if;
         Append(~sorter, <#sprint(f), Max([#sprint(a) : a in adjust])>);
@@ -317,21 +317,22 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
         if g le 6 and try_gonal_map then
             ambient := ProjectiveSpace(P);
             curve := Curve(ambient, X);
-            if g eq 3 then
-	        qbar_low, gonal_map := Genus3GonalMap(curve : IsCanonical:=not ghyp);
-            elif g eq 4 then
-	        qbar_low, gonal_map := Genus4GonalMap(curve : IsCanonical:=not ghyp);
-            elif g eq 5 then
-	        qbar_low, gonal_map := Genus5GonalMap(curve : IsCanonical:=not ghyp);
-            else
-	        qbar_low, _, gonal_map := Genus6GonalMap(curve : IsCanonical:=not ghyp);
-            end if;
-            q_low := qbar_low;
-            qbar_high := qbar_low;
-            // If gonal map is rational, get q_high as well
-            F := BaseField(Domain(gonal_map));
-            if F eq Rationals() then
-	        q_high := qbar_high;
+            try
+                if g eq 3 then
+	            qbar_low, gonal_map := Genus3GonalMap(curve : IsCanonical:=not ghyp);
+                elif g eq 4 then
+	            qbar_low, gonal_map := Genus4GonalMap(curve : IsCanonical:=not ghyp);
+                elif g eq 5 then
+	            qbar_low, gonal_map := Genus5GonalMap(curve : IsCanonical:=not ghyp);
+                else
+	            qbar_low, _, gonal_map := Genus6GonalMap(curve : IsCanonical:=not ghyp);
+                end if;
+                q_low := qbar_low;
+                qbar_high := qbar_low;
+                // If gonal map is rational, get q_high as well
+                F := BaseField(Domain(gonal_map));
+                if F eq Rationals() then
+	            q_high := qbar_high;
                 /*
                 P1<s,t> := Codomain(gonal_map);
                 X_aff := AffinePatch(curve, 1);
@@ -345,7 +346,10 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
                 end if;
                 // TODO: Need to use f to get a model, together with maps
                 */
-            end if;
+                end if;
+            catch e
+                print Sprint(e) * "\n";
+            end try;
         elif ghyp then
             qbar_high := 2;
             hyp, H, h_map := IsHyperelliptic(curve);

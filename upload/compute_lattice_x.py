@@ -476,8 +476,8 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
         for plabel in X1intervals[label]:
             gdat = gpdata[plabel]
             if gdat["genus"] == 0: continue
-            if (jfield, jinv) not in jinvs_seen[plabel]:
-                jinvs_seen[plabel].add((jfield, jinv))
+            if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:
+                jinvs_seen[plabel].add((field_of_definition, jfield, jinv))
                 point_counts[plabel][degree] += 1
                 if label == plabel and known_isolated:
                     isolated = "4"

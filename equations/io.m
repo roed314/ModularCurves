@@ -97,9 +97,18 @@ intrinsic AssignCanonicalNames(~R::Rng : upper:=true)
     end if;
 end intrinsic;
 
-intrinsic ReadPoly(P::RngMPol, f::MonStgElt, nvars::RngIntElt : upper:=true) -> RngMPolElt
+intrinsic ReadPoly(P::RngMPol, f::MonStgElt, nvars::RngIntElt : upper:=true, Homogenize:=false) -> RngMPolElt
 {}
-    return eval(ReplaceVariables(f, nvars : upper:=upper));
+    g := eval(ReplaceVariables(f, nvars : upper:=upper));
+    // Note that g might be a fraction field element if there was division
+    if Homogenize then
+        if Type(g) eq RngMPolElt then
+            g := Homogenization(g, P.nvars);
+        else
+            g := Homogenization(Numerator(g), P.nvars) / Homogenization(Denominator(g), P.nvars);
+        end if;
+    end if;
+    return g;
 end intrinsic;
 
 intrinsic LMFDBWriteModel(X::Crv, j::JMapData, cusps::SeqEnum[CspDat],
@@ -133,21 +142,16 @@ intrinsic LMFDBReadCanonicalModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIn
     fname := Sprintf("canonical_models/%o", label);
     nvars, X, E4E6j, cusps, fields, model_type := Explode(Split(Read(fname), "|"));
     E4, E6, j := Explode(Split(E4E6j[2..#E4E6j-1], "," : IncludeEmpty:=true));
-    if ")/(" in j then
-        jnum, jden := Explode(PySplit(j[2..#j-1], ")/("));
-    else
-        jnum := j;
-        jden := "1";
-    end if;
     nvars := StringToInteger(nvars);
     P := PolynomialRing(Rationals(), nvars);
     AssignCanonicalNames(~P);
     X := [ReadPoly(P, f, nvars) : f in Split(X[2..#X-1], ",")];
-    jnum := ReadPoly(P, jnum, nvars);
-    jden := ReadPoly(P, jden, nvars);
+    j := ReadPoly(P, j, nvars : Homogenize:=true); // note that ReadPoly can also deal with rational functions
+    jnum := Numerator(j);
+    jden := Denominator(j);
     model_type := StringToInteger(model_type);
     QQ := Rationals();
-    cusps := [[StringToRational(c) : c in Split(cusp[2..#cusp-1], ":")] : cusp in Split(cusps, ",") | not ("a" in cusp)];
+    cusps := [[StringToRational(c) : c in Split(cusp[2..#cusp-1], ":")] : cusp in Split(cusps[2..#cusps-1], ",") | not ("a" in cusp)];
     return X, g, model_type, jnum, jden, cusps;
 end intrinsic;
 
@@ -210,7 +214,12 @@ intrinsic LMFDBReadJinvPts(label::MonStgElt) -> List
             else
                 K := NumberField(R![StringToInteger(c) : c in Split(coeffs, ",")]);
             end if;
-            j := K![StringToRational(c) : c in Split(j, ",")];
+            // The j-invariant might be a rational number in which case there are no commas
+            if "," in j then
+                j := K![StringToRational(c) : c in Split(j, ",")];
+            else
+                j := K!StringToRational(j);
+            end if;
             isolated := StringToInteger(isolated);
             Append(~jinvs, <j, isolated>);
         end for;
