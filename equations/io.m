@@ -102,12 +102,8 @@ intrinsic ReadPoly(P::RngMPol, f::MonStgElt, nvars::RngIntElt : upper:=true, Hom
     g := eval(ReplaceVariables(f, nvars : upper:=upper));
     // Note that g might be a fraction field element if there was division
     if Homogenize then
-        if Type(g) eq RngMPolElt then
-            g := Homogenization(g, P.nvars);
-        else
-            d := Max(Degree(Numerator(g)), Degree(Denominator(g)));
-            g := Homogenization(Numerator(g), P.nvars, d) / Homogenization(Denominator(g), P.nvars, d);
-        end if;
+        d := Max(Degree(Numerator(g)), Degree(Denominator(g)));
+        g := Homogenization(Numerator(g), P.nvars, d) / Homogenization(Denominator(g), P.nvars, d);
     end if;
     return g;
 end intrinsic;
