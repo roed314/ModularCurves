@@ -105,7 +105,8 @@ intrinsic ReadPoly(P::RngMPol, f::MonStgElt, nvars::RngIntElt : upper:=true, Hom
         if Type(g) eq RngMPolElt then
             g := Homogenization(g, P.nvars);
         else
-            g := Homogenization(Numerator(g), P.nvars) / Homogenization(Denominator(g), P.nvars);
+            d := Max(Degree(Numerator(g)), Degree(Denominator(g)));
+            g := Homogenization(Numerator(g), P.nvars, d) / Homogenization(Denominator(g), P.nvars, d);
         end if;
     end if;
     return g;
