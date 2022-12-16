@@ -11,18 +11,15 @@ if (not assigned label) then
     quit;
 end if;
 
-if label eq "1.1.0.a.1" then
-    // The functions below fail on X(1), and we don't need them anyway.
-    exit;
-end if;
-
 X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
-Cs := LMFDBReadPlaneModel(label);
-gon_bounds, Cs := PlaneModelAndGonalityBounds(X, Cs, g, (model_type eq -1), [c : c in cusps | Universe(c) eq Rationals()], label);
-LMFDBWriteGonalityBounds(gon_bounds, label);
-if #Cs gt 0 then
-    C := Curve(Proj(Parent(Cs[1][1])), Cs[1][1]);
-    proj := Cs[1][2];
-    LMFDBWritePlaneModel(C, proj, label);
+if g gt 0 then
+    Cs := LMFDBReadPlaneModel(label);
+    gon_bounds, Cs := PlaneModelAndGonalityBounds(X, Cs, g, (model_type eq -1), [c : c in cusps | Universe(c) eq Rationals()], label);
+    LMFDBWriteGonalityBounds(gon_bounds, label);
+    if #Cs gt 0 then
+        C := Curve(Proj(Parent(Cs[1][1])), Cs[1][1]);
+        proj := Cs[1][2];
+        LMFDBWritePlaneModel(C, proj, label);
+    end if;
 end if;
 exit;
