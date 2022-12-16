@@ -75,7 +75,9 @@ def get_lattice_coords(label):
 
 def get_canonical_model(label):
     # Also produces a first stab at a plane model
-    subprocess.run('parallel --timeout 3600 "magma -b label:={1} GetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % label, shell=True)
+    g = int(label.split(".")[2])
+    if g <= 24:
+        subprocess.run('parallel --timeout 3600 "magma -b label:={1} GetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % label, shell=True)
     return ope(opj("canonical_models", label))
 
 def get_plane_and_gonality(label):
