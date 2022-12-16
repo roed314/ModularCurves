@@ -71,13 +71,12 @@ def get_canonical_model(label):
 
 def get_plane_and_gonality(label):
     # Runs the script to compute gonality bounds and a better plane model
-    # Returns true whether the curve is geometrically hyperelliptic and not hyperelliptic
+    # Returns true whether the curve is geometrically hyperelliptic
     subprocess.run('parallel --timeout 1200 "magma -b label:={1} GetPlaneAndGonality.m >> stdout/{1} 2>&1" ::: %s' % label, shell=True)
     gon = opj("gonality", label)
-    if ope(gon):
-        with open(gon) as F:
-            bounds = F.read().strip().split(",")
-            return bounds[0] == bounds[1] == "4" and bounds[2] == bounds[3] == "2"
+    with open(opj("canonical_models", label)) as F:
+        model_type = F.read().strip().split("|")
+        return model_type == "-1"
 
 def get_ghyperelliptic_model(label):
     for prec in [100, 200, 300, 400, 600, 1200]:
