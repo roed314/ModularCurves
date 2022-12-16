@@ -47,9 +47,9 @@ end function;
 // and returns a simple representation of the corresponding subfield of
 // Q(zeta_N), as well as a primitive element for the extension.
 
-function fieldfind(G,K)
+function fieldfind(G, K)
   N := Characteristic(BaseRing(G));
-  z := K.1;  
+  z := K.1;
   nprim := N;
   if (N mod 4 eq 2) then
     z := z^2;

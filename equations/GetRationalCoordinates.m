@@ -14,9 +14,9 @@ end if;
 jinvs := LMFDBReadJinvPts(label);
 ans := [* *];
 if #jinvs gt 0 then
+    t0 := ReportStart(label, "pulling back j-invariants");
     QQ := Rationals();
     X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
-    // TODO: pull cusps back along j map as well
     Cs := LMFDBReadPlaneModel(label);
     X := Curve(Proj(Universe(X)), X);
     if #Cs gt 0 then
@@ -27,14 +27,15 @@ if #jinvs gt 0 then
     projK := AssociativeArray();
     CK := AssociativeArray();
     CprojK := AssociativeArray();
-    for pair in jinvs do
-        j, isolated := Explode(pair);
-        K := Parent(j);
+    function AsNF(K)
         if K eq QQ then
-            k := RationalsAsNumberField();
+            return RationalsAsNumberField();
         else
-            k := K;
+            return K;
         end if;
+    end function;
+    procedure AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, Cs, K)
+        k := AsNF(K);
         if not IsDefined(P1K, k) then
             P1K[k] :=ProjectiveSpace(K, 1);
             XK[k] := ChangeRing(X, K);
@@ -45,9 +46,19 @@ if #jinvs gt 0 then
                 CprojK[k] := map<XK[k] -> CK[k]| [T!f : f in Cs[1][2]]>;
             end if;
         end if;
+    end procedure;
+    for pair in jinvs do
+        j, isolated := Explode(pair);
+        K := Parent(j);
+        AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, Cs, K);
+        k := AsNF(K);
         P1pt := P1K[k]![j,1];
         Xpt := P1pt @@ (projK[k]);
+        t1 := ReportStart(label, Sprintf("computing rational points above j=%o", j));
         Xcoords := RationalPoints(Xpt);
+        ReportEnd(label, Sprintf("computing rational points above j=%o", j), t1);
+        // Throw out points that actually lie in a subfield
+        Xcoords := [pt : pt in Xcoords | Degree(sub<K | Eltseq(pt)>) eq Degree(K)];
         if #Xcoords eq 0 then
             printf "Error: no point on %o above j=%o!\n", label, j;
             continue;
@@ -81,6 +92,19 @@ if #jinvs gt 0 then
             end for;
         end if;
     end for;
+    // Add the cusps
+    for cusp in cusps do
+        K := Universe(cusp);
+        AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, Cs, K);
+        k := AsNF(K);
+        pt := XK[k]!cusp;
+        Append(~ans, <0, "oo", pt>);
+        if #Cs gt 0 then
+            Append(~ans, <2, "oo", pt @CprojK[k]>);
+        end if;
+    end for;
+
     LMFDBWriteJinvCoords(ans, label);
+    ReportEnd(label, "pulling back j-invariants", t0);
 end if;
 exit;

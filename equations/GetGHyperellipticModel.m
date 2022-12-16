@@ -15,6 +15,8 @@ if g lt 3 then
     label cat ":genus too small";
     exit;
 end if;
+t0 := ReportStart(label, "hyperelliptic model");
 C := HyperellipticModelFromLabel(label : prec:=prec);
+ReportEnd(label, "hyperelliptic model", t0);
 Write("ghyp_models/" * label, StripWhiteSpace(Sprint(DefiningEquations(C))));
 exit;

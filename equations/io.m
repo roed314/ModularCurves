@@ -125,7 +125,7 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData, cusps::SeqEnum[CspDat],
     cusps_to_write := [c : c in cusps | Degree(c`field) le max_deg];
     coords := Join([sprint(c`coords) : c in cusps_to_write] , ",");
     Qx<x> := PolynomialRing(Rationals());
-    fields := Join([sprint(Qx!DefiningPolynomial(c`field)) : c in cusps] , ",");
+    fields := Join([sprint(Qx!DefiningPolynomial(c`field)) : c in cusps] , ","); // Need to keep all fields since the variable names are indexed by the original ordering
     System("mkdir -p canonical_models");
     fname := Sprintf("canonical_models/%o", label);
     Write(fname, Sprintf("%o|{%o}|{%o,%o,%o}|{%o}|{%o}|%o", Rank(R),
@@ -133,7 +133,7 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData, cusps::SeqEnum[CspDat],
 			 coords,fields,model_type) : Overwrite);
 end intrinsic;
 
-intrinsic LMFDBReadCanonicalModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIntElt, SeqEnum, SeqEnum
+intrinsic LMFDBReadCanonicalModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIntElt, SeqEnum, List
 {}
     g := StringToInteger(Split(label, ".")[3]);
     fname := Sprintf("canonical_models/%o", label);
@@ -147,8 +147,42 @@ intrinsic LMFDBReadCanonicalModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIn
     jnum := Numerator(j);
     jden := Denominator(j);
     model_type := StringToInteger(model_type);
-    QQ := Rationals();
-    cusps := [[StringToRational(c) : c in Split(cusp[2..#cusp-1], ":")] : cusp in Split(cusps[2..#cusps-1], ",") | not ("a" in cusp)];
+    if #cusps gt 2 then // "{}"
+        cusps := Split(cusps[2..#cusps-1], ",");
+        QQ := Rationals();
+        R<x> := PolynomialRing(QQ);
+        fields := Split(fields[2..#fields-1], ",");
+        by_i := AssociativeArray();
+        for i in [0..#fields] do by_i[i] := []; end for;
+        for cusp in cusps do
+            if not ("a" in cusp) then
+                Append(~by_i[0], cusp);
+            else
+                first := Index(cusp, "_") + 1;
+                last := first;
+                while cusp[last+1] in "0123456789" do
+                    last +:= 1;
+                end while;
+                i := StringToInteger(cusp[first..last]);
+                Append(~by_i[i], cusp);
+            end if;
+        end for;
+        cusps := [* [StringToRational(c) : c in Split(cusp, ":")] : cusp in by_i[0] *];
+        for i in [1..#fields] do
+            poly := eval fields[i];
+            K := NumberField(poly);
+            var := Sprintf("a_%o", i);
+            AssignNames(~K, [var]);
+            a := K.1;
+            for cusp in by_i[i] do
+                subbed := Join(PySplit(cusp, var), "a");
+                subbed := [eval c : c in Split(subbed[2..#subbed-1], ":")];
+                Append(~cusps, subbed);
+            end for;
+        end for;
+    else
+        cusps := [* *];
+    end if;
     return X, g, model_type, jnum, jden, cusps;
 end intrinsic;
 
@@ -232,9 +266,12 @@ intrinsic LMFDBWriteJinvCoords(coords::List, label::MonStgElt)
     coord_strs := [];
     for trip in coords do
         model_type, j, coord := Explode(trip);
-        j := Join([Sprint(a) : a in Eltseq(j)], ",");
+        if Type(j) ne MonStgElt then // not a cusp
+            j := Join([Sprint(a) : a in Eltseq(j)], ",");
+        end if;
+        K := Sprint(DefiningPolynomial(Universe(coord)));
         coord := Join([Join([Sprint(a) : a in Eltseq(c)], ",") : c in Coordinates(coord)], ":");
-        Append(~coord_strs, Sprintf("%o|%o|%o", j, model_type, coord));
+        Append(~coord_strs, Sprintf("%o|%o|%o|%o", K, j, model_type, coord));
     end for;
     Write(fname, Join(coord_strs, "\n") * "\n" : Overwrite);
 end intrinsic;
@@ -302,9 +339,12 @@ intrinsic ReportStart(label::MonStgElt, job::MonStgElt) -> FldReElt
     return Cputime();
 end intrinsic;
 
-intrinsic ReportEnd(label::MonStgElt, job::MonStgElt, t0::FldReElt)
+intrinsic ReportEnd(label::MonStgElt, job::MonStgElt, t0::FldReElt : elapsed:=0)
 {}
-    msg := Sprintf("Finished %o in %o", job, Cputime() - t0);
+    if elapsed eq 0 then
+        elapsed := Cputime() - t0;
+    end if;
+    msg := Sprintf("Finished %o in %o", job, elapsed);
     PrintFile("timings/" * label, msg);
     vprint User1: msg;
 end intrinsic;

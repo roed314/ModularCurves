@@ -188,9 +188,10 @@ intrinsic NextProjector(~state::Rec, ~M::ModMatRngElt)
     end if;
 end intrinsic;
 
-intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Crv, SeqEnum
+intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:=0) -> BoolElt, Crv, SeqEnum
 {rec should be of type ModularCurveRec, genus larger than 3 and not hyperelliptic}
     assert reduction_prime gt rec`level;
+    t0 := ReportStart(label, "PlaneModelFromQExpansions");
     if prec eq 0 then
         prec := rec`prec;
     end if;
@@ -211,11 +212,9 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Cr
     R<X,Y,Z> := PolynomialRing(Rationals(), 3);
     trel := 0;
     tval := 0;
-    t0 := Cputime();
+    t0 := ReportStart(label, "searching for plane models");
     repeat
         NextProjector(~state, ~M);
-        print "Projecting";
-        print M;
         MF := F0Combination(rec`F0, M);
         for m in [low..high] do
             ttmp := Cputime();
@@ -227,22 +226,25 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Cr
                 vld := ValidPlaneModel3(R!rels[1], Can, M);
                 tval +:= Cputime() - ttmp;
                 if vld then
-                    printf "Plane model: found valid model of degree = %o\n", m;
+                    vprint User1: Sprintf("Plane model: found valid model of degree = %o", m);
                     Append(~valid, <R!rels[1], Eltseq(M)>);
                 else
-                    printf "Plane model: invalid model of degree = %o\n", m;
+                    vprint User1: Sprintf("Plane model: invalid model of degree = %o", m);
                 end if;
                 break;
             end if;
         end for;
     until #valid ge 25 or state`nonpiv_ctr[1] ge 728 or (#valid gt 0 and Cputime() - t0 gt 120);
+    ReportEnd(label, "searching for plane models", t0);
+    ReportEnd(label, "plane model relations", 0 : elapsed:=trel);
+    ReportEnd(label, "plane model validation", 0 : elapsed:=tval);
     if #valid eq 0 then
         return false, _, _;
     end if;
     // Pick the best
     sorter := [];
     rescaled := [* *];
-    ttmp := Cputime();
+    ttmp := ReportStart(label, "plane model reduction");
     adjusted := 0;
     QQ := Rationals();
     for i in [1..#valid] do
@@ -257,27 +259,23 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Cr
         Append(~sorter, <#sprint(f), Max([#sprint(a) : a in adjust])>);
         Append(~rescaled, <f, [valid[i][2][j+1] * adjust[1 + (j div g)] : j in [0..3*g-1]]>);
     end for;
+    ReportEnd(label, "plane model reduction", ttmp);
     tred := Cputime() - ttmp;
     _, i := Min(sorter);
 
     f, M := Explode(rescaled[i]);
     C := Curve(Proj(Parent(f)), f);
-    printf "Plane model: %o model(s) found\n", #valid;
-    printf "Plane model: %o adjusted, max projection size %o\n", adjusted, Max([#Sprint(x) : x in M]);
-    print valid[i][1];
-    printf "Plane model: shortened by %o\n", #sprint(valid[i][1]) - sorter[i][1];
-    print f;
-    printf "Plane model: first success %o\n", #[x : x in valid[1][2] | x ne 0] - 3;
-    print Matrix(Integers(), 3, g, valid[1][2]);
-    printf "Plane model: chosen %o\n", #[x : x in valid[i][2] | x ne 0] - 3;
-    print Matrix(Integers(), 3, g, valid[i][2]);
-    print "Plane model: relation time", trel;
-    print "Plane model: validation time", tval;
-    print "Plane model: reduction time", tred;
+    vprint User1: Sprintf("Plane model: %o model(s) found\n", #valid);
+    vprint User1: Sprintf("Plane model: %o adjusted, max projection size %o\n", adjusted, Max([#Sprint(x) : x in M]));
+    vprint User1: valid[i][1];
+    vprint User1: Sprintf("Plane model: shortened by %o\n", #sprint(valid[i][1]) - sorter[i][1]);
+    vprint User1: f;
+    vprint User1: Sprintf("Plane model: chosen %o\n", #[x : x in valid[i][2] | x ne 0] - 3);
+    vprint User1: Matrix(Integers(), 3, g, valid[i][2]);
     return true, C, M;
 end intrinsic;
 
-intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp::BoolElt, cusps::SeqEnum : try_gonal_map:=true) -> Tup, SeqEnum
+intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp::BoolElt, cusps::SeqEnum, label::MonStgElt : try_gonal_map:=true) -> Tup, SeqEnum
 {
     Input:
             X:     equations for the modular curve as produced by GetModelLMFDB.m
@@ -318,6 +316,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
             ambient := ProjectiveSpace(P);
             curve := Curve(ambient, X);
             try
+                t0 := ReportStart(label, "gonality");
                 if g eq 3 then
 	            qbar_low, gonal_map := Genus3GonalMap(curve : IsCanonical:=not ghyp);
                 elif g eq 4 then
@@ -327,6 +326,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
                 else
 	            qbar_low, _, gonal_map := Genus6GonalMap(curve : IsCanonical:=not ghyp);
                 end if;
+                ReportEnd(label, "gonality", t0);
                 q_low := qbar_low;
                 qbar_high := qbar_low;
                 // If gonal map is rational, get q_high as well

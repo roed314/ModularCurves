@@ -12,12 +12,14 @@
 # - Update verbosity (two levels: one for debugging and another for reporting timing info)
 # - Do group identification
 # - Update descriptions of labels (RSZB and LMFDB)
+# - Base change for CM points (duplicated points in rats/).  Need to throw away points of lower degree?
 
 # Copied into the home directory for running
 
 import os
 import argparse
 import subprocess
+from time import time
 
 opj = os.path.join
 ope = os.path.exists
@@ -47,6 +49,9 @@ def get_lattice_coords(label):
     # We use graphviz to lay out the displayed lattice
     infile = opj("graphviz_in", label)
     outfile = opj("graphviz_out", label)
+    with open(opj("timings", label), "a") as F:
+        _ = F.write("Starting lattice layout\n")
+        t0 = time()
     subprocess.run(["dot", "-Tplain", "-o", outfile, infile], check=True)
     xcoord = {}
     with open(outfile) as F:
@@ -63,6 +68,8 @@ def get_lattice_coords(label):
     with open(outfile, "w") as F:
         lattice_labels, lattice_x = zip(*xcoord.items()))
         _ = F.write("{%s}|{%s}\n" % (",".join(lattice_labels), ",".join(str(c) for c in lattice_x)))
+    with open(opj("timings", label), "a") as F:
+        _ = F.write(f"Finished lattice layout in {time() - t0}\n")
 
 def get_canonical_model(label):
     # Also produces a first stab at a plane model

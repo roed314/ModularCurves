@@ -18,7 +18,7 @@ end if;
 
 X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
 Cs := LMFDBReadPlaneModel(label);
-gon_bounds, Cs := PlaneModelAndGonalityBounds(X, Cs, g, (model_type eq -1), cusps);
+gon_bounds, Cs := PlaneModelAndGonalityBounds(X, Cs, g, (model_type eq -1), cusps, label);
 LMFDBWriteGonalityBounds(gon_bounds, label);
 if #Cs gt 0 then
     C := Curve(Proj(Parent(Cs[1][1])), Cs[1][1]);

@@ -18,7 +18,7 @@ LMFDBWriteModel(X, j, cusps, model_type, label);
 
 // We compute the plane model separately since it can take a long time
 if M`genus gt 3 and model_type eq 0 then
-    success, plane_model, proj := PlaneModelFromQExpansions(M, X);
+    success, plane_model, proj := PlaneModelFromQExpansions(M, X, label);
     if success then
         LMFDBWritePlaneModel(plane_model, proj, label);
     end if;

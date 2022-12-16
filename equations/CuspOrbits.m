@@ -49,7 +49,7 @@ intrinsic CuspOrbits(N::RngIntElt, gens::SeqEnum) -> SeqEnum[SeqEnum[CspDat]]
     // Step 1 - Determine Galois orbits of cusps and choose one representative from each
 
   // Computes the action of (Z/NZ)^* on the cusps of X_G.  This corresponds to the action of Gal(Q(zeta_N)/Q) on the cusps.
-  printf "Determining Galois action on cusps.\n";
+  vprint User1: "Determining Galois action on cusps.";
   M := CreateModularCurveRec(N, gens);
   gp := sub<GL(2,Integers(N))|gens>;
   G := gp;
@@ -94,8 +94,8 @@ intrinsic CuspOrbits(N::RngIntElt, gens::SeqEnum) -> SeqEnum[SeqEnum[CspDat]]
   fields := [* *];
   R<x> := PolynomialRing(Rationals());
   for i in [1..#stabs] do
-      KK, prim := fieldfind(sub<GL(1, Integers(N)) | [[d] : d in stabs[i]]>,K);
-      printf "For cusp %o, field of definition is %o.\n",cusps[i][1],
+      KK, prim := fieldfind(sub<GL(1, Integers(N)) | [[d] : d in stabs[i]]>, K);
+      vprint User1: Sprintf("For cusp %o, field of definition is %o.", cusps[i][1]),
 	     R!DefiningPolynomial(KK);
       Embed(KK,K,prim);
       if Degree(KK) gt 1 then
@@ -105,7 +105,7 @@ intrinsic CuspOrbits(N::RngIntElt, gens::SeqEnum) -> SeqEnum[SeqEnum[CspDat]]
   end for;
   cusps := [[CuspData(cusps[i][j], fields[i], ind[i][j]) :
 	     j in [1..#cusps[i]] ] : i in [1..#cusps]];
-  printf "Galois orbits of cusps are: %o.\n",{* #ind[j] : j in [1..#ind]*};
+  vprint User1: Sprintf("Galois orbits of cusps are: %o.", {* #ind[j] : j in [1..#ind]*});
   // printf "Orbits are: %o", cusps;
 
   return cusps;
