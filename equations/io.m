@@ -269,7 +269,7 @@ intrinsic LMFDBWriteJinvCoords(coords::List, label::MonStgElt)
         if Type(j) ne MonStgElt then // not a cusp
             j := Join([Sprint(a) : a in Eltseq(j)], ",");
         end if;
-        K := Sprint(DefiningPolynomial(Universe(coord)));
+        K := Sprint(DefiningPolynomial(Universe(Eltseq(coord))));
         coord := Join([Join([Sprint(a) : a in Eltseq(c)], ",") : c in Coordinates(coord)], ":");
         Append(~coord_strs, Sprintf("%o|%o|%o|%o", K, j, model_type, coord));
     end for;
