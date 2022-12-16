@@ -557,6 +557,7 @@ def timing_statistics():
         unfinished = {}
         unstarted = {}
         by_task = defaultdict(list)
+        uby_task = defaultdict(list)
         for label, lines in by_label.items():
             started = [start_re.fullmatch(x) for x in lines]
             started = [m.group(1) for m in started if m is not None]
@@ -568,8 +569,12 @@ def timing_statistics():
                 by_task[task[:34]].append((t, label))
             UF = set(started).difference(set(finished))
             US = set(finished).difference(set(started))
-            if UF: unfinished[label] = UF
-            if US: unstarted[label] = US
+            if UF:
+                unfinished[label] = UF
+                for task in UF:
+                    uby_task[task[:34]].append(label)
+            if US:
+                unstarted[label] = US
     for task, data in by_task.items():
         times = [pair[0] for pair in data]
         level = [int(pair[1].split(".")[0]) for pair in data]
@@ -581,21 +586,32 @@ def timing_statistics():
         by_genus = defaultdict(list)
         for g, t in zip(genus, times):
             by_genus[g].append(t)
+
+        ulevel = [int(label.split(".")[0]) for label in uby_task.get(task, [])]
+        uby_level = Counter(ulevel)
+        ugenus = [int(label.split(".")[2]) for label in uby_task.get(task, [])]
+        uby_genus = Counter(ugenus)
         a = mean(times)
         b = median(times)
         c = std(times)
         d = max(times)
-        print(f"{task} Mean ({a:.2f}) Median ({b:.2f}) Std ({c:.2f}) Max ({d:.2f})")
-        for N, ts in by_level.items():
+        e = len(times)
+        f = len(uby_task.get(task, []))
+        print(f"{task} Mean ({a:.2f}) Median ({b:.2f}) Std ({c:.2f}) Max ({d:.2f}) OK ({e}) Bad ({f})")
+        for N, ts in sorted(by_level.items()):
             a = mean(ts)
             b = median(ts)
             c = std(ts)
             d = max(ts)
-            print(f"{task} N={N} Mean ({a:.2f}) Median ({b:.2f}) Std ({c:.2f}) Max ({d:.2f})")
-        for g, ts in by_genus.items():
+            e = len(ts)
+            f = uby_level.get(N, 0)
+            print(f"{task} N={N} Mean ({a:.2f}) Median ({b:.2f}) Std ({c:.2f}) Max ({d:.2f}) OK ({e}) Bad ({f})")
+        for g, ts in sorted(by_genus.items()):
             a = mean(ts)
             b = median(ts)
             c = std(ts)
             d = max(ts)
-            print(f"{task} g={g} Mean ({a:.2f}) Median ({b:.2f}) Std ({c:.2f}) Max ({d:.2f})")
-    return unfinished, by_task
+            e = len(ts)
+            f = uby_genus.get(g, 0)
+            print(f"{task} g={g} Mean ({a:.2f}) Median ({b:.2f}) Std ({c:.2f}) Max ({d:.2f}) OK ({e}) Bad ({f})")
+    return unfinished, by_task, uby_task
