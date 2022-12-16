@@ -236,8 +236,8 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
         end for;
     until #valid ge 25 or state`nonpiv_ctr[1] ge 728 or (#valid gt 0 and Cputime() - t0 gt 120);
     ReportEnd(label, "searching for plane models", t0);
-    ReportEnd(label, "plane model relations", 0 : elapsed:=trel);
-    ReportEnd(label, "plane model validation", 0 : elapsed:=tval);
+    ReportEnd(label, "plane model relations", trel : elapsed:=trel);
+    ReportEnd(label, "plane model validation", tval : elapsed:=tval);
     if #valid eq 0 then
         return false, _, _;
     end if;

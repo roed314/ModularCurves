@@ -84,7 +84,7 @@ def get_plane_and_gonality(label):
     subprocess.run('parallel --timeout 1200 "magma -b label:={1} GetPlaneAndGonality.m >> stdout/{1} 2>&1" ::: %s' % label, shell=True)
     gon = opj("gonality", label)
     with open(opj("canonical_models", label)) as F:
-        model_type = F.read().strip().split("|")
+        model_type = F.read().strip().split("|")[-1]
         return model_type == "-1"
 
 def get_ghyperelliptic_model(label):
