@@ -39,7 +39,9 @@ if #jinvs gt 0 then
         Xcoords := RationalPoints(Xpt);
         ReportEnd(label, Sprintf("computing rational points above j=%o", j), t1);
         // Throw out points that actually lie in a subfield
-        Xcoords := [pt : pt in Xcoords | Degree(sub<K | Eltseq(pt)>) eq Degree(K)];
+        if K ne QQ then
+            Xcoords := [pt : pt in Xcoords | Degree(sub<K | Eltseq(pt)>) eq Degree(K)];
+        end if;
         if #Xcoords eq 0 then
             printf "Error: no point on %o above j=%o!\n", label, j;
             continue;
