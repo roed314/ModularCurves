@@ -74,7 +74,7 @@ end function;
 //{.}
 // Outputs X, j, model_type,
 function FindJMap(N, gens, label)
-  tttt := Cputime();
+  tttt := ReportStart(label, "FindJMap");
 //  gens := GetModularCurveGenerators(l);
 
 //  N := StringToInteger(Split(l,".")[1],10);
@@ -82,7 +82,9 @@ function FindJMap(N, gens, label)
   gp := sub<GL(2,Integers(N))|gens>;
 
   M := CreateModularCurveRec(N,gens);
-  ttemp := ReportStart(label, "model computation with low precision");
+  
+  ttemp := ReportStart(label, "model and modular forms");
+  vprint User1: "Starting model computation with low precision";
   prec := RequiredPrecision(M);
   M := FindModelOfXG(M,prec);
   mult := M`mult;
@@ -229,7 +231,7 @@ function FindJMap(N, gens, label)
       Append(~fourierlist,curfour);
   end for;
   modforms := << fourierlist[j][i] : j in [1..#chosencusps]> : i in [1..#modforms0]>;
-  ReportEnd(label, "post-processing", postproctime);
+  ReportEnd(label, "determining Galois action on cusps", postproctime);
   postproctime := Cputime(postproctime);
 
   // Build log-canonicalish ring
@@ -255,7 +257,7 @@ function FindJMap(N, gens, label)
 
   // Let's choose monomials that will *always* work!
 
-  ttime := ReportStart(label, "log-canonicalish ring");
+  ttemp := ReportStart(label, "log-canonicalish ring");
   multcount := 0;
   doneper := -1;
   total := &+[ #[s : s in MonomialsOfDegree(polyring,d) | not (s in initideal)] : d in [2..maxd]];
@@ -283,7 +285,7 @@ function FindJMap(N, gens, label)
       end for;
       Append(~canring,<newfourier,newvars>);
   end for;
-  ReportEnd(label, "canonical ring", ttemp);
+  ReportEnd(label, "log-canonicalish ring", ttemp);
   canringtime := Cputime(ttemp);
 
   ttemp := ReportStart(label, "linear algebra");

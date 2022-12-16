@@ -10,6 +10,7 @@ from sage.all import ZZ, QQ, Poset, DiGraph, flatten
 from sage.combinat.posets.posets import FinitePoset
 from sage.misc.misc import cputime, walltime
 from sage.databases.cremona import class_to_int
+from numpy import mean, median, std
 opj = os.path.join
 ope = os.path.exists
 
@@ -543,3 +544,58 @@ def prep_all():
     make_todo()
     prepare_rational_points()
     # Make tarball
+
+def timing_statistics():
+    with open("output") as F:
+        timing_data = [line[1:] for line in F.read().strip().split("\n") if line.startswith("T")]
+        by_label = defaultdict(list)
+        for line in timing_data:
+            label, line = line.split("|")
+            by_label[label].append(line)
+        start_re = re.compile("Starting (.*)")
+        end_re = re.compile("Finished (.*) in (.*)")
+        unfinished = {}
+        unstarted = {}
+        by_task = defaultdict(list)
+        for label, lines in by_label.items():
+            started = [start_re.fullmatch(x) for x in lines]
+            started = [m.group(1) for m in started if m is not None]
+            finished = [end_re.fullmatch(x) for x in lines]
+            timings = [float(m.group(2)) for m in finished if m is not None]
+            finished = [m.group(1) for m in finished if m is not None]
+            for task, t in zip(finished, timings):
+                # 34 is to truncate the specific j-invariant in "computing rational points above j="
+                by_task[task[:34]].append((t, label))
+            UF = set(started).difference(set(finished))
+            US = set(finished).difference(set(started))
+            if UF: unfinished[label] = UF
+            if US: unstarted[label] = US
+    for task, data in by_task.items():
+        times = [pair[0] for pair in data]
+        level = [int(pair[1].split(".")[0]) for pair in data]
+        genus = [int(pair[1].split(".")[2]) for pair in data]
+        task = task + " "*(34-len(task))
+        by_level = defaultdict(list)
+        for N, t in zip(level, times):
+            by_level[N].append(t)
+        by_genus = defaultdict(list)
+        for g, t in zip(genus, times):
+            by_genus[g].append(t)
+        a = mean(times)
+        b = median(times)
+        c = std(times)
+        d = max(times)
+        print(f"{task} Mean ({a:.2f}) Median ({b:.2f}) Std ({c:.2f}) Max ({d:.2f})")
+        for N, ts in by_level.items():
+            a = mean(ts)
+            b = median(ts)
+            c = std(ts)
+            d = max(ts)
+            print(f"{task} N={N} Mean ({a:.2f}) Median ({b:.2f}) Std ({c:.2f}) Max ({d:.2f})")
+        for g, ts in by_genus.items():
+            a = mean(ts)
+            b = median(ts)
+            c = std(ts)
+            d = max(ts)
+            print(f"{task} g={g} Mean ({a:.2f}) Median ({b:.2f}) Std ({c:.2f}) Max ({d:.2f})")
+    return unfinished, by_task

@@ -111,6 +111,8 @@ def collate_data(label):
             if ope(fname):
                 with open(fname) as F:
                     for line in F:
+                        if line[-1] != "\n":
+                            line += "\n"
                         _ = Fout.write(f"{code}{label}|{line}")
 
 if get_canonical_model(label):
