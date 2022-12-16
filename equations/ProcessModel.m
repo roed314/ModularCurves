@@ -43,7 +43,9 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, FldFunRatMElt[FldRat],
     elif (genus eq 0) then
 	// !! TODO - is this precision always enough?
 	Ggens := {GL(2,Integers(level))!g : g in gens};
+        t0 := ReportStart(label, "Genus0Model");
 	X<x,y,z>, j, has_rational_pt := ComputeModel(level,Ggens,10);
+        ReportEnd(label, "Genus0Model", t0);
 	// converting the function field element to something we can work with
 	if Type(j) eq FldFunRatUElt then
 	    num := Evaluate(ChangeRing(Numerator(j), Rationals()), x);

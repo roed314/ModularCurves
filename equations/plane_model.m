@@ -348,6 +348,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
                 */
                 end if;
             catch e
+                qbar_high := q_high;
                 print Sprint(e) * "\n";
             end try;
         elif ghyp then

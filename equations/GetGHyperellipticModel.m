@@ -2,6 +2,9 @@
 
 load "hyperelliptic/load.m";
 load "hyperelliptic/code.m";
+SetColumns(0);
+//SetVerbose("User1", 1);
+//SetDebugOnError(true);
 g := StringToInteger(Split(label, ".")[3]);
 if not assigned prec then
     prec := 100;

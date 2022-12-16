@@ -3,11 +3,17 @@
 
 AttachSpec("equations.spec");
 SetColumns(0);
-SetDebugOnError(true);
+//SetVerbose("User1", 1);
+//SetDebugOnError(true);
 if (not assigned label) then
     printf "This script assumes that label, the label of the X_H to compute, is given as a command line paramter.\n";
     printf "Something like magma label:=7.168.3.a.1 GetPlaneAndGonality.m\n";
     quit;
+end if;
+
+if label eq "1.1.0.a.1" then
+    // The functions below fail on X(1), and we don't need them anyway.
+    exit;
 end if;
 
 X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);

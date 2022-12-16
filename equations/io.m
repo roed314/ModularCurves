@@ -121,7 +121,7 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData, cusps::SeqEnum[CspDat],
     j_str := (assigned j`J) select sprint(j`J) else "";
     // We only write rational points over low degree fields
     // Change here if you want to modify this!
-    max_deg := 4;
+    max_deg := 6;
     cusps_to_write := [c : c in cusps | Degree(c`field) le max_deg];
     coords := Join([sprint(c`coords) : c in cusps_to_write] , ",");
     Qx<x> := PolynomialRing(Rationals());
@@ -292,4 +292,19 @@ intrinsic LMFDBReadModel(fname::MonStgElt) ->
       j`J := rats_J[1];
   end if;
   return C, j;
+end intrinsic;
+
+intrinsic ReportStart(label::MonStgElt, job::MonStgElt) -> FldReElt
+{}
+    msg := "Starting " * job;
+    PrintFile("timings/" * label, msg);
+    vprint User1: msg;
+    return Cputime();
+end intrinsic;
+
+intrinsic ReportEnd(label::MonStgElt, job::MonStgElt, t0::FldReElt)
+{}
+    msg := Sprintf("Finished %o in %o", job, Cputime() - t0);
+    PrintFile("timings/" * label, msg);
+    vprint User1: msg;
 end intrinsic;

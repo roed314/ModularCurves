@@ -30,6 +30,8 @@ os.makedirs("plane_models", exist_ok=True)
 os.makedirs("ghyp_models", exist_ok=True)
 os.makedirs("rats", exist_ok=True)
 os.makedirs("gonality", exist_ok=True)
+os.makedirs("graphviz_out", exist_ok=True)
+os.makedirs("timings", exist_ok=True)
 os.makedirs("stdout", exist_ok=True)
 
 
@@ -58,7 +60,9 @@ def get_lattice_coords(label):
                 short_label = pieces[1].replace('"', '')
                 diagram_x = int(round(10000 * float(pieces[2]) / scale))
                 xcoord[short_label] = diagram_x
-    return xcoord
+    with open(outfile, "w") as F:
+        lattice_labels, lattice_x = zip(*xcoord.items()))
+        _ = F.write("{%s}|{%s}\n" % (",".join(lattice_labels), ",".join(str(c) for c in lattice_x)))
 
 def get_canonical_model(label):
     # Also produces a first stab at a plane model
@@ -85,12 +89,25 @@ def get_rational_coordinates(label):
     subprocess.run('parallel --timeout 1200 "magma -b label:={1} GetRationalCoordinates.m >> stdout/{1} 2>&1" ::: %s' % label, shell=True)
 
 def collate_data(label):
-    xcoord = get_lattice_coords(label)
-    with open(opj("canonical_models", label)) as F:
-        return tuple(F.read().strip().replace("{","").replace("}","").split("|"))
+    with open("output", "a") as Fout:
+        for code, folder in [
+                ("C", "canonical_models"),
+                ("P", "plane_models"),
+                ("H", "ghyp_models"),
+                ("R", "rats"),
+                ("G", "gonality"),
+                ("L", "graphviz_out"),
+                ("T", "timings"),
+                ("E", "stdout")]:
+            fname = opj(folder, label)
+            if ope(fname):
+                with open(fname) as F:
+                    for line in F:
+                        _ = Fout.write(f"{code}{label}|{line}")
 
 if get_canonical_model(label):
     if get_plane_and_gonality(label):
         get_ghyperelliptic_model(label)
     get_rational_coordinates(label)
-#collate_data(label)
+get_lattice_coords(label)
+collate_data(label)

@@ -1,8 +1,9 @@
-// Run after GetModelLMFDB.m (and, optionally, after GetPlanAndGonality.m)
+// Run after GetModelLMFDB.m (and, optionally, after GetPlaneAndGonality.m)
 // Usage: magma -b label:={1} GetRationalCoordinates.m >> stdout/{1} 2>&1
 
 AttachSpec("equations.spec");
 SetColumns(0);
+//SetVerbose("User1", 1);
 //SetDebugOnError(true);
 if (not assigned label) then
     printf "This script assumes that label, the label of the X_H to compute, is given as a command line paramter.\n";
@@ -15,6 +16,7 @@ ans := [* *];
 if #jinvs gt 0 then
     QQ := Rationals();
     X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
+    // TODO: pull cusps back along j map as well
     Cs := LMFDBReadPlaneModel(label);
     X := Curve(Proj(Universe(X)), X);
     if #Cs gt 0 then

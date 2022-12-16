@@ -2,7 +2,9 @@
 // where input_data is a folder containing one file for each label, consisting of the generators as a comma-separated list of integers
 
 AttachSpec("equations.spec");
-SetDebugOnError(true);
+SetColumns(0);
+//SetVerbose("User1", 1);
+//SetDebugOnError(true);
 if (not assigned label) then
     printf "This script assumes that label, the label of the X_H to compute, is given as a command line paramter.\n";
     printf "Something like magma label:=7.168.3.1 GetModelLMFDB.m\n";
@@ -12,8 +14,6 @@ end if;
 X, jmap, model_type, cusps, M := ProcessModel(label);
 j := New(JMapData);
 j`J := jmap;
-System("mkdir -p canonical_models");
-SetColumns(0);
 LMFDBWriteModel(X, j, cusps, model_type, label);
 
 // We compute the plane model separately since it can take a long time
