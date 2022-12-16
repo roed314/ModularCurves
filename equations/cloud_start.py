@@ -48,6 +48,8 @@ with open("todo.txt") as F:
 def get_lattice_coords(label):
     # We use graphviz to lay out the displayed lattice
     infile = opj("graphviz_in", label)
+    if not ope(infile):
+        return
     outfile = opj("graphviz_out", label)
     with open(opj("timings", label), "a") as F:
         _ = F.write("Starting lattice layout\n")
