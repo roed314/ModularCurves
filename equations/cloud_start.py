@@ -66,7 +66,7 @@ def get_lattice_coords(label):
                 diagram_x = int(round(10000 * float(pieces[2]) / scale))
                 xcoord[short_label] = diagram_x
     with open(outfile, "w") as F:
-        lattice_labels, lattice_x = zip(*xcoord.items()))
+        lattice_labels, lattice_x = zip(*xcoord.items())
         _ = F.write("{%s}|{%s}\n" % (",".join(lattice_labels), ",".join(str(c) for c in lattice_x)))
     with open(opj("timings", label), "a") as F:
         _ = F.write(f"Finished lattice layout in {time() - t0}\n")
