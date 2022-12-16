@@ -19,9 +19,6 @@ if #jinvs gt 0 then
     X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
     Cs := LMFDBReadPlaneModel(label);
     X := Curve(Proj(Universe(X)), X);
-    if #Cs gt 0 then
-        C := Curve(Proj(Parent(Cs[1][1])), Cs[1][1]);
-    end if;
     P1K := AssociativeArray();
     XK := AssociativeArray();
     projK := AssociativeArray();
@@ -34,13 +31,14 @@ if #jinvs gt 0 then
             return K;
         end if;
     end function;
-    procedure AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, Cs, K)
+    procedure AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, X, Cs, K, jnum, jden)
         k := AsNF(K);
         if not IsDefined(P1K, k) then
             P1K[k] :=ProjectiveSpace(K, 1);
             XK[k] := ChangeRing(X, K);
             projK[k] := map<XK[k] -> P1K[k] | [jnum, jden]>;
             if #Cs gt 0 then
+                C := Curve(Proj(Parent(Cs[1][1])), Cs[1][1]);
                 CK[k] := ChangeRing(C, K);
                 T := ChangeRing(Universe(Cs[1][2]), K);
                 CprojK[k] := map<XK[k] -> CK[k]| [T!f : f in Cs[1][2]]>;
@@ -50,7 +48,7 @@ if #jinvs gt 0 then
     for pair in jinvs do
         j, isolated := Explode(pair);
         K := Parent(j);
-        AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, Cs, K);
+        AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, X, Cs, K, jnum, jden)
         k := AsNF(K);
         P1pt := P1K[k]![j,1];
         Xpt := P1pt @@ (projK[k]);
@@ -95,7 +93,7 @@ if #jinvs gt 0 then
     // Add the cusps
     for cusp in cusps do
         K := Universe(cusp);
-        AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, Cs, K);
+        AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, X, Cs, K, jnum, jden)
         k := AsNF(K);
         pt := XK[k]!cusp;
         Append(~ans, <0, "oo", pt>);

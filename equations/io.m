@@ -167,7 +167,7 @@ intrinsic LMFDBReadCanonicalModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIn
                 Append(~by_i[i], cusp);
             end if;
         end for;
-        cusps := [* [StringToRational(c) : c in Split(cusp, ":")] : cusp in by_i[0] *];
+        cusps := [* [StringToRational(c) : c in Split(cusp[2..#cusp-1], ":")] : cusp in by_i[0] *];
         for i in [1..#fields] do
             poly := eval fields[i];
             K := NumberField(poly);
