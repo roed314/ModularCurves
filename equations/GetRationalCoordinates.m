@@ -19,39 +19,22 @@ if #jinvs gt 0 then
     X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
     Cs := LMFDBReadPlaneModel(label);
     X := Curve(Proj(Universe(X)), X);
-    P1K := AssociativeArray();
-    XK := AssociativeArray();
-    projK := AssociativeArray();
-    CK := AssociativeArray();
-    CprojK := AssociativeArray();
-    function AsNF(K)
-        if K eq QQ then
-            return RationalsAsNumberField();
-        else
-            return K;
-        end if;
-    end function;
-    procedure AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, X, Cs, K, jnum, jden)
-        k := AsNF(K);
-        if not IsDefined(P1K, k) then
-            P1K[k] :=ProjectiveSpace(K, 1);
-            XK[k] := ChangeRing(X, K);
-            projK[k] := map<XK[k] -> P1K[k] | [jnum, jden]>;
-            if #Cs gt 0 then
-                C := Curve(Proj(Parent(Cs[1][1])), Cs[1][1]);
-                CK[k] := ChangeRing(C, K);
-                T := ChangeRing(Universe(Cs[1][2]), K);
-                CprojK[k] := map<XK[k] -> CK[k]| [T!f : f in Cs[1][2]]>;
-            end if;
-        end if;
-    end procedure;
+    if #Cs gt 0 then
+        C := Curve(Proj(Parent(Cs[1][1])), Cs[1][1]);
+    end if;
     for pair in jinvs do
         j, isolated := Explode(pair);
         K := Parent(j);
-        AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, X, Cs, K, jnum, jden);
-        k := AsNF(K);
-        P1pt := P1K[k]![j,1];
-        Xpt := P1pt @@ (projK[k]);
+        P1K := ProjectiveSpace(K, 1);
+        XK := ChangeRing(X, K);
+        projK := map<XK -> P1K | [jnum, jden]>;
+        if #Cs gt 0 then
+            CK := ChangeRing(C, K);
+            T := ChangeRing(Universe(Cs[1][2]), K);
+            CprojK := map<XK -> CK| [T!f : f in Cs[1][2]]>;
+        end if;
+        P1pt := P1K![j,1];
+        Xpt := P1pt @@ (projK);
         t1 := ReportStart(label, Sprintf("computing rational points above j=%o", j));
         Xcoords := RationalPoints(Xpt);
         ReportEnd(label, Sprintf("computing rational points above j=%o", j), t1);
@@ -80,25 +63,30 @@ if #jinvs gt 0 then
         end for;
         if #Cs gt 0 then
             // This produces extra points, which I think are singular
-            //Cpt := Xpt @ (CprojK[k]);
+            //Cpt := Xpt @ (CprojK);
             //Ccoords := RationalPoints(Cpt);
             //for coords in Ccoords do
             //    Append(~ans, <2, j, coords>);
             //end for;
             for pt in Xcoords do
-                Append(~ans, <2, j, (XK[k]!pt) @ CprojK[k]>);
+                Append(~ans, <2, j, (XK!pt) @ CprojK>);
             end for;
         end if;
     end for;
     // Add the cusps
     for cusp in cusps do
         K := Universe(cusp);
-        AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, X, Cs, K, jnum, jden);
-        k := AsNF(K);
-        pt := XK[k]!cusp;
+        P1K := ProjectiveSpace(K, 1);
+        XK := ChangeRing(X, K);
+        if #Cs gt 0 then
+            CK := ChangeRing(C, K);
+            T := ChangeRing(Universe(Cs[1][2]), K);
+            CprojK := map<XK -> CK| [T!f : f in Cs[1][2]]>;
+        end if;
+        pt := XK!cusp;
         Append(~ans, <0, "oo", pt>);
         if #Cs gt 0 then
-            Append(~ans, <2, "oo", pt @CprojK[k]>);
+            Append(~ans, <2, "oo", pt @ CprojK>);
         end if;
     end for;
 
