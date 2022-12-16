@@ -546,6 +546,9 @@ def prep_all():
     # Make tarball
 
 def timing_statistics():
+    transform = {"log-canonicalish ring": "canonical ring",
+                 "model computation with low precision": "model and modular forms",
+                 "determining Galois action on cusps": "post-processing"}
     with open("output") as F:
         timing_data = [line[1:] for line in F.read().strip().split("\n") if line.startswith("T")]
         by_label = defaultdict(list)
@@ -561,25 +564,26 @@ def timing_statistics():
         for label, lines in by_label.items():
             started = [start_re.fullmatch(x) for x in lines]
             started = [m.group(1) for m in started if m is not None]
+            started = [transform.get(x, x) for x in started]
             finished = [end_re.fullmatch(x) for x in lines]
             timings = [float(m.group(2)) for m in finished if m is not None]
             finished = [m.group(1) for m in finished if m is not None]
             for task, t in zip(finished, timings):
-                # 34 is to truncate the specific j-invariant in "computing rational points above j="
-                by_task[task[:34]].append((t, label))
+                # 33 is to truncate the specific j-invariant in "computing rational points above j="
+                by_task[task[:33]].append((t, label))
             UF = set(started).difference(set(finished))
             US = set(finished).difference(set(started))
             if UF:
                 unfinished[label] = UF
                 for task in UF:
-                    uby_task[task[:34]].append(label)
+                    uby_task[task[:33]].append(label)
             if US:
                 unstarted[label] = US
     for task, data in by_task.items():
         times = [pair[0] for pair in data]
         level = [int(pair[1].split(".")[0]) for pair in data]
         genus = [int(pair[1].split(".")[2]) for pair in data]
-        task = task + " "*(34-len(task))
+        task = task + " "*(33-len(task))
         by_level = defaultdict(list)
         for N, t in zip(level, times):
             by_level[N].append(t)
