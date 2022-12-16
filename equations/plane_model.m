@@ -277,6 +277,208 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Cr
     return true, C, M;
 end intrinsic;
 
+intrinsic planemodel_gonalitybound(X::Crv) -> MapSch
+{
+    Input:
+            X:          a canonically embedded curve X, as returned by ProcessModel()
+    Output:
+            mp:         a map from X to a plane model of X, and a bound on the gonality of X coming from the plane model
+}
+    FFX<[x]> := FunctionField(X);
+    gens_FFX := Generators(FFX);
+    newgens_FFX := [];
+    for xx in gens_FFX do
+        s := Sprint(xx);
+        if s[[1,2,#s]] eq "x[]" then
+            try
+                _ := StringToInteger(s[3..#s-1]);
+                Append(~newgens_FFX,xx);
+            catch e;
+            end try;
+        end if;
+    end for;
+    if #newgens_FFX eq 1 then
+        xx := newgens_FFX[1];
+        yy := x[#x];
+        minpolyy := MinimalPolynomial(yy);
+        q_high := Degree(minpolyy);
+        if q_high eq 1 then
+            xx := x[#x];
+            yy := newgens_FFX[1];
+            minpolyy := MinimalPolynomial(yy);
+            q_high := Degree(minpolyy);
+        end if;
+        coeffs := [[Coefficients(Numerator(c)),Coefficients(Denominator(c))] : c in Coefficients(minpolyy)];
+        P2<u,v,w> := ProjectiveSpace(Rationals(),2);
+        dens := [&+([0] cat [c[2][i]*u^(i-1) : i in [1..#c[2]]]) : c in coeffs];
+        lcmdens := LCM(dens);
+        nums := [&+([0] cat [c[1][i]*u^(i-1) : i in [1..#c[1]]]) : c in coeffs];
+        plane_eqn := Parent(u) ! &+[nums[i]*(lcmdens/dens[i])*v^(i-1) : i in [1..#coeffs]];
+        maxdeg := Degree(plane_eqn);
+        monos_coeffs, monos := CoefficientsAndMonomials(plane_eqn);
+        plane_eqn := &+[monos_coeffs[i]*monos[i]*w^(maxdeg-Degree(monos[i])) : i in [1..#monos]];
+        plane_model := Curve(P2,plane_eqn);
+        mp := map<X->plane_model | [xx,yy,1]>;
+        return mp, q_high;
+    else
+        return 1, 1;
+    end if;
+end intrinsic;
+
+
+function rational_interpolation(dat : denfac := 1);
+    if denfac ne 1 then
+        datupdated := [<d[1],d[2]*Evaluate(denfac,d[1])> : d in dat];
+        dat := datupdated;
+    end if;
+    Z := Integers();
+    Q := Rationals();
+    P := PolynomialRing(Rationals());
+    test := Interpolation([Q ! d[1] : d in dat],[Q ! d[2] : d in dat]);
+    if Degree(test) lt #dat/2 then
+        return <P ! test,P ! denfac>;
+    end if;
+    nms := &cat[[[i,s-i] : i in [0..s]] : s in [0..100]];
+    for nm in nms do
+        n := nm[1];
+        m := nm[2];
+        interpolating_data_modp := [];
+        for N := 10000 to 10100 do
+            p := NthPrime(N);
+            try
+                datp := [<GF(p) ! d[1], GF(p) ! d[2]> : d in dat];
+                Matp := Matrix(GF(p),#datp,m+n+2,[[d[1]^i : i in [0..n]] cat [d[2]*d[1]^i : i in [0..m]] : d in datp]);
+                Matp := Transpose(Matp);
+                kerp := Kernel(Matp);
+                if Dimension(kerp) eq 0 then
+                    continue nm;
+                end if;
+                assert Dimension(kerp) eq 1;
+                v := Eltseq(kerp.1);
+                ind := [i : i in [1..m+n+2] | v[i] ne 0][1];
+                v := [Z ! (e/v[ind]) : e in v];
+                Append(~interpolating_data_modp,<p,v>);
+            catch e;
+                continue N;
+            end try;
+        end for;
+        printf "The degrees of the numerator and denominator of the interpolating rational function are %o\n", nm;
+        break;
+    end for;
+
+    for scal in [1..100000] do
+        interpolating_data := [CRT([scal*d[2][i] : d in interpolating_data_modp], [d[1] : d in interpolating_data_modp]) : i in [1..m+n+2]];
+        l := LCM([d[1] : d in interpolating_data_modp]);
+        result := [(Abs(r) lt Abs(l-r)) select r else r-l : r in interpolating_data];
+        if #Sprint(result) lt 500 then
+            return <-(P ! result[1..n+1]),(P ! result[n+2..m+n+2])*(P ! denfac)>;
+        end if;
+    end for;
+end function;
+
+
+intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> MapSch
+{
+    Input:
+            gonal_map:  a gonal map from a canonically embedded curve X, as returned by GenusNGonalMap for 3 <= N <= 6
+    Output:
+            mp:         a map from X to a plane model of X
+}
+    X := Domain(gonal_map);
+    P<[x]> := AmbientSpace(X);
+    Xeqs := Equations(X);
+    P1 := Codomain(gonal_map);
+    defeqs := DefiningEquations(gonal_map);
+
+    undefinedpts := PointsOverSplittingField(Scheme(P,Xeqs cat [defeqs[1]*defeqs[2]]));
+
+    n := Degree(gonal_map);
+
+    FFX := FunctionField(X);
+    f := FFX ! (defeqs[1]/defeqs[2]);
+
+    V := CartesianPower([0,1],#x);
+    V := [[w : w in v] : v in V];
+    V := Sort(V, func<x,y|&+x-&+y>);
+
+    for v in V do
+        if &+v eq 0 then continue; end if;
+        printf "Trying %o\n", v;
+        g := FFX ! ((&+[v[i]*x[i] : i in [1..#x]])/defeqs[2]);
+        if f eq g then continue; end if;
+        try
+            allminpols := [];
+            for i := 1 to 100 do
+                pt := P1 ! [i,1];
+                pullbk := PointsOverSplittingField(Pullback(gonal_map,pt));
+                pullbk := SetToSequence(pullbk);
+/*
+                for invpt in pullbk do
+                    try
+                        feval := Evaluate(f,invpt);
+                        if feval ne i then
+                            Exclude(~pullbk,invpt);
+                        end if;
+                    catch e;
+                        Exclude(~pullbk,invpt);
+                    end try;
+                end for;
+*/
+                actual_pullbk := [];
+                for invpt in pullbk do
+                    try
+                        if gonal_map(invpt) eq pt then
+                            Append(~actual_pullbk,invpt);
+                        end if;
+                    catch e;
+                    end try;
+                    if #actual_pullbk eq n then
+                        pullbk := actual_pullbk;
+                        break;
+                    end if;
+                end for;
+                if #pullbk eq n then
+                    minpol := MinimalPolynomial(Evaluate(g,pullbk[1]));
+                    assert Degree(minpol) eq n;
+                    Append(~allminpols,<i,minpol>);
+                end if;
+                if i mod 20 eq 0 then
+                    printf "Done computing %o pullbacks\n", i;
+                end if;
+            end for;
+            printf "Done computing pullbacks, and minpolys of the value of g at the pullbacks\n";
+            xs := [Rationals() ! dat[1] : dat in allminpols];
+            coeffs := [[Coefficient(dat[2],i) : dat in allminpols] : i in [0..n]];
+            printf "Trying to interpolate with rational function\n";
+            coeffs_in_x := [];
+            possible_denfac := 1;
+            for i := n+1 to 1 by -1 do
+                ithfunc := rational_interpolation([<xs[j],coeffs[i][j]> : j in [1..#xs]] : denfac := possible_denfac);
+                if ithfunc[2] ne 1 then
+                    possible_denfac := (ithfunc[2])/LeadingCoefficient(ithfunc[2]);
+                end if;
+                Append(~coeffs_in_x,ithfunc);
+                printf "Interpolated coefficient of Y^%o\n", i-1;
+            end for;
+            coeffs_in_x := Reverse(coeffs_in_x);
+            P2<[u]> := ProjectiveSpace(Rationals(),2);
+            lcmofdens := LCM([coe[2] : coe in coeffs_in_x]);
+            clearing_dens := [PolynomialRing(Rationals()) ! (lcmofdens/coe[2]) : coe in coeffs_in_x];
+            plane_eqn := &+[Evaluate(clearing_dens[i],u[1])*Evaluate(coeffs_in_x[i][1],u[1])*u[2]^(i-1) : i in [1..n+1]];
+            maxdeg := Degree(plane_eqn);
+            monos_coeffs, monos := CoefficientsAndMonomials(plane_eqn);
+            plane_eqn := &+[monos_coeffs[i]*monos[i]*u[3]^(maxdeg-Degree(monos[i])) : i in [1..#monos]];
+            plane_model := Curve(P2,plane_eqn);
+            P1 := ProjectiveSpace(Rationals(),1);
+            mp := map<X->plane_model | [f,g,1]>;
+            return mp;
+        catch e;
+//            printf "Error %o, for numerator of y-coordinate given by %o\n", e, v;
+            continue v;
+        end try;
+    end for;
+end intrinsic;
+
 intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp::BoolElt, cusps::SeqEnum : try_gonal_map:=true) -> Tup, SeqEnum
 {
     Input:
@@ -303,7 +505,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
     q_low := 2; // overwritten in some cases
     qbar_low := 2; // overwritten in some cases
     degrees := [[Degree(X[j], P.i): i in [1..Ngens(P)]]: j in [1..#X]];
-    q_high := Min([Min([d: d in degrees[j] | d ne 0]): j in [1..#X]]);
+    q_high := Min([Min([d: d in degrees[j] | d ne 0]): j in [1..#X]]); //TODO: check
     if g eq 0 then
         q_low := q_high; // Rakvi's code will give a conic precisely when there are no points
         qbar_low := 1;
@@ -325,26 +527,21 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
             elif g eq 5 then
 	        qbar_low, gonal_map := Genus5GonalMap(curve : IsCanonical:=not ghyp);
             else
-	        qbar_low, _, gonal_map := Genus6GonalMap(curve : IsCanonical:=not ghyp);
+	        qbar_low, sec_type, gonal_map, aux_map := Genus6GonalMap(curve : IsCanonical:=not ghyp);
             end if;
             q_low := qbar_low;
             qbar_high := qbar_low;
             // If gonal map is rational, get q_high as well
             F := BaseField(Domain(gonal_map));
             if F eq Rationals() then
-	        q_high := qbar_high;
-                P1<s,t> := Codomain(gonal_map);
-                X_aff := AffinePatch(curve, 1);
-                gonal_map_polys := [AlgebraMap(gonal_map)(g) : g in [s,t]];
-                gonal_aff := [Evaluate(p, [1] cat GeneratorsSequence(CoordinateRing(X_aff))) : p in gonal_map_polys];
-                FFX := FunctionField(curve);
-                gonal_ffx := FFX!gonal_aff[1] / FFX!gonal_aff[2];
-                f := MinimalPolynomial(gonal_ffx);
-                if q_high eq 3 then
-                    ; // We can eliminate the quadratic term to get y^3 + g(x)y = f(x), then clear denominators
+                q_high := qbar_low;
+                planemap, gonality := planemodel_gonalitybound(X);
+                if q_high eq gonality then
+                    add_opt(planemap);
+                else
+                    planemap := planemodel_fromgonalmap(gonal_map);
+                    add_opt(planemap);
                 end if;
-                // TODO: Need to use f to get a model, together with maps
-
             end if;
         elif ghyp then
             qbar_high := 2;
@@ -367,7 +564,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
     // Use rational cusps (and maybe a short rational point search?) to project
 
     if g eq 5 then
-        ok, f := Genus5PlaneCurveModel(X : IsCanonical:=not ghyp);
+        ok, f := Genus5PlaneCurveModel(curve : IsCanonical:=not ghyp);
         if ok then add_opt(f); end if;
     end if;
     // Sam suggests Ciaran's code for improving coefficients: https://github.com/SamSchiavone/Gm-Reduce/blob/main/linear-program.m#L218
