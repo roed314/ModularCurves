@@ -48,7 +48,7 @@ if #jinvs gt 0 then
     for pair in jinvs do
         j, isolated := Explode(pair);
         K := Parent(j);
-        AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, X, Cs, K, jnum, jden)
+        AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, X, Cs, K, jnum, jden);
         k := AsNF(K);
         P1pt := P1K[k]![j,1];
         Xpt := P1pt @@ (projK[k]);
@@ -93,7 +93,7 @@ if #jinvs gt 0 then
     // Add the cusps
     for cusp in cusps do
         K := Universe(cusp);
-        AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, X, Cs, K, jnum, jden)
+        AddNF(~P1K, ~XK, ~projK, ~CK, ~CprojK, X, Cs, K, jnum, jden);
         k := AsNF(K);
         pt := XK[k]!cusp;
         Append(~ans, <0, "oo", pt>);
