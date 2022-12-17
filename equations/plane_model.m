@@ -277,12 +277,13 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv : prec:=0) -> BoolElt, Cr
     return true, C, M;
 end intrinsic;
 
-intrinsic planemodel_gonalitybound(X::Crv) -> MapSch
+intrinsic planemodel_gonalitybound(X::Crv) -> Tup, RngIntElt
 {
     Input:
             X:          a canonically embedded curve X, as returned by ProcessModel()
     Output:
-            mp:         a map from X to a plane model of X, and a bound on the gonality of X coming from the plane model
+            mp:         a tuple consisting of an equation defining a plane model C of X, and equations defining a map from X to C;
+                        and a bound on the gonality of X coming from the x-coordinate on the plane model C
 }
     FFX<[x]> := FunctionField(X);
     gens_FFX := Generators(FFX);
@@ -309,19 +310,28 @@ intrinsic planemodel_gonalitybound(X::Crv) -> MapSch
             q_high := Degree(minpolyy);
         end if;
         coeffs := [[Coefficients(Numerator(c)),Coefficients(Denominator(c))] : c in Coefficients(minpolyy)];
-        P2<u,v,w> := ProjectiveSpace(Rationals(),2);
-        dens := [&+([0] cat [c[2][i]*u^(i-1) : i in [1..#c[2]]]) : c in coeffs];
+        P2<[u]> := ProjectiveSpace(Rationals(),2);
+        dens := [&+([0] cat [c[2][i]*u[1]^(i-1) : i in [1..#c[2]]]) : c in coeffs];
         lcmdens := LCM(dens);
-        nums := [&+([0] cat [c[1][i]*u^(i-1) : i in [1..#c[1]]]) : c in coeffs];
-        plane_eqn := Parent(u) ! &+[nums[i]*(lcmdens/dens[i])*v^(i-1) : i in [1..#coeffs]];
+        nums := [&+([0] cat [c[1][i]*u[1]^(i-1) : i in [1..#c[1]]]) : c in coeffs];
+        plane_eqn := Parent(u[1]) ! &+[nums[i]*(lcmdens/dens[i])*u[2]^(i-1) : i in [1..#coeffs]];
         maxdeg := Degree(plane_eqn);
         monos_coeffs, monos := CoefficientsAndMonomials(plane_eqn);
-        plane_eqn := &+[monos_coeffs[i]*monos[i]*w^(maxdeg-Degree(monos[i])) : i in [1..#monos]];
+        plane_eqn := &+[monos_coeffs[i]*monos[i]*u[3]^(maxdeg-Degree(monos[i])) : i in [1..#monos]];
+/*
         plane_model := Curve(P2,plane_eqn);
         mp := map<X->plane_model | [xx,yy,1]>;
         return mp, q_high;
+*/
+        AssignNames(~P2,["X","Y","Z"]);
+        xxmaptoP1 := map<X->ProjectiveSpace(Rationals(),1) | [xx,1]>;
+        defeqsxx := DefiningEquations(xxmaptoP1);
+        yymaptoP1 := map<X->ProjectiveSpace(Rationals(),1) | [yy,1]>;
+        defeqsyy := DefiningEquations(yymaptoP1);
+        lcmofdens := LCM(defeqsxx[2],defeqsyy[2]);
+        return <plane_eqn, [defeqsxx[1]*lcmofdens/defeqsxx[2],defeqsyy[1]*lcmofdens/defeqsyy[2],lcmofdens]>, q_high;
     else
-        return 1, 1;
+        return <1>, 1;
     end if;
 end intrinsic;
 
@@ -377,12 +387,13 @@ function rational_interpolation(dat : denfac := 1);
 end function;
 
 
-intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> MapSch
+intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> Tup
 {
     Input:
             gonal_map:  a gonal map from a canonically embedded curve X, as returned by GenusNGonalMap for 3 <= N <= 6
     Output:
-            mp:         a map from X to a plane model of X
+            result:     a tuple consisting of an equation defining a plane model C of X, and equations defining a map from X to C,
+                        such that the x-coordinate on C corresponds to the given gonal map on X
 }
     X := Domain(gonal_map);
     P<[x]> := AmbientSpace(X);
@@ -468,10 +479,15 @@ intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> MapSch
             maxdeg := Degree(plane_eqn);
             monos_coeffs, monos := CoefficientsAndMonomials(plane_eqn);
             plane_eqn := &+[monos_coeffs[i]*monos[i]*u[3]^(maxdeg-Degree(monos[i])) : i in [1..#monos]];
+/*
             plane_model := Curve(P2,plane_eqn);
             P1 := ProjectiveSpace(Rationals(),1);
             mp := map<X->plane_model | [f,g,1]>;
-            return mp;
+            return mp
+*/
+            AssignNames(~P2,["X","Y","Z"]);
+            result := <plane_eqn, [defeqs[1],&+[v[i]*x[i] : i in [1..#x]],defeqs[2]]>;
+            return result;
         catch e;
 //            printf "Error %o, for numerator of y-coordinate given by %o\n", e, v;
             continue v;
@@ -535,12 +551,12 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
             F := BaseField(Domain(gonal_map));
             if F eq Rationals() then
                 q_high := qbar_low;
-                planemap, gonality := planemodel_gonalitybound(X);
+                eqsplanemap, gonality := planemodel_gonalitybound(curve);
                 if q_high eq gonality then
-                    add_opt(planemap);
+                    Append(~opts,<eqsplanemap[1],[P!eqn : eqn in eqsplanemap[2]]>);
                 else
-                    planemap := planemodel_fromgonalmap(gonal_map);
-                    add_opt(planemap);
+                    eqsplanemap := planemodel_fromgonalmap(gonal_map);
+                    Append(~opts,<eqsplanemap[1],[P!eqn : eqn in eqsplanemap[2]]>);
                 end if;
             end if;
         elif ghyp then
