@@ -546,9 +546,9 @@ def prep_all():
     # Make tarball
 
 def timing_statistics():
-    transform = {"log-canonicalish ring": "canonical ring",
-                 "model computation with low precision": "model and modular forms",
-                 "determining Galois action on cusps": "post-processing"}
+    #transform = {"log-canonicalish ring": "canonical ring",
+    #             "model computation with low precision": "model and modular forms",
+    #             "determining Galois action on cusps": "post-processing"}
     with open("output") as F:
         timing_data = [line[1:] for line in F.read().strip().split("\n") if line.startswith("T")]
         by_label = defaultdict(list)
@@ -564,7 +564,7 @@ def timing_statistics():
         for label, lines in by_label.items():
             started = [start_re.fullmatch(x) for x in lines]
             started = [m.group(1) for m in started if m is not None]
-            started = [transform.get(x, x) for x in started]
+            #started = [transform.get(x, x) for x in started]
             finished = [end_re.fullmatch(x) for x in lines]
             timings = [float(m.group(2)) for m in finished if m is not None]
             finished = [m.group(1) for m in finished if m is not None]
