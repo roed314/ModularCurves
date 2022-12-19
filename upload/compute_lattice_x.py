@@ -6,7 +6,7 @@ import re
 import sys
 from collections import defaultdict, Counter
 from sage.misc.cachefunc import cached_function
-from sage.all import ZZ, QQ, Poset, DiGraph, flatten
+from sage.all import ZZ, QQ, Poset, DiGraph, flatten, gcd, PolynomialRing
 from sage.combinat.posets.posets import FinitePoset
 from sage.misc.misc import cputime, walltime
 from sage.databases.cremona import class_to_int
@@ -619,3 +619,193 @@ def timing_statistics():
             f = uby_genus.get(g, 0)
             print(f"{task} g={g} Mean ({a:.2f}) Median ({b:.2f}) Std ({c:.2f}) Max ({d:.2f}) OK ({e}) Bad ({f})")
     return unfinished, by_task, uby_task
+
+def get_gonalities(model_gonalities):
+    P = get_lattice_poset()
+    H = P._hasse_diagram
+    gonalities = {P._element_to_vertex(rec["label"]): rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"] for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"])}
+    X1 = P._element_to_vertex("1.1.0.a.1")
+    def index_genus(label):
+        pieces = label.split(".")
+        return int(label[1]), int(label[2])
+    ig = {v: index_genus(P._vertex_to_element(v)) for v in H}
+    recursive_ig = {}
+    # We record the changes so that we can write about them
+    with open("gon_improvements.txt", "w") as F:
+        # Import the gonalities from models
+        for label, bounds in model_gonalities.items():
+            x = P._element_to_vertex(label)
+            for i in range(4):
+                if bounds[i] * (-1)**i > gonalities[x][i] * (-1)**i:
+                    _ = F.write(f"{i}|{label}|{bounds[i]}|M|{(bounds[i] - gonalities[x][i]) * (-1)**i}")
+                    gonalities[x][i] = bounds[i]
+        for x in H.breadth_first_search(X1):
+            index, genus = ig[x]
+            recursive_ig[x] = set()
+            dgon = set()
+            for y in H.neighbors_in(x):
+                recursive_ig[x].update(recursive_ig[y])
+                for bar in [1,3]:
+                    # Update gonality upper bound: we can compose a map to y with a gonality map from y to P1 to get a gonality map from x to P1
+                    ybound = gonalities[y][bar] * index // ig[y][0]
+                    if ybound < gonalities[x][bar]:
+                        assert ybound >= gonalities[x][bar-1]
+                        _ = F.write(f"{bar}|{P._vertex_to_element(x)}|{ybound}|{P._vertex_to_element(y)}|{gonalities[x][bar] - ybound}")
+                        gonalities[x][bar] = ybound
+                    assert gonalities[x][bar] >= gonalities[x][bar-1]
+
+            dg = defaultdict(list)
+            for i, g in recursive_ig[x]:
+                dg[index // i].append(g)
+            for bar in [0,2]:
+                low, high = gonalities[x][bar:bar+2]
+                # First, see if we can lower the high bound using the gonality of the neighbors
+                if low != high:
+                    for gon in range(low, high):
+                        # Try to rule out gon as a possible gonality using Castelnuovo–Severi
+                        if all(all((genus - d*g) / (d - 1) + 1 <= gon
+                                   for g in dg[d])
+                               for d in dg if gcd(d, gon) == 1):
+                            gonalities[x][bar] = gon
+                            break
+                    else:
+                        gonalities[x][bar] = high
+
+            recursive_ig[x].add(ig[x])
+    def package(gon):
+        q_low, q_high, qbar_low, qbar_high = gon
+        q = q_low if q_low == q_high else None
+        qbar = qbar_low if qbar_low == qbar_high else None
+        return q, qbar, (q_low, q_high), (qbar_low, qbar_high)
+        #return f"{q}|{qbar}|{{{q_low},{q_high}}}|{{{qbar_low},{qbar_high}}}"
+    return {P._element_to_vertex(v): package(gon) for (v, gon) in gonalities.items()}
+
+def get_model_points():
+    # We need to do polredabs computations for cusps, which might take a while
+    nf_lookup = {tuple(rec["coeffs"]): rec["label"] for rec in db.nf_fields.search({"degree":{"$lte":6}}, ["label", "coeffs"])}
+    points = defaultdict(lambda: defaultdict(list))
+    cusps = defaultdict(lambda: defaultdict(list))
+    R = PolynomialRing(QQ, name="x")
+    to_polredabs = {}
+    with open("output") as F:
+        for line in F:
+            label, out = line.strip().split("|", 1)
+            code, label = label[0], label[1:]
+            if code == "R":
+                poly, j, model_type, coord = out.split("|")
+                model_type = int(model_type)
+                if poly in ["$.1 - 1", "x - 1"]:
+                    points[label, "1.1.1.1", j][model_type].append(coord)
+                elif j == "oo":
+                    f = R(poly)
+                    K = NumberField(f, name='a')
+                    if poly not in to_polredabs:
+                        # Need to compute the polredabs
+                        g = R(poly.__pari__().polredabs())
+                        nflabel = nf_lookup[tuple(g)]
+                        L = NumberField(g, name='b')
+                        to_polredabs[poly] = phi = K.embeddings(L)[0]
+                    else:
+                        phi, nflabel = to_polredabs[poly]
+                    coord = [K([QQ(c) for c in x.split(",")]) for x in coord.split(":")]
+                    coord = [phi(x) for x in coord]
+                    coord = ":".join(",".join(str(c) for c in list(x)) for x in coord)
+                    cusps[label, nfabel][model_type].append(coord)
+                else:
+                    nflabel = nf_lookup[tuple(R(poly))]
+                    points[label, nflabel, j][model_type].append(coord)
+    return points, cusps
+
+def transform_label(old_label):
+    if old_label.count(".") == 4:
+        return old_label
+    #Old: M.j.g.a.m-N.n
+    coarse, fine = old_label.split("-")
+    M, j, g, a, m = coarse.split(".")
+    i = 2*int(j)
+    N, n = fine.split(".")
+    # New: N.i.g.n-M.a.m
+    return f"{N}.{i}.{g}.{n}-{M}.{a}.{m}"
+
+def create_db_uploads():
+    data = defaultdict(lambda: defaultdict(list))
+    with open("output") as F:
+        for line in F:
+            label, out = line.strip().split("|", 1)
+            code, label = label[0], label[1:]
+            data[code][label].append(out)
+
+    # Propogate gonalities
+    data["G"] = {label: [int(g) for g in gon.split(",")] for label,gon in data["G"].items()}
+    gonalities = get_gonalities(data["G"])
+
+    # Get lattice_models and lattice_x
+    lattice = {label: "{" + D.replace("|", "}|{") + "}" for label,D in data["L"]}
+
+    with open("gps_gl2zhat_fine.update", "w") as F:
+        _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds|lattice_labels|lattice_x\ninteger|integer|integer[]|integer[]|text[]|integer[]\n\n")
+        for label, gon in gonalities.items():
+            _ = F.write(f"{transform_label(label)}|{gon}|{lattice[label]}\n")
+
+    # Construct modcurve_points
+    nf_lookup = {rec["coeffs"]: rec["label"] for rec in db.nf_fields.search({"degree":{"$lte":6}}, ["label", "coeffs"])}
+
+    lit_data = load_points_files(manual_data_folder)
+    lit_fields = sorted(set([datum[2] for datum in lit_data]))
+    print("Loaded tables from files")
+
+    gpdata = load_gl2zhat_data()
+
+    # TODO: Rewrite prep code so that we don't need to redo the poset rational point propogation
+    P = get_rational_poset()
+    H = P._hasse_diagram
+    ecq_db_data = load_ecq_data(cm_data_file)
+
+    ecnf_db_data = list(load_ecnf_data(ecnf_data_file))
+
+    model_points, cusps = get_model_points()
+
+    # Check for overlap as we add points
+    jinvs_seen = defaultdict(set)
+    point_counts = defaultdict(Counter)
+    X1intervals = {}
+    with open("modcurve_points.txt", "w") as F:
+        _ = F.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|coordinates|cusp\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint|jsonb|boolean\n\n")
+        # rats contains residue_field|jorig|model_type|coord
+        for ctr, (label, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, known_isolated, conductor_norm) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
+            if ctr and ctr % 10000 == 0:
+                print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
+            assert label != "1.1.0.a.1"
+            if label not in X1intervals:
+                X1intervals[label] = [P._vertex_to_element(v) for v in H.breadth_first_search(P._element_to_vertex(label))]
+            for plabel in X1intervals[label]:
+                gdat = gpdata[plabel]
+                g = gdat["genus"]
+                ind = gdat["index"]
+                level = gdat["level"]
+                gonlow = gonalities[plabel][2][0]
+                rank = gdat["rank"]
+                simp = gdat["simple"]
+                name = gdat["name"]
+                if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:
+                    jinvs_seen[plabel].add((field_of_definition, jfield, jinv))
+                    point_counts[plabel][degree] += 1
+                    if label == plabel and known_isolated:
+                        isolated = "4"
+                    else:
+                        isolated = is_isolated(degree, gdat["genus"], gdat["rank"], gonlow, gdat["simple"], gdat["dims"])
+                    jlookup = jinv if jorig == r"\N" else jorig
+                    coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
+
+                    _ = F.write("|".join([transform_label(plabel), name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, "f", str(coords).replace(" ","")]) + "\n")
+        # Currently, we'll have no cusps on curves without rational EC points
+        for (plabel, nflabel), coords in cusps.items():
+            degree = nflabel.split(".")[0]
+            gdat = gpdata[plabel]
+            g = gdat["genus"]
+            ind = gdat["index"]
+            level = gdat["level"]
+            rank = gdat["rank"]
+            simp = gdat["simple"]
+            name = gdat["name"]
+            _ = F.write("|".join([transform_label(plabel), name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", "t", str(coords).replace(" ", "")]) + "\n")

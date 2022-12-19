@@ -548,16 +548,16 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
                 ReportEnd(label, "gonality", t0);
                 q_low := qbar_low;
                 qbar_high := qbar_low;
-                // If gonal map is rational, get q_high as well
                 F := BaseField(Domain(gonal_map));
                 if F eq Rationals() then
+                    // If gonal map is rational, get q_high as well
                     q_high := qbar_low;
                     eqsplanemap, gonality := planemodel_gonalitybound(curve);
                     if q_high eq gonality then
-                        Append(~opts,<eqsplanemap[1],[P!eqn : eqn in eqsplanemap[2]]>);
+                        Append(~opts, <eqsplanemap[1], [P!eqn : eqn in eqsplanemap[2]]>);
                     else
                         eqsplanemap := planemodel_fromgonalmap(gonal_map);
-                        Append(~opts,<eqsplanemap[1],[P!eqn : eqn in eqsplanemap[2]]>);
+                        Append(~opts, <eqsplanemap[1], [P!eqn : eqn in eqsplanemap[2]]>);
                     end if;
                 end if;
             catch e
