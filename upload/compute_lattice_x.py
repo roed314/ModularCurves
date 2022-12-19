@@ -628,7 +628,7 @@ def get_gonalities(model_gonalities):
     X1 = P._element_to_vertex("1.1.0.a.1")
     def index_genus(label):
         pieces = label.split(".")
-        return int(label[1]), int(label[2])
+        return int(pieces[1]), int(pieces[2])
     ig = {v: index_genus(P._vertex_to_element(v)) for v in H}
     recursive_ig = {}
     # We record the changes so that we can write about them
