@@ -736,7 +736,8 @@ def create_db_uploads():
             data[code][label].append(out)
 
     # Propogate gonalities
-    data["G"] = {label: [int(g) for g in gon.split(",")] for label,gon in data["G"].items()}
+    assert all(len(gon) == 1 for gon in data["G"].values())
+    data["G"] = {label: [int(g) for g in gon[0].split(",")] for label,gon in data["G"].items()}
     gonalities = get_gonalities(data["G"])
 
     # Get lattice_models and lattice_x
