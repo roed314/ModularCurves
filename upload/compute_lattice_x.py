@@ -623,7 +623,7 @@ def timing_statistics():
 def get_gonalities(model_gonalities):
     P = get_lattice_poset()
     H = P._hasse_diagram
-    gonalities = {P._element_to_vertex(rec["label"]): rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"] for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"])}
+    gonalities = {P._element_to_vertex(rec["label"]): rec["q_gonality_bounds"] + rec.get("qbar_gonality_bounds", [1, rec["q_gonality_bounds"][1]]) for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"])}
     X1 = P._element_to_vertex("1.1.0.a.1")
     def index_genus(label):
         pieces = label.split(".")
