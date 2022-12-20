@@ -794,7 +794,8 @@ def get_model_points():
                         g = R(f.__pari__().polredabs())
                         nflabel = nf_lookup[tuple(g)]
                         L = NumberField(g, name='b')
-                        to_polredabs[poly] = phi = K.embeddings(L)[0]
+                        phi = K.embeddings(L)[0]
+                        to_polredabs[poly] = phi, nflabel
                     else:
                         phi, nflabel = to_polredabs[poly]
                     coord = [K([QQ(c) for c in x.split(",")]) for x in coord.split(":")]
