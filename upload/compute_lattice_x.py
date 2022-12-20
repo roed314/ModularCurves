@@ -37,7 +37,6 @@ def get_lattice_poset():
     print("Edges added to graph in", cputime() - t0)
     t0 = cputime()
     P = FinitePoset(D)
-    P._reverse_index = False
     print("Poset created in", cputime() - t0)
     return P
 
@@ -66,11 +65,10 @@ def get_rational_poset():
     print("Edges added to graph in", cputime() - t0)
     t0 = cputime()
     P = FinitePoset(D)
-    P._reverse_index = True
     print("Poset created in", cputime() - t0)
     return P
 
-def index_iterator(P, v):
+def index_iterator(P, v, reverse=False):
     """
     INPUT:
 
@@ -87,7 +85,7 @@ def index_iterator(P, v):
         label = P._vertex_to_element(w)
         ind = int(label.split(".")[1])
         by_index[ind].append(w)
-    for ind in sorted(by_index, reverse=P._reverse_index):
+    for ind in sorted(by_index, reverse=reverse):
         yield from by_index[ind]
 
 @cached_function
@@ -651,12 +649,54 @@ def get_gonalities(model_gonalities):
         else:
             return rec["qbar_gonality_bounds"]
     gonalities = {P._element_to_vertex(rec["label"]): rec["q_gonality_bounds"] + fix_genus0_qbar(rec) for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"])}
+    for x, bounds in gonalities:
+        for i in [0,2]:
+            assert bounds[i+1] >= bounds[i]
     X1 = P._element_to_vertex("1.1.0.a.1")
     def index_genus(label):
         pieces = label.split(".")
         return int(pieces[1]), int(pieces[2])
     ig = {v: index_genus(P._vertex_to_element(v)) for v in H}
     recursive_ig = {}
+    def castelnuovo_severi(x, gonalities, ig, rig, P, F, bars=[0,2]):
+        """
+        Attempts to rule out gonalities between low and high for a modular curve X
+        using the Castelnuovo-Severi inequality
+
+        Input:
+        - gonalities -- current gonality bounds
+        - ig -- the index and genus dictionary
+        - rig -- the set of index-genus pairs dictionary for modular curves Y with X -> Y (indexed by x)
+        - P -- the Poset
+        - F -- the improvement output file
+        - bars -- either [0,2], [0], or [2], governing whether both q and qbar done, or just one
+        Output:
+        - None, but updates gonalities[x] and prints to F if improvements possible
+        """
+        index, genus = ig[x]
+        dg = defaultdict(list)
+        for i, g in rig[x]:
+            if i != index:
+                dg[index // i].append(g)
+        for bar in bars:
+            low, high = gonalities[x][bar:bar+2]
+            # See if we can increase the lower bound using maps to other modular curves
+            for gon in range(low, high):
+                # Try to rule out gon as a possible gonality using Castelnuovo–Severi
+                if all(all((genus - d*g) / (d - 1) + 1 <= gon
+                           for g in dg[d])
+                       for d in dg if gcd(d, gon) == 1):
+                    if gon > low:
+                        _ = F.write(f"C|{bar}|{P._vertex_to_element(x)}|{gon}|C|{gon - low}\n")
+                        gonalities[x][bar] = gon
+                    break
+            else:
+                if high > low:
+                    _ = F.write(f"C|{bar}|{P._vertex_to_element(x)}|{high}|C|{high - low}\n")
+                    gonalities[x][bar] = high
+
+    def get_bars(bounds):
+        return ([] if bounds[0] == bounds[1] else [0]) + ([] if bounds[2] == bounds[3] else [2])
     # We record the changes so that we can write about them
     with open("gon_improvements.txt", "w") as F:
         # Import the gonalities from models
@@ -664,41 +704,70 @@ def get_gonalities(model_gonalities):
             x = P._element_to_vertex(label)
             for i in range(4):
                 if bounds[i] * (-1)**i > gonalities[x][i] * (-1)**i:
-                    _ = F.write(f"{i}|{label}|{bounds[i]}|M|{(bounds[i] - gonalities[x][i]) * (-1)**i}\n")
+                    _ = F.write(f"M|{i}|{label}|{bounds[i]}|M|{(bounds[i] - gonalities[x][i]) * (-1)**i}\n")
                     gonalities[x][i] = bounds[i]
+            for i in [0,2]:
+                assert gonalities[x][i+1] >= gonalities[x][i]
+
         for x in index_iterator(P, X1):
             index, genus = ig[x]
-            recursive_ig[x] = set()
-            dgon = set()
+            recursive_ig[x] = set([ig[x]])
             for y in H.neighbors_in(x):
                 recursive_ig[x].update(recursive_ig[y])
-                for bar in [1,3]:
-                    # Update gonality upper bound: we can compose a map to y with a gonality map from y to P1 to get a gonality map from x to P1
-                    ybound = gonalities[y][bar] * index // ig[y][0]
-                    if ybound < gonalities[x][bar]:
-                        assert ybound >= gonalities[x][bar-1]
-                        _ = F.write(f"{bar}|{P._vertex_to_element(x)}|{ybound}|{P._vertex_to_element(y)}|{gonalities[x][bar] - ybound}\n")
-                        gonalities[x][bar] = ybound
-                    assert gonalities[x][bar] >= gonalities[x][bar-1]
+            bars = get_bars(gonalities[x])
+            if bars:
+                castelnuovo_severi(x, gonalities, ig, recursive_ig, P, F, bars)
+        while True:
+            # We alternate until no improvements are made, since gonality improvements can go either direction along maps
+            improvements = 0
+            for x in index_iterator(P, X1):
+                for y in H.neighbors_in(x):
+                    for bar in [1,3]:
+                        # Update gonality upper bound: we can compose a map to y with a gonality map from y to P1 to get a gonality map from x to P1
+                        # if X -> Y, gon(X) <= deg(pi)*gon(Y)
+                        bound = gonalities[y][bar] * index // ig[y][0]
+                        if bound < gonalities[x][bar]:
+                            assert bound >= gonalities[x][bar-1]
+                            _ = F.write(f"0|{bar}|{P._vertex_to_element(x)}|{bound}|{P._vertex_to_element(y)}|{gonalities[x][bar] - bound}\n")
+                            improvements += 1
+                            gonalities[x][bar] = bound
+                        # if X -> Y, gon(X) >= gon(Y)
+                        bound = gonalities[y][bar-1]
+                        if bound > gonalities[x][bar-1]:
+                            assert bound <= gonalities[x][bar]
+                            _ = F.write(f"1|{bar-1}|{P._vertex_to_element(x)}|{bound}|P._vertex_to_element(y)}|{bound - gonalities[x][bar-1]}\n")
+                            improvements += 1
+                            gonalities[x][bar-1] = bound
+                            if bound < gonalities[x][bar]:
+                                castelnuovo_severi(x, gonalities, ig, recursive_ig, P, F, [bar-1])
+            print(f"{improvements} improvements made for gon(X) in X->Y")
+            if improvements == 0:
+                break
+            improvements = 0
+            # We iterate over x in a reverse order, and try to improve the gonality of y
+            for x in index_iterator(P, X1, reverse=True):
+                for y in H.neighbors_in(x):
+                    for bar in [1,3]:
+                        # if X -> Y, gon(Y) >= gon(X)/deg(pi)
+                        bound = ceil(gonalities[x][bar-1] * ig[y][0] / index)
+                        if bound > gonalities[y][bar-1]:
+                            assert bound <= gonalities[y][bar]
+                            _ = F.write(f"0|{bar-1}|{P._vertex_to_element(y)}|{bound}|P._vertex_to_element(x)}|{bound - gonalities[y][bar-1]}\n")
+                            improvements += 1
+                            gonalities[y][bar-1] = bound
+                            if bound < gonalities[y][bar]:
+                                castelnuovo_severi(y, gonalities, ig, recursive_ig, P, F, [bar-1])
+                        # if X -> Y, gon(Y) <= gon(X)
+                        bound = gonalities[x][bar]
+                        if bound < gonalities[y][bar]:
+                            assert bound >= gonalities[y][bar-1]
+                            _ = F.write(f"1|{bar}|{P._vertex_to_element(y)}|{bound}|P._vertex_to_element(x)}|{gonalities[y][bar] - bound}\n")
+                            improvements += 1
+                            gonalities[y][bar] = bound
+            print(f"{improvements} improvements made for gon(Y) in X->Y")
+            if improvements == 0:
+                break
 
-            dg = defaultdict(list)
-            for i, g in recursive_ig[x]:
-                dg[index // i].append(g)
-            for bar in [0,2]:
-                low, high = gonalities[x][bar:bar+2]
-                # First, see if we can lower the high bound using the gonality of the neighbors
-                if low != high:
-                    for gon in range(low, high):
-                        # Try to rule out gon as a possible gonality using Castelnuovo–Severi
-                        if all(all((genus - d*g) / (d - 1) + 1 <= gon
-                                   for g in dg[d])
-                               for d in dg if gcd(d, gon) == 1):
-                            gonalities[x][bar] = gon
-                            break
-                    else:
-                        gonalities[x][bar] = high
-
-            recursive_ig[x].add(ig[x])
     def package(gon):
         q_low, q_high, qbar_low, qbar_high = gon
         q = q_low if q_low == q_high else None
