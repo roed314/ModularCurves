@@ -791,7 +791,7 @@ def get_model_points():
                     K = NumberField(f, name='a')
                     if poly not in to_polredabs:
                         # Need to compute the polredabs
-                        g = R(poly.__pari__().polredabs())
+                        g = R(f.__pari__().polredabs())
                         nflabel = nf_lookup[tuple(g)]
                         L = NumberField(g, name='b')
                         to_polredabs[poly] = phi = K.embeddings(L)[0]
