@@ -784,12 +784,12 @@ def create_db_uploads():
     gonalities = get_gonalities(data["G"])
 
     # Get lattice_models and lattice_x
-    lattice = {label: "{" + D.replace("|", "}|{") + "}" for label,D in data["L"].items()}
+    assert all(len(D) == 1 for D in data["L"].values())
 
     with open("gps_gl2zhat_fine.update", "w") as F:
         _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds|lattice_labels|lattice_x\ninteger|integer|integer[]|integer[]|text[]|integer[]\n\n")
         for label, gon in gonalities.items():
-            _ = F.write(f"{transform_label(label)}|{gon}|{lattice[label]}\n")
+            _ = F.write(f"{transform_label(label)}|{gon}|{data['L'][label][0]}\n")
 
     # Construct modcurve_points
     nf_lookup = {rec["coeffs"]: rec["label"] for rec in db.nf_fields.search({"degree":{"$lte":6}}, ["label", "coeffs"])}
