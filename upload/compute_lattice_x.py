@@ -800,7 +800,7 @@ def get_model_points():
                     coord = [K([QQ(c) for c in x.split(",")]) for x in coord.split(":")]
                     coord = [phi(x) for x in coord]
                     coord = ":".join(",".join(str(c) for c in list(x)) for x in coord)
-                    cusps[label, nfabel][model_type].append(coord)
+                    cusps[label, nflabel][model_type].append(coord)
                 else:
                     nflabel = nf_lookup[tuple(R(poly))]
                     points[label, nflabel, j][model_type].append(coord)
