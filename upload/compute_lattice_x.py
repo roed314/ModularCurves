@@ -37,6 +37,7 @@ def get_lattice_poset():
     print("Edges added to graph in", cputime() - t0)
     t0 = cputime()
     P = FinitePoset(D)
+    P._reverse_index = False
     print("Poset created in", cputime() - t0)
     return P
 
@@ -65,8 +66,29 @@ def get_rational_poset():
     print("Edges added to graph in", cputime() - t0)
     t0 = cputime()
     P = FinitePoset(D)
+    P._reverse_index = True
     print("Poset created in", cputime() - t0)
     return P
+
+def index_iterator(P, v):
+    """
+    INPUT:
+
+    - P, the output of either get_lattice_poset() or get_rational_poset()
+    - v, a vertex in P._hasse_diagram
+
+    OUTPUT:
+    - an iterator over the descedents of v, in index order (and thus iterating over parents before children)
+    """
+    # Since breadth_first_search doesn't guarantee that parents are visited before children, we return an ordering of the vertices that will do so
+    H = P._hasse_diagram
+    by_index = defaultdict(list)
+    for w in H.breadth_first_search(v):
+        label = P._vertex_to_element(w)
+        ind = int(label.split(".")[1])
+        by_index[ind].append(w)
+    for ind in sorted(by_index, reverse=P._reverse_index):
+        yield from by_index[ind]
 
 @cached_function
 def distinguished_vertices():
@@ -86,7 +108,7 @@ def intervals_to_save(max_size=60):
     for d in D:
         trimmed[d] = T = {}
         intervals[d] = I = {}
-        for x in H.breadth_first_search(d):
+        for x in index_iterator(P, d):
             N = [y for y in H.neighbors_in(x) if y in T]
             if any(T[y] for y in N):
                 T[x] = True
@@ -466,15 +488,14 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
     # Check for overlap as we add points
     jinvs_seen = defaultdict(set)
     point_counts = defaultdict(Counter)
-    X1intervals = {}
     jinvs = defaultdict(list)
     for ctr, (label, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, known_isolated, conductor_norm) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
         if ctr and ctr % 10000 == 0:
             print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
         assert label != "1.1.0.a.1"
-        if label not in X1intervals:
-            X1intervals[label] = [P._vertex_to_element(v) for v in H.breadth_first_search(P._element_to_vertex(label))]
-        for plabel in X1intervals[label]:
+        # Don't want to save the interval, since that takes quadratic space
+        for v in H.breadth_first_search(P._element_to_vertex(label)):
+            plabel = P._vertex_to_element(v)
             gdat = gpdata[plabel]
             if gdat["genus"] == 0: continue
             if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:
@@ -645,7 +666,7 @@ def get_gonalities(model_gonalities):
                 if bounds[i] * (-1)**i > gonalities[x][i] * (-1)**i:
                     _ = F.write(f"{i}|{label}|{bounds[i]}|M|{(bounds[i] - gonalities[x][i]) * (-1)**i}")
                     gonalities[x][i] = bounds[i]
-        for x in H.breadth_first_search(X1):
+        for x in index_iterator(P, X1):
             index, genus = ig[x]
             recursive_ig[x] = set()
             dgon = set()
@@ -791,7 +812,6 @@ def create_db_uploads():
     # Check for overlap as we add points
     jinvs_seen = defaultdict(set)
     point_counts = defaultdict(Counter)
-    X1intervals = {}
     with open("modcurve_points.txt", "w") as F:
         _ = F.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|coordinates|cusp\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint|jsonb|boolean\n\n")
         # rats contains residue_field|jorig|model_type|coord
@@ -799,9 +819,8 @@ def create_db_uploads():
             if ctr and ctr % 10000 == 0:
                 print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
             assert label != "1.1.0.a.1"
-            if label not in X1intervals:
-                X1intervals[label] = [P._vertex_to_element(v) for v in H.breadth_first_search(P._element_to_vertex(label))]
-            for plabel in X1intervals[label]:
+            for v in H.breadth_first_search(P._element_to_vertex(label)):
+                plabel = P._vertex_to_element(v)
                 gdat = gpdata[plabel]
                 g = gdat["genus"]
                 ind = gdat["index"]
