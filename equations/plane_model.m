@@ -282,8 +282,8 @@ intrinsic planemodel_gonalitybound(X::Crv) -> Tup, RngIntElt
     Input:
             X:          a canonically embedded curve X, as returned by ProcessModel()
     Output:
-            mp:         a tuple consisting of an equation defining a plane model C of X, and equations defining a map from X to C;
-                        and a bound on the gonality of X coming from the x-coordinate on the plane model C
+            mp:         a tuple consisting of an equation defining a plane model C of X, and equations defining a map from X to C
+            q_high:     a bound on the gonality of X coming from the x-coordinate on the plane model C
 }
     FFX<[x]> := FunctionField(X);
     gens_FFX := Generators(FFX);
@@ -336,7 +336,7 @@ intrinsic planemodel_gonalitybound(X::Crv) -> Tup, RngIntElt
 end intrinsic;
 
 
-function rational_interpolation(dat : denfac := 1);
+function rational_interpolation(dat : denfac := 1, scalarbound := 1000000);
     if denfac ne 1 then
         datupdated := [<d[1],d[2]*Evaluate(denfac,d[1])> : d in dat];
         dat := datupdated;
@@ -376,7 +376,7 @@ function rational_interpolation(dat : denfac := 1);
         break;
     end for;
 
-    for scal in [1..100000] do
+    for scal in [1..scalarbound] do
         interpolating_data := [CRT([scal*d[2][i] : d in interpolating_data_modp], [d[1] : d in interpolating_data_modp]) : i in [1..m+n+2]];
         l := LCM([d[1] : d in interpolating_data_modp]);
         result := [(Abs(r) lt Abs(l-r)) select r else r-l : r in interpolating_data];
@@ -400,9 +400,9 @@ intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> Tup
     Xeqs := Equations(X);
     P1 := Codomain(gonal_map);
     defeqs := DefiningEquations(gonal_map);
-
+/*
     undefinedpts := PointsOverSplittingField(Scheme(P,Xeqs cat [defeqs[1]*defeqs[2]]));
-
+*/
     n := Degree(gonal_map);
 
     FFX := FunctionField(X);
@@ -449,7 +449,12 @@ intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> Tup
                     end if;
                 end for;
                 if #pullbk eq n then
-                    minpol := MinimalPolynomial(Evaluate(g,pullbk[1]));
+                    try
+                        minpol := &*{MinimalPolynomial(Evaluate(g,pt)) : pt in pullbk};
+//                        minpol := MinimalPolynomial(Evaluate(g,pullbk[1]));
+                    catch e;
+                        continue i;
+                    end try;
                     assert Degree(minpol) eq n;
                     Append(~allminpols,<i,minpol>);
                 end if;
@@ -458,6 +463,8 @@ intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> Tup
                 end if;
             end for;
             printf "Done computing pullbacks, and minpolys of the value of g at the pullbacks\n";
+            if #allminpols le 50 then continue v; end if;
+
             xs := [Rationals() ! dat[1] : dat in allminpols];
             coeffs := [[Coefficient(dat[2],i) : dat in allminpols] : i in [0..n]];
             printf "Trying to interpolate with rational function\n";
@@ -472,6 +479,7 @@ intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> Tup
                 printf "Interpolated coefficient of Y^%o\n", i-1;
             end for;
             coeffs_in_x := Reverse(coeffs_in_x);
+
             P2<[u]> := ProjectiveSpace(Rationals(),2);
             lcmofdens := LCM([coe[2] : coe in coeffs_in_x]);
             clearing_dens := [PolynomialRing(Rationals()) ! (lcmofdens/coe[2]) : coe in coeffs_in_x];
@@ -494,6 +502,294 @@ intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> Tup
         end try;
     end for;
 end intrinsic;
+
+
+intrinsic planemodel_fromgonalmap2(gonal_map::MapSch) -> Tup
+{
+    Input:
+            gonal_map:  a gonal map from a canonically embedded curve X, as returned by GenusNGonalMap for 3 <= N <= 6
+    Output:
+            result:     a tuple consisting of an equation defining a plane model C of X, and equations defining a map from X to C,
+                        such that the x-coordinate on C corresponds to the given gonal map on X
+}
+    X := Domain(gonal_map);
+    P<[x]> := AmbientSpace(X);
+    P1 := Codomain(gonal_map);
+    n := Degree(gonal_map);
+    defeqs := DefiningEquations(gonal_map);
+    FFX := FunctionField(X);
+    f := FFX ! (defeqs[1]/defeqs[2]);
+
+    V := CartesianPower([0,1],#x);
+    V := [[w : w in v] : v in V];
+    V := Sort(V, func<x,y|&+x-&+y>);
+    for v in V do
+        if &+v eq 0 then continue; end if;
+        printf "Trying %o\n", v;
+        g := FFX ! ((&+[v[i]*x[i] : i in [1..#x]])/defeqs[2]);
+        if f eq g then continue; end if;
+        try
+            P2 := ProjectiveSpace(Rationals(),2);
+            mp := map<X->P2 | [f,g,1]>;
+            model := Image(mp);
+            printf "Found map to P2\n";
+            plane_eqn := Equations(model)[1];
+            if ValidPlaneModel(plane_eqn,#x) then
+                AssignNames(~P2,["X","Y","Z"]);
+                result := <plane_eqn, [defeqs[1],&+[v[i]*x[i] : i in [1..#x]],defeqs[2]]>;
+                return result;
+            end if;
+        catch e;
+            print e;
+            continue v;
+        end try;
+    end for;
+end intrinsic;
+
+function gonalitybound_fromfuncfield(eqs,ind);
+    P := Parent(eqs[1]);
+    ind2 := Random(Exclude([1..Rank(P)],ind));
+    I := ideal<P|[Evaluate(Evaluate(pol,ind,1),ind2,1) : pol in eqs]>;
+    G := GroebnerBasis(I);
+    return &*[LeadingTotalDegree(G[i]) : i in [1..#G]];
+end function;
+
+intrinsic modelfromfuncfield_gonalitybound(X::Sch) -> Tup
+{
+    Input:
+            X:          a canonically embedded curve X, as returned by ProcessModel()
+    Output:
+            model:      a model in P^n of X defined by generators and relations of its function field. n is small, but not necessarily 2.
+            mp:         a map from X to P^n, with image cutting out the model
+            q_high:     a bound on the gonality of X coming from a coordinate on the model C
+}
+    FFX<[x]> := FunctionField(X);
+    gens_FFX := Generators(FFX);
+    newgens_FFX := [];
+    for xx in gens_FFX do
+        s := Sprint(xx);
+        if s[[1,2,#s]] eq "x[]" then
+            try
+                _ := StringToInteger(s[3..#s-1]);
+                Append(~newgens_FFX,xx);
+            catch e;
+            end try;
+        end if;
+    end for;
+    newgens_FFX := newgens_FFX cat [x[#x]];
+/*
+    for xx in newgens_FFX do
+        degxx := Degree(MinimalPolynomial(xx));
+        if degxx eq 1 then
+            first_coord := xx;
+            Exclude(~newgens_FFX,xx);
+            break;
+        end if;
+    end for;
+    newgens_FFX := [first_coord] cat newgens_FFX;
+
+
+//    q_high := &*[Degree(MinimalPolynomial(newgens_FFX[i])) : i in [2..#newgens_FFX]];
+    s := Sprint(first_coord);
+*/
+    s := Sprint(newgens_FFX[1]);
+    q_high := gonalitybound_fromfuncfield(Equations(X),StringToInteger(s[3..#s-1]));
+
+    Pn := ProjectiveSpace(Rationals(),#newgens_FFX);
+    mp := map<X->Pn | newgens_FFX cat [1]>;
+    printf "Found map to P%o using generators of function field\n", #newgens_FFX;
+    model := Image(mp);
+    printf "Found image in P%o\n", #newgens_FFX;
+/*
+    mp := Restriction(mp,X,model);
+    printf "Restricted map to image\n";
+*/
+    return model, mp, q_high;
+/*
+    Pn := ProjectiveSpace(Rationals(),#newgens_FFX);
+    defeqs := [1 : i in [1..#newgens_FFX]];
+    lcmofdens := 1;
+    for i := 1 to #newgens_FFX do
+        coordmaptoP1 := map<X->ProjectiveSpace(Rationals(),1) | [newgens_FFX[i],1]>;
+        defeqscoord := DefiningEquations(coordmaptoP1);
+        newmultiplier := defeqscoord[2]/GCD(lcmofdens,defeqscoord[2]);
+        lcmofdens := LCM(lcmofdens,defeqscoord[2]);
+        newgens_FFX[i] := defeqscoord[1];
+        for j := 1 to i do
+            newgens_FFX[j] := newgens_FFX[j]*newmultiplier;
+        end for;
+    end for;
+    Append(~defeqs,lcmofdens);
+    // To get the eqn of the new model, we do need to create the map from X to Pn
+    return <eqn, [defeqsxx[1]*lcmofdens/defeqsxx[2],defeqsyy[1]*lcmofdens/defeqsyy[2],lcmofdens]>, q_high;
+*/
+end intrinsic;
+
+intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum) -> Tup
+{
+    Input:
+            C:          a model in P^n (n greater than 2) of the curve X returned by ProcessModel()
+            phi:        a map from X to C
+            ratcusps:   image under phi of the cusps on X returned by ProcessModel(), whenever rational
+    Output:
+            result:     a tuple consisting of an equation defining a plane model C of X, and equations defining a map from X to C
+}
+    if Dimension(AmbientSpace(C)) eq 2 then
+        P2<X,Y,Z> := AmbientSpace(C);
+        defeqsphi := DefiningEquations(phi);
+        plane_eqn := Equations(C);
+        return <plane_eqn, defeqsphi>; // TODO done
+    end if;
+    Pn := AmbientSpace(C);
+    n := Dimension(Pn);
+    printf "The ambient space is now P%o\n", n;
+    if ratcusps ne [] then
+        cusp := ratcusps[1];
+        ratcusps := ratcusps[2..#ratcusps];
+        if IsSingular(C,cusp) then
+            newmodel, projmap := Projection(C,cusp);
+            printf "Computed new projection map\n";
+        else
+            newmodel, projmap, out3blowup := ProjectionFromNonsingularPoint(C,cusp);
+            printf "Computed new projection map\n";
+        end if;
+        newphi := phi*projmap;
+        defeqsnewphi := DefiningPolynomials(newphi);
+        invdefeqsnewphi := InverseDefiningPolynomials(newphi);
+        return projecttoplane(newmodel, map<X->newmodel|defeqsnewphi,invdefeqsnewphi>, ratcusps);
+    else
+        pt := Pn ! ([1] cat [0 : i in [1..n]]);
+        newmodel, projmap := Projection(C,pt);
+        printf "Computed new projection map\n";
+        newphi := phi*projmap;
+        defeqsnewphi := DefiningPolynomials(newphi);
+        invdefeqsnewphi := InverseDefiningPolynomials(newphi);
+        return projecttoplane(newmodel, map<X->newmodel|defeqsnewphi,invdefeqsnewphi>, []);
+    end if;
+end intrinsic;
+
+intrinsic planemodel_highgens(X::Sch, cusps::SeqEnum) -> Tup
+{
+    Input:
+            X:          a canonically embedded curve X, as returned by ProcessModel()
+            cusps:      cusps on X, as returned by ProcessModel()
+    Output:
+            result:     a tuple consisting of an equation defining a plane model C of X, and equations defining a map from X to C
+}
+    C, map_XtoC, gonalitybound := modelfromfuncfield_gonalitybound(X);
+    if Dimension(AmbientSpace(Codomain(map_XtoC))) eq 2 then
+        return projecttoplane(C,map_XtoC,[]);
+    end if;
+/*
+    map_XtoC := Restriction(map_XtoC,X,C);
+*/
+    defeqs := DefiningEquations(map_XtoC);
+    printf "Found defining equations of the map\n";
+    if Type(cusps[1]) eq CspDat then
+        cuspsnew := <c`coords : c in cusps>;
+        cusps := cuspsnew;
+    end if;
+    printf "Extracted coordinates of the %o cusps\n", #cusps;
+
+    singular_ratcusps_on_C := {};
+    nonsingular_ratcusps_on_C := {};
+    for i := 1 to #cusps do
+        c_coords := Eltseq(cusps[i]);
+        c_imagecoords := [Evaluate(pol,c_coords) : pol in defeqs];
+        boo := exists(a){coord : coord in c_imagecoords | coord ne 0};
+        if not boo then continue i; end if;
+        c_imageaffinecoords := [x/a : x in c_imagecoords];
+        for x in c_imageaffinecoords do
+            if not x in Rationals() then
+                continue i;
+            end if;
+        end for;
+        c := C ! c_imageaffinecoords;
+        if IsSingular(C,c) then
+            Include(~singular_ratcusps_on_C,c);
+        else
+            Include(~nonsingular_ratcusps_on_C,c);
+        end if;
+    end for;
+    singular_ratcusps_on_C := SetToSequence(singular_ratcusps_on_C);
+    nonsingular_ratcusps_on_C := SetToSequence(nonsingular_ratcusps_on_C);
+    printf "Projected rational cusps down from the canonical model. Found %o singular ones and %o nonsingular ones\nThey are:\n%o\n%o\n", #singular_ratcusps_on_C, #nonsingular_ratcusps_on_C, singular_ratcusps_on_C, nonsingular_ratcusps_on_C;
+
+    for c in singular_ratcusps_on_C do
+        newmodel, projmap := Projection(C,c);
+        printf "Computed projection map\n";
+        projmap := Restriction(projmap,C,newmodel);
+        printf "Restricted projection map\n";
+        phi := map_XtoC*projmap;
+        defeqsphi := DefiningEquations(phi);
+        if Dimension(AmbientSpace(newmodel)) eq 2 then
+            P2<X,Y,Z> := AmbientSpace(newmodel);
+            plane_eqn := Equations(newmodel);
+            return <plane_eqn, defeqsphi>; // TODO done
+        else
+            rational_imageofcusps := {};
+            for cc in cusps do
+                c_coords := Eltseq(cc);
+                c_imagecoords := [Evaluate(pol,c_coords) : pol in defeqsphi];
+                boo := exists(a){coord : coord in c_imagecoords | coord ne 0};
+                if not boo then continue cc; end if;
+                c_imageaffinecoords := [x/a : x in c_imagecoords];
+                for x in c_imageaffinecoords do
+                    if not x in Rationals() then
+                        continue cc;
+                    end if;
+                end for;
+                ccimage := newmodel ! c_imageaffinecoords;
+                Include(~rational_imageofcusps,ccimage);
+                // TODO done
+            end for;
+            rational_imageofcusps := SetToSequence(rational_imageofcusps);
+            printf "There are %o rational cusps after 1 projection.\nThey are:\n%o\nUsing these to project further (if needed)\n", #rational_imageofcusps, rational_imageofcusps;
+            return projecttoplane(newmodel,map<X->newmodel|defeqsphi>,rational_imageofcusps);
+            // TODO done
+        end if;
+    end for;
+
+    for c in nonsingular_ratcusps_on_C do
+        try
+            newmodel, projmap, out3blowup := ProjectionFromNonsingularPoint(C,c);
+            projmap := Restriction(projmap,C,newmodel);
+            phi := map_XtoC*projmap;
+            defeqsphi := DefiningEquations(phi);
+            if Dimension(AmbientSpace(newmodel)) eq 2 then
+                P2<X,Y,Z> := AmbientSpace(newmodel);
+                plane_eqn := Equations(newmodel);
+                return <plane_eqn, defeqsphi>; // TODO done
+            else
+                rational_imageofcusps := {};
+                for cc in cusps do
+                    c_coords := Eltseq(cc);
+                    c_imagecoords := [Evaluate(pol,c_coords) : pol in defeqsphi];
+                    boo := exists(a){coord : coord in c_imagecoords | coord ne 0};
+                    if not boo then continue cc; end if;
+                    c_imageaffinecoords := [x/a : x in c_imagecoords];
+                    for x in c_imageaffinecoords do
+                        if not x in Rationals() then
+                            continue cc;
+                        end if;
+                    end for;
+                    ccimage := newmodel ! c_imageaffinecoords;
+                    Include(~rational_imageofcusps,ccimage);
+                    // TODO done
+                end for;
+                rational_imageofcusps := SetToSequence(rational_imageofcusps);
+                return projecttoplane(newmodel,map<X->newmodel|defeqsphi>,rational_imageofcusps);
+                // TODO done
+            end if;
+        catch e;
+            continue c;
+        end try;
+    end for;
+    return projecttoplane(C,map_XtoC,[]);
+    // TODO done
+end intrinsic;
+
+
 
 intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp::BoolElt, cusps::SeqEnum : try_gonal_map:=true) -> Tup, SeqEnum
 {
@@ -521,7 +817,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
     q_low := 2; // overwritten in some cases
     qbar_low := 2; // overwritten in some cases
     degrees := [[Degree(X[j], P.i): i in [1..Ngens(P)]]: j in [1..#X]];
-    q_high := Min([Min([d: d in degrees[j] | d ne 0]): j in [1..#X]]); //TODO: check
+    q_high := Min([Min([d: d in degrees[j] | d ne 0]): j in [1..#X]]); //TODO: This is wrong. Need to change.
     if g eq 0 then
         q_low := q_high; // Rakvi's code will give a conic precisely when there are no points
         qbar_low := 1;
@@ -577,6 +873,11 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
         end if;
     end if;
 
+    printf "The number of options is %o\n", #opts;
+    ambient := ProjectiveSpace(P);
+    curve := Curve(ambient, X);
+    Append(~opts,planemodel_highgens(curve,cusps));
+    printf "The number of options is %o\n", #opts;
     // Use rational cusps (and maybe a short rational point search?) to project
 
     if g eq 5 then
