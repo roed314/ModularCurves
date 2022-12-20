@@ -91,9 +91,9 @@ def get_plane_and_gonality(label):
 
 def get_ghyperelliptic_model(label):
     for prec in [100, 200, 300, 400, 600, 1200]:
-        subprocess.run('parallel --timeout 600 "magma -b label:={1} prec:=%s GetGHyperellipticModel.m >> stdout/{1} 2>&1" ::: %s' % (prec, label), shell=True)
         if ope(opj("ghyp_models", label)):
             break
+        subprocess.run('parallel --timeout 600 "magma -b label:={1} prec:=%s GetGHyperellipticModel.m >> stdout/{1} 2>&1" ::: %s' % (prec, label), shell=True)
 
 def get_rational_coordinates(label):
     subprocess.run('parallel --timeout 1200 "magma -b label:={1} GetRationalCoordinates.m >> stdout/{1} 2>&1" ::: %s' % label, shell=True)
@@ -117,7 +117,8 @@ def collate_data(label):
                             line += "\n"
                         _ = Fout.write(f"{code}{label}|{line}")
 
-if get_canonical_model(label):
+#if get_canonical_model(label):
+if ope("canonical_models/" + label):
     if get_plane_and_gonality(label):
         get_ghyperelliptic_model(label)
     get_rational_coordinates(label)

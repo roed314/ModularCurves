@@ -521,8 +521,7 @@ def make_gonality_files():
     os.makedirs(folder, exist_ok=True)
     for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"]):
         with open(opj(folder, rec["label"]), "w") as F:
-            #### TODO: Use qbar_gonality_bounds once Drew has computed them
-            _ = F.write(",".join(str(c) for c in rec["q_gonality_bounds"] + [1, rec["q_gonality_bounds"][1]]))
+            _ = F.write(",".join(str(c) for c in rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"]))
 
 def make_input_data():
     folder = opj("..", "equations", "input_data")
@@ -623,8 +622,7 @@ def timing_statistics():
 def get_gonalities(model_gonalities):
     P = get_lattice_poset()
     H = P._hasse_diagram
-    # TODO: Fix this to use qbar_gonality_bounds
-    gonalities = {P._element_to_vertex(rec["label"]): rec["q_gonality_bounds"] + [1, rec["q_gonality_bounds"][1]] for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"])}
+    gonalities = {P._element_to_vertex(rec["label"]): rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"] for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"])}
     X1 = P._element_to_vertex("1.1.0.a.1")
     def index_genus(label):
         pieces = label.split(".")
@@ -725,8 +723,19 @@ def transform_label(old_label):
     M, j, g, a, m = coarse.split(".")
     i = 2*int(j)
     N, n = fine.split(".")
-    # New: N.i.g.n-M.a.m
-    return f"{N}.{i}.{g}.{n}-{M}.{a}.{m}"
+    # New: N.i.g-M.a.m.n
+    return f"{N}.{i}.{g}-{M}.{a}.{m}.{n}"
+
+def untransform_label(new_label):
+    if new_label.count(".") == 4:
+        return new_label
+    # New: N.i.g-M.a.m.n
+    fine, coarse = new_label.split("-")
+    N, i, g = fine.split(".")
+    j = int(j)//2
+    M, a, m, n = coarse.split(".")
+    #Old: M.j.g.a.m-N.n
+    return f"{M}.{j}.{g}.{a}.{m}-{N}-{n}"
 
 def create_db_uploads():
     data = defaultdict(lambda: defaultdict(list))

@@ -283,11 +283,11 @@ function HyperellipticModelFromLabel(label : i:=1, prec:=100)
         return false;
     end if;
     C := SimplifyGeometricHyperellipticCurve(C);
-	isH, H := IsHyperelliptic(C);
-	if isH then
-		H := ReducedMinimalWeierstrassModel(H);
-		P2<X,Y,Z> := CoordinateRing(Ambient(H));
-		return H;
-	end if;
-	return C;
+    isH, H := IsHyperelliptic(C);
+    if isH then
+	H := ReducedMinimalWeierstrassModel(H);
+	P2<X,Y,Z> := CoordinateRing(Ambient(H));
+	return H;
+    end if;
+    return C;
 end function;

@@ -506,6 +506,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
             bounds a 4-tuple giving gonality bounds: q_low, q_high, qbar_low, qbar_high
             C:     a sequence of length 0 or 1 of known plane models (provided as a tuple, with first entry the defining polynomial and the second entry a sequence of three polynomials giving the map from X to C)
 }
+    q_low, q_high, qbar_low, qbar_high := Explode(LMFDBReadGonalityBounds(label));
     P := Parent(X[1]);
     opts := [* f : f in C *];
     procedure add_opt(mp)
@@ -515,35 +516,69 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
         Append(~opts, <f, DefiningEquations(mp)>);
     end procedure;
 
-    // Get gonality in low genus
-    q_low := 2; // overwritten in some cases
-    qbar_low := 2; // overwritten in some cases
-    degrees := [[Degree(X[j], P.i): i in [1..Ngens(P)]]: j in [1..#X]];
-    q_high := Min([Min([d: d in degrees[j] | d ne 0]): j in [1..#X]]); //TODO: check
-    if g eq 0 then
-        q_low := q_high; // Rakvi's code will give a conic precisely when there are no points
-        qbar_low := 1;
-        qbar_high := 1;
-    elif g eq 1 then
-        qbar_high := 2;
-       // don't change q_high: a genus 1 curve can require an arbitrarily large extension to acquire a point
-    elif g eq 2 then
-        q_high := 2;
-        qbar_high := 2;
+    if #X eq 1 then
+        degrees := [Degree(X[1], P.i): i in [1..Ngens(P)]];
+        q_high := Min(q_high, Min([d: d in degrees[j] | d ne 0]));
     else
+        t0 := ReportStart(label, "CanonicalDegree");
+        Can := Curve(Proj(P), X);
+        q_high := Min(q_high, Degree(Can));
+        ReportEnd(label, "CanonicalDegree", t0);
+    end if;
+    // Get gonality in low genus
+    ambient := ProjectiveSpace(P);
+    curve := Curve(ambient, X);
+    if ghyp then
+        qbar_high := 2;
+        if g eq 2 then
+            q_high := 2;
+        elif g gt 2 then
+            // don't change q_high in genus 1: a genus 1 curve can require an arbitrarily large extension to acquire a point
+            if q_high ge 4 then
+                q_high := 4;
+            else
+                q_high := 2;
+            end if;
+        else
+            if q_low mod 2 eq 1 then
+                // gonality can't be odd, since that would give an odd degree divisor that we could push down to P1 and obtain a point
+                q_low +:= 1;
+            end if;
+            if q_high mod 2 eq 1 then
+                // as above, gonality can't be odd
+                q_high -:= 1;
+            end if;
+        end if;
+        // We write the gonalities now, since the following may time out
+        LMFDBWriteGonalityBounds(<q_low, q_high, qbar_low, qbar_high>, label);
+        t0 := ReportStart(label, "IsHyperelliptic");
+        hyp, H, h_map := IsHyperelliptic(curve);
+        ReportEnd(label, "IsHyperelliptic", t0);
+        if hyp then
+            q_high := 2;
+            H, r_map := ReducedMinimalWeierstrassModel(H);
+            h_map := h_map * r_map;
+            Hdef := DefiningEquation(H);
+            HP := Parent(Hdef);
+            AssignNames(~HP, ["X","Y","Z"]);
+            Write("ghyp_models/" * label, Sprintf("%o|%o", sprint(Hdef), Join([sprint(coord) : coord in DefiningEquations(h_map)], ",")) : Overwrite);
+        elif g gt 1 then
+            q_low := 4;
+            q_high := 4;
+            // Later, we'll use Edgar and Raymond's code to find model as double cover of conic
+        end if;
+    elif g gt 0 then
         if g le 6 and try_gonal_map then
-            ambient := ProjectiveSpace(P);
-            curve := Curve(ambient, X);
             try
                 t0 := ReportStart(label, "gonality");
                 if g eq 3 then
-	            qbar_low, gonal_map := Genus3GonalMap(curve : IsCanonical:=not ghyp);
+	            qbar_low, gonal_map := Genus3GonalMap(curve : IsCanonical:=true);
                 elif g eq 4 then
-	            qbar_low, gonal_map := Genus4GonalMap(curve : IsCanonical:=not ghyp);
+	            qbar_low, gonal_map := Genus4GonalMap(curve : IsCanonical:=true);
                 elif g eq 5 then
-	            qbar_low, gonal_map := Genus5GonalMap(curve : IsCanonical:=not ghyp);
+	            qbar_low, gonal_map := Genus5GonalMap(curve : IsCanonical:=true);
                 else
-	            qbar_low, sec_type, gonal_map, aux_map := Genus6GonalMap(curve : IsCanonical:=not ghyp);
+	            qbar_low, sec_type, gonal_map, aux_map := Genus6GonalMap(curve : IsCanonical:=true);
                 end if;
                 ReportEnd(label, "gonality", t0);
                 q_low := qbar_low;
@@ -552,33 +587,25 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
                 if F eq Rationals() then
                     // If gonal map is rational, get q_high as well
                     q_high := qbar_low;
+                    // We write the gonalities now, since the following may time out
+                    LMFDBWriteGonalityBounds(<q_low, q_high, qbar_low, qbar_high>, label);
+                    t0 := ReportStart(label, "planemodel_gonalitybound");
                     eqsplanemap, gonality := planemodel_gonalitybound(curve);
+                    ReportEnd(label, "planemodel_gonalitybound", t0);
                     if q_high eq gonality then
                         Append(~opts, <eqsplanemap[1], [P!eqn : eqn in eqsplanemap[2]]>);
                     else
+                        t0 := ReportStart(label, "planemodel_fromgonalmap");
                         eqsplanemap := planemodel_fromgonalmap(gonal_map);
+                        ReportEnd(label, "planemodel_fromgonalmap", t0);
                         Append(~opts, <eqsplanemap[1], [P!eqn : eqn in eqsplanemap[2]]>);
                     end if;
+                else
+                    LMFDBWriteGonalityBounds(<q_low, q_high, qbar_low, qbar_high>, label);
                 end if;
             catch e
-                qbar_high := q_high;
                 print Sprint(e) * "\n";
             end try;
-        elif ghyp then
-            qbar_high := 2;
-            hyp, H, h_map := IsHyperelliptic(curve);
-            if hyp then
-                q_high := 2;
-                // TODO: include H in opts, together with a map
-            else
-                q_low := 4;
-                q_high := 4;
-                // Use IsGeometricallyHyperelliptic or Edgar and Raymond's code to find model as double cover of conic
-            end if;
-        else
-            // Everything is between 2 and q_high
-            qbar_low := 2;
-            qbar_high := q_high;
         end if;
     end if;
 
