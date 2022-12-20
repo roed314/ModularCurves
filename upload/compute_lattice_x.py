@@ -664,7 +664,7 @@ def get_gonalities(model_gonalities):
             x = P._element_to_vertex(label)
             for i in range(4):
                 if bounds[i] * (-1)**i > gonalities[x][i] * (-1)**i:
-                    _ = F.write(f"{i}|{label}|{bounds[i]}|M|{(bounds[i] - gonalities[x][i]) * (-1)**i}")
+                    _ = F.write(f"{i}|{label}|{bounds[i]}|M|{(bounds[i] - gonalities[x][i]) * (-1)**i}\n")
                     gonalities[x][i] = bounds[i]
         for x in index_iterator(P, X1):
             index, genus = ig[x]
@@ -677,7 +677,7 @@ def get_gonalities(model_gonalities):
                     ybound = gonalities[y][bar] * index // ig[y][0]
                     if ybound < gonalities[x][bar]:
                         assert ybound >= gonalities[x][bar-1]
-                        _ = F.write(f"{bar}|{P._vertex_to_element(x)}|{ybound}|{P._vertex_to_element(y)}|{gonalities[x][bar] - ybound}")
+                        _ = F.write(f"{bar}|{P._vertex_to_element(x)}|{ybound}|{P._vertex_to_element(y)}|{gonalities[x][bar] - ybound}\n")
                         gonalities[x][bar] = ybound
                     assert gonalities[x][bar] >= gonalities[x][bar-1]
 
