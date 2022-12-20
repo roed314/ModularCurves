@@ -717,6 +717,7 @@ def get_model_points():
     with open("output") as F:
         for line in F:
             label, out = line.strip().split("|", 1)
+            if not out: continue
             code, label = label[0], label[1:]
             if code == "R":
                 poly, j, model_type, coord = out.split("|")
@@ -770,6 +771,7 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
     with open("output") as F:
         for line in F:
             label, out = line.strip().split("|", 1)
+            if not out: continue
             code, label = label[0], label[1:]
             data[code][label].append(out)
 
