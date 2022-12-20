@@ -752,7 +752,7 @@ def get_gonalities(model_gonalities):
                         bound = ceil(gonalities[x][bar-1] * ig[y][0] / index)
                         if bound > gonalities[y][bar-1]:
                             assert bound <= gonalities[y][bar]
-                            _ = F.write(f"0|{bar-1}|{P._vertex_to_element(y)}|{bound}|P._vertex_to_element(x)}|{bound - gonalities[y][bar-1]}\n")
+                            _ = F.write(f"0|{bar-1}|{P._vertex_to_element(y)}|{bound}|{P._vertex_to_element(x)}|{bound - gonalities[y][bar-1]}\n")
                             improvements += 1
                             gonalities[y][bar-1] = bound
                             if bound < gonalities[y][bar]:
@@ -761,7 +761,7 @@ def get_gonalities(model_gonalities):
                         bound = gonalities[x][bar]
                         if bound < gonalities[y][bar]:
                             assert bound >= gonalities[y][bar-1]
-                            _ = F.write(f"1|{bar}|{P._vertex_to_element(y)}|{bound}|P._vertex_to_element(x)}|{gonalities[y][bar] - bound}\n")
+                            _ = F.write(f"1|{bar}|{P._vertex_to_element(y)}|{bound}|{P._vertex_to_element(x)}|{gonalities[y][bar] - bound}\n")
                             improvements += 1
                             gonalities[y][bar] = bound
             print(f"{improvements} improvements made for gon(Y) in X->Y")
