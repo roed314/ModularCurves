@@ -735,7 +735,7 @@ def get_gonalities(model_gonalities):
                         bound = gonalities[y][bar-1]
                         if bound > gonalities[x][bar-1]:
                             assert bound <= gonalities[x][bar]
-                            _ = F.write(f"1|{bar-1}|{P._vertex_to_element(x)}|{bound}|P._vertex_to_element(y)}|{bound - gonalities[x][bar-1]}\n")
+                            _ = F.write(f"1|{bar-1}|{P._vertex_to_element(x)}|{bound}|{P._vertex_to_element(y)}|{bound - gonalities[x][bar-1]}\n")
                             improvements += 1
                             gonalities[x][bar-1] = bound
                             if bound < gonalities[x][bar]:
