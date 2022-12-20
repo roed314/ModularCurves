@@ -518,7 +518,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
 
     if #X eq 1 then
         degrees := [Degree(X[1], P.i): i in [1..Ngens(P)]];
-        q_high := Min(q_high, Min([d: d in degrees[j] | d ne 0]));
+        q_high := Min(q_high, Min([d: d in degrees | d ne 0]));
     else
         t0 := ReportStart(label, "CanonicalDegree");
         Can := Curve(Proj(P), X);
