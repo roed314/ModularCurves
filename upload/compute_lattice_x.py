@@ -622,7 +622,14 @@ def timing_statistics():
 def get_gonalities(model_gonalities):
     P = get_lattice_poset()
     H = P._hasse_diagram
-    gonalities = {P._element_to_vertex(rec["label"]): rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"] for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"])}
+    def fix_genus0_qbar(rec):
+        # Temporarily work around a bug in Drew's qbar data:
+        g = rec["label"].split(".")[2]
+        if g == "0":
+            return [1,1]
+        else:
+            return rec["qbar_gonality_bounds"]
+    gonalities = {P._element_to_vertex(rec["label"]): rec["q_gonality_bounds"] + fix_genus0_qbar(rec) for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"])}
     X1 = P._element_to_vertex("1.1.0.a.1")
     def index_genus(label):
         pieces = label.split(".")
@@ -748,6 +755,11 @@ def create_db_uploads():
     # Propogate gonalities
     assert all(len(gon) == 1 for gon in data["G"].values())
     data["G"] = {label: [int(g) for g in gon[0].split(",")] for label,gon in data["G"].items()}
+    # Temporarily work around a bug in Drew's qbar gonality data for genus 0
+    for label, gon in data["G"].items():
+        if label.split(".")[2] == "0":
+            gon[2] = 1
+            gon[3] = 1
     gonalities = get_gonalities(data["G"])
 
     # Get lattice_models and lattice_x

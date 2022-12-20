@@ -492,7 +492,7 @@ intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> Tup
             continue v;
         end try;
     end for;
-    error "No plane map comptued from gonal map";
+    error "No plane map computed from gonal map";
 end intrinsic;
 
 intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp::BoolElt, cusps::SeqEnum, label::MonStgElt : try_gonal_map:=true) -> Tup, SeqEnum
