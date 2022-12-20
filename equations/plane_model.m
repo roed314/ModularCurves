@@ -492,6 +492,7 @@ intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> Tup
             continue v;
         end try;
     end for;
+    error "No plane map comptued from gonal map";
 end intrinsic;
 
 intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp::BoolElt, cusps::SeqEnum, label::MonStgElt : try_gonal_map:=true) -> Tup, SeqEnum
@@ -528,7 +529,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
     // Get gonality in low genus
     ambient := ProjectiveSpace(P);
     curve := Curve(ambient, X);
-    if ghyp then
+    if g eq 1 or ghyp then
         qbar_high := 2;
         if g eq 2 then
             q_high := 2;
