@@ -705,7 +705,7 @@ def get_gonalities(model_gonalities):
         qbar = qbar_low if qbar_low == qbar_high else None
         return q, qbar, (q_low, q_high), (qbar_low, qbar_high)
         #return f"{q}|{qbar}|{{{q_low},{q_high}}}|{{{qbar_low},{qbar_high}}}"
-    return {P._element_to_vertex(v): package(gon) for (v, gon) in gonalities.items()}
+    return {P._vertex_to_element(v): package(gon) for (v, gon) in gonalities.items()}
 
 def get_model_points():
     # We need to do polredabs computations for cusps, which might take a while
