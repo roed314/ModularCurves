@@ -641,15 +641,8 @@ def timing_statistics():
 def get_gonalities(model_gonalities):
     P = get_lattice_poset()
     H = P._hasse_diagram
-    def fix_genus0_qbar(rec):
-        # Temporarily work around a bug in Drew's qbar data:
-        g = rec["label"].split(".")[2]
-        if g == "0":
-            return [1,1]
-        else:
-            return rec["qbar_gonality_bounds"]
-    gonalities = {P._element_to_vertex(rec["label"]): rec["q_gonality_bounds"] + fix_genus0_qbar(rec) for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"])}
-    for x, bounds in gonalities:
+    gonalities = {P._element_to_vertex(rec["label"]): rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"] for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"])}
+    for x, bounds in gonalities.items():
         for i in [0,2]:
             assert bounds[i+1] >= bounds[i]
     X1 = P._element_to_vertex("1.1.0.a.1")
