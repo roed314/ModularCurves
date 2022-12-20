@@ -765,7 +765,7 @@ def untransform_label(new_label):
     #Old: M.j.g.a.m-N.n
     return f"{M}.{j}.{g}.{a}.{m}-{N}-{n}"
 
-def create_db_uploads():
+def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_file="ecnf_data.txt", cm_data_file="cm_data.txt"):
     data = defaultdict(lambda: defaultdict(list))
     with open("output") as F:
         for line in F:
