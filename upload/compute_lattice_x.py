@@ -803,6 +803,11 @@ def get_model_points():
                     coord = ":".join(",".join(str(c) for c in list(x)) for x in coord)
                     cusps[label, nflabel][model_type].append(coord)
                 else:
+                    try:
+                        gg = R(poly)
+                    except SyntaxError:
+                        print(poly)
+                        raise
                     nflabel = nf_lookup[tuple(R(poly))]
                     points[label, nflabel, j][model_type].append(coord)
     return points, cusps
@@ -857,6 +862,7 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
         for label, gon in gonalities.items():
             _ = F.write(f"{transform_label(label)}|{gon}|{data['L'].get(label, [default])[0]}\n")
 
+    model_points, cusps = get_model_points()
     # Construct modcurve_points
     lit_data = load_points_files(manual_data_folder)
     lit_fields = sorted(set([datum[2] for datum in lit_data]))
@@ -871,7 +877,6 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
 
     ecnf_db_data = list(load_ecnf_data(ecnf_data_file))
 
-    model_points, cusps = get_model_points()
 
     # Check for overlap as we add points
     jinvs_seen = defaultdict(set)
