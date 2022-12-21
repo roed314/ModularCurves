@@ -683,7 +683,7 @@ intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum) -> Tup
     map_XtoC := Restriction(map_XtoC,X,C);
     defeqs := DefiningEquations(map_XtoC);
     printf "Found defining equations of the map\n";
-    if Type(cusps[1]) eq CspDat then
+    if #cusps gt 0 and Type(cusps[1]) eq CspDat then
         cuspsnew := <c`coords : c in cusps>;
         cusps := cuspsnew;
     end if;
@@ -811,18 +811,18 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
         Append(~opts, <f, DefiningEquations(mp)>);
     end procedure;
 
+    ambient := ProjectiveSpace(P);
+    curve := Curve(ambient, X);
     if #X eq 1 then
         degrees := [Degree(X[1], P.i): i in [1..Ngens(P)]];
         q_high := Min(q_high, Min([d: d in degrees | d ne 0]));
     else
         t0 := ReportStart(label, "CanonicalDegree");
-        Can := Curve(Proj(P), X);
-        q_high := Min(q_high, Degree(Can));
+        q_high := Min(q_high, Degree(curve));
         ReportEnd(label, "CanonicalDegree", t0);
     end if;
     // Get gonality in low genus
-    ambient := ProjectiveSpace(P);
-    curve := Curve(ambient, X);
+    // TODO: This is broken for genus 1
     if g eq 1 or ghyp then
         qbar_high := 2;
         if g eq 2 then
