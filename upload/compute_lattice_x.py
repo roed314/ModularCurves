@@ -840,7 +840,7 @@ def to_coarse_label(label):
     if label.count(".") == 4:
         return label
     # N.i.g-M.a.m.n
-    fine, coarse = new_label.split("-")
+    fine, coarse = label.split("-")
     j = int(j)//2
     return f"{M}.{j}.{g}.{a}.{m}"
 
