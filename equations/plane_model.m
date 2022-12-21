@@ -336,7 +336,7 @@ intrinsic planemodel_gonalitybound(X::Crv) -> Tup, RngIntElt
 end intrinsic;
 
 
-function rational_interpolation(dat : denfac := 1, scalarbound := 1000000);
+function rational_interpolation(dat : denfac := 1, scalarbound := 2000000);
     if denfac ne 1 then
         datupdated := [<d[1],d[2]*Evaluate(denfac,d[1])> : d in dat];
         dat := datupdated;
@@ -668,7 +668,7 @@ intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum) -> Tup
     end if;
 end intrinsic;
 
-intrinsic planemodel_highgens(X::Sch, cusps::SeqEnum) -> Tup
+intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum) -> Tup
 {
     Input:
             X:          a canonically embedded curve X, as returned by ProcessModel()
@@ -680,9 +680,8 @@ intrinsic planemodel_highgens(X::Sch, cusps::SeqEnum) -> Tup
     if Dimension(AmbientSpace(Codomain(map_XtoC))) eq 2 then
         return projecttoplane(C,map_XtoC,[]);
     end if;
-/*
+
     map_XtoC := Restriction(map_XtoC,X,C);
-*/
     defeqs := DefiningEquations(map_XtoC);
     printf "Found defining equations of the map\n";
     if Type(cusps[1]) eq CspDat then
@@ -876,7 +875,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
     printf "The number of options is %o\n", #opts;
     ambient := ProjectiveSpace(P);
     curve := Curve(ambient, X);
-    Append(~opts,planemodel_highgens(curve,cusps));
+    Append(~opts,planemodel_highgenus(curve,cusps));
     printf "The number of options is %o\n", #opts;
     // Use rational cusps (and maybe a short rational point search?) to project
 
