@@ -425,7 +425,7 @@ def load_ecq_data(cm_data_file):
     return ecq_db_data
 
 def load_gl2zhat_data():
-    return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds"], silent=True)}
+    return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "coarse_label"], silent=True)}
 
 def is_isolated(degree, g, rank, gonlow, simp, dims):
     # We encode the isolatedness in a small integer, p + a, where
@@ -895,7 +895,7 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
                 g = gdat["genus"]
                 ind = gdat["index"]
                 level = gdat["level"]
-                gonlow = gonalities[plabel][2][0]
+                gonlow = gonalities[gdat["coarse_label"]][2][0]
                 rank = gdat["rank"]
                 simp = gdat["simple"]
                 name = gdat["name"]
