@@ -841,7 +841,9 @@ def to_coarse_label(label):
         return label
     # N.i.g-M.a.m.n
     fine, coarse = label.split("-")
-    j = int(j)//2
+    N, i, g = fine.split(".")
+    j = int(i)//2
+    M, a, m, n = coarse.split(".")
     return f"{M}.{j}.{g}.{a}.{m}"
 
 def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_file="ecnf_data.txt", cm_data_file="cm_data.txt"):
