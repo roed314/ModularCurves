@@ -890,9 +890,9 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
                     if q_high eq gonality then
                         Append(~opts, <eqsplanemap[1], [P!eqn : eqn in eqsplanemap[2]]>);
                     else
-                        t0 := ReportStart(label, "planemodel_fromgonalmap");
-                        eqsplanemap := planemodel_fromgonalmap(gonal_map);
-                        ReportEnd(label, "planemodel_fromgonalmap", t0);
+                        t0 := ReportStart(label, "planemodel_fromgonalmap2");
+                        eqsplanemap := planemodel_fromgonalmap2(gonal_map);
+                        ReportEnd(label, "planemodel_fromgonalmap2", t0);
                         Append(~opts, <eqsplanemap[1], [P!eqn : eqn in eqsplanemap[2]]>);
                     end if;
                 else

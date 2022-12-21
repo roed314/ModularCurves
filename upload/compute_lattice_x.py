@@ -872,7 +872,7 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
         _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds|lattice_labels|lattice_x\ninteger|integer|integer[]|integer[]|text[]|integer[]\n\n")
         default = r"\N|\N"
         for label, gon in gonalities.items():
-            _ = F.write(f"{transform_label(label)}|{gon}|{data['L'].get(label, [default])[0]}\n")
+            _ = F.write(f"{label}|{gon}|{data['L'].get(label, [default])[0]}\n")
 
     model_points, cusps = get_model_points()
     # Construct modcurve_points
@@ -920,7 +920,7 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
                     jlookup = jinv if jorig == r"\N" else jorig
                     coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
 
-                    _ = F.write("|".join([transform_label(plabel), name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, "f", str(coords).replace(" ","")]) + "\n")
+                    _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, "f", str(coords).replace(" ","")]) + "\n")
         # Currently, we'll have no cusps on curves without rational EC points
         for (plabel, nflabel), coords in cusps.items():
             degree = nflabel.split(".")[0]
@@ -931,4 +931,4 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
             rank = gdat["rank"]
             simp = gdat["simple"]
             name = gdat["name"]
-            _ = F.write("|".join([transform_label(plabel), name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", "t", str(coords).replace(" ", "")]) + "\n")
+            _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", "t", str(coords).replace(" ", "")]) + "\n")
