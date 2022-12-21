@@ -636,7 +636,7 @@ intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum) -> Tup
     if Dimension(AmbientSpace(C)) eq 2 then
         P2<X,Y,Z> := AmbientSpace(C);
         defeqsphi := DefiningEquations(phi);
-        plane_eqn := Equations(C);
+        plane_eqn := DefiningEquation(C);
         return <plane_eqn, defeqsphi>; // TODO done
     end if;
     Pn := AmbientSpace(C);
