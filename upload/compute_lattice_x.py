@@ -54,8 +54,8 @@ def get_rational_poset():
     for rec in db.gps_gl2zhat_fine.search(rational_poset_query(), ["label", "parents", "coarse_label"]):
         if rec["label"] == "1.1.0.a.1": continue
         parents = [label for label in rec["parents"] if label != "1.1.0.a.1"]
-        if rec["label"] != rec["coarse_label"] and rec["coarse_label"] != "1.1.0.a.1":
-            parents += [rec["coarse_label"]]
+        if rec["label"] != to_coarse_label(rec["label"]) and to_coarse_label(rec["label"]) != "1.1.0.a.1":
+            parents += [to_coarse_label(rec["label"])]
         for olabel in parents:
             R.append([rec["label"], olabel]) # note that this is the opposite direction of edges from lattice_poset
     print("DB data loaded in", walltime() - t0)
