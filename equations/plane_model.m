@@ -208,71 +208,62 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
     rels := [];
     state := InitProjectorRec(g);
     M := ZeroMatrix(Integers(), 3, g);
-    valid := [];
+    nvalid := 0;
     R<X,Y,Z> := PolynomialRing(Rationals(), 3);
-    trel := 0;
-    tval := 0;
+    trel := 0.0;
+    tval := 0.0;
+    tred := 0.0;
     t0 := ReportStart(label, "searching for plane models");
+    best := [];
+    bestcnt := 0;
     repeat
         NextProjector(~state, ~M);
         MF := F0Combination(rec`F0, M);
         for m in [low..high] do
-            ttmp := ReportStart(label, Sprintf("plane relation %o", #valid));
+            ttmp := ReportStart(label, Sprintf("plane relation"));
             rels := FindRelations(MF, m);
-            ReportEnd(label, Sprintf("plane relation %o", #valid), ttmp);
+            ReportEnd(label, Sprintf("plane relation"), ttmp);
             trel +:= Cputime() - ttmp;
             if #rels gt 0 then
                 ttmp := Cputime();
                 //vld := ValidPlaneModel(rels[1], g);
-                vld := ValidPlaneModel3(R!rels[1], Can, M);
+                f := R!rels[1];
+                vld := ValidPlaneModel3(f, Can, M);
                 tval +:= Cputime() - ttmp;
                 if vld then
                     vprint User1: Sprintf("Plane model: found valid model of degree = %o", m);
-                    Append(~valid, <R!rels[1], Eltseq(M)>);
+                    nvalid +:= 1;
+                    ttmp := ReportStart(label, "plane model reduction");
+                    f, adjust := reducemodel_padic(f);
+                    ReportEnd(label, "plane model reduction", ttmp);
+                    tred +:= Cputime() - ttmp;
+                    fcnt := #sprint(f);
+                    if bestcnt eq 0 or fcnt lt bestcnt then
+                        proj := Eltseq(M);
+                        proj := [proj[j+1] / adjust[1 + (j div g)] : j in [0..3*g-1]];
+                        best := [<f, proj>];
+                        bestcnt := fcnt;
+                        // We write the model to file in case of a timeout
+                        LMFDBWritePlaneModel(f, proj, label);
+                    end if;
                 else
                     vprint User1: Sprintf("Plane model: invalid model of degree = %o", m);
                 end if;
                 break;
             end if;
         end for;
-    until #valid ge 25 or state`nonpiv_ctr[1] ge 728 or (#valid gt 0 and Cputime() - t0 gt 120);
+    until nvalid ge 25 or state`nonpiv_ctr[1] ge 728 or (nvalid gt 0 and Cputime() - t0 gt 120);
     ReportEnd(label, "searching for plane models", t0);
     ReportEnd(label, "plane model relations", trel : elapsed:=trel);
-    ReportEnd(label, "plane model validation", tval : elapsed:=tval);
-    if #valid eq 0 then
+    ReportEnd(label, "plane model validations", tval : elapsed:=tval);
+    ReportEnd(label, "plane model reductions", tred : elapsed:=tred);
+    if #best eq 0 then
         return false, _, _;
     end if;
-    // Pick the best
-    sorter := [];
-    rescaled := [* *];
-    ttmp := ReportStart(label, "plane model reduction");
-    adjusted := 0;
-    QQ := Rationals();
-    for i in [1..#valid] do
-        f, adjust := reducemodel_padic(valid[i][1]);
-        if f eq valid[i][1] then
-            // reducemodel_padic seems to produce giant coefficients in cases where it does nothing
-            adjust := [1 : _ in adjust];
-        else
-            adjust := [1 / QQ!a : a in adjust];
-            adjusted +:= 1;
-        end if;
-        Append(~sorter, <#sprint(f), Max([#sprint(a) : a in adjust])>);
-        Append(~rescaled, <f, [valid[i][2][j+1] * adjust[1 + (j div g)] : j in [0..3*g-1]]>);
-    end for;
-    ReportEnd(label, "plane model reduction", ttmp);
-    tred := Cputime() - ttmp;
-    _, i := Min(sorter);
 
-    f, M := Explode(rescaled[i]);
+    f, M := Explode(best);
     C := Curve(Proj(Parent(f)), f);
     vprint User1: Sprintf("Plane model: %o model(s) found\n", #valid);
-    vprint User1: Sprintf("Plane model: %o adjusted, max projection size %o\n", adjusted, Max([#Sprint(x) : x in M]));
-    vprint User1: valid[i][1];
-    vprint User1: Sprintf("Plane model: shortened by %o\n", #sprint(valid[i][1]) - sorter[i][1]);
-    vprint User1: f;
-    vprint User1: Sprintf("Plane model: chosen %o\n", #[x : x in valid[i][2] | x ne 0] - 3);
-    vprint User1: Matrix(Integers(), 3, g, valid[i][2]);
     return true, C, M;
 end intrinsic;
 
@@ -624,6 +615,11 @@ intrinsic modelfromfuncfield_gonalitybound(X::Sch) -> Tup
 */
 end intrinsic;
 
+intrinsic DefiningPolynomialsComposite(alpha, beta) -> SeqEnum
+{Defining polynomials for alpha * beta}
+    return [Evaluate(f,DefiningPolynomials(alpha)): f in DefiningPolynomials(beta)];
+end intrinsic;
+
 intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum) -> Tup
 {
     Input:
@@ -641,6 +637,7 @@ intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum) -> Tup
     end if;
     Pn := AmbientSpace(C);
     n := Dimension(Pn);
+    Can := Domain(phi);
     printf "The ambient space is now P%o\n", n;
     if ratcusps ne [] then
         cusp := ratcusps[1];
@@ -652,19 +649,21 @@ intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum) -> Tup
             newmodel, projmap, out3blowup := ProjectionFromNonsingularPoint(C,cusp);
             printf "Computed new projection map\n";
         end if;
-        newphi := phi*projmap;
-        defeqsnewphi := DefiningPolynomials(newphi);
-        invdefeqsnewphi := InverseDefiningPolynomials(newphi);
-        return projecttoplane(newmodel, map<X->newmodel|defeqsnewphi,invdefeqsnewphi>, ratcusps);
+        // newphi := phi*projmap;
+        // defeqsnewphi := DefiningPolynomials(newphi);
+        // invdefeqsnewphi := InverseDefiningPolynomials(newphi); This is only birational, so don't have inverse
+        // return projecttoplane(newmodel, map<X->newmodel|defeqsnewphi,invdefeqsnewphi>, ratcusps);
     else
         pt := Pn ! ([1] cat [0 : i in [1..n]]);
         newmodel, projmap := Projection(C,pt);
         printf "Computed new projection map\n";
-        newphi := phi*projmap;
-        defeqsnewphi := DefiningPolynomials(newphi);
-        invdefeqsnewphi := InverseDefiningPolynomials(newphi);
-        return projecttoplane(newmodel, map<X->newmodel|defeqsnewphi,invdefeqsnewphi>, []);
+        // newphi := phi*projmap;
+        // defeqsnewphi := DefiningPolynomials(newphi);
+        // invdefeqsnewphi := InverseDefiningPolynomials(newphi); This is only birational, so don't have inverse
+        // return projecttoplane(newmodel, map<X->newmodel|defeqsnewphi,invdefeqsnewphi>, []);
     end if;
+    defeqsnewphi := DefiningPolynomialsComposite(phi, projmap);
+    return projecttoplane(newmodel, map<Can->newmodel|defeqsnewphi>, ratcusps);
 end intrinsic;
 
 intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum) -> Tup
@@ -798,8 +797,11 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
             ghyp:  whether X is geometrically hyperelliptic
             cusps: the rational cusps on X
     Output:
-            bounds a 4-tuple giving gonality bounds: q_low, q_high, qbar_low, qbar_high
+            bounds: a 4-tuple giving gonality bounds <q_low, q_high, qbar_low, qbar_high>
             C:     a sequence of length 0 or 1 of known plane models (provided as a tuple, with first entry the defining polynomial and the second entry a sequence of three polynomials giving the map from X to C)
+    File output:
+            Writes gonality bounds using LMFDBWriteGonalityBounds
+            Writes plane model using LMFDBWritePlaneModel
 }
     q_low, q_high, qbar_low, qbar_high := Explode(LMFDBReadGonalityBounds(label));
     P := Parent(X[1]);
@@ -807,35 +809,28 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
 
     ambient := ProjectiveSpace(P);
     curve := Curve(ambient, X);
+    function planemodel_gonbound(f)
+        fP := Parent(f);
+        degrees := [Degree(f, fP.i): i in [1..Ngens(fP)]];
+        return Min([d: d in degrees | d ne 0]);
+    end function;
     if #X eq 1 then
-        degrees := [Degree(X[1], P.i): i in [1..Ngens(P)]];
-        q_high := Min(q_high, Min([d: d in degrees | d ne 0]));
+        q_high := Min(q_high, planemodel_gonbound(X[1]));
     else
         t0 := ReportStart(label, "CanonicalDegree");
         q_high := Min(q_high, Degree(curve));
         ReportEnd(label, "CanonicalDegree", t0);
     end if;
-    // Get gonality in low genus
-    // TODO: This is broken for genus 1
-    if g eq 1 or ghyp then
+
+    if g gt 1 and ghyp then
         qbar_high := 2;
         if g eq 2 then
             q_high := 2;
-        elif g gt 2 then
-            // don't change q_high in genus 1: a genus 1 curve can require an arbitrarily large extension to acquire a point
+        else
             if q_high ge 4 then
                 q_high := 4;
             else
                 q_high := 2;
-            end if;
-        else
-            if q_low mod 2 eq 1 then
-                // gonality can't be odd, since that would give an odd degree divisor that we could push down to P1 and obtain a point
-                q_low +:= 1;
-            end if;
-            if q_high mod 2 eq 1 then
-                // as above, gonality can't be odd
-                q_high -:= 1;
             end if;
         end if;
         // We write the gonalities now, since the following may time out
@@ -851,74 +846,80 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
             HP := Parent(Hdef);
             AssignNames(~HP, ["X","Y","Z"]);
             Write("ghyp_models/" * label, Sprintf("%o|%o", sprint(Hdef), Join([sprint(coord) : coord in DefiningEquations(h_map)], ",")) : Overwrite);
-        elif g gt 1 then
+        else
             q_low := 4;
             q_high := 4;
             // Later, we'll use Edgar and Raymond's code to find model as double cover of conic
         end if;
-    elif g gt 0 then
-        if g le 6 and try_gonal_map then
-            try
-                t0 := ReportStart(label, "gonality");
-                if g eq 3 then
-	            qbar_low, gonal_map := Genus3GonalMap(curve : IsCanonical:=true);
-                elif g eq 4 then
-	            qbar_low, gonal_map := Genus4GonalMap(curve : IsCanonical:=true);
-                elif g eq 5 then
-	            qbar_low, gonal_map := Genus5GonalMap(curve : IsCanonical:=true);
+    elif g ge 3 and g le 6 and try_gonal_map then
+        try
+            t0 := ReportStart(label, "gonality");
+            if g eq 3 then
+	        qbar_low, gonal_map := Genus3GonalMap(curve : IsCanonical:=true);
+            elif g eq 4 then
+	        qbar_low, gonal_map := Genus4GonalMap(curve : IsCanonical:=true);
+            elif g eq 5 then
+	        qbar_low, gonal_map := Genus5GonalMap(curve : IsCanonical:=true);
+            else
+	        qbar_low, sec_type, gonal_map, aux_map := Genus6GonalMap(curve : IsCanonical:=true);
+            end if;
+            ReportEnd(label, "gonality", t0);
+            q_low := qbar_low;
+            qbar_high := qbar_low;
+            F := BaseField(Domain(gonal_map));
+            if F eq Rationals() then
+                // If gonal map is rational, get q_high as well
+                q_high := qbar_low;
+                // We write the gonalities now, since the following may time out
+                LMFDBWriteGonalityBounds(<q_low, q_high, qbar_low, qbar_high>, label);
+                t0 := ReportStart(label, "planemodel_gonalitybound");
+                eqsplanemap, gonality := planemodel_gonalitybound(curve);
+                ReportEnd(label, "planemodel_gonalitybound", t0);
+                if q_high eq gonality then
+                    Append(~opts, <eqsplanemap[1], [P!eqn : eqn in eqsplanemap[2]]>);
                 else
-	            qbar_low, sec_type, gonal_map, aux_map := Genus6GonalMap(curve : IsCanonical:=true);
+                    t0 := ReportStart(label, "planemodel_fromgonalmap2");
+                    eqsplanemap := planemodel_fromgonalmap2(gonal_map);
+                    ReportEnd(label, "planemodel_fromgonalmap2", t0);
+                    Append(~opts, <eqsplanemap[1], [P!eqn : eqn in eqsplanemap[2]]>);
                 end if;
-                ReportEnd(label, "gonality", t0);
-                q_low := qbar_low;
-                qbar_high := qbar_low;
-                F := BaseField(Domain(gonal_map));
-                if F eq Rationals() then
-                    // If gonal map is rational, get q_high as well
-                    q_high := qbar_low;
-                    // We write the gonalities now, since the following may time out
-                    LMFDBWriteGonalityBounds(<q_low, q_high, qbar_low, qbar_high>, label);
-                    t0 := ReportStart(label, "planemodel_gonalitybound");
-                    eqsplanemap, gonality := planemodel_gonalitybound(curve);
-                    ReportEnd(label, "planemodel_gonalitybound", t0);
-                    if q_high eq gonality then
-                        Append(~opts, <eqsplanemap[1], [P!eqn : eqn in eqsplanemap[2]]>);
-                    else
-                        t0 := ReportStart(label, "planemodel_fromgonalmap2");
-                        eqsplanemap := planemodel_fromgonalmap2(gonal_map);
-                        ReportEnd(label, "planemodel_fromgonalmap2", t0);
-                        Append(~opts, <eqsplanemap[1], [P!eqn : eqn in eqsplanemap[2]]>);
-                    end if;
-                else
-                    LMFDBWriteGonalityBounds(<q_low, q_high, qbar_low, qbar_high>, label);
-                end if;
-            catch e
-                print Sprint(e) * "\n";
-            end try;
-        end if;
+            end if;
+        catch e
+            print Sprint(e) * "\n";
+        end try;
     end if;
+    LMFDBWriteGonalityBounds(<q_low, q_high, qbar_low, qbar_high>, label);
 
     printf "The number of options is %o\n", #opts;
-    if g gt 1 and Rank(P) gt 3 then
+    if g gt 0 and Rank(P) gt 3 then
         t0 := ReportStart(label, "planemodel_highgenus");
         Append(~opts, planemodel_highgenus(curve,cusps));
         ReportEnd(label, "planemodel_highgenus");
         printf "The number of options is %o\n", #opts;
     end if;
-    // Use rational cusps (and maybe a short rational point search?) to project
 
-    /*
-    if g eq 5 then
-        ok, f := Genus5PlaneCurveModel(curve : IsCanonical:=not ghyp);
-        if ok then add_opt(f); end if;
-    end if;*/
-    // Sam suggests Ciaran's code for improving coefficients: https://github.com/SamSchiavone/Gm-Reduce/blob/main/linear-program.m#L218
-    function pick_best(L)
-        _, i := Min([#sprint(pair[1]) : pair in L]);
-        return L[i];
-    end function;
+    // We only want to keep models that achieve the minimum possible minimal degree (this guarantees that we use the gonality models if present
     if #opts gt 1 then
-        opts := [pick_best(opts)];
+        gonbounds := [planemodel_gonbound(pair[1]) : pair in opts];
+        _, i := Min(gonbounds);
+        opts := [* opts[j] : j in [1..#opts] | gonbounds[j] eq gonbounds[i] *];
     end if;
-    return <q_low, q_high, qbar_low, qbar_high>, [pair : pair in opts];
+    rescaled := [* *];
+    sorter := [];
+    // We rescale the variables to make integral and try to reduce coefficient size
+    for i in [1..#opts] do
+        f, adjust := reducemodel_padic(opts[i][1]);
+        adjust := [1 / QQ!a : a in adjust];
+        proj := [a * g : g in opts[i][2]];
+        Append(~sorter, #sprint(f))
+        Append(~rescaled, <f, proj>);
+    end for;
+    if #opts gt 0 then
+        _, i := Min(sorter);
+        C, proj := Explode(opts[i]);
+        LMFDBWritePlaneModel(C, proj, label);
+        return <q_low, q_high, qbar_low, qbar_high>, [<C, proj>];
+    else
+        return <q_low, q_high, qbar_low, qbar_high>, [];
+    end if;
 end intrinsic;

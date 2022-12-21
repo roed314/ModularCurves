@@ -438,9 +438,14 @@ def is_isolated(degree, g, rank, gonlow, simp, dims):
         # Always P1 parameterized and AV isolated
         return "-2"
     elif degree == 1:
-        if g == 1 and rank > 0:
-            # Always P1 isolated and AV parameterized
-            return "2"
+        if g == 1:
+            if rank > 0:
+                # Always P1 isolated and AV parameterized
+                return "2"
+            elif rank == 0:
+                return "4"
+            else: # rank is None
+                return "3"
         else:
             return "4"
     elif degree < QQ(gonlow) / 2 or degree < gonlow and (rank == 0 or simp and degree < g):
@@ -456,7 +461,7 @@ def is_isolated(degree, g, rank, gonlow, simp, dims):
     elif degree == g and rank > 0:
         return "-1" # AV parameterized; can compute if P1 parameterized by Riemann Roch with a model
     else:
-        if rank == 0 or degree <= min(dims): # for second part, using degree < g
+        if rank == 0 or (dims is not None and degree <= min(dims)): # for second part, using degree < g
             # Actually only need to check the minimum of the dimensions where the rank is positive
             # Always AV isolated; can try to computed whether P1 parameterized by Riemann roch
             return "1"

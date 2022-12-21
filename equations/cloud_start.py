@@ -26,6 +26,7 @@ opj = os.path.join
 ope = os.path.exists
 parser = argparse.ArgumentParser("Dispatch to appropriate magma script")
 parser.add_argument("job", type=int, help="job number")
+parser.add_argument("verbose", action="store_true")
 
 # These folders are needed by the scripts to be called below
 os.makedirs("canonical_models", exist_ok=True)
@@ -74,30 +75,34 @@ def get_lattice_coords(label):
     with open(opj("timings", label), "a") as F:
         _ = F.write(f"Finished lattice layout in {time() - t0}\n")
 
-def get_canonical_model(label):
+def get_canonical_model(label, verbose):
     # Also produces a first stab at a plane model
     g = int(label.split(".")[2])
     if g <= 24:
-        subprocess.run('parallel --timeout 3600 "magma -b label:={1} GetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % label, shell=True)
+        verb = "verbose:= " if verbose else ""
+        subprocess.run('parallel --timeout 3600 "magma -b label:={1}%s GetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
     return ope(opj("canonical_models", label))
 
-def get_plane_and_gonality(label):
+def get_plane_and_gonality(label, verbose):
     # Runs the script to compute gonality bounds and a better plane model
     # Returns true whether the curve is geometrically hyperelliptic
-    subprocess.run('parallel --timeout 1200 "magma -b label:={1} GetPlaneAndGonality.m >> stdout/{1} 2>&1" ::: %s' % label, shell=True)
+    verb = "verbose:= " if verbose else ""
+    subprocess.run('parallel --timeout 1200 "magma -b label:={1}%s GetPlaneAndGonality.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
     gon = opj("gonality", label)
     with open(opj("canonical_models", label)) as F:
         model_type = F.read().strip().split("|")[-1]
         return model_type == "-1"
 
-def get_ghyperelliptic_model(label):
+def get_ghyperelliptic_model(label, verbose):
+    verb = "verbose:= " if verbose else ""
     for prec in [100, 200, 300, 400, 600, 1200]:
         if ope(opj("ghyp_models", label)):
             break
-        subprocess.run('parallel --timeout 600 "magma -b label:={1} prec:=%s GetGHyperellipticModel.m >> stdout/{1} 2>&1" ::: %s' % (prec, label), shell=True)
+        subprocess.run('parallel --timeout 600 "magma -b label:={1}%s prec:=%s GetGHyperellipticModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, prec, label), shell=True)
 
-def get_rational_coordinates(label):
-    subprocess.run('parallel --timeout 1200 "magma -b label:={1} GetRationalCoordinates.m >> stdout/{1} 2>&1" ::: %s' % label, shell=True)
+def get_rational_coordinates(label, verbose):
+    verb = "verbose:= " if verbose else ""
+    subprocess.run('parallel --timeout 1200 "magma -b label:={1}%s GetRationalCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def collate_data(label):
     with open("output", "a") as Fout:
@@ -118,10 +123,10 @@ def collate_data(label):
                             line += "\n"
                         _ = Fout.write(f"{code}{label}|{line}")
 
-#if get_canonical_model(label):
+#if get_canonical_model(label, args.verbose):
 if ope("canonical_models/" + label):
-    if get_plane_and_gonality(label):
-        get_ghyperelliptic_model(label)
-    get_rational_coordinates(label)
+    if get_plane_and_gonality(label, args.verbose):
+        get_ghyperelliptic_model(label, args.verbose)
+    get_rational_coordinates(label, args.verbose)
 get_lattice_coords(label)
 collate_data(label)

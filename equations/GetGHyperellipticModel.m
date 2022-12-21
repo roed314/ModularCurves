@@ -3,8 +3,12 @@
 load "hyperelliptic/load.m";
 load "hyperelliptic/code.m";
 SetColumns(0);
-//SetVerbose("User1", 1);
-//SetDebugOnError(true);
+if assigned verbose or assigned debug then
+    SetVerbose("User1", 1);
+end if;
+if assigned debug then
+    SetDebugOnError(true);
+end if;
 g := StringToInteger(Split(label, ".")[3]);
 if not assigned prec then
     prec := 100;

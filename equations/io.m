@@ -186,7 +186,7 @@ intrinsic LMFDBReadCanonicalModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIn
     return X, g, model_type, jnum, jden, cusps;
 end intrinsic;
 
-intrinsic LMFDBWritePlaneModel(C::Crv, proj::SeqEnum, label::MonStgElt)
+intrinsic LMFDBWritePlaneModel(C::Any, proj::SeqEnum, label::MonStgElt)
 {}
     System("mkdir -p plane_models");
     fname := Sprintf("plane_models/%o", label);
@@ -198,7 +198,10 @@ intrinsic LMFDBWritePlaneModel(C::Crv, proj::SeqEnum, label::MonStgElt)
         AssignCanonicalNames(~R);
         proj := [&+[proj[g*i + j] * R.j : j in [1..g]] : i in [0..2]];
     end if;
-    Write(fname, Sprintf("%o|%o|%o", DefiningEquation(C), Join([sprint(c) : c in proj], ","), g) : Overwrite);
+    if Type(C) ne RngMPolElt then
+        C := DefiningEquation(C);
+    end if;
+    Write(fname, Sprintf("%o|%o|%o", C, Join([sprint(c) : c in proj], ","), g) : Overwrite);
 end intrinsic;
 
 intrinsic LMFDBReadPlaneModel(label::MonStgElt) -> SeqEnum
