@@ -722,7 +722,7 @@ intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum) -> Tup
         defeqsphi := DefiningEquations(phi);
         if Dimension(AmbientSpace(newmodel)) eq 2 then
             P2<X,Y,Z> := AmbientSpace(newmodel);
-            plane_eqn := Equations(newmodel);
+            plane_eqn := DefiningEquation(newmodel);
             return <plane_eqn, defeqsphi>; // TODO done
         else
             rational_imageofcusps := {};
@@ -756,7 +756,7 @@ intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum) -> Tup
             defeqsphi := DefiningEquations(phi);
             if Dimension(AmbientSpace(newmodel)) eq 2 then
                 P2<X,Y,Z> := AmbientSpace(newmodel);
-                plane_eqn := Equations(newmodel);
+                plane_eqn := DefiningEquation(newmodel);
                 return <plane_eqn, defeqsphi>; // TODO done
             else
                 rational_imageofcusps := {};
@@ -804,12 +804,6 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
     q_low, q_high, qbar_low, qbar_high := Explode(LMFDBReadGonalityBounds(label));
     P := Parent(X[1]);
     opts := [* f : f in C *];
-    procedure add_opt(mp)
-        f := DefiningEquation(Codomain(mp));
-        R := Parent(f);
-        AssignNames(~R, ["X","Y","Z"]);
-        Append(~opts, <f, DefiningEquations(mp)>);
-    end procedure;
 
     ambient := ProjectiveSpace(P);
     curve := Curve(ambient, X);
