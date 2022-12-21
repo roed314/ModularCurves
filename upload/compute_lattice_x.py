@@ -910,6 +910,8 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
                 rank = gdat["rank"]
                 simp = gdat["simple"]
                 name = gdat["name"]
+                if name is None:
+                    name = r"\N"
                 if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:
                     jinvs_seen[plabel].add((field_of_definition, jfield, jinv))
                     point_counts[plabel][degree] += 1

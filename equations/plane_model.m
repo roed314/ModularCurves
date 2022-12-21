@@ -899,10 +899,12 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
     end if;
 
     printf "The number of options is %o\n", #opts;
-    ambient := ProjectiveSpace(P);
-    curve := Curve(ambient, X);
-    Append(~opts, planemodel_highgenus(curve,cusps));
-    printf "The number of options is %o\n", #opts;
+    if g gt 1 and Rank(P) gt 3 then
+        t0 := ReportStart(label, "planemodel_highgenus");
+        Append(~opts, planemodel_highgenus(curve,cusps));
+        ReportEnd(label, "planemodel_highgenus");
+        printf "The number of options is %o\n", #opts;
+    end if;
     // Use rational cusps (and maybe a short rational point search?) to project
 
     /*
