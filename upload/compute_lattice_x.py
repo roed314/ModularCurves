@@ -835,6 +835,15 @@ def untransform_label(new_label):
     #Old: M.j.g.a.m-N.n
     return f"{M}.{j}.{g}.{a}.{m}-{N}-{n}"
 
+def to_coarse_label(label):
+    # Work around broken coarse_label column
+    if label.count(".") == 4:
+        return label
+    # N.i.g-M.a.m.n
+    fine, coarse = new_label.split("-")
+    j = int(j)//2
+    return f"{M}.{j}.{g}.{a}.{m}"
+
 def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_file="ecnf_data.txt", cm_data_file="cm_data.txt"):
     data = defaultdict(lambda: defaultdict(list))
     with open("output") as F:
@@ -895,7 +904,7 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
                 g = gdat["genus"]
                 ind = gdat["index"]
                 level = gdat["level"]
-                gonlow = gonalities[gdat["coarse_label"]][2][0]
+                gonlow = gonalities[to_coarse_label(plabel)][2][0]
                 rank = gdat["rank"]
                 simp = gdat["simple"]
                 name = gdat["name"]
