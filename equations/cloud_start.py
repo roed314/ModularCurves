@@ -15,6 +15,7 @@
 # - Base change for CM points (duplicated points in rats/).  Need to throw away points of lower degree?
 
 # Copied into the home directory for running
+# Consistent segfault on 22.180.6.b.1
 
 import os
 import argparse

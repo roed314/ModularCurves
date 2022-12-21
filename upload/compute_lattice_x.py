@@ -783,8 +783,9 @@ def get_model_points():
             code, label = label[0], label[1:]
             if code == "R":
                 poly, j, model_type, coord = out.split("|")
+                poly = poly.replace("$.1", "x")
                 model_type = int(model_type)
-                if poly in ["$.1 - 1", "x - 1"]:
+                if poly == "x - 1":
                     points[label, "1.1.1.1", j][model_type].append(coord)
                 elif j == "oo":
                     f = R(poly)
