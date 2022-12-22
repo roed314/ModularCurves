@@ -100,8 +100,10 @@ def get_ghyperelliptic_model(label, verbose):
 
 def get_plane_model(label, verbose):
     # Attempts to contruct a plane model via projection from rational points
-    verb = "verbose:= " if verbose else ""
-    subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetPlaneModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+    g = int(label.split(".")[2])
+    if g != 0:
+        verb = "verbose:= " if verbose else ""
+        subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetPlaneModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def get_rational_coordinates(label, verbose):
     verb = "verbose:= " if verbose else ""

@@ -827,7 +827,7 @@ High genus is a bit of a misnomer: this works as long as g > 0 and the canonical
         fproj := planemodel_highgenus(curve, rcusps);
         ReportEnd(label, "planemodel_highgenus", t0);
         C, bestkey := ReducePlaneModel(fproj, C, bestkey, label);
-        gonbnd := bestkey[0];
+        gonbnd := bestkey[1];
         if gonbnd lt q_high then
             q_high := Min(q_high, gonbnd);
             qbar_high := Min(qbar_high, gonbnd);
