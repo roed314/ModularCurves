@@ -95,8 +95,7 @@ intrinsic CuspOrbits(N::RngIntElt, gens::SeqEnum) -> SeqEnum[SeqEnum[CspDat]]
   R<x> := PolynomialRing(Rationals());
   for i in [1..#stabs] do
       KK, prim := fieldfind(sub<GL(1, Integers(N)) | [[d] : d in stabs[i]]>, K);
-      vprint User1: Sprintf("For cusp %o, field of definition is %o.", cusps[i][1]),
-	     R!DefiningPolynomial(KK);
+      vprint User1: Sprintf("For cusp %o, field of definition is %o.", cusps[i][1], R!DefiningPolynomial(KK));
       Embed(KK,K,prim);
       if Degree(KK) gt 1 then
 	  AssignNames(~KK, [Sprintf("a_%o", i)]);
