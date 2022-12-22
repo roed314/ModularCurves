@@ -135,6 +135,7 @@ function FindJMap(N, gens, label)
     // 5 is the code for hyperelliptic models
     // For now, we decided it includes Weierstrass equations
     ReportEnd(label, "model and modular forms", ttemp);
+    ReportEnd(label, "FindJMap", tttt);
     return M`C, ecjmap, 5, M`f cat [[1 : i in [1..#M`cusps]]], M;
   end if;
 
