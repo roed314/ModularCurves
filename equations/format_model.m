@@ -91,7 +91,7 @@ end for;
 C := []; // TODO: Read curve model from input data
 cusps := []; // TODO: Read cusps from input data
 // TODO: Determine whether to try gonal map from input parameters
-gon_bounds, plane_models := PlaneModelAndGonalityBounds(equations_pol, C, genus, (model_type eq -1), cusps : try_gonal_map:=true);
+gon_bounds, plane_models := PlaneModelAndGonalityBounds(equations_pol, genus, (model_type eq -1), cusps : try_gonal_map:=true);
 
 // Figure out smoothness
 triangular_nbs := [i*(i-1)/2: i in [1..17]];

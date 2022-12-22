@@ -188,6 +188,34 @@ intrinsic NextProjector(~state::Rec, ~M::ModMatRngElt)
     end if;
 end intrinsic;
 
+function planemodel_gonbound(f)
+    fP := Parent(f);
+    degrees := [Degree(f, fP.i): i in [1..Ngens(fP)]];
+    return Min([d: d in degrees | d ne 0]);
+end function;
+
+function sort_key(f)
+    return <planemodel_gonbound(f), #sprint(f)>;
+end function;
+
+intrinsic ReducePlaneModel(fproj::Tup, best::SeqEnum, bestkey::Tup, label::MonStgElt) -> RngMPolElt, SeqEnum, Tup
+{
+    Uses Ciaran's code to improve coefficient sizes; returns the new model, the new projections, and a sort key
+    Also writes the model to disk if its an improvement on the bestkey
+}
+    f, proj := Explode(fproj);
+    f, adjust := reducemodel_padic(f);
+    skey := sort_key(f);
+    QQ := Rationals(); // entries of adjust may be in degree 1 extension of Q
+    proj := [proj[i] / QQ!adjust[i] : i in [1..3]];
+    if #best eq 0 or skey lt bestkey then
+        best := [<f, proj>];
+        bestkey := skey;
+        LMFDBWritePlaneModel(f, proj, label);
+    end if;
+    return best, bestkey;
+end intrinsic;
+
 intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:=0) -> BoolElt, Crv, SeqEnum
 {rec should be of type ModularCurveRec, genus larger than 3 and not hyperelliptic}
     assert reduction_prime gt rec`level;
@@ -210,12 +238,13 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
     M := ZeroMatrix(Integers(), 3, g);
     nvalid := 0;
     R<X,Y,Z> := PolynomialRing(Rationals(), 3);
+    Rg := PolynomialRing(Rationals(), g); // variable names assigned in LMFDBWritePlaneModel
     trel := 0.0;
     tval := 0.0;
     tred := 0.0;
     t0 := ReportStart(label, "searching for plane models");
     best := [];
-    bestcnt := 0;
+    bestkey := 0;
     repeat
         NextProjector(~state, ~M);
         MF := F0Combination(rec`F0, M);
@@ -225,27 +254,17 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
             ReportEnd(label, Sprintf("plane relation"), ttmp);
             trel +:= Cputime() - ttmp;
             if #rels gt 0 then
-                ttmp := Cputime();
-                //vld := ValidPlaneModel(rels[1], g);
                 f := R!rels[1];
+                ttmp := Cputime();
                 vld := ValidPlaneModel3(f, Can, M);
                 tval +:= Cputime() - ttmp;
                 if vld then
                     vprint User1: Sprintf("Plane model: found valid model of degree = %o", m);
                     nvalid +:= 1;
-                    ttmp := ReportStart(label, "plane model reduction");
-                    f, adjust := reducemodel_padic(f);
-                    ReportEnd(label, "plane model reduction", ttmp);
+                    proj := [&+[M[i,j] * Rg.j : j in [1..g]] : i in [1..3]];
+                    ttmp := Cputime();
+                    best, bestkey := ReducePlaneModel(<f, proj>, best, bestkey, label);
                     tred +:= Cputime() - ttmp;
-                    fcnt := #sprint(f);
-                    if bestcnt eq 0 or fcnt lt bestcnt then
-                        proj := Eltseq(M);
-                        proj := [proj[j+1] / adjust[1 + (j div g)] : j in [0..3*g-1]];
-                        best := [<f, proj>];
-                        bestcnt := fcnt;
-                        // We write the model to file in case of a timeout
-                        LMFDBWritePlaneModel(f, proj, label);
-                    end if;
                 else
                     vprint User1: Sprintf("Plane model: invalid model of degree = %o", m);
                 end if;
@@ -788,11 +807,10 @@ end intrinsic;
 
 
 
-intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp::BoolElt, cusps::SeqEnum, label::MonStgElt : try_gonal_map:=true) -> Tup, SeqEnum
+intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, g::RngIntElt, ghyp::BoolElt, cusps::SeqEnum, label::MonStgElt : try_gonal_map:=true) -> Tup, SeqEnum
 {
     Input:
             X:     equations for the modular curve as produced by GetModelLMFDB.m
-            C:     a sequence of length 0 or 1 of known plane models (provided as a tuple, with first entry the defining polynomial in X,Y,Z and second entry a sequence of three polynomials giving the map from X to C).
             g:     the genus of X
             ghyp:  whether X is geometrically hyperelliptic
             cusps: the rational cusps on X
@@ -804,16 +822,16 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
             Writes plane model using LMFDBWritePlaneModel
 }
     q_low, q_high, qbar_low, qbar_high := Explode(LMFDBReadGonalityBounds(label));
+    C := LMFDBReadPlaneModel(label);
+    if #C eq 0 then
+        bestkey := <>;
+    else
+        bestkey := sort_key(C[1][1]);
+    end if;
     P := Parent(X[1]);
-    opts := [* f : f in C *];
 
     ambient := ProjectiveSpace(P);
     curve := Curve(ambient, X);
-    function planemodel_gonbound(f)
-        fP := Parent(f);
-        degrees := [Degree(f, fP.i): i in [1..Ngens(fP)]];
-        return Min([d: d in degrees | d ne 0]);
-    end function;
     if #X eq 1 then
         q_high := Min(q_high, planemodel_gonbound(X[1]));
     else
@@ -821,6 +839,14 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
         q_high := Min(q_high, Degree(curve));
         ReportEnd(label, "CanonicalDegree", t0);
     end if;
+
+    if g gt 0 and Rank(P) gt 3 then
+        t0 := ReportStart(label, "planemodel_highgenus");
+        fproj := planemodel_highgenus(curve, cusps);
+        ReportEnd(label, "planemodel_highgenus", t0);
+        C, bestkey := ReducePlaneModel(fproj, C, bestkey, label);
+    end if;
+
 
     if g gt 1 and ghyp then
         qbar_high := 2;
@@ -876,12 +902,12 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
                 eqsplanemap, gonality := planemodel_gonalitybound(curve);
                 ReportEnd(label, "planemodel_gonalitybound", t0);
                 if q_high eq gonality then
-                    Append(~opts, <eqsplanemap[1], [P!eqn : eqn in eqsplanemap[2]]>);
+                    C, bestkey := ReducePlaneModel(eqsplanemap, C, bestkey, label);
                 else
                     t0 := ReportStart(label, "planemodel_fromgonalmap2");
                     eqsplanemap := planemodel_fromgonalmap2(gonal_map);
                     ReportEnd(label, "planemodel_fromgonalmap2", t0);
-                    Append(~opts, <eqsplanemap[1], [P!eqn : eqn in eqsplanemap[2]]>);
+                    C, bestkey := ReducePlaneModel(eqsplanemap, C, bestkey, label);
                 end if;
             end if;
         catch e
@@ -889,38 +915,5 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
         end try;
     end if;
     LMFDBWriteGonalityBounds(<q_low, q_high, qbar_low, qbar_high>, label);
-
-    printf "The number of options is %o\n", #opts;
-    if g gt 0 and Rank(P) gt 3 then
-        t0 := ReportStart(label, "planemodel_highgenus");
-        Append(~opts, planemodel_highgenus(curve,cusps));
-        ReportEnd(label, "planemodel_highgenus", t0);
-        printf "The number of options is %o\n", #opts;
-    end if;
-
-    // We only want to keep models that achieve the minimum possible minimal degree (this guarantees that we use the gonality models if present
-    if #opts gt 1 then
-        gonbounds := [planemodel_gonbound(pair[1]) : pair in opts];
-        _, i := Min(gonbounds);
-        opts := [* opts[j] : j in [1..#opts] | gonbounds[j] eq gonbounds[i] *];
-    end if;
-    rescaled := [* *];
-    sorter := [];
-    // We rescale the variables to make integral and try to reduce coefficient size
-    QQ := Rationals();
-    for i in [1..#opts] do
-        f, adjust := reducemodel_padic(opts[i][1]);
-        adjust := [1 / Rationals()!a : a in adjust];
-        proj := [opts[i][2][j] / QQ!adjust[j] : j in [1..3]];
-        Append(~sorter, #sprint(f));
-        Append(~rescaled, <f, proj>);
-    end for;
-    if #rescaled gt 0 then
-        _, i := Min(sorter);
-        C, proj := Explode(rescaled[i]);
-        LMFDBWritePlaneModel(C, proj, label);
-        return <q_low, q_high, qbar_low, qbar_high>, [<C, proj>];
-    else
-        return <q_low, q_high, qbar_low, qbar_high>, [];
-    end if;
+    return <q_low, q_high, qbar_low, qbar_high>, C;
 end intrinsic;

@@ -17,7 +17,6 @@ end if;
 
 X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
 if g gt 0 then
-    Cs := LMFDBReadPlaneModel(label);
-    bounds, Cs := PlaneModelAndGonalityBounds(X, Cs, g, (model_type eq -1), [c : c in cusps | Universe(c) eq Rationals()], label); // also writes to file
+    bounds, Cs := PlaneModelAndGonalityBounds(X, g, (model_type eq -1), [c : c in cusps | Universe(c) eq Rationals()], label); // also writes to file
 end if;
 exit;
