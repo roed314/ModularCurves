@@ -915,9 +915,9 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
         Append(~sorter, #sprint(f));
         Append(~rescaled, <f, proj>);
     end for;
-    if #opts gt 0 then
+    if #rescaled gt 0 then
         _, i := Min(sorter);
-        C, proj := Explode(opts[i]);
+        C, proj := Explode(rescaled[i]);
         LMFDBWritePlaneModel(C, proj, label);
         return <q_low, q_high, qbar_low, qbar_high>, [<C, proj>];
     else
