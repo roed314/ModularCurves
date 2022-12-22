@@ -818,7 +818,7 @@ High genus is a bit of a misnomer: this works as long as g > 0 and the canonical
     X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
     q_low, q_high, qbar_low, qbar_high := Explode(LMFDBReadGonalityBounds(label));
     rcusps := [c : c in cusps | Universe(c) eq Rationals()];
-    C := LMFDBReadPlaneModel(label);
+    C, bestkey := LMFDBReadPlaneModel(label);
     P := Parent(X[1]);
     ambient := ProjectiveSpace(P);
     curve := Curve(ambient, X);
