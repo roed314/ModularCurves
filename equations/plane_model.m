@@ -911,7 +911,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
         f, adjust := reducemodel_padic(opts[i][1]);
         adjust := [1 / QQ!a : a in adjust];
         proj := [a * g : g in opts[i][2]];
-        Append(~sorter, #sprint(f))
+        Append(~sorter, #sprint(f));
         Append(~rescaled, <f, proj>);
     end for;
     if #opts gt 0 then
