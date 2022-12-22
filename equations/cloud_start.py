@@ -80,14 +80,14 @@ def get_canonical_model(label, verbose):
     g = int(label.split(".")[2])
     if g <= 24:
         verb = "verbose:= " if verbose else ""
-        subprocess.run('parallel --timeout 3600 "magma -b label:={1}%s GetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+        subprocess.run('parallel --timeout 3600 "magma -b label:={1} %sGetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
     return ope(opj("canonical_models", label))
 
 def get_plane_and_gonality(label, verbose):
     # Runs the script to compute gonality bounds and a better plane model
     # Returns true whether the curve is geometrically hyperelliptic
     verb = "verbose:= " if verbose else ""
-    subprocess.run('parallel --timeout 1200 "magma -b label:={1}%s GetPlaneAndGonality.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+    subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetPlaneAndGonality.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
     gon = opj("gonality", label)
     with open(opj("canonical_models", label)) as F:
         model_type = F.read().strip().split("|")[-1]
@@ -98,11 +98,11 @@ def get_ghyperelliptic_model(label, verbose):
     for prec in [100, 200, 300, 400, 600, 1200]:
         if ope(opj("ghyp_models", label)):
             break
-        subprocess.run('parallel --timeout 600 "magma -b label:={1}%s prec:=%s GetGHyperellipticModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, prec, label), shell=True)
+        subprocess.run('parallel --timeout 600 "magma -b label:={1} %sprec:=%s GetGHyperellipticModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, prec, label), shell=True)
 
 def get_rational_coordinates(label, verbose):
     verb = "verbose:= " if verbose else ""
-    subprocess.run('parallel --timeout 1200 "magma -b label:={1}%s GetRationalCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+    subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetRationalCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def collate_data(label):
     with open("output", "a") as Fout:
