@@ -263,7 +263,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
 
     f, M := Explode(best);
     C := Curve(Proj(Parent(f)), f);
-    vprint User1: Sprintf("Plane model: %o model(s) found\n", #valid);
+    vprint User1: Sprintf("Plane model: %o model(s) found\n", nvalid);
     return true, C, M;
 end intrinsic;
 
