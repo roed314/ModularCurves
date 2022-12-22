@@ -15,5 +15,5 @@ if (not assigned label) then
     quit;
 end if;
 
-Cs := HighGenusPlaneModel(label::MonStgElt); // writes output to file
+Cs := HighGenusPlaneModel(label); // writes output to file
 exit;
