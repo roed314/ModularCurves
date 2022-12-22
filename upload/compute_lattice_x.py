@@ -497,7 +497,9 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
             print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
         assert label != "1.1.0.a.1"
         # Don't want to save the interval, since that takes quadratic space
-        for v in H.breadth_first_search(P._element_to_vertex(transform_label(label))):
+        if label not in P:
+            label = transform_label(label)
+        for v in H.breadth_first_search(P._element_to_vertex(label)):
             plabel = P._vertex_to_element(v)
             gdat = gpdata[plabel]
             if gdat["genus"] == 0: continue
