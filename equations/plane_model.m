@@ -835,9 +835,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, g::RngIntElt, ghyp::BoolElt, c
     if #X eq 1 then
         q_high := Min(q_high, planemodel_gonbound(X[1]));
     else
-        t0 := ReportStart(label, "CanonicalDegree");
         q_high := Min(q_high, Degree(curve));
-        ReportEnd(label, "CanonicalDegree", t0);
     end if;
 
     if g gt 0 and Rank(P) gt 3 then

@@ -624,7 +624,7 @@ def timing_statistics():
         d = max(times)
         e = len(times)
         f = len(uby_task.get(task, []))
-        print(f"{printtask} Mean ({a:.2f}) Median ({b:.2f}) Std ({c:.2f}) Max ({d:.2f}) OK ({e}) Bad ({f})")
+        print(f"{printtask}       Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e}) Bad ({f})\n")
         for N, ts in sorted(by_level.items()):
             a = mean(ts)
             b = median(ts)
@@ -632,7 +632,8 @@ def timing_statistics():
             d = max(ts)
             e = len(ts)
             f = uby_level.get(N, 0)
-            print(f"{printtask} N={N} Mean ({a:.2f}) Median ({b:.2f}) Std ({c:.2f}) Max ({d:.2f}) OK ({e}) Bad ({f})")
+            print(f"{printtask} N={N:<3} Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e}) Bad ({f})")
+        print("")
         for g, ts in sorted(by_genus.items()):
             a = mean(ts)
             b = median(ts)
@@ -640,7 +641,8 @@ def timing_statistics():
             d = max(ts)
             e = len(ts)
             f = uby_genus.get(g, 0)
-            print(f"{printtask} g={g} Mean ({a:.2f}) Median ({b:.2f}) Std ({c:.2f}) Max ({d:.2f}) OK ({e}) Bad ({f})")
+            print(f"{printtask} g={g:<3} Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e}) Bad ({f})")
+        print("")
     return unfinished, by_task, uby_task
 
 def get_gonalities(model_gonalities):
