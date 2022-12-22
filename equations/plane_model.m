@@ -894,7 +894,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
     if g gt 0 and Rank(P) gt 3 then
         t0 := ReportStart(label, "planemodel_highgenus");
         Append(~opts, planemodel_highgenus(curve,cusps));
-        ReportEnd(label, "planemodel_highgenus");
+        ReportEnd(label, "planemodel_highgenus", t0);
         printf "The number of options is %o\n", #opts;
     end if;
 
