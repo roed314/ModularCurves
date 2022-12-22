@@ -907,10 +907,11 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, C::SeqEnum, g::RngIntElt, ghyp
     rescaled := [* *];
     sorter := [];
     // We rescale the variables to make integral and try to reduce coefficient size
+    QQ := Rationals();
     for i in [1..#opts] do
         f, adjust := reducemodel_padic(opts[i][1]);
         adjust := [1 / Rationals()!a : a in adjust];
-        proj := [a * g : g in opts[i][2]];
+        proj := [opts[i][2][j] / QQ!adjust[j] : j in [1..3]];
         Append(~sorter, #sprint(f));
         Append(~rescaled, <f, proj>);
     end for;
