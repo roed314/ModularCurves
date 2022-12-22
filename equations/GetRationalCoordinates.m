@@ -1,4 +1,4 @@
-// Run after GetModelLMFDB.m (and, optionally, after GetPlaneAndGonality.m)
+// Run after GetModelLMFDB.m, and ideally after finalizing a plane model
 // Usage: magma -b label:={1} GetRationalCoordinates.m >> stdout/{1} 2>&1
 
 AttachSpec("equations.spec");
@@ -79,23 +79,6 @@ if #jinvs gt 0 then
             end for;
         end if;
     end for;
-    // Add the cusps
-    for cusp in cusps do
-        K := Universe(cusp);
-        P1K := ProjectiveSpace(K, 1);
-        XK := ChangeRing(X, K);
-        if #Cs gt 0 then
-            CK := ChangeRing(C, K);
-            T := ChangeRing(Universe(Cs[1][2]), K);
-            CprojK := map<XK -> CK| [T!f : f in Cs[1][2]]>;
-        end if;
-        pt := XK!cusp;
-        Append(~ans, <0, "oo", pt>);
-        if #Cs gt 0 then
-            Append(~ans, <2, "oo", pt @ CprojK>);
-        end if;
-    end for;
-
     LMFDBWriteJinvCoords(ans, label);
     ReportEnd(label, "pulling back j-invariants", t0);
 end if;

@@ -133,7 +133,7 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData, cusps::SeqEnum[CspDat],
 			 coords,fields,model_type) : Overwrite);
 end intrinsic;
 
-intrinsic LMFDBReadCanonicalModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIntElt, SeqEnum, List
+intrinsic LMFDBReadCanonicalModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIntElt, RngMPolElt, RngMPolElt, List
 {}
     g := StringToInteger(Split(label, ".")[3]);
     fname := Sprintf("canonical_models/%o", label);
@@ -208,7 +208,7 @@ intrinsic LMFDBWritePlaneModel(C::Any, proj::SeqEnum, label::MonStgElt)
     Write(fname, Sprintf("%o|%o|%o", C, Join([sprint(c) : c in proj], ","), g) : Overwrite);
 end intrinsic;
 
-intrinsic LMFDBReadPlaneModel(label::MonStgElt) -> SeqEnum
+intrinsic LMFDBReadPlaneModel(label::MonStgElt) -> SeqEnum, Tup
 {}
     fname := Sprintf("plane_models/%o", label);
     if OpenTest(fname, "r") then
@@ -220,9 +220,9 @@ intrinsic LMFDBReadPlaneModel(label::MonStgElt) -> SeqEnum
         Pg := PolynomialRing(Rationals(), g);
         AssignCanonicalNames(~Pg);
         proj := [ReadPoly(Pg, h, g) : h in Split(proj, ",")];
-        return [<f, proj>];
+        return [<f, proj>], planemodel_sortkey(f);
     else
-        return [];
+        return [], <>;
     end if;
 end intrinsic;
 
@@ -273,12 +273,23 @@ intrinsic LMFDBWriteJinvCoords(coords::List, label::MonStgElt)
     coord_strs := [];
     for trip in coords do
         model_type, j, coord := Explode(trip);
-        if Type(j) ne MonStgElt then // not a cusp
-            j := Join([Sprint(a) : a in Eltseq(j)], ",");
-        end if;
+        j := Join([Sprint(a) : a in Eltseq(j)], ",");
         K := Sprint(DefiningPolynomial(Universe(Eltseq(coord))));
         coord := Join([Join([Sprint(a) : a in Eltseq(c)], ",") : c in Coordinates(coord)], ":");
         Append(~coord_strs, Sprintf("%o|%o|%o|%o", K, j, model_type, coord));
+    end for;
+    Write(fname, Join(coord_strs, "\n") * "\n" : Overwrite);
+end intrinsic;
+
+intrinsic LMFDBWriteCuspCoords(coords::List, label::MonStgElt)
+{}
+    fname := Sprintf("cusps/%o", label);
+    coord_strs := [];
+    for trip in coords do
+        model_type, coord := Explode(trip);
+        K := Sprint(DefiningPolynomial(Universe(Eltseq(coord))));
+        coord := Join([Join([Sprint(a) : a in Eltseq(c)], ",") : c in Coordinates(coord)], ":");
+        Append(~coord_strs, Sprintf("%o|%o|%o", K, model_type, coord));
     end for;
     Write(fname, Join(coord_strs, "\n") * "\n" : Overwrite);
 end intrinsic;

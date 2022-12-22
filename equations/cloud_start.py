@@ -32,6 +32,7 @@ os.makedirs("canonical_models", exist_ok=True)
 os.makedirs("plane_models", exist_ok=True)
 os.makedirs("ghyp_models", exist_ok=True)
 os.makedirs("rats", exist_ok=True)
+os.makedirs("cusps", exist_ok=True)
 os.makedirs("gonality", exist_ok=True)
 os.makedirs("graphviz_out", exist_ok=True)
 os.makedirs("timings", exist_ok=True)
@@ -80,10 +81,12 @@ def get_canonical_model(label, verbose):
 def get_plane_and_gonality(label, verbose):
     # Runs the script to compute gonality bounds and a better plane model
     # Returns true whether the curve is geometrically hyperelliptic
+    g = int(label.split(".")[2])
+    if g == 0:
+        return False
     verb = "verbose:= " if verbose else ""
     subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetPlaneAndGonality.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
     gon = opj("gonality", label)
-    g = int(label.split(".")[2])
     with open(opj("canonical_models", label)) as F:
         model_type = F.read().strip().split("|")[-1]
         return g >= 3 and model_type == "-1"
@@ -95,9 +98,18 @@ def get_ghyperelliptic_model(label, verbose):
             break
         subprocess.run('parallel --timeout 600 "magma -b label:={1} %sprec:=%s GetGHyperellipticModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, prec, label), shell=True)
 
+def get_plane_model(label, verbose):
+    # Attempts to contruct a plane model via projection from rational points
+    verb = "verbose:= " if verbose else ""
+    subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetPlaneModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+
 def get_rational_coordinates(label, verbose):
     verb = "verbose:= " if verbose else ""
     subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetRationalCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+
+def get_cusp_coordinates(label, verbose):
+    verb = "verbose:= " if verbose else ""
+    subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetCuspCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def collate_data(label):
     with open("output", "a") as Fout:
@@ -106,6 +118,7 @@ def collate_data(label):
                 ("P", "plane_models"),
                 ("H", "ghyp_models"),
                 ("R", "rats"),
+                ("P", "cusps"),
                 ("G", "gonality"),
                 ("L", "graphviz_out"),
                 ("T", "timings"),
@@ -122,6 +135,8 @@ def collate_data(label):
 if ope("canonical_models/" + label):
     if get_plane_and_gonality(label, args.verbose):
         get_ghyperelliptic_model(label, args.verbose)
+    get_plane_model(label, args.verbose)
     get_rational_coordinates(label, args.verbose)
+    get_cusp_coordinates(label, args.verbose)
 get_lattice_coords(label)
 collate_data(label)

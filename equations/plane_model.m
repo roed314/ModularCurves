@@ -194,9 +194,10 @@ function planemodel_gonbound(f)
     return Min([d: d in degrees | d ne 0]);
 end function;
 
-function sort_key(f)
+intrinsic planemodel_sortkey(f::RngMPolElt) -> Tup
+{}
     return <planemodel_gonbound(f), #sprint(f)>;
-end function;
+end intrinsic;
 
 intrinsic ReducePlaneModel(fproj::Tup, best::SeqEnum, bestkey::Tup, label::MonStgElt) -> RngMPolElt, SeqEnum, Tup
 {
@@ -205,7 +206,7 @@ intrinsic ReducePlaneModel(fproj::Tup, best::SeqEnum, bestkey::Tup, label::MonSt
 }
     f, proj := Explode(fproj);
     f, adjust := reducemodel_padic(f);
-    skey := sort_key(f);
+    skey := planemodel_sortkey(f);
     QQ := Rationals(); // entries of adjust may be in degree 1 extension of Q
     proj := [proj[i] / QQ!adjust[i] : i in [1..3]];
     if #best eq 0 or skey lt bestkey then
@@ -805,29 +806,57 @@ intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum) -> Tup
     // TODO done
 end intrinsic;
 
+intrinsic HighGenusPlaneModel(label::MonStgElt) -> SeqEnum
+{
+Input: label of a modular curve.
+File input: LMFDBWriteCanonicalModel must have been called, stored in canonical_models/<label>
+Output: a sequence of length 0 or 1 of known plane models (provided as a tuple, with first entry the defining polynomial and the second entry a sequence of three polynomials giving the map from the canonical model X to C).  May be a model read from plane_models/<label>.
+File output: Writes a plane model to plane_models/<label>, if the model is better than the one already present
 
+High genus is a bit of a misnomer: this works as long as g > 0 and the canonical model is not already a plane model.
+}
+    X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
+    q_low, q_high, qbar_low, qbar_high := Explode(LMFDBReadGonalityBounds(label));
+    rcusps := [c : c in cusps | Universe(c) eq Rationals()];
+    C := LMFDBReadPlaneModel(label);
+    P := Parent(X[1]);
+    ambient := ProjectiveSpace(P);
+    curve := Curve(ambient, X);
+    if g gt 0 and Rank(P) gt 3 then
+        t0 := ReportStart(label, "planemodel_highgenus");
+        fproj := planemodel_highgenus(curve, rcusps);
+        ReportEnd(label, "planemodel_highgenus", t0);
+        C, bestkey := ReducePlaneModel(fproj, C, bestkey, label);
+        gonbnd := bestkey[0];
+        if gonbnd lt q_high then
+            q_high := Min(q_high, gonbnd);
+            qbar_high := Min(qbar_high, gonbnd);
+            LMFDBWriteGonalityBounds(<q_low, q_high, qbar_low, qbar_high>, label);
+        end if;
+    end if;
+    return C;
+end intrinsic;
 
-intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, g::RngIntElt, ghyp::BoolElt, cusps::SeqEnum, label::MonStgElt : try_gonal_map:=true) -> Tup, SeqEnum
+intrinsic PlaneModelAndGonalityBounds(label::MonStgElt) -> Tup, SeqEnum
 {
     Input:
-            X:     equations for the modular curve as produced by GetModelLMFDB.m
-            g:     the genus of X
-            ghyp:  whether X is geometrically hyperelliptic
-            cusps: the rational cusps on X
+            label: the label of a modular curve
+    File input:
+            canonical_models/<label>: as written by LMFDBWriteCanonicalModel
+            gonality/<label>: comma separated q_low, q_high, qbar_low, qbar_high, as read by LMFDBReadGonalityBounds
+            plane_models/<label>: as written by LMFDBWritePlaneModel (optional)
     Output:
             bounds: a 4-tuple giving gonality bounds <q_low, q_high, qbar_low, qbar_high>
             C:     a sequence of length 0 or 1 of known plane models (provided as a tuple, with first entry the defining polynomial and the second entry a sequence of three polynomials giving the map from X to C)
     File output:
             Writes gonality bounds using LMFDBWriteGonalityBounds
-            Writes plane model using LMFDBWritePlaneModel
+            Writes plane model using LMFDBWritePlaneModel when there is an improvement
+            If hyperelliptic, writes to ghyp_models/<label> instead
 }
+    X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
+    ghyp := (model_type eq -1);
     q_low, q_high, qbar_low, qbar_high := Explode(LMFDBReadGonalityBounds(label));
-    C := LMFDBReadPlaneModel(label);
-    if #C eq 0 then
-        bestkey := <>;
-    else
-        bestkey := sort_key(C[1][1]);
-    end if;
+    C, bestkey := LMFDBReadPlaneModel(label);
     P := Parent(X[1]);
 
     ambient := ProjectiveSpace(P);
@@ -837,14 +866,6 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, g::RngIntElt, ghyp::BoolElt, c
     else
         q_high := Min(q_high, Degree(curve));
     end if;
-
-    if g gt 0 and Rank(P) gt 3 then
-        t0 := ReportStart(label, "planemodel_highgenus");
-        fproj := planemodel_highgenus(curve, cusps);
-        ReportEnd(label, "planemodel_highgenus", t0);
-        C, bestkey := ReducePlaneModel(fproj, C, bestkey, label);
-    end if;
-
 
     if g gt 1 and ghyp then
         qbar_high := 2;
@@ -875,7 +896,7 @@ intrinsic PlaneModelAndGonalityBounds(X::SeqEnum, g::RngIntElt, ghyp::BoolElt, c
             q_high := 4;
             // Later, we'll use Edgar and Raymond's code to find model as double cover of conic
         end if;
-    elif g ge 3 and g le 6 and try_gonal_map then
+    elif g ge 3 and g le 6 then
         try
             t0 := ReportStart(label, "gonality");
             if g eq 3 then
