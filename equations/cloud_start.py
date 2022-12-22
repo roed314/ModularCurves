@@ -76,14 +76,12 @@ def get_canonical_model(label, verbose):
     if g <= 24:
         verb = "verbose:= " if verbose else ""
         subprocess.run('parallel --timeout 3600 "magma -b label:={1} %sGetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
-    return ope(opj("canonical_models", label))
+    return g != 0 and ope(opj("canonical_models", label))
 
 def get_plane_and_gonality(label, verbose):
     # Runs the script to compute gonality bounds and a better plane model
     # Returns true whether the curve is geometrically hyperelliptic
     g = int(label.split(".")[2])
-    if g == 0:
-        return False
     verb = "verbose:= " if verbose else ""
     subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetPlaneAndGonality.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
     gon = opj("gonality", label)
@@ -100,10 +98,8 @@ def get_ghyperelliptic_model(label, verbose):
 
 def get_plane_model(label, verbose):
     # Attempts to contruct a plane model via projection from rational points
-    g = int(label.split(".")[2])
-    if g != 0:
-        verb = "verbose:= " if verbose else ""
-        subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetPlaneModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+    verb = "verbose:= " if verbose else ""
+    subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetPlaneModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def get_rational_coordinates(label, verbose):
     verb = "verbose:= " if verbose else ""
@@ -134,7 +130,7 @@ def collate_data(label):
                         _ = Fout.write(f"{code}{label}|{line}")
 
 #if get_canonical_model(label, args.verbose):
-if ope("canonical_models/" + label):
+if ope("canonical_models/" + label) and label.split(".")[2] != "0":
     if get_plane_and_gonality(label, args.verbose):
         get_ghyperelliptic_model(label, args.verbose)
     get_plane_model(label, args.verbose)
