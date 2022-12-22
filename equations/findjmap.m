@@ -23,6 +23,25 @@ end if;
 // a square matrix that indicates which linear combinations of the rows of M
 // are the LLL-reduced basis
 
+intrinsic MissingMonomials(I, maxd) -> SeqEnum
+{Finds the monomials of degree 2..maxd that are not contained in the monomial ideal I.
+ Returns a sequence M so that the missing monomials of degree d can be accessed by M[d].  Note that M[1] = [], regardless of I.}
+    R := Parent(I.1);
+    Md := [mon : mon in MonomialsOfDegree(R, 2) | not (mon in I)];
+    M := [[], Md];
+    r := Rank(R);
+    for d in [3..maxd] do
+        nmon := Binomial(r+d-1, d);
+        if nmon gt r * #M[#M] then
+            Md := {mon * R.i : mon in M[#M], i in [1..r]};
+        else
+            Md := MonomialsOfDegree(R, d);
+        end if;
+        Append(~M, [mon : mon in Md | not mon in I]);
+    end for;
+    return M;
+end intrinsic;
+
 function nicefy(M)
   M0, T := EchelonForm(M);
   // Rows of T give current basis.
@@ -260,14 +279,13 @@ function FindJMap(N, gens, label)
   ttemp := ReportStart(label, "log-canonicalish ring");
   multcount := 0;
   doneper := -1;
-  total := &+[ #[s : s in MonomialsOfDegree(polyring,d) | not (s in initideal)] : d in [2..maxd]];
+  missing_monomials := MissingMonomials(initideal, maxd);
+  total := &+[ #mons : mons in missing_monomials];
   for d in [2..maxd] do
-      mons := MonomialsOfDegree(polyring,d);
-      bas := [ mons[i] : i in [1..#mons] | not (mons[i] in initideal)];
+      bas := missing_monomials[d];
       newfourier := <>;
       newvars := [];
-      for j in [1..#bas] do
-	  curmon := bas[j];
+      for curmon in bas do
 	  // We have to be able to write curmon as a product of a degree (d-1)
 	  // monomial not in initideal, and a degree 1 element.
 	  // If we couldn't, then curmon would be in initideal
