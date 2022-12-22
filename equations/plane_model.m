@@ -245,7 +245,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
     tred := 0.0;
     t0 := ReportStart(label, "searching for plane models");
     best := [];
-    bestkey := 0;
+    bestkey := <>;
     repeat
         NextProjector(~state, ~M);
         MF := F0Combination(rec`F0, M);
