@@ -188,20 +188,17 @@ end intrinsic;
 
 intrinsic LMFDBWritePlaneModel(C::Any, proj::SeqEnum, label::MonStgElt)
 {}
+    assert #proj eq 3;
     System("mkdir -p plane_models");
     fname := Sprintf("plane_models/%o", label);
-    if Type(proj[1]) eq RngMPolElt then
-        R := Universe(proj);
-        g := Rank(R);
-        // Some of the plane model functions use x[1], x[2], etc in the function field
-        // We need to replace these with X,Y,Z,W,...
-        AssignCanonicalNames(~R);
-    else
-        g := #proj div 3;
-        R := PolynomialRing(Rationals(), g);
-        AssignCanonicalNames(~R);
-        proj := [&+[proj[g*i + j] * R.j : j in [1..g]] : i in [0..2]];
+    if Type(proj[1]) eq FldFunRatMElt then
+        proj := [Numerator(proj[1])*Denominator(proj[2])*Denominator(proj[3]), Numerator(proj[2])*Denominator(proj[3])*Denominator(proj[1]), Numerator(proj[3])*Denominator(proj[1])*Denominator(proj[2])];
     end if;
+    R := Universe(proj);
+    g := Rank(R);
+    // Some of the plane model functions use x[1], x[2], etc in the function field
+    // We need to replace these with X,Y,Z,W,...
+    AssignCanonicalNames(~R);
     if Type(C) ne RngMPolElt then
         C := DefiningEquation(C);
     end if;
