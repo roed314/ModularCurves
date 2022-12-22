@@ -10,7 +10,7 @@ parser.add_argument("--savecan", action="store_true", help="whether to keep the 
 args = parser.parse_args()
 
 prefix = "mid" + args.saven + "_"
-tomove = ["ghyp_models", "graphviz_out", "output", "plane_models", "rats", "stdout", "timings"]
+tomove = ["ghyp_models", "graphviz_out", "output", "plane_models", "rats", "cusps", "stdout", "timings"]
 if not args.savecan:
     tomove.extend(["canonical_models", "jinvs"])
 for x in tomove:

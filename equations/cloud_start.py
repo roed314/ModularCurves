@@ -129,8 +129,8 @@ def collate_data(label):
                             line += "\n"
                         _ = Fout.write(f"{code}{label}|{line}")
 
-#if get_canonical_model(label, args.verbose):
-if ope("canonical_models/" + label) and label.split(".")[2] != "0":
+if get_canonical_model(label, args.verbose):
+#if ope("canonical_models/" + label) and label.split(".")[2] != "0":
     if get_plane_and_gonality(label, args.verbose):
         get_ghyperelliptic_model(label, args.verbose)
     get_plane_model(label, args.verbose)
