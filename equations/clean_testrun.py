@@ -5,7 +5,7 @@ import argparse
 
 parser = argparse.ArgumentParser("Clean up from a test run of cloud_start.py")
 parser.add_argument("saven", help="number where output should be moved")
-parser.add_argument("savecan", action="store_true", help="whether to keep the canonical_models folder")
+parser.add_argument("--savecan", action="store_true", help="whether to keep the canonical_models folder")
 
 args = parser.parse_args()
 
