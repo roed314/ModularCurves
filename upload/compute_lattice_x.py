@@ -842,16 +842,18 @@ def write_models_maps(cans, planes, ghyps):
     maps = defaultdict(list)
     can_type = {}
     for label, lines in cans.items():
+        if label == "1.1.0.a.1":
+            continue # Should eventually skip the model for P1s as well
         assert len(lines) == 1
         line = lines[0]
-        nvar, can, maps, cuspcoords, cuspfields, model_type = line.split("|")
+        nvar, can, X1proj, cuspcoords, cuspfields, model_type = line.split("|")
         can_type[label] = model_type
         # Should convert genus 0 plane model to P1 when possible
         smooth = "t"
         index = label.split(".")[1] # coarse model, so psl2_index same as index
         dontdisplay = dontdisplay_str(can)
         models[label].append(f"{label}|{can}|{nvar}|{model_type}|{smooth}|{dontdisplay}\n")
-        for i, jmap in enumerate(maps[1:-1].split(",")):
+        for i, jmap in enumerate(X1proj[1:-1].split(",")):
             if jmap:
                 if i == 0:
                     map_type = "4" # E4
