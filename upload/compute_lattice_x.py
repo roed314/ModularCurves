@@ -935,11 +935,11 @@ def write_models_maps(cans, planes, ghyps):
     def sort_key(label):
         # only works on coarse labels, but that's okay here
         return [(int(c) if c.isdigit() else class_to_int(c)) for c in label.split(".")]
-    with open("modcurve_models", "w") as Fmodels:
+    with open("modcurve_models.txt", "w") as Fmodels:
         _ = Fmodels.write("modcurve|equation|number_variables|model_type|smooth|dont_display\ntext|text[]|smallint|smallint|boolean|boolean\n\n")
         for label in sorted(models, key=sort_key):
             _ = Fmodels.write("".join(models[label]))
-    with open("modcurve_modelmaps", "w") as Fmaps:
+    with open("modcurve_modelmaps.txt", "w") as Fmaps:
         Fmaps.write("degree|domain_label|domain_model_type|codomain_label|codomain_model_type|coordinates|leading_coefficients|factored|dont_display\ninteger|text|smallint|text|smallint|text[]|text[]|boolean|boolean\n\n")
         for label in sorted(maps, key=sort_key):
             _ = Fmaps.write("".join(maps[label]))
@@ -1031,7 +1031,11 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
     def write_dict(D):
         if isinstance(D, str): return D # \N
         D = dict(D) # might be a defaultdict
-        return str(D).replace(" ", "").replace("'", '"')
+        parts = []
+        for modtype, coords in D.items():
+            coords = str(coords).replace(" ", "").replace("'", '"')
+            parts.append(f'"{modtype}":{coords}')
+        return "{" + ",".join(parts) + "}"
     with open("modcurve_points.txt", "w") as F:
         _ = F.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|coordinates|cusp\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint|jsonb|boolean\n\n")
         # rats contains residue_field|jorig|model_type|coord
