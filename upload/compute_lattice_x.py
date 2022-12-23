@@ -791,48 +791,50 @@ def get_gonalities(model_gonalities):
         #return f"{q}|{qbar}|{{{q_low},{q_high}}}|{{{qbar_low},{qbar_high}}}"
     return {P._vertex_to_element(v): package(gon) for (v, gon) in gonalities.items()}
 
-def get_model_points():
+def get_model_points(rats, usps):
     # We need to do polredabs computations for cusps, which might take a while
     nf_lookup = {tuple(rec["coeffs"]): rec["label"] for rec in db.nf_fields.search({"degree":{"$lte":6}}, ["label", "coeffs"])}
     points = defaultdict(lambda: defaultdict(list))
     cusps = defaultdict(lambda: defaultdict(list))
     R = PolynomialRing(QQ, name="x")
     to_polredabs = {}
-    with open("output") as F:
-        for line in F:
-            label, out = line.strip().split("|", 1)
+    for label, lines in rats.items():
+        for out in lines:
             if not out: continue
-            code, label = label[0], label[1:]
-            if code == "R":
-                poly, j, model_type, coord = out.split("|")
-                poly = poly.replace("$.1", "x")
-                model_type = int(model_type)
-                if poly == "x - 1":
-                    points[label, "1.1.1.1", j][model_type].append(coord)
-                elif j == "oo":
-                    f = R(poly)
-                    K = NumberField(f, name='a')
-                    if poly not in to_polredabs:
-                        # Need to compute the polredabs
-                        g = R(f.__pari__().polredabs())
-                        nflabel = nf_lookup[tuple(g)]
-                        L = NumberField(g, name='b')
-                        phi = K.embeddings(L)[0]
-                        to_polredabs[poly] = phi, nflabel
-                    else:
-                        phi, nflabel = to_polredabs[poly]
-                    coord = [K([QQ(c) for c in x.split(",")]) for x in coord.split(":")]
-                    coord = [phi(x) for x in coord]
-                    coord = ":".join(",".join(str(c) for c in list(x)) for x in coord)
-                    cusps[label, nflabel][model_type].append(coord)
-                else:
-                    try:
-                        gg = R(poly)
-                    except SyntaxError:
-                        print(poly)
-                        raise
-                    nflabel = nf_lookup[tuple(R(poly))]
-                    points[label, nflabel, j][model_type].append(coord)
+            poly, j, model_type, coord = out.split("|")
+            poly = poly.replace("$.1", "x")
+            model_type = int(model_type)
+            if poly == "x - 1":
+                points[label, "1.1.1.1", j][model_type].append(coord)
+            else:
+                try:
+                    gg = R(poly)
+                except SyntaxError:
+                    print(poly)
+                    raise
+                nflabel = nf_lookup[tuple(R(poly))]
+                points[label, nflabel, j][model_type].append(coord)
+
+    for label, lines in usps.items():
+        for out in lines:
+            if not out: continue
+            poly, model_type, coord = out.split("|")
+            f = R(poly)
+            K = NumberField(f, name='a')
+            if poly not in to_polredabs:
+                # Need to compute the polredabs
+                g = R(f.__pari__().polredabs())
+                nflabel = nf_lookup[tuple(g)]
+                L = NumberField(g, name='b')
+                phi = K.embeddings(L)[0]
+                to_polredabs[poly] = phi, nflabel
+            else:
+                phi, nflabel = to_polredabs[poly]
+            coord = [K([QQ(c) for c in x.split(",")]) for x in coord.split(":")]
+            coord = [phi(x) for x in coord]
+            coord = ":".join(",".join(str(c) for c in list(x)) for x in coord)
+            cusps[label, nflabel][model_type].append(coord)
+
     return points, cusps
 
 def write_models_maps(cans, planes, ghyps):
@@ -1002,7 +1004,7 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
         for label, gon in gonalities.items():
             _ = F.write(f"{label}|{gon}|{data['L'].get(label, [default])[0]}\n")
 
-    model_points, cusps = get_model_points()
+    model_points, cusps = get_model_points(data["R"], data["U"])
     # Construct modcurve_points
     lit_data = load_points_files(manual_data_folder)
     lit_fields = sorted(set([datum[2] for datum in lit_data]))
