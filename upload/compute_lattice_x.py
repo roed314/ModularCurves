@@ -1025,6 +1025,7 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
     jinvs_seen = defaultdict(set)
     point_counts = defaultdict(Counter)
     def write_dict(D):
+        if isinstance(D, str): return D # \N
         D = dict(D) # might be a defaultdict
         return str(D).replace(" ", "").replace("'", '"')
     with open("modcurve_points.txt", "w") as F:
