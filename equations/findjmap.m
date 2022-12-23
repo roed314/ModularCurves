@@ -23,10 +23,12 @@ end if;
 // a square matrix that indicates which linear combinations of the rows of M
 // are the LLL-reduced basis
 
+import "OpenImage/main/ModularCurves.m" : ConvertModularFormExpansions;
+
 intrinsic MissingMonomials(I, maxd) -> SeqEnum
 {Finds the monomials of degree 2..maxd that are not contained in the monomial ideal I.
  Returns a sequence M so that the missing monomials of degree d can be accessed by M[d].  Note that M[1] = [], regardless of I.}
-    R := Parent(I.1);
+    R := I^0;
     Md := [mon : mon in MonomialsOfDegree(R, 2) | not (mon in I)];
     M := [[], Md];
     r := Rank(R);
@@ -89,10 +91,62 @@ function fieldfind(G, K)
   return NumberField(minpoly), prim;
 end function;
 
-//intrinsic FindJMap(N::RngIntElt, gens::SeqEnum) -> Crv, RngMPolElt, RngMPolElt
-//{.}
-// Outputs X, j, model_type,
-function FindJMap(N, gens, label)
+intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt) -> SeqEnum
+{}
+    N0, gens0 := GetLevelAndGensFromLabel(cover_label);
+    N, gens := GetLevelAndGensFromLabel(covered_label);
+
+    // Should conjugate later; for now we just assert
+    GLN := GL(2, Integers(N));
+    GLN0 := GL(2, Integers(N0));
+    G := sub<GLN | [GLN!v : v in gens]>;
+    G0 := sub<GLN0 | [GLN0!v : v in gens0]>;
+    assert G0 subset G;
+
+    M := CreateModularCurveRec(N, gens);
+    g := M`genus;
+    assert g ge 3;
+    prec := RequiredPrecision(M);
+    flag, psi, F := FindCanonicalModel(M, prec);
+    assert flag;
+    M`k := 2;
+    M`F0 := F;
+    M`psi := psi;
+    S := Universe(psi);
+    AssignCanonicalNames(~S);
+    C := Curve(Proj(S), psi);
+    M`has_infinitely_many_points := false;
+    M`mult := [1 : i in [1..M`vinf]];
+
+    M0 := CreateModularCurveRec(N0, gens0);
+    g0 := M0`genus;
+    assert g0 ge 3;
+    prec0 := RequiredPrecision(M0);
+    flag0, psi0, F0 := FindCanonicalModel(M0, prec0);
+    assert flag0;
+    M0`k := 2;
+    M0`F0 := F0;
+    M0`psi := psi0;
+    S0 := Universe(psi0);
+    AssignCanonicalNames(~S0);
+    C0 := Curve(Proj(S0), psi0);
+    M0`has_infinitely_many_points := false;
+    M0`mult := [1 : i in [1..M0`vinf]];
+
+    F1 := [ConvertModularFormExpansions(M, M0, [1,0,0,1], f) : f in F0];
+    // The entries in F1 are laurent series, but we need power series to fit with F
+    R := Parent(F[1][1]);
+    F1 := [[R!qexp : qexp in f] : f in F1];
+    rels := FindRelations(F cat F1, 1);
+    mat := Matrix(Rationals(), g, g+g0, [[Coefficient(rels[i], j, 1) : j in [1..g + g0]] : i in [1..g]]);
+    mat := EchelonForm(mat);
+    assert mat[g,g] eq 1;
+    proj := [&+[mat[i,g + j] * S0.j : j in [1..g0]] : i in [1..g]];
+    return map<C0 -> C | proj>;
+end intrinsic;
+
+intrinsic FindJMap(N::RngIntElt, gens::SeqEnum, label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEnum, Rec
+{Outputs a model X, j as a multivariate rational function in the ambient variables of X, the model type (5 if an elliptic curve, -1 if geometrically hyperelliptic, 0 if canonical model), F0 (a sequence of modular forms as computed by FindModelOfXG) and M (the ModularCurveRec)}
   tttt := ReportStart(label, "FindJMap");
 //  gens := GetModularCurveGenerators(l);
 
@@ -101,7 +155,7 @@ function FindJMap(N, gens, label)
   gp := sub<GL(2,Integers(N))|gens>;
 
   M := CreateModularCurveRec(N,gens);
-  
+
   ttemp := ReportStart(label, "model and modular forms");
   vprint User1: "Starting model computation with low precision";
   prec := RequiredPrecision(M);
@@ -117,7 +171,7 @@ function FindJMap(N, gens, label)
     // Minimal prec for 11.55.1.1 is 81
     success := false;
     prec := 2*M`index;
-    // I'm pretty sure we only need 2*index + N, 
+    // I'm pretty sure we only need 2*index + N,
     // but just in case we loop
     while (not success) do
 	M := FindModelOfXG(M,prec);
@@ -444,5 +498,4 @@ end if;
   // canonical model is 0, other is -1
   model_type := (geomhyper) select -1 else 0;
   return C, num/denom, model_type, M`F0, M;
-end function;
-//end intrinsic;
+end intrinsic;

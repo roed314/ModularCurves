@@ -626,24 +626,36 @@ def timing_statistics():
         d = max(times)
         e = len(times)
         f = len(uby_task.get(task, []))
-        print(f"{printtask}       Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e}) Bad ({f})\n")
-        for N, ts in sorted(by_level.items()):
-            a = mean(ts)
-            b = median(ts)
-            c = std(ts)
-            d = max(ts)
-            e = len(ts)
-            f = uby_level.get(N, 0)
-            print(f"{printtask} N={N:<3} Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e}) Bad ({f})")
+        print(f"{printtask}       Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e:<3}) Bad ({f})\n")
+        # Add in missing uby_level
+        for N in sorted(set(list(by_level) + list(uby_level))):
+            if N in by_level:
+                ts = by_level[N]
+                a = mean(ts)
+                b = median(ts)
+                c = std(ts)
+                d = max(ts)
+                e = len(ts)
+                f = uby_level.get(N, 0)
+                print(f"{printtask} N={N:<3} Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e:<3}) Bad ({f})")
+            else:
+                f = uby_level[N]
+                print(f"{printtask} N={N:<3} {' '*61} Bad ({f})")
         print("")
-        for g, ts in sorted(by_genus.items()):
-            a = mean(ts)
-            b = median(ts)
-            c = std(ts)
-            d = max(ts)
-            e = len(ts)
-            f = uby_genus.get(g, 0)
-            print(f"{printtask} g={g:<3} Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e}) Bad ({f})")
+        # Add in missing uby_genus
+        for g in sorted(set(list(by_genus) + list(uby_genus))):
+            if g in by_genus:
+                ts = by_genus[g]
+                a = mean(ts)
+                b = median(ts)
+                c = std(ts)
+                d = max(ts)
+                e = len(ts)
+                f = uby_genus.get(g, 0)
+                print(f"{printtask} g={g:<3} Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e:<3}) Bad ({f})")
+            else:
+                f = uby_genus[g]
+                print(f"{printtask} g={g:<3} {' '*61} Bad ({f})")
         print("")
     return unfinished, by_task, uby_task
 
