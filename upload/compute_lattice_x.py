@@ -910,7 +910,7 @@ def write_models_maps(cans, planes, ghyps):
     for label, lines in ghyps.items():
         assert len(lines) == 1
         line = lines[0]
-        model = model.replace("[", "{").replace("]", "}") # we just printed the sequence of defining equations
+        line = line.replace("[", "{").replace("]", "}") # we just printed the sequence of defining equations
         if "|" in line:
             # Hyperelliptic model where we have the projection
             model, proj = line.split("|")
