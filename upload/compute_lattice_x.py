@@ -1024,6 +1024,9 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
     # Check for overlap as we add points
     jinvs_seen = defaultdict(set)
     point_counts = defaultdict(Counter)
+    def write_dict(D):
+        D = dict(D) # might be a defaultdict
+        return str(D).replace(" ", "").replace("'", '"')
     with open("modcurve_points.txt", "w") as F:
         _ = F.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|coordinates|cusp\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint|jsonb|boolean\n\n")
         # rats contains residue_field|jorig|model_type|coord
@@ -1053,7 +1056,7 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
                     jlookup = jinv if jorig == r"\N" else jorig
                     coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
 
-                    _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, str(coords).replace(" ",""), "f"]) + "\n")
+                    _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, write_dict(coords), "f"]) + "\n")
         # Currently, we'll have no cusps on curves without rational EC points
         for (plabel, nflabel), coords in cusps.items():
             degree = nflabel.split(".")[0]
@@ -1064,7 +1067,9 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
             rank = gdat["rank"]
             simp = gdat["simple"]
             name = gdat["name"]
-            _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", str(coords).replace(" ", ""), "t"]) + "\n")
+            if name is None:
+                name = r"\N"
+            _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", write_dict(coords), "t"]) + "\n")
 
     write_models_maps(data["C"], data["P"], data["H"])
 
