@@ -819,6 +819,7 @@ def get_model_points(rats, usps):
         for out in lines:
             if not out: continue
             poly, model_type, coord = out.split("|")
+            poly = poly.replace("$.1", "x")
             f = R(poly)
             K = NumberField(f, name='a')
             if poly not in to_polredabs:
