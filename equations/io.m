@@ -275,7 +275,7 @@ intrinsic LMFDBWriteJinvCoords(coords::List, label::MonStgElt)
         coord := Join([Join([Sprint(a) : a in Eltseq(c)], ",") : c in Coordinates(coord)], ":");
         Append(~coord_strs, Sprintf("%o|%o|%o|%o", K, j, model_type, coord));
     end for;
-    Write(fname, Join(coord_strs, "\n") * "\n" : Overwrite);
+    Write(fname, Join(coord_strs, "\n") : Overwrite);
 end intrinsic;
 
 intrinsic LMFDBWriteCuspCoords(coords::List, label::MonStgElt)
@@ -288,7 +288,7 @@ intrinsic LMFDBWriteCuspCoords(coords::List, label::MonStgElt)
         coord := Join([Join([Sprint(a) : a in Eltseq(c)], ",") : c in Coordinates(coord)], ":");
         Append(~coord_strs, Sprintf("%o|%o|%o", K, model_type, coord));
     end for;
-    Write(fname, Join(coord_strs, "\n") * "\n" : Overwrite);
+    Write(fname, Join(coord_strs, "\n") : Overwrite);
 end intrinsic;
 
 function StringToPoly(s, R, name)

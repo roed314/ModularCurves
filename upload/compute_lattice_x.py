@@ -979,6 +979,8 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
             if not out: continue
             code, label = label[0], label[1:]
             data[code][label].append(out)
+    # TODO: fix $.1 at the source
+    # TODO: remove spaces
 
     # Propogate gonalities
     assert all(len(gon) == 1 for gon in data["G"].values())
@@ -1062,3 +1064,18 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
             _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", str(coords).replace(" ", ""), "t"]) + "\n")
 
     write_models_maps(data["C"], data["P"], data["H"])
+
+def fix_output():
+    # Accidentally used the same letter code for cusps and plane models
+    with open("output") as F:
+        with open("output_fixed", "w") as Fout:
+            for line in F:
+                if line[0] == "P":
+                    if line.count("|") == 1:
+                        continue
+                    pieces = line.strip().split("|")
+                    if not pieces[-1].isdigit():
+                        # Cusp
+                        _ = Fout.write("U" + line[1:])
+                        continue
+                _ = Fout.write(line)

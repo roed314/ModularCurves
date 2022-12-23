@@ -116,7 +116,7 @@ def collate_data(label):
                 ("P", "plane_models"),
                 ("H", "ghyp_models"),
                 ("R", "rats"),
-                ("P", "cusps"),
+                ("U", "cusps"),
                 ("G", "gonality"),
                 ("L", "graphviz_out"),
                 ("T", "timings"),
