@@ -425,8 +425,11 @@ def load_ecq_data(cm_data_file):
     print("Loaded elliptic curves over Q", walltime() - t0)
     return ecq_db_data
 
-def load_gl2zhat_data():
+def load_gl2zhat_rational_data():
     return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "coarse_label"], silent=True)}
+
+def load_gl2zhat_cusp_data():
+    return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search({"contains_negative_one": True}, ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds"], silent=True)}
 
 def is_isolated(degree, g, rank, gonlow, simp, dims):
     # We encode the isolatedness in a small integer, p + a, where
@@ -477,7 +480,7 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
     lit_fields = sorted(set([datum[2] for datum in lit_data]))
     print("Loaded tables from files")
 
-    gpdata = load_gl2zhat_data()
+    gpdata = load_gl2zhat_rational_data()
 
     P = get_rational_poset()
     H = P._hasse_diagram
@@ -1011,7 +1014,8 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
     lit_fields = sorted(set([datum[2] for datum in lit_data]))
     print("Loaded tables from files")
 
-    gpdata = load_gl2zhat_data()
+    gpdata = load_gl2zhat_rational_data()
+    gpcuspdata = load_gl2zhat_cusp_data()
 
     # TODO: Rewrite prep code so that we don't need to redo the poset rational point propogation
     P = get_rational_poset()
@@ -1058,10 +1062,9 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
                     coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
 
                     _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, write_dict(coords), "f"]) + "\n")
-        # Currently, we'll have no cusps on curves without rational EC points
         for (plabel, nflabel), coords in cusps.items():
             degree = nflabel.split(".")[0]
-            gdat = gpdata[plabel]
+            gdat = gpcuspdata[plabel]
             g = gdat["genus"]
             ind = gdat["index"]
             level = gdat["level"]
