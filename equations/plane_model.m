@@ -574,7 +574,7 @@ intrinsic modelfromfuncfield_gonalitybound(X::Sch) -> Tup
             q_high:     a bound on the gonality of X coming from a coordinate on the model C
 }
     FFX<[x]> := FunctionField(X);
-    gens_FFX := Generators(FFX);
+    gens_FFX := Generators(FFX) join {x[#x]};
     newgens_FFX := [];
     for xx in gens_FFX do
         s := Sprint(xx);
@@ -586,7 +586,7 @@ intrinsic modelfromfuncfield_gonalitybound(X::Sch) -> Tup
             end try;
         end if;
     end for;
-    newgens_FFX := newgens_FFX cat [x[#x]];
+//    newgens_FFX := newgens_FFX cat [x[#x]];
 /*
     for xx in newgens_FFX do
         degxx := Degree(MinimalPolynomial(xx));
