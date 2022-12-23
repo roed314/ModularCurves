@@ -408,6 +408,7 @@ def load_ecq_data(cm_data_file):
     with open(cm_data_file) as F:
         for line in F:
             lmfdb_label, ainvs, modcurve_label = line.strip().split("|")
+            modcurve_label = transform_label(modcurve_label)
             if lmfdb_label != "?" and int(modcurve_label.split(".")[0]) < 24:
                 cm_lookup[lmfdb_label].append(modcurve_label)
 
