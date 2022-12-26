@@ -145,9 +145,9 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt) -> SeqE
     return map<C0 -> C | proj>;
 end intrinsic;
 
-intrinsic FindJMap(N::RngIntElt, gens::SeqEnum, label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEnum, Rec
+intrinsic AbsoluteJMap(N::RngIntElt, gens::SeqEnum, label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEnum, Rec
 {Outputs a model X, j as a multivariate rational function in the ambient variables of X, the model type (5 if an elliptic curve, -1 if geometrically hyperelliptic, 0 if canonical model), F0 (a sequence of modular forms as computed by FindModelOfXG) and M (the ModularCurveRec)}
-  tttt := ReportStart(label, "FindJMap");
+  tttt := ReportStart(label, "AbsoluteJMap");
 //  gens := GetModularCurveGenerators(l);
 
 //  N := StringToInteger(Split(l,".")[1],10);
@@ -189,7 +189,7 @@ intrinsic FindJMap(N::RngIntElt, gens::SeqEnum, label::MonStgElt) -> Crv, FldFun
     // 5 is the code for hyperelliptic models
     // For now, we decided it includes Weierstrass equations
     ReportEnd(label, "model and modular forms", ttemp);
-    ReportEnd(label, "FindJMap", tttt);
+    ReportEnd(label, "AbsoluteJMap", tttt);
     return M`C, ecjmap, 5, M`f cat [[1 : i in [1..#M`cusps]]], M;
   end if;
 
@@ -493,7 +493,7 @@ end if;
   vprint User1: Sprintf("GB time = %o.", gbtime);
   vprint User1: Sprintf("Canonical ring time = %o.", canringtime);
   vprint User1: Sprintf("Linear algebra time = %o.", lintime);
-  ReportEnd(label, "FindJMap", tttt);
+  ReportEnd(label, "AbsoluteJMap", tttt);
 
   // canonical model is 0, other is -1
   model_type := (geomhyper) select -1 else 0;

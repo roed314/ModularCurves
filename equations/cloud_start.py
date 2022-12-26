@@ -9,13 +9,17 @@
 # On a server, run cloud_collect.py, which will propogate gonalities, create the copy_from files for modcurve_points, modcurve_models, modcurve_maps and an update_from_file file gps_gl2zhat_coarse
 
 # TODO
-# - Update verbosity (two levels: one for debugging and another for reporting timing info)
 # - Do group identification
 # - Update descriptions of labels (RSZB and LMFDB)
 # - Base change for CM points (duplicated points in rats/).  Need to throw away points of lower degree?
 
 # Copied into the home directory for running
-# Consistent segfault on 22.180.6.b.1
+# Write code to determine minimal non-hyperelliptic
+# Check Shiva's fix
+# One-per-Galois-orbit in GetRationalPoints.m
+# Create picture database
+# Update gonality to rule out hyperelliptic
+# Check with Drew whether he's using g > 17 => not hyperelliptic in constructing gonality bounds
 
 import os
 import argparse

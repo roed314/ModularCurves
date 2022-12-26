@@ -17,7 +17,7 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt
 	  while (not found) do
 	      M:=FindModularForms(2,M,prec);
 	      M:=FindCuspForms(M);
-	      F:=M`F0; 
+	      F:=M`F0;
 	      assert #F eq g;
 	      I2:=FindRelations(F,2);
 	      I2:=[Pol!P: P in I2];
@@ -25,7 +25,7 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt
 	      prec +:= 1;
 	  end while;
 	  prec -:= 1;
-	  Q0:=Scheme(PP,I2);   
+	  Q0:=Scheme(PP,I2);
 	  dimQ0:=Dimension(Q0);
       until dimQ0 ge 1;
       done := true;
@@ -49,7 +49,7 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt
 	  return prec;
       end if;
       if g eq 3 then
-          I4:=FindRelations(F,4); 
+          I4:=FindRelations(F,4);
           if #I4 gt 1 then
 	      done := false;
 	  else
@@ -58,21 +58,20 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt
       else
 	  mon3:=[m: m in MonomialsOfWeightedDegree(Pol,3)];
 	  V:=VectorSpace(Rationals(),#mon3);
-	  
+
 	  W:=sub<V| [V![MonomialCoefficient(x[i]*f,m): m in mon3] : i in [1..g], f in I2]>;
 	  assert Dimension(W) eq ((g-3)*(g^2+6*g-10) div 6) - (g-3);
-	  
-	  I3:=FindRelations(F,3); 
+
+	  I3:=FindRelations(F,3);
 	  I3:=[Pol!P: P in I3];
-	  
-	  Q0:=Scheme(PP,I2 cat I3);   
+
+	  Q0:=Scheme(PP,I2 cat I3);
 	  dimQ0:=Dimension(Q0);
 	  if dimQ0 lt 1 then
 	      done := false;
 	  end if;
       end if;
   end while;
-  
+
   return prec;
-end intrinsic;	  
-	  
+end intrinsic;
