@@ -565,6 +565,14 @@ def make_todo():
         for label in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, "label"):
             _ = F.write(label+"\n")
 
+def prep_hyperelliptic():
+    # Need to figure out which modular curves are on the "border" between canonical models and not (g=0,1 or hyperelliptic)
+    with open(opj("..", "equations", "hyptodo.txt"), "w") as F:
+        for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True, "genus":{"$gte":3, "$lte":17}}, ["label", "qbar_gonality_bounds"]):
+            if rec["qbar_gonality_bounds"][0] == 2 and rec["qbar_gonality_bounds"][1] > 2:
+                # possibly hyperelliptic
+                _ = F.write(rec["label"] + "\n")
+
 def prep_all():
     make_input_data()
     make_graphviz_files()

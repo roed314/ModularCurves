@@ -1,10 +1,10 @@
-intrinsic RequiredPrecision(M::Rec) -> RngIntElt
-{Precision required to get a model from David Zywina's code.}
+intrinsic RequiredPrecision(M::Rec) -> RngIntElt, BoolElt
+{Precision required to get a model from David Zywina's code, together with whether the curve is (geometrically) hyperelliptic}
   M := FindModularForms(2,M,1);
   prec := Integers()!(M`N * Maximum([1/M`widths[i] : i in [1..#M`cusps]]));
   g := M`genus;
   if (g lt 3) then
-      return prec;
+      return prec, (g eq 3);
   end if;
   Pol<[x]>:=PolynomialRing(Rationals(),g);
   PP:=ProjectiveSpace(Rationals(),g-1);
@@ -46,14 +46,14 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt
 	  end if;
       end if;
       if (dimQ0 eq 1) then
-	  return prec;
+	  return prec, true;
       end if;
       if g eq 3 then
           I4:=FindRelations(F,4);
           if #I4 gt 1 then
 	      done := false;
 	  else
-	      return prec;
+	      return prec, false;
 	  end if;
       else
 	  mon3:=[m: m in MonomialsOfWeightedDegree(Pol,3)];
@@ -73,5 +73,5 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt
       end if;
   end while;
 
-  return prec;
+  return prec, false;
 end intrinsic;
