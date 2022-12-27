@@ -119,7 +119,7 @@ BareGenus := recformat<genus>;
 intrinsic ProcessModel(label::MonStgElt) -> Crv, SeqEnum,
                                             RngIntElt, SeqEnum[CspDat], Rec
 {.}
-    genus := StringToInteger(Split(label, ".")[3]);
+    level, index, genus := Explode([StringToInteger(c) : c in Split(label, ".")[1..3]]);
     // Apparently, Rakvi's code does not handle X(1)
     if label eq "1.1.0.a.1" then
         // handle X(1)
