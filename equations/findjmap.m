@@ -23,8 +23,6 @@ end if;
 // a square matrix that indicates which linear combinations of the rows of M
 // are the LLL-reduced basis
 
-import "OpenImage/main/ModularCurves.m" : ConvertModularFormExpansions;
-
 intrinsic MissingMonomials(I, maxd) -> SeqEnum
 {Finds the monomials of degree 2..maxd that are not contained in the monomial ideal I.
  Returns a sequence M so that the missing monomials of degree d can be accessed by M[d].  Note that M[1] = [], regardless of I.}
