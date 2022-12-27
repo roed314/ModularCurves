@@ -19,7 +19,8 @@
 # One-per-Galois-orbit in GetRationalPoints.m
 # Create picture database
 # Update gonality to rule out hyperelliptic
-# Check with Drew whether he's using g > 17 => not hyperelliptic in constructing gonality bounds
+# Factor j-map, check on other todos in compute_lattice_x
+# Switch to LMFDB(Read/Write)XGMode and LMFDB(Read/Write)JMap from LMFDBWriteModel and LMFDBReadCanonicalModel
 
 import os
 import argparse

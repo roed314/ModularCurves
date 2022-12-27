@@ -91,32 +91,26 @@ function fieldfind(G, K)
   return NumberField(minpoly), prim;
 end function;
 
-intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt) -> SeqEnum
+intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjugator::SeqEnum) -> Crv, SeqEnum, SeqEnum, Rec
 {}
     N0, gens0 := GetLevelAndGensFromLabel(cover_label);
     N, gens := GetLevelAndGensFromLabel(covered_label);
 
-    // Should conjugate later; for now we just assert
     GLN := GL(2, Integers(N));
     GLN0 := GL(2, Integers(N0));
     G := sub<GLN | [GLN!v : v in gens]>;
     G0 := sub<GLN0 | [GLN0!v : v in gens0]>;
+    G0 := G0^(GLN0!conjugator);
     assert G0 subset G;
 
     M := CreateModularCurveRec(N, gens);
+    M, model_type := FindModelOfXG(M, covered_label);
+    assert model_type eq 0;
+    F := M`F0;
     g := M`genus;
-    assert g ge 3;
-    prec := RequiredPrecision(M);
-    flag, psi, F := FindCanonicalModel(M, prec);
-    assert flag;
-    M`k := 2;
-    M`F0 := F;
-    M`psi := psi;
-    S := Universe(psi);
+    S := Universe(M`psi);
     AssignCanonicalNames(~S);
-    C := Curve(Proj(S), psi);
-    M`has_infinitely_many_points := false;
-    M`mult := [1 : i in [1..M`vinf]];
+    C := Curve(Proj(S), M`psi);
 
     M0 := CreateModularCurveRec(N0, gens0);
     g0 := M0`genus;
@@ -142,11 +136,12 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt) -> SeqE
     mat := EchelonForm(mat);
     assert mat[g,g] eq 1;
     proj := [&+[mat[i,g + j] * S0.j : j in [1..g0]] : i in [1..g]];
-    return map<C0 -> C | proj>;
+    return C0, proj, F0, M0;
 end intrinsic;
 
-intrinsic AbsoluteJMap(N::RngIntElt, gens::SeqEnum, label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEnum, Rec
+intrinsic AbsoluteJMap(label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEnum, Rec
 {Outputs a model X, j as a multivariate rational function in the ambient variables of X, the model type (5 if an elliptic curve, -1 if geometrically hyperelliptic, 0 if canonical model), F0 (a sequence of modular forms as computed by FindModelOfXG) and M (the ModularCurveRec)}
+  N, gens := GetLevelAndGensFromLabel(label);
   tttt := ReportStart(label, "AbsoluteJMap");
 //  gens := GetModularCurveGenerators(l);
 
@@ -155,93 +150,12 @@ intrinsic AbsoluteJMap(N::RngIntElt, gens::SeqEnum, label::MonStgElt) -> Crv, Fl
   gp := sub<GL(2,Integers(N))|gens>;
 
   M := CreateModularCurveRec(N,gens);
-
-  ttemp := ReportStart(label, "model and modular forms");
-  vprint User1: "Starting model computation with low precision";
-  prec := RequiredPrecision(M);
-  M := FindModelOfXG(M,prec);
-  mult := M`mult;
-  if (not assigned M`prec) then
-    M`prec := prec;
-  end if;
-
-  if (M`genus eq 1) and (assigned M`has_point) and (M`has_point) then
-    // I'm just taking a guess on the precision here.
-    // Test cases: 6.6.1.1, 6.12.1.1, 11.55.1.1, 8.48.1.3, 9.54.1.1, 20.72.1.23, 8.96.1.109
-    // Minimal prec for 11.55.1.1 is 81
-    success := false;
-    prec := 2*M`index;
-    // I'm pretty sure we only need 2*index + N,
-    // but just in case we loop
-    while (not success) do
-	M := FindModelOfXG(M,prec);
-	PP := Parent(M`f[1][1]);
-	jinv0 := jInvariant(PP.1);
-	jinv := Evaluate(jinv0,PP.1^N);
-	jinv2 := [ jinv : i in [1..M`vinf]];
-	success, ecjmap := FindRelationElliptic(M,jinv2);
-	prec +:= N;
-    end while;
-
-    vprint User1: Sprintf("Minimal model is %o.", M`C);
-    vprint User1: Sprintf("j-map is %o.", ecjmap);
-    // Write data to a file here and then stop.
-    // 5 is the code for hyperelliptic models
-    // For now, we decided it includes Weierstrass equations
-    ReportEnd(label, "model and modular forms", ttemp);
+  M, model_type, mind, maxd := FindModelOfXG(M, label);
+  if model_type eq 5 then
     ReportEnd(label, "AbsoluteJMap", tttt);
-    return M`C, ecjmap, 5, M`f cat [[1 : i in [1..#M`cusps]]], M;
+    return M`C, M`map_to_jline, model_type, M`f cat [[1 : i in [1..#M`cusps]]], M;
   end if;
-
-  maxd := 0;
-  mind := 0;
-  maxprec := 0;
-  geomhyper := false;
-  // Compute the degree of the line bundle used
-  if (M`mult ne [ 1 : i in [1..M`vinf]]) or (M`k ne 2) then
-      vprint User1: "Curve is geometrically hyperelliptic.";
-      geomhyper := true;
-      k := M`k;
-      degL:= ((k*(2*M`genus-2)) div 2 + Floor(k/4)*M`v2 + Floor(k/3)*M`v3 + (k div 2)*#M`cusps) - (&+M`mult);
-      old_degL := 0;
-      while (old_degL ne degL) do
-	  old_degL := degL;
-	  maxd := Floor((M`index + M`genus - 1)/degL) + 1;
-	  mind := maxd - 1;
-	  vprint User1: Sprintf("Smallest degree that might work = %o. The degree %o definitely works.", mind, maxd);
-	  maxprec := Floor(N*(M`k*maxd/12 + 1)) + 1;
-	  if (maxprec gt M`prec) then
-	      vprint User1: "Now that we know it's geometrically hyperelliptic, we need more precision.";
-	      vprint User1: Sprintf("New precision chosen = %o.", maxprec);
-	      delete M`has_point;
-	      M := FindModelOfXG(M,maxprec);
-	      vprint User1: "Recomputation of modular forms done.";
-	      k := M`k;
-	      degL:= ((k*(2*M`genus-2)) div 2 + Floor(k/4)*M`v2 + Floor(k/3)*M`v3 + (k div 2)*#M`cusps) - (&+M`mult);
-	  end if;
-      end while;
-  else
-      vprint User1: "Curve is not geometrically hyperelliptic.";
-      maxd := Floor((M`index)/(2*M`genus-2) + 3/2);
-      if ((maxd-1) ge (M`index)/(2*M`genus-2)) and ((maxd-1) le ((M`index)/(2*M`genus-2) + 1/2)) then
-	  mind := maxd-1;
-	  vprint User1: Sprintf("The smallest degree that might work is %o.", mind);
-	  vprint User1: Sprintf("Degree %o definitly works.", maxd);
-      else
-	  mind := maxd;
-	  vprint User1: Sprintf("The smallest degree that might work is %o and it definitely works.", maxd);
-      end if;
-      maxprec := Floor(N*(1 + maxd/6)+1);
-      if (maxprec gt M`prec) then
-	  vprint User1: "Now that we know it's non-hyperelliptic, we need more precision.";
-	  vprint User1: Sprintf("New precision chosen = %o.", maxprec);
-	  delete M`has_point;
-	  M := FindModelOfXG(M,maxprec);
-	  vprint User1: "Recomputation of modular forms done.";
-      end if;
-  end if;
-  modeltime := Cputime(ttemp);
-  ReportEnd(label, "model and modular forms", ttemp);
+  modeltime := Cputime(tttt);
 
   // Post-processing on q-expansions
 
@@ -275,7 +189,7 @@ intrinsic AbsoluteJMap(N::RngIntElt, gens::SeqEnum, label::MonStgElt) -> Crv, Fl
   S:=sub<SymmetricGroup(#M`cusps)|s>;
   ind:=[[i:i in O]: O in Orbits(S)];  // orbits of cusps under the actions of G0 and Gal_Q.
   chosencusps := [ ind[j][1] : j in [1..#ind]];
-  chosenmult := [ mult[c] : c in chosencusps];
+  chosenmult := [ M`mult[c] : c in chosencusps];
   vprint User1: Sprintf("Galois orbits of cusps are: %o.", {* #ind[j] : j in [1..#ind] *});
   vprint User1: Sprintf("Using %o Fourier expansions (out of %o).", #chosencusps, #M`cusps);
   modforms0 := [ [ M`F0[i][c] : c in chosencusps] : i in [1..#M`F0]];
@@ -297,7 +211,7 @@ intrinsic AbsoluteJMap(N::RngIntElt, gens::SeqEnum, label::MonStgElt) -> Crv, Fl
       vprint User1: Sprintf("For cusp %o, Fourier coefficient field is %o.", c, R!DefiningPolynomial(KK));
       PP<qN> := LaurentSeriesRing(KK);
       Embed(KK,Parent(z),prim);
-      totalprec := totalprec + maxprec*Degree(KK);
+      totalprec := totalprec + M`prec*Degree(KK);
       curfour := <>;
       for i in [1..#modforms0] do
 	  newfourier := &+[ KK!Coefficient(modforms0[i][c],l)*qN^l : l in [0..AbsolutePrecision(modforms0[i][c])-1]] + BigO(qN^AbsolutePrecision(modforms0[i][c]));
@@ -364,7 +278,7 @@ intrinsic AbsoluteJMap(N::RngIntElt, gens::SeqEnum, label::MonStgElt) -> Crv, Fl
 
   ttemp := ReportStart(label, "linear algebra");
   FFFF<qN> := LaurentSeriesRing(Rationals());
-  j := (1728*Eisenstein(4,qN : Precision := Ceiling((maxprec+2*N)/N))^3)/(Eisenstein(4,qN : Precision := Ceiling((maxprec+2*N)/N))^3 - Eisenstein(6,qN : Precision := Ceiling((maxprec+2*N)/N))^2);
+  j := (1728*Eisenstein(4,qN : Precision := Ceiling((M`prec+2*N)/N))^3)/(Eisenstein(4,qN : Precision := Ceiling((M`prec+2*N)/N))^3 - Eisenstein(6,qN : Precision := Ceiling((M`prec+2*N)/N))^2);
   j := Evaluate(j,qN^N);
 
   func := j;
@@ -377,7 +291,7 @@ for i in [1..#canring[curd][1]] do
   vecseq := [];
   for jj in [1..#chosencusps] do
     pp := (func*canring[curd][1][i][jj]);
-    vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+maxprec-2]]);
+    vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+M`prec-2]]);
   end for;
   jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
 end for;
@@ -386,7 +300,7 @@ for i in [1..#canring[curd][1]] do
   vecseq := [];
   for jj in [1..#chosencusps] do
     pp := -canring[curd][1][i][jj];
-    vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+maxprec-2]]);
+    vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+M`prec-2]]);
   end for;
   jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
 end for;
@@ -404,7 +318,7 @@ if (done eq false) then
     vecseq := [];
     for jj in [1..#chosencusps] do
       pp := (func*canring[curd][1][i][jj]);
-      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+maxprec-2]]);
+      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+M`prec-2]]);
     end for;
     jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
   end for;
@@ -413,7 +327,7 @@ if (done eq false) then
     vecseq := [];
     for jj in [1..#chosencusps] do
       pp := -canring[curd][1][i][jj];
-      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+maxprec-2]]);
+      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+M`prec-2]]);
     end for;
     jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
   end for;
@@ -428,7 +342,7 @@ end if;
       vecseq := [];
       for jj in [1..#chosencusps] do
 	  pp := (func*canring[curd][1][i][jj]);
-	  vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+maxprec-1]]);
+	  vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+M`prec-1]]);
       end for;
       jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
   end for;
@@ -437,7 +351,7 @@ end if;
       vecseq := [];
       for jj in [1..#chosencusps] do
 	  pp := -canring[curd][1][i][jj];
-	  vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+maxprec-1]]);
+	  vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+M`prec-1]]);
       end for;
       jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
   end for;
@@ -455,7 +369,7 @@ end if;
 	  vecseq := [];
 	  for jj in [1..#chosencusps] do
 	      pp := (func*canring[curd][1][i][jj]);
-	      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+maxprec-1]]);
+	      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+M`prec-1]]);
 	  end for;
 	  jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
       end for;
@@ -464,7 +378,7 @@ end if;
 	  vecseq := [];
 	  for jj in [1..#chosencusps] do
 	      pp := -canring[curd][1][i][jj];
-	      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+maxprec-1]]);
+	      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+M`prec-1]]);
 	  end for;
 	  jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
       end for;
@@ -495,7 +409,5 @@ end if;
   vprint User1: Sprintf("Linear algebra time = %o.", lintime);
   ReportEnd(label, "AbsoluteJMap", tttt);
 
-  // canonical model is 0, other is -1
-  model_type := (geomhyper) select -1 else 0;
   return C, num/denom, model_type, M`F0, M;
 end intrinsic;

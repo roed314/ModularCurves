@@ -4,13 +4,13 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt, BoolElt
   prec := Integers()!(M`N * Maximum([1/M`widths[i] : i in [1..#M`cusps]]));
   g := M`genus;
   if (g lt 3) then
-      return prec, (g eq 3);
+      return prec, (g eq 2);
   end if;
   Pol<[x]>:=PolynomialRing(Rationals(),g);
   PP:=ProjectiveSpace(Rationals(),g-1);
   done := false;
   while (not done) do
-      repeat 
+      repeat
 	  prec +:= 1;
 	  found := false;
 	  // for now, doing that naively

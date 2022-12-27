@@ -6,7 +6,7 @@ import re
 import sys
 from collections import defaultdict, Counter
 from sage.misc.cachefunc import cached_function
-from sage.all import ZZ, QQ, Poset, DiGraph, flatten, gcd, PolynomialRing
+from sage.all import ZZ, QQ, Poset, DiGraph, flatten, gcd, PolynomialRing, MatrixSpace
 from sage.combinat.posets.posets import FinitePoset
 from sage.misc.misc import cputime, walltime
 from sage.databases.cremona import class_to_int
@@ -572,6 +572,44 @@ def prep_hyperelliptic():
             if rec["qbar_gonality_bounds"][0] == 2 and rec["qbar_gonality_bounds"][1] > 2:
                 # possibly hyperelliptic
                 _ = F.write(rec["label"] + "\n")
+
+def get_relj_codomains():
+    # Currently, the plan is to just run GetPrecHyp.m on lovelace, so we just use the output in the folder ishyp
+    output_folder = opj("..", "equations", "cod")
+    os.makedirs(output_folder, exist_ok=True)
+    hyp_lookup = {}
+    for label in os.listdir(opj("..", "equations", "ishyp")):
+        with open(opj("..", "equations", "ishyp", label)) as F:
+            hyp, prec = F.read().strip().split("|")
+            hyp_lookup[label] = (hyp == "t")
+    parents_conj = {}
+    M = MatrixSpace(ZZ, 2)
+    for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "parents", "parents_conj"]):
+        for plabel, pconj in zip(rec["parents"], rec["parents_conj"]):
+            parents_conj[rec["label"], plabel] = M(pconj)
+    P = get_lattice_poset()
+    H = P._hasse_diagram
+    X1 = P._element_to_vertex("1.1.0.a.1")
+    cod = {}
+    def index_sort_key(pair):
+        N, i, g, a, n = pair[0].split(".")
+        return (int(i), int(N), int(g), class_to_int(a), int(n))
+    for x in index_iterator(P, X1):
+        label = P._vertex_to_element(x)
+        N, i, g, a, n = label.split(".")
+        if int(g) >= 3 and not hyp_lookup.get(label):
+            tmp = [(label, M((1,0,0,1)))]
+            for y in H.neighbors_in(x):
+                ylabel = P._vertex_to_element(y)
+                if ylabel in cod:
+                    ybest, yconj = cod[ylabel]
+                    conj = parents_conj[label, ylabel] * yconj
+                    tmp.append((ybest, conj))
+            cod[label] = min(cod[label], key=index_sort_key)
+    for label, (codomain, conj) in cod.items():
+        if label != codomain:
+            with open(opj(output_folder, label), "w") as F:
+                _ = F.write(f"{codomain}|{','.join(str(c) for c in conj.list())}")
 
 def prep_all():
     make_input_data()

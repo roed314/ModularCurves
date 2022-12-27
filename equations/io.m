@@ -133,6 +133,42 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData, cusps::SeqEnum[CspDat],
 			 coords,fields,model_type) : Overwrite);
 end intrinsic;
 
+intrinsic LMFDBReadRelativeJCodomain(label::MonStgElt) -> MonStgElt, SeqEnum
+{}
+    g := StringToInteger(Split(label, ".")[3]);
+    if g lt 3 then return "", []; end if;
+    fname := Sprintf("cod/%o", label);
+    if OpenTest(fname, "r") then
+        codomain, conjugator := Explode(Split(Read(fname), "|"));
+        conjugator := [StringToInteger(c) : c in Split(conjugator, ",")];
+        return codomain, conjugator;
+    else
+        return "", [];
+    end if;
+end intrinsic;
+
+intrinsic LMFDBWriteXGModel(X::Crv, model_type::RngIntElt, label::MonStgElt)
+{Write the model produced by FindModelOfXG}
+    DP := DefiningPolynomials(X);
+    R := Universe(DP);
+    AssignCanonicalNames(~R);
+    System("mkdir -p canonical_models");
+    fname := Sprintf("canonical_models/%o", label);
+    Write(fname, Sprintf("%o|{%o}|%o", Rank(R), Join([sprint(f) : f in DP], ","), model_type) : Overwrite);
+end intrinsic;
+
+intrinsic LMFDBReadXGModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIntElt
+{}
+    g := StringToInteger(Split(label, ".")[3]);
+    fname := Sprintf("canonical_models/%o", label);
+    nvars, X, model_type := Explode(Split(Read(fname), "|"));
+    nvars := StringToInteger(nvars);
+    P := PolynomialRing(Rationals(), nvars);
+    AssignCanonicalNames(~P);
+    X := [ReadPoly(P, f, nvars) : f in Split(X[2..#X-1], ",")];
+    return X, g, model_type;
+end intrinsic;
+
 intrinsic LMFDBReadCanonicalModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIntElt, RngMPolElt, RngMPolElt, List
 {}
     g := StringToInteger(Split(label, ".")[3]);
