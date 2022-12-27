@@ -605,7 +605,7 @@ def get_relj_codomains():
                     ybest, yconj = cod[ylabel]
                     conj = parents_conj[label, ylabel] * yconj
                     tmp.append((ybest, conj))
-            cod[label] = min(cod[label], key=index_sort_key)
+            cod[label] = min(tmp, key=index_sort_key)
     for label, (codomain, conj) in cod.items():
         if label != codomain:
             with open(opj(output_folder, label), "w") as F:
