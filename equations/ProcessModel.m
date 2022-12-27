@@ -119,7 +119,8 @@ BareGenus := recformat<genus>;
 intrinsic ProcessModel(label::MonStgElt) -> Crv, SeqEnum,
                                             RngIntElt, SeqEnum[CspDat], Rec
 {.}
-    level, index, genus := Explode([StringToInteger(c) : c in Split(label, ".")[1..3]]);
+    genus := StringToInteger(Split(label, ".")[3]);
+    level, gens := GetLevelAndGensFromLabel(label);
     // Apparently, Rakvi's code does not handle X(1)
     if label eq "1.1.0.a.1" then
         // handle X(1)
@@ -129,7 +130,6 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, SeqEnum,
 	// 1 is for P1 model
 	return P1, FunctionField(P1).1, 1, cusps, rec<BareGenus|genus:=0>;
     elif (genus eq 0) then
-        level, gens := GetLevelAndGensFromLabel(label);
 	// !! TODO - is this precision always enough?
 	Ggens := {GL(2,Integers(level))!g : g in gens};
         t0 := ReportStart(label, "Genus0Model");
