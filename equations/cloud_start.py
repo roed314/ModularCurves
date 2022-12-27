@@ -21,6 +21,8 @@
 # Update gonality to rule out hyperelliptic
 # Factor j-map, check on other todos in compute_lattice_x
 # Switch to LMFDB(Read/Write)XGMode and LMFDB(Read/Write)JMap from LMFDBWriteModel and LMFDBReadCanonicalModel
+# Update lifting of rational points (and cusps?) to use relative j-maps
+# Add ReportStart/End to relative j-invariants
 
 import os
 import argparse
