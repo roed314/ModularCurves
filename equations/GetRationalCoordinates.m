@@ -70,7 +70,7 @@ if #jinvs gt 0 then
         if L eq QQ then
             autL := [];
         elif IsDefined(auts, L) then
-            autL := auts[];
+            autL := auts[L];
         else
             autL := [sigma : sigma in Automorphisms(L) | sigma(L.1) ne L.1];
             auts[L] := autL;
