@@ -102,8 +102,10 @@ intrinsic ReadPoly(P::RngMPol, f::MonStgElt, nvars::RngIntElt : upper:=true, Hom
     g := eval(ReplaceVariables(f, nvars : upper:=upper));
     // Note that g might be a fraction field element if there was division
     if Homogenize then
-        d := Max(Degree(Numerator(g)), Degree(Denominator(g)));
-        g := Homogenization(Numerator(g), P.nvars, d) / Homogenization(Denominator(g), P.nvars, d);
+        gnum := P!Numerator(g);
+        gden := P!Denominator(g);
+        d := Max(Degree(gnum), Degree(gden));
+        g := Homogenization(gnum, P.nvars, d) / Homogenization(gden, P.nvars, d);
     end if;
     return g;
 end intrinsic;
@@ -338,7 +340,7 @@ intrinsic LMFDBWriteJinvCoords(coords::List, label::MonStgElt)
         R := Parent(poly);
         AssignNames(~R, ["x"]);
         poly := sprint(poly);
-        coord := Join([Join([Sprint(a) : a in Eltseq(c)], ",") : c in Coordinates(coord)], ":");
+        coord := Join([Join([Sprint(a) : a in Eltseq(c)], ",") : c in coord], ":");
         Append(~coord_strs, Sprintf("%o|%o|%o|%o", poly, j, model_type, coord));
     end for;
     Write(fname, Join(coord_strs, "\n") : Overwrite);
