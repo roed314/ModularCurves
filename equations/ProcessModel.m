@@ -211,6 +211,11 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, SeqEnum,
         else
             X, j, model_type, F0, M := AbsoluteJMap(label); // writes model
             j := [Numerator(j), Denominator(j)];
+            // Homogenize the j-map
+            P := Universe(j);
+            d := Max([Degree(coord) : coord in j]);
+            nvars := Rank(P);
+            j := [Homogenization(coord, P.nvars, d) : coord in j];
         end if;
         cusps := CuspOrbits(level, gens);
         // We only need one representative of each orbit
