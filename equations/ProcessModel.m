@@ -124,17 +124,21 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, SeqEnum,
     // Apparently, Rakvi's code does not handle X(1)
     if label eq "1.1.0.a.1" then
         // handle X(1)
-	P1<x,y>:=Curve(ProjectiveSpace(Rationals(),1));
+        R := PolynomialRing(Rationals(), 2);
+        AssignCanonicalNames(~R);
+        X := Proj(R);
 	cusps := CuspOrbits(1, [])[1];
-	cusps[1]`coords := P1![1,0];
-	// 1 is for P1 model
-	return P1, FunctionField(P1).1, 1, cusps, rec<BareGenus|genus:=0>;
+	cusps[1]`coords := X![1,0];
+        // We don't want to write anything to disk in this case
+        return X, [R.1, R.2], 1, cusps, rec<BareGenus|genus:=0>;
     elif (genus eq 0) then
 	// !! TODO - is this precision always enough?
+        prec := 10;
 	Ggens := {GL(2,Integers(level))!g : g in gens};
         t0 := ReportStart(label, "Genus0Model");
-	X<x,y,z>, j, has_rational_pt := ComputeModel(level,Ggens,10);
+	X<x,y,z>, j, has_rational_pt, Xpt := ComputeModel(level, Ggens, prec);
         ReportEnd(label, "Genus0Model", t0);
+        vprint User1: "j=", j;
 	// converting the function field element to something we can work with
 	if Type(j) eq FldFunRatUElt then
 	    num := Evaluate(ChangeRing(Numerator(j), Rationals()), x);
@@ -153,19 +157,36 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, SeqEnum,
 	    function eval_at(c, a)
 		return &+([0] cat [Rationals()!c[i]*(x/z)^(i-1) : i in [1..#c]]);
 	    end function;
-	    ev_coeffs := [eval_at(c[1], x/z)/eval_at(c[2],x/z) 
-			  : c in coeff_coeffs]; 
-	    j := &+([0] cat [ev_coeffs[i]*(y/z)^(i-1) 
+	    ev_coeffs := [eval_at(c[1], x/z)/eval_at(c[2],x/z)
+			  : c in coeff_coeffs];
+	    j := &+([0] cat [ev_coeffs[i]*(y/z)^(i-1)
 			     : i in [1..Degree(Parent(j))]]);
 	end if;
-	model_type := (has_rational_pt) select 1 else 2;
+        j := [Numerator(j), Denominator(j)];
+        vprint User1: "X=", X;
+        if has_rational_pt then
+            vprint User1: "Xpt=", Xpt;
+            model_type := 1;
+            // Project from Xpt to get the model to be P1
+            param := Parametrization(X, Xpt);
+            pdef := DefiningEquations(param);
+            j := [Evaluate(jcomp, pdef) : jcomp in j];
+            R := Universe(j);
+            AssignCanonicalNames(~R);
+            vprint User1: "Now j=", j;
+            X := Proj(R);
+            // We don't write the model to disc, but will write j-map and cusps before the return.
+        else
+	    model_type := 2;
+            LMFDBWriteXGModel(X, model_type, label);
+        end if;
 	cusps := CuspOrbits(level, gens);
 	// !! TODO - fix this so that the cusps on H will match the cusps on
 	// the model
 	// We only need one representative of each orbit
 	cusps := [orb[1] : orb in cusps];
 	P1 := ProjectiveSpace(Rationals(),1);
-	jmap := map<X->P1 | [Numerator(j), Denominator(j)]>;
+	jmap := map<X->P1 | j>;
 	cusp_scheme := (P1![1,0]) @@ jmap;
 	cusp_coords := AssociativeArray();
 	field_idx := AssociativeArray();
@@ -180,21 +201,24 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, SeqEnum,
 	    cusps[i]`coords := cusp_coords[PK][field_idx[PK]];
 	    field_idx[PK] +:= 1;
 	end for;
-	return X, j, model_type, cusps, rec<BareGenus|genus:=0>;
-    end if;
-    codomain, conj := LMFDBReadRelativeJCodomain(label);
-    if #codomain gt 0 then
-        X, j, F0, M := RelativeJMap(label, codomain, conj);
-        model_type := 0;
+        M := rec<BareGenus|genus:=0>;
+        codomain := "";
     else
-        X, j, model_type, F0, M := AbsoluteJMap(label);
-        j := [Numerator(j), Denominator(j)];
+        codomain, conj := LMFDBReadRelativeJCodomain(label);
+        if #codomain gt 0 then
+            X, j, F0, M := RelativeJMap(label, codomain, conj); // writes model
+            model_type := 0;
+        else
+            X, j, model_type, F0, M := AbsoluteJMap(label); // writes model
+            j := [Numerator(j), Denominator(j)];
+        end if;
+        cusps := CuspOrbits(level, gens);
+        // We only need one representative of each orbit
+        cusps := [orb[1] : orb in cusps];
+        for i in [1..#cusps] do
+	    CuspUpdateCoordinates(~cusps[i], X, F0);
+        end for;
     end if;
-    cusps := CuspOrbits(level, gens);
-    // We only need one representative of each orbit
-    cusps := [orb[1] : orb in cusps];
-    for i in [1..#cusps] do
-	CuspUpdateCoordinates(~cusps[i], X, F0);
-    end for;
+    LMFDBWriteJMap(j, cusps, codomain, model_type, label);
     return X, j, model_type, cusps, M;
 end intrinsic;

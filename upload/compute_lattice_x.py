@@ -621,9 +621,6 @@ def prep_all():
     # Make tarball
 
 def timing_statistics():
-    #transform = {"log-canonicalish ring": "canonical ring",
-    #             "model computation with low precision": "model and modular forms",
-    #             "determining Galois action on cusps": "post-processing"}
     with open("output") as F:
         timing_data = [line[1:] for line in F.read().strip().split("\n") if line.startswith("T")]
         by_label = defaultdict(list)
@@ -639,7 +636,6 @@ def timing_statistics():
         for label, lines in by_label.items():
             started = [start_re.fullmatch(x) for x in lines]
             started = [m.group(1) for m in started if m is not None]
-            #started = [transform.get(x, x) for x in started]
             finished = [end_re.fullmatch(x) for x in lines]
             timings = [float(m.group(2)) for m in finished if m is not None]
             finished = [m.group(1) for m in finished if m is not None]
@@ -677,7 +673,6 @@ def timing_statistics():
         e = len(times)
         f = len(uby_task.get(task, []))
         print(f"{printtask}       Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e:<3}) Bad ({f})\n")
-        # Add in missing uby_level
         for N in sorted(set(list(by_level) + list(uby_level))):
             if N in by_level:
                 ts = by_level[N]
@@ -692,7 +687,6 @@ def timing_statistics():
                 f = uby_level[N]
                 print(f"{printtask} N={N:<3} {' '*61} Bad ({f})")
         print("")
-        # Add in missing uby_genus
         for g in sorted(set(list(by_genus) + list(uby_genus))):
             if g in by_genus:
                 ts = by_genus[g]
@@ -887,70 +881,51 @@ def get_model_points(rats, usps):
 
     return points, cusps
 
-def write_models_maps(cans, planes, ghyps):
+def write_models_maps(cans, planes, ghyps, jcusps):
     def dontdisplay_str(s):
         return "t" if (len(s) > 100000) else "f"
     models = defaultdict(list)
     maps = defaultdict(list)
     can_type = {}
+    # Check that P1s aren't included in models
+    assert "1.1.0.a.1" not in cans and "8.2.0.a.1" not in cans
     for label, lines in cans.items():
-        if label == "1.1.0.a.1":
-            continue # Should eventually skip the model for P1s as well
         assert len(lines) == 1
         line = lines[0]
-        nvar, can, X1proj, cuspcoords, cuspfields, model_type = line.split("|")
+        nvar, can, model_type = line.split("|")
+        assert model_type != "1"
         can_type[label] = model_type
-        # Should convert genus 0 plane model to P1 when possible
         smooth = "t"
         index = label.split(".")[1] # coarse model, so psl2_index same as index
         dontdisplay = dontdisplay_str(can)
         models[label].append(f"{label}|{can}|{nvar}|{model_type}|{smooth}|{dontdisplay}\n")
-        for i, jmap in enumerate(X1proj[1:-1].split(",")):
-            if jmap:
-                if i == 0:
-                    map_type = "4" # E4
-                elif i == 1:
-                    map_type = "6" # E6
-                else:
-                    map_type = "3" # j
-                dontdisplay = dontdisplay_str(jmap)
-                # should switch to storing numerator and denominator separately
-                # For now, try to split into numerator and denominator
-                factored = "f" # For now, not factored
-                leading_coefficients = r"\N" # since not factored, we just use null to indicate [1,1,1...]
-                if jmap[0] == "(" and jmap[-1] == ")" and jmap.count(")/(") == 1:
-                    jmap = tuple(jmap[1:-1].split(")/("))
-                    jmap = "{%s,%s}" % jmap
-                elif "/" in jmap:
-                    # could be from coefficients or an overall division
-                    a, b = jmap.rsplit("/", 1)
-                    if not ("+" in b or "-" in b or "*" in b):
-                        # pure monomial
-                        jmap = "{%s,%s}" % (a, b)
-                    else:
-                        # give up
-                        jmap = "{%s,1}" % jmap
-                else:
-                    # Seems like no denominator, so we use 1 for now (should be homogeneous)"
-                    jmap = "{%s,1}" % jmap
-                maps[label].append(f"{index}|{label}|{model_type}|1.1.0.a.1|{map_type}|{jmap}|{leading_coefficients}|{factored}|{dontdisplay}\n")
+    for label, lines in jcusps.items():
+        assert len(lines) == 1:
+        line = lines[0]
+        if line.count("|") == 4:
+            model_type, codomain, jmap, cuspcoords, cuspfields = line.split("|")
+            codomain_type = "0"
+            assert codomain in models
+        else:
+            model_type, jmap, cuspcoords, cuspfields = line.splie("|")
+            codomain = "1.1.0.a.1"
+            codomain_type = "3"
+            assert model_type == "1" or label in models
+        dontdisplay = dontdisplay_str(jmap)
+        factored = "f" # For now, not factored
+        leading_coefficients = r"\N" # since not factored, we just use null to indicate [1,1,1...]
+        maps[label].append(f"{index}|{label}|{model_type}|{codomain}|{codomain_type}|{jmap}|{leading_coefficients}|{factored}|{dontdisplay}\n")
 
     triangular_nbs = [str(i*(i-1)//2) for i in range(1, 18)]
     for label, lines in planes.items():
         assert len(lines) == 1
         line = lines[0]
-        # Would be good to store smoothness...
-        g = label.split(".")[2]
-        if g in triangular_nbs:
-            smooth = r"\N"
-        else:
-            smooth = "f"
-        plane, proj, nvar = line.split("|") # Note that nvar is the number of variables in the domain of the projection
+        plane, proj, nvar, smooth = line.split("|") # Note that nvar is the number of variables in the domain of the projection
         dontdisplay = dontdisplay_str(plane)
         models[label].append(f"{label}|{{{plane}}}|3|2|{smooth}|{dontdisplay}\n")
         leading_coefficients = r"\N"
         factored = "f"
-        dontdisplay =dontdisplay_str(proj)
+        dontdisplay = dontdisplay_str(proj)
         maps[label].append(f"1|{label}|{can_type[label]}|{label}|2|{{{proj}}}|{leading_coefficients}|{factored}|{dontdisplay}\n")
 
     for label, lines in ghyps.items():
@@ -1037,11 +1012,6 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
     # Propogate gonalities
     assert all(len(gon) == 1 for gon in data["G"].values())
     data["G"] = {label: [int(g) for g in gon[0].split(",")] for label,gon in data["G"].items()}
-    # Temporarily work around a bug in Drew's qbar gonality data for genus 0
-    for label, gon in data["G"].items():
-        if label.split(".")[2] == "0":
-            gon[2] = 1
-            gon[3] = 1
     gonalities = get_gonalities(data["G"])
 
     # Get lattice_models and lattice_x
@@ -1125,7 +1095,7 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
                 name = r"\N"
             _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", write_dict(coords), "t"]) + "\n")
 
-    write_models_maps(data["C"], data["P"], data["H"])
+    write_models_maps(data["C"], data["P"], data["H"], data["J"])
 
 def fix_output():
     # Accidentally used the same letter code for cusps and plane models

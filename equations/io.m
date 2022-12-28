@@ -108,17 +108,7 @@ intrinsic ReadPoly(P::RngMPol, f::MonStgElt, nvars::RngIntElt : upper:=true, Hom
     return g;
 end intrinsic;
 
-intrinsic LMFDBWriteModel(X::Crv, j::JMapData, cusps::SeqEnum[CspDat],
-                          model_type::RngIntElt, label::MonStgElt)
-{Write the model and j-map to a file for input into the LMFDB}
-    DP := DefiningPolynomials(X);
-    R := Universe(DP);
-    AssignCanonicalNames(~R);
-    S := (assigned j`J) select Parent(j`J) else Parent(j`E4);
-    AssignCanonicalNames(~S);
-    E4_str := (assigned j`E4) select sprint(j`E4) else "";
-    E6_str := (assigned j`E6) select sprint(j`E6) else "";
-    j_str := (assigned j`J) select sprint(j`J) else "";
+function get_cusp_str(cusps)
     // We only write rational points over low degree fields
     // Change here if you want to modify this!
     max_deg := 6;
@@ -126,11 +116,93 @@ intrinsic LMFDBWriteModel(X::Crv, j::JMapData, cusps::SeqEnum[CspDat],
     coords := Join([sprint(c`coords) : c in cusps_to_write] , ",");
     Qx<x> := PolynomialRing(Rationals());
     fields := Join([sprint(Qx!DefiningPolynomial(c`field)) : c in cusps] , ","); // Need to keep all fields since the variable names are indexed by the original ordering
-    System("mkdir -p canonical_models");
-    fname := Sprintf("canonical_models/%o", label);
-    Write(fname, Sprintf("%o|{%o}|{%o,%o,%o}|{%o}|{%o}|%o", Rank(R),
-			 Join([sprint(f) : f in DP], ","), E4_str, E6_str, j_str,
-			 coords,fields,model_type) : Overwrite);
+    return Sprintf("{%o}|{%o}", coords, fields);
+end function;
+
+intrinsic LMFDBWriteJMap(j::SeqEnum, cusps::SeqEnum[CspDat], codomain::MonStgElt, model_type::RngIntElt, label::MonStgElt)
+{Write the j-map and cusps to a file; codomain is the label of the codomain (always canonical model) or empty (for absolute map)}
+    S := Universe(j);
+    AssignCanonicalNames(~S);
+    if #{Degree(coord) : coord in j} ne 1 then
+        printf "Nonhomogeneous warning: %o", j;
+    end if;
+    System("mkdir -p jcusps");
+    fname := Sprintf("jcusps/%o", label);
+    if #codomain gt 0 then
+        Write(fname, Sprintf("%o|%o|{%o}|%o", model_type, codomain, Join([sprint(jcoord) : jcoord in j], ","), get_cusp_str(cusps)));
+    else
+        assert #j eq 2;
+        Write(fname, Sprintf("%o|{%o,%o}|%o", model_type, sprint(j[1]), sprint(j[2]), get_cusp_str(cusps)) : Overwrite);
+    end if;
+end intrinsic;
+
+intrinsic LMFDBReadCusps(label::MonStgElt : rational_only:=false) -> SeqEnum, RngIntElt, RngIntElt, List
+{Returns XG model, model_type, genus, and cusps}
+    X, g, model_type := LMFDBReadXGModel(label);
+    data := Split(Read(Sprintf("jcusps/%o", label)), "|");
+    if #data eq 4 then
+        codomain, j, cusps, fields := Explode(data);
+    else
+        codomain := "";
+        j, cusps, fields := Explode(data);
+    end if;
+    if #cusps gt 2 then
+        cusps := Split(cusps[2..#cusps-1], ",");
+        QQ := Rationals();
+        R<x> := PolynomialRing(QQ);
+        fields := Split(fields[2..#fields-1], ",");
+        by_i := AssociativeArray();
+        for i in [0..#fields] do by_i[i] := []; end for;
+        for cusp in cusps do
+            if not ("a" in cusp) then
+                Append(~by_i[0], cusp);
+            elif not rational_only then
+                first := Index(cusp, "_") + 1;
+                last := first;
+                while cusp[last+1] in "0123456789" do
+                    last +:= 1;
+                end while;
+                i := StringToInteger(cusp[first..last]);
+                Append(~by_i[i], cusp);
+            end if;
+        end for;
+        cusps := [* [StringToRational(c) : c in Split(cusp[2..#cusp-1], ":")] : cusp in by_i[0] *];
+        if not rational_only then
+            for i in [1..#fields] do
+                poly := eval fields[i];
+                K := NumberField(poly);
+                var := Sprintf("a_%o", i);
+                AssignNames(~K, [var]);
+                a := K.1;
+                for cusp in by_i[i] do
+                    subbed := Join(PySplit(cusp, var), "a");
+                    subbed := [eval c : c in Split(subbed[2..#subbed-1], ":")];
+                    Append(~cusps, subbed);
+                end for;
+            end for;
+        end if;
+    else
+        cusps := [* *];
+    end if;
+    return X, model_type, g, cusps;
+end intrinsic;
+
+intrinsic LMFDBReadJMap(label::MonStgElt) -> SeqEnum, RngIntElt, MonStgElt, SeqEnum
+{Returns XG model, model_type, label of codomain, and j-map}
+    X, g, model_type := LMFDBReadXGModel(label);
+    P := Universe(X);
+    nvars := Rank(P);
+    data := Split(Read(Sprintf("jcusps/%o", label)), "|");
+    if #data eq 5 then
+        jtype, codomain, j, cusps, fields := Explode(data);
+    else
+        codomain := "";
+        jtype, j, cusps, fields := Explode(data);
+    end if;
+    assert model_type eq jtype;
+    j := Split(j[2..#j-1], "," : IncludeEmpty:=true);
+    j := [ReadPoly(P, jcoord, nvars : Homogenize:=true) : jcoord in j];
+    return X, model_type, codomain, j;
 end intrinsic;
 
 intrinsic LMFDBReadRelativeJCodomain(label::MonStgElt) -> MonStgElt, SeqEnum
@@ -166,63 +238,10 @@ intrinsic LMFDBReadXGModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIntElt
     P := PolynomialRing(Rationals(), nvars);
     AssignCanonicalNames(~P);
     X := [ReadPoly(P, f, nvars) : f in Split(X[2..#X-1], ",")];
-    return X, g, model_type;
+    return X, g, StringToInteger(model_type);
 end intrinsic;
 
-intrinsic LMFDBReadCanonicalModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIntElt, RngMPolElt, RngMPolElt, List
-{}
-    g := StringToInteger(Split(label, ".")[3]);
-    fname := Sprintf("canonical_models/%o", label);
-    nvars, X, E4E6j, cusps, fields, model_type := Explode(Split(Read(fname), "|"));
-    E4, E6, j := Explode(Split(E4E6j[2..#E4E6j-1], "," : IncludeEmpty:=true));
-    nvars := StringToInteger(nvars);
-    P := PolynomialRing(Rationals(), nvars);
-    AssignCanonicalNames(~P);
-    X := [ReadPoly(P, f, nvars) : f in Split(X[2..#X-1], ",")];
-    j := ReadPoly(P, j, nvars : Homogenize:=true); // note that ReadPoly can also deal with rational functions
-    jnum := Numerator(j);
-    jden := Denominator(j);
-    model_type := StringToInteger(model_type);
-    if #cusps gt 2 then // "{}"
-        cusps := Split(cusps[2..#cusps-1], ",");
-        QQ := Rationals();
-        R<x> := PolynomialRing(QQ);
-        fields := Split(fields[2..#fields-1], ",");
-        by_i := AssociativeArray();
-        for i in [0..#fields] do by_i[i] := []; end for;
-        for cusp in cusps do
-            if not ("a" in cusp) then
-                Append(~by_i[0], cusp);
-            else
-                first := Index(cusp, "_") + 1;
-                last := first;
-                while cusp[last+1] in "0123456789" do
-                    last +:= 1;
-                end while;
-                i := StringToInteger(cusp[first..last]);
-                Append(~by_i[i], cusp);
-            end if;
-        end for;
-        cusps := [* [StringToRational(c) : c in Split(cusp[2..#cusp-1], ":")] : cusp in by_i[0] *];
-        for i in [1..#fields] do
-            poly := eval fields[i];
-            K := NumberField(poly);
-            var := Sprintf("a_%o", i);
-            AssignNames(~K, [var]);
-            a := K.1;
-            for cusp in by_i[i] do
-                subbed := Join(PySplit(cusp, var), "a");
-                subbed := [eval c : c in Split(subbed[2..#subbed-1], ":")];
-                Append(~cusps, subbed);
-            end for;
-        end for;
-    else
-        cusps := [* *];
-    end if;
-    return X, g, model_type, jnum, jden, cusps;
-end intrinsic;
-
-intrinsic LMFDBWritePlaneModel(C::Any, proj::SeqEnum, label::MonStgElt)
+intrinsic LMFDBWritePlaneModel(f::RngMPolElt, proj::SeqEnum, label::MonStgElt)
 {}
     assert #proj eq 3;
     System("mkdir -p plane_models");
@@ -231,21 +250,28 @@ intrinsic LMFDBWritePlaneModel(C::Any, proj::SeqEnum, label::MonStgElt)
         proj := [Numerator(proj[1])*Denominator(proj[2])*Denominator(proj[3]), Numerator(proj[2])*Denominator(proj[3])*Denominator(proj[1]), Numerator(proj[3])*Denominator(proj[1])*Denominator(proj[2])];
     end if;
     R := Universe(proj);
-    g := Rank(R);
+    nvars := Rank(R);
+    g := StringToInteger(Split(label, ".")[3]);
     // Some of the plane model functions use x[1], x[2], etc in the function field
     // We need to replace these with X,Y,Z,W,...
     AssignCanonicalNames(~R);
-    if Type(C) ne RngMPolElt then
-        C := DefiningEquation(C);
+    // Determine whether the model is smooth
+    // Definitely not if g not triangular g = n(n+1)/2 ==> n^2 + n - 2g = 0 ==> 1 + 8g square
+    if IsSquare(8*g + 1) then
+        // Need to construct the curve and check if singular
+        C := Curve(Proj(Parent(f)), f);
+        smooth := IsNonsingular(C) select "t" else "f";
+    else
+        smooth := "f";
     end if;
-    Write(fname, Sprintf("%o|%o|%o", C, Join([sprint(c) : c in proj], ","), g) : Overwrite);
+    Write(fname, Sprintf("%o|%o|%o|%o", sprint(f), Join([sprint(c) : c in proj], ","), nvars, smooth) : Overwrite);
 end intrinsic;
 
 intrinsic LMFDBReadPlaneModel(label::MonStgElt) -> SeqEnum, Tup
 {}
     fname := Sprintf("plane_models/%o", label);
     if OpenTest(fname, "r") then
-        f, proj, g := Explode(Split(Read(fname), "|"));
+        f, proj, g, smooth := Explode(Split(Read(fname), "|"));
         g := StringToInteger(g);
         P3 := PolynomialRing(Rationals(), 3);
         AssignCanonicalNames(~P3);
@@ -307,11 +333,40 @@ intrinsic LMFDBWriteJinvCoords(coords::List, label::MonStgElt)
     for trip in coords do
         model_type, j, coord := Explode(trip);
         j := Join([Sprint(a) : a in Eltseq(j)], ",");
-        K := Sprint(DefiningPolynomial(Universe(Eltseq(coord))));
+        poly := DefiningPolynomial(Universe(Eltseq(coord)));
+        R := Parent(poly);
+        AssignNames(~R, ["x"]);
+        poly := sprint(poly);
         coord := Join([Join([Sprint(a) : a in Eltseq(c)], ",") : c in Coordinates(coord)], ":");
-        Append(~coord_strs, Sprintf("%o|%o|%o|%o", K, j, model_type, coord));
+        Append(~coord_strs, Sprintf("%o|%o|%o|%o", poly, j, model_type, coord));
     end for;
     Write(fname, Join(coord_strs, "\n") : Overwrite);
+end intrinsic;
+
+intrinsic LMFDBReadJinvCoords(label::MonStgElt : can_only:=false) -> Assoc
+{}
+    fname := Sprintf("rats/%o", label);
+    lines := Split(Read(fname), "\n");
+    coords := AssociativeArray();
+    R<x> := PolynomialRing(Rationals());
+    for line in line do
+        poly, j, model_type, coord := Explode(Split(line, "|"));
+        model_type := StringToInteger(model_type);
+        if can_only and model_type ne 0 then continue; end if;
+        poly := eval(poly);
+        if poly eq x-1 then
+            K := RationalsAsNumberField();
+        else
+            K := NumberField(poly);
+        end if;
+        j := K![StringToRational(c) : c in Split(j, ",")];
+        coord := [K![StringToRational(c) : c in Split(z, ",")] : z in Split(coord, ":")];
+        if not IsDefined(coords, K) then
+            coords[K] := [];
+        end if;
+        Append(~coords[K], <j, coord>);
+    end for;
+    return coords;
 end intrinsic;
 
 intrinsic LMFDBWriteCuspCoords(coords::List, label::MonStgElt)

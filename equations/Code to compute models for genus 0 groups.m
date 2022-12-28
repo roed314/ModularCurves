@@ -137,7 +137,7 @@ Q0 := Conic(D);
 Q,_ := Conic(Transpose(Amatrix^(-1))*D*Amatrix^(-1));  // Transpose because MAGMA uses right action.
 Q := ChangeRing(Q,Rationals());  // Q is our conic.
 
-boolean,_:=HasRationalPoint(Q); 
+boolean,Qpt:=HasRationalPoint(Q); 
             if boolean eq false then 
             B:=Amatrix;
 	          	B:=Matrix(R,3,3,[[R!B[i,j]:j in [1..3]]:i in [1..3]]);
@@ -155,7 +155,7 @@ boolean,_:=HasRationalPoint(Q);
 		           FFQ<y> := FunctionField(pol);
 		           F:=(A[1]*x+A[2]*y+A[3])/(A[4]*x+A[5]*y+A[6]);
 		           J1:=Evaluate(CPlist[Gamma`sl2label]`J,F);
-			   return Q,J1,boolean;
+			   return Q,J1,boolean, _;
             end if;
             if boolean eq true then
                 B := (Transpose(ParametrizationMatrix(Q)))^(-1); //Transpose to make it left action 
@@ -165,7 +165,7 @@ boolean,_:=HasRationalPoint(Q);
                 g1 := (C[1,1]*t+C[1,2])/(C[2,1]*t+C[2,2]); 
                 
                 J1:=  Evaluate(CPlist[Gamma`sl2label]`J,g1); assert J1 in FunctionField(Rationals()); 
-                return Q, J1, boolean;
+                return Q, J1, boolean, Qpt;
 
 end if;
 

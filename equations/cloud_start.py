@@ -14,15 +14,13 @@
 # - Base change for CM points (duplicated points in rats/).  Need to throw away points of lower degree?
 
 # Copied into the home directory for running
-# Write code to determine minimal non-hyperelliptic
 # Check Shiva's fix
-# One-per-Galois-orbit in GetRationalPoints.m
 # Create picture database
-# Update gonality to rule out hyperelliptic
-# Factor j-map, check on other todos in compute_lattice_x
-# Switch to LMFDB(Read/Write)XGMode and LMFDB(Read/Write)JMap from LMFDBWriteModel and LMFDBReadCanonicalModel
-# Update lifting of rational points (and cusps?) to use relative j-maps
-# Add ReportStart/End to relative j-invariants
+# Factor j-map, update/check on other todos in compute_lattice_x
+# Homogenize j
+# Check lifting of rational points (and cusps?) on relative j-maps
+# Need to move rational point and cusp data from output file to folders before second deployment
+# Update save_ecnf_data to account for updated base_change records in ec_nfcurves
 
 import os
 import argparse
@@ -39,6 +37,7 @@ os.makedirs("canonical_models", exist_ok=True)
 os.makedirs("plane_models", exist_ok=True)
 os.makedirs("ghyp_models", exist_ok=True)
 os.makedirs("rats", exist_ok=True)
+os.makedirs("jcusps", exist_ok=True)
 os.makedirs("cusps", exist_ok=True)
 os.makedirs("gonality", exist_ok=True)
 os.makedirs("graphviz_out", exist_ok=True)
@@ -123,6 +122,7 @@ def collate_data(label):
                 ("P", "plane_models"),
                 ("H", "ghyp_models"),
                 ("R", "rats"),
+                ("J", "jcusps"),
                 ("U", "cusps"),
                 ("G", "gonality"),
                 ("L", "graphviz_out"),

@@ -20,34 +20,93 @@ ans := [* *];
 if #jinvs gt 0 then
     t0 := ReportStart(label, "pulling back j-invariants");
     QQ := Rationals();
-    X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
+    X, model_type, codomain, j := LMFDBReadJMap(label);
     Cs := LMFDBReadPlaneModel(label);
+    if #codomain eq 0 then
+        Y := ProjectiveSpace(QQ, 1);
+        jinvs := [* <[pair[1], 1], pair[2]> : pair in jinvs *];
+    else
+        Y, gY, modtY := LMFDBReadXGModel(codomain);
+        Y := Curve(Proj(Universe(Y)), Y);
+        Ycoords := LMFDBReadJinvCoords(codomain : can_only:=true);
+        // The field of definition may be different for Y and X, so we need to track embeddings of these fields
+        new_jinvs := [* *];
+        roots := AssociativeArray();
+        for Lpair in jinvs do
+            jL, isolated := Explode(Lpair);
+            L := Parent(jL);
+            fL := DefiningPolynomial(L);
+            for K -> clist in Ycoords do
+                fK := DefiningPolynomial(K);
+                if IsDefined(roots, <fK, fL>) then
+                    rts := roots[<fK, fL>];
+                else
+                    rts := Roots(fK, L);
+                    roots[<fK, fL>] := rts;
+                end if;
+                for Kpair in clist do
+                    for r in rts do
+                        emb := hom<K -> L | r>;
+                        jK, Kcoord := Explode(Kpair);
+                        if emb(jK) eq jL then
+                            Append(~new_jinvs, <jL, [emb(c) : c in Kcoord]>);
+                            // There may be multiple embeddings of K into L that map the j-invariant correctly; we only one one of them since we only want one representative per Galois orbit.
+                            break;
+                        end if;
+                    end for;
+                end for;
+            end for;
+        end for;
+        jinvs := new_jinvs;
+    end if;
     X := Curve(Proj(Universe(X)), X);
     if #Cs gt 0 then
         C := Curve(Proj(Parent(Cs[1][1])), Cs[1][1]);
     end if;
+    auts := AssociativeArray();
     for pair in jinvs do
-        j, isolated := Explode(pair);
-        K := Parent(j);
-        P1K := ProjectiveSpace(K, 1);
-        XK := ChangeRing(X, K);
-        projK := map<XK -> P1K | [jnum, jden]>;
-        if #Cs gt 0 then
-            CK := ChangeRing(C, K);
-            T := ChangeRing(Universe(Cs[1][2]), K);
-            CprojK := map<XK -> CK| [T!f : f in Cs[1][2]]>;
+        jL, isolated := Explode(pair);
+        L := Universe(jL);
+        if L eq QQ then
+            autL := [];
+        elif IsDefined(auts, L) then
+            autL := auts[];
+        else
+            autL := [sigma : sigma in Automorphisms(L) | sigma(L.1) ne L.1];
+            auts[L] := autL;
         end if;
-        P1pt := P1K![j,1];
-        Xpt := P1pt @@ (projK);
-        t1 := ReportStart(label, Sprintf("computing rational points above j=%o", j));
+        YL := ChangeRing(Y, L);
+        XL := ChangeRing(X, L);
+        projL := map<XL -> YL | j>;
+        if #Cs gt 0 then
+            CL := ChangeRing(C, L);
+            T := ChangeRing(Universe(Cs[1][2]), L);
+            CprojL := map<XL -> CL| [T!f : f in Cs[1][2]]>;
+        end if;
+        Ypt := YL!jL;
+        Xpt := Ypt @@ (projL);
+        t1 := ReportStart(label, Sprintf("computing rational points above j=%o", jL));
         Xcoords := RationalPoints(Xpt);
-        ReportEnd(label, Sprintf("computing rational points above j=%o", j), t1);
+        ReportEnd(label, Sprintf("computing rational points above j=%o", jL), t1);
         // Throw out points that actually lie in a subfield
-        if K ne QQ then
-            Xcoords := [pt : pt in Xcoords | Degree(sub<K | Eltseq(pt)>) eq Degree(K)];
+        if L ne QQ then
+            Xcoords := [pt : pt in Xcoords | Degree(sub<L | Eltseq(pt)>) eq Degree(K)];
+        end if;
+        // Only keep one point from each Galois orbit
+        if #autL gt 0 and #Xcoords gt 1 then
+            trimmed := [];
+            while #Xcoords gt 0 do
+                pt := Xcoords[1];
+                Remove(~Xcoords, 1);
+                Append(~trimmed, pt);
+                for sigma in autL do
+                    Exclude(~Xcoords, [sigma(c) : c in pt]); // We're assuming that the coordinates are normalized so that we can just test equality of eltseq
+                end for;
+            end while;
+            Xcoords := trimmed;
         end if;
         if #Xcoords eq 0 then
-            printf "Error: no point on %o above j=%o!\n", label, j;
+            printf "Error: no point on %o above j=%o!\n", label, jL;
             continue;
         end if;
         /*
@@ -65,7 +124,7 @@ if #jinvs gt 0 then
         end if;
         */
         for pt in Xcoords do
-            Append(~ans, <0, j, pt>);
+            Append(~ans, <model_type, jL, pt>);
         end for;
         if #Cs gt 0 then
             // This produces extra points, which I think are singular
@@ -75,7 +134,7 @@ if #jinvs gt 0 then
             //    Append(~ans, <2, j, coords>);
             //end for;
             for pt in Xcoords do
-                Append(~ans, <2, j, (XK!pt) @ CprojK>);
+                Append(~ans, <2, jL, (XL!pt) @ CprojL>);
             end for;
         end if;
     end for;

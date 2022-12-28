@@ -91,6 +91,7 @@ end function;
 
 intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjugator::SeqEnum) -> Crv, SeqEnum, SeqEnum, Rec
 {}
+    tt := ReportStart(cover_label, "RelativeJMap");
     N0, gens0 := GetLevelAndGensFromLabel(cover_label);
     N, gens := GetLevelAndGensFromLabel(covered_label);
 
@@ -102,7 +103,9 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     assert G0 subset G;
 
     M := CreateModularCurveRec(N, gens);
+    t := ReportStart(cover_label, "CoveredModel");
     M, model_type := FindModelOfXG(M, covered_label);
+    ReportEnd(cover_label, "CoveredModel", t);
     assert model_type eq 0;
     F := M`F0;
     g := M`genus;
@@ -113,8 +116,10 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     M0 := CreateModularCurveRec(N0, gens0);
     g0 := M0`genus;
     assert g0 ge 3;
+    t0 := ReportStart(cover_label, "CoverModel");
     prec0 := RequiredPrecision(M0);
     flag0, psi0, F0 := FindCanonicalModel(M0, prec0);
+    ReportEnd(cover_label, "CoverModel", t0);
     assert flag0;
     M0`k := 2;
     M0`F0 := F0;
@@ -125,6 +130,7 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     M0`has_infinitely_many_points := false;
     M0`mult := [1 : i in [1..M0`vinf]];
 
+    t1 := ReportStart(cover_label, "ConvertModularFormExpansions");
     F1 := [ConvertModularFormExpansions(M, M0, [1,0,0,1], f) : f in F0];
     // The entries in F1 are laurent series, but we need power series to fit with F
     R := Parent(F[1][1]);
@@ -132,8 +138,10 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     rels := FindRelations(F cat F1, 1);
     mat := Matrix(Rationals(), g, g+g0, [[Coefficient(rels[i], j, 1) : j in [1..g + g0]] : i in [1..g]]);
     mat := EchelonForm(mat);
+    ReportEnd(cover_label, "ConvertModularFormExpansions", t1);
     assert mat[g,g] eq 1;
     proj := [&+[mat[i,g + j] * S0.j : j in [1..g0]] : i in [1..g]];
+    ReportEnd(cover_label, "RelativeJMap", tt);
     return C0, proj, F0, M0;
 end intrinsic;
 
@@ -150,9 +158,13 @@ intrinsic AbsoluteJMap(label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEn
   M := CreateModularCurveRec(N,gens);
   M, model_type, mind, maxd := FindModelOfXG(M, label);
   if model_type eq 5 then
+    LMFDBWriteXGModel(M`C, model_type, label);
     ReportEnd(label, "AbsoluteJMap", tttt);
     return M`C, M`map_to_jline, model_type, M`f cat [[1 : i in [1..#M`cusps]]], M;
   end if;
+  C := Curve(ProjectiveSpace(Rationals(), #M`F0 - 1), M`psi);
+
+  LMFDBWriteXGModel(C, model_type, label);
   modeltime := Cputime(tttt);
 
   // Post-processing on q-expansions
@@ -398,7 +410,6 @@ end if;
   weakzero := [ &+[ v[i]*canring[curd][1][i][j] : i in [1..canringdim]]*func - &+[ v[i+canringdim]*canring[curd][1][i][j] : i in [1..canringdim]] : j in [1..#chosencusps]];
   assert &and [ IsWeaklyZero(weakzero[i]) : i in [1..#chosencusps]];
 
-  C := Curve(ProjectiveSpace(Rationals(),#modforms-1),M`psi);
   jmap := map<C -> ProjectiveSpace(Rationals(),1) | [num,denom]>;
 
   vprint User1: Sprintf("Model time = %o.", modeltime);

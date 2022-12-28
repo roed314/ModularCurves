@@ -815,9 +815,9 @@ File output: Writes a plane model to plane_models/<label>, if the model is bette
 
 High genus is a bit of a misnomer: this works as long as g > 0 and the canonical model is not already a plane model.
 }
-    X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
+    X, model_type, g, cusps := LMFDBReadCusps(label : rational_only:=true);
+    rcusps := [c : c in cusps];
     q_low, q_high, qbar_low, qbar_high := Explode(LMFDBReadGonalityBounds(label));
-    rcusps := [c : c in cusps | Universe(c) eq Rationals()];
     C, bestkey := LMFDBReadPlaneModel(label);
     P := Parent(X[1]);
     ambient := ProjectiveSpace(P);
@@ -853,7 +853,7 @@ intrinsic PlaneModelAndGonalityBounds(label::MonStgElt) -> Tup, SeqEnum
             Writes plane model using LMFDBWritePlaneModel when there is an improvement
             If hyperelliptic, writes to ghyp_models/<label> instead
 }
-    X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
+    X, g, model_type := LMFDBReadXGModel(label);
     ghyp := (model_type eq -1);
     q_low, q_high, qbar_low, qbar_high := Explode(LMFDBReadGonalityBounds(label));
     C, bestkey := LMFDBReadPlaneModel(label);
@@ -896,7 +896,14 @@ intrinsic PlaneModelAndGonalityBounds(label::MonStgElt) -> Tup, SeqEnum
             q_high := 4;
             // Later, we'll use Edgar and Raymond's code to find model as double cover of conic
         end if;
-    elif g ge 3 and g le 6 then
+    end if;
+    if g gt 1 and not ghyp then
+        // not geometrically hyperelliptic
+        qbar_low := Max(qbar_low, 3);
+        q_low := Max(q_low, 3);
+        LMFDBWriteGonalityBounds(<q_low, q_high, qbar_low, qbar_high>, label);
+    end if;
+    if g ge 3 and g le 6 and not ghyp then
         try
             t0 := ReportStart(label, "gonality");
             if g eq 3 then
