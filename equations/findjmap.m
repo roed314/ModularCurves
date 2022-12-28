@@ -124,6 +124,7 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     M0`k := 2;
     M0`F0 := F0;
     M0`psi := psi0;
+    M0`prec := prec0;
     S0 := Universe(psi0);
     AssignCanonicalNames(~S0);
     C0 := Curve(Proj(S0), psi0);

@@ -20,7 +20,7 @@ intrinsic GetLevelAndGensFromLabel(label::MonStgElt) ->
     return level, gens;
 end intrinsic;
 
-intrinsic FindModelOfXG(M::Rec, label::MonStgElt) -> Rec, RngIntElt, RngIntElt, RngIntElt
+intrinsic FindModelOfXG(M::Rec, label::MonStgElt) -> Rec, RngIntElt, RngIntElt, RngIntElt, RngIntElt
 {Version of FindModelOfXG that automatically chooses precision and sets the random seed to try to make the model more consistent.  Returns the ModularCurveRec, the model type, mind and maxd (see below)}
     ttemp := ReportStart(label, "model and modular forms");
     vprint User1: "Starting model computation with low precision";
@@ -47,10 +47,10 @@ intrinsic FindModelOfXG(M::Rec, label::MonStgElt) -> Rec, RngIntElt, RngIntElt, 
 	    jinv := Evaluate(jinv0,PP.1^N);
 	    jinv2 := [ jinv : i in [1..M`vinf]];
 	    success, ecjmap := FindRelationElliptic(M,jinv2);
-            M`map_to_jline := ecjmap;
             M`prec := prec;
 	    prec +:= N;
         end while;
+        M`map_to_jline := ecjmap;
 
         vprint User1: Sprintf("Minimal model is %o.", M`C);
         vprint User1: Sprintf("j-map is %o.", ecjmap);
@@ -58,7 +58,7 @@ intrinsic FindModelOfXG(M::Rec, label::MonStgElt) -> Rec, RngIntElt, RngIntElt, 
         // 5 is the code for hyperelliptic models
         // For now, we decided it includes Weierstrass equations
         ReportEnd(label, "model and modular forms", ttemp);
-        return M, 5, 0, 0;
+        return M, 5, 0, 0, 0;
     end if;
 
     maxd := 0;

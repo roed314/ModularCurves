@@ -224,10 +224,10 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
     if prec eq 0 then
         prec := rec`prec;
     end if;
-    if not assigned rec`F then
-        rec := FindModularForms(2,rec,prec);
-    end if;
     if not assigned rec`F0 then
+        if not assigned rec`F then
+            rec := FindModularForms(2,rec,prec);
+        end if;
         rec := FindCuspForms(rec);
     end if;
 
