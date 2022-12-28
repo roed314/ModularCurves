@@ -335,6 +335,7 @@ intrinsic LMFDBWriteJinvCoords(coords::List, label::MonStgElt)
     coord_strs := [];
     for trip in coords do
         model_type, j, coord := Explode(trip);
+        coord := Eltseq(coord);
         j := Join([Sprint(a) : a in Eltseq(j)], ",");
         poly := DefiningPolynomial(Universe(Eltseq(coord)));
         R := Parent(poly);

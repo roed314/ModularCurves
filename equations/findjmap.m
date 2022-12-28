@@ -99,8 +99,10 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     GLN0 := GL(2, Integers(N0));
     G := sub<GLN | [GLN!v : v in gens]>;
     G0 := sub<GLN0 | [GLN0!v : v in gens0]>;
-    G0 := G0^(GLN0!conjugator);
-    assert G0 subset G;
+    // Have to invert the conjugator since we're transposing the gens
+    conjugator := (GLN0!conjugator)^-1;
+    G0 := G0^conjugator;
+    assert ChangeRing(G0, Integers(N)) subset G;
 
     M := CreateModularCurveRec(N, gens);
     t := ReportStart(cover_label, "CoveredModel");
@@ -117,19 +119,22 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     g0 := M0`genus;
     assert g0 ge 3;
     t0 := ReportStart(cover_label, "CoverModel");
-    prec0 := RequiredPrecision(M0);
-    flag0, psi0, F0 := FindCanonicalModel(M0, prec0);
+    //prec0 := RequiredPrecision(M0);
+    //flag0, psi0, F0 := FindCanonicalModel(M0, prec0);
+    M0, model_type0 := FindModelOfXG(M0, cover_label);
     ReportEnd(cover_label, "CoverModel", t0);
-    assert flag0;
-    M0`k := 2;
-    M0`F0 := F0;
-    M0`psi := psi0;
-    M0`prec := prec0;
+    //assert flag0;
+    //M0`k := 2;
+    //M0`F0 := F0;
+    //M0`psi := psi0;
+    //M0`prec := prec0;
+    psi0 := M0`psi;
+    F0 := M0`F0;
     S0 := Universe(psi0);
     AssignCanonicalNames(~S0);
     C0 := Curve(Proj(S0), psi0);
-    M0`has_infinitely_many_points := false;
-    M0`mult := [1 : i in [1..M0`vinf]];
+    //M0`has_infinitely_many_points := false;
+    //M0`mult := [1 : i in [1..M0`vinf]];
 
     t1 := ReportStart(cover_label, "ConvertModularFormExpansions");
     F1 := [ConvertModularFormExpansions(M, M0, [1,0,0,1], f) : f in F0];
