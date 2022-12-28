@@ -200,7 +200,7 @@ intrinsic LMFDBReadJMap(label::MonStgElt) -> SeqEnum, RngIntElt, MonStgElt, SeqE
         codomain := "";
         jtype, j, cusps, fields := Explode(data);
     end if;
-    assert model_type eq jtype;
+    assert model_type eq StringToInteger(jtype);
     j := Split(j[2..#j-1], "," : IncludeEmpty:=true);
     j := [ReadPoly(P, jcoord, nvars : Homogenize:=true) : jcoord in j];
     return X, model_type, codomain, j;
