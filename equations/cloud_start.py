@@ -17,7 +17,7 @@
 # Check Shiva's fix
 # Create picture database
 # Factor j-map, update/check on other todos in compute_lattice_x
-# Homogenize j
+# Homogenize j (for elliptic curves)
 # Check lifting of rational points (and cusps?) on relative j-maps
 # Need to move rational point and cusp data from output file to folders before second deployment
 # Update save_ecnf_data to account for updated base_change records in ec_nfcurves
