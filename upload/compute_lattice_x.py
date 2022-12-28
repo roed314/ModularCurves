@@ -606,10 +606,14 @@ def get_relj_codomains():
                     conj = parents_conj[label, ylabel] * yconj
                     tmp.append((ybest, conj))
             cod[label] = min(tmp, key=index_sort_key)
+    cods = set()
     for label, (codomain, conj) in cod.items():
         if label != codomain:
+            cods.add(codomain)
             with open(opj(output_folder, label), "w") as F:
                 _ = F.write(f"{codomain}|{','.join(str(c) for c in conj.list())}")
+    with open(opj("..", "equations", "codtodo.txt"), "w") as Ftodo:
+        _ = Ftodo.write("\n".join(cods) + "\n")
 
 def prep_all():
     make_input_data()
