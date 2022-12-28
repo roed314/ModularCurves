@@ -584,7 +584,7 @@ def get_relj_codomains():
             hyp_lookup[label] = (hyp == "t")
     parents_conj = {}
     M = MatrixSpace(ZZ, 2)
-    for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "parents", "parents_conj"]):
+    for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True, "genus": {"$lte": 24}}, ["label", "parents", "parents_conj"]):
         for plabel, pconj in zip(rec["parents"], rec["parents_conj"]):
             parents_conj[rec["label"], plabel] = M(pconj)
     P = get_lattice_poset()
@@ -597,7 +597,7 @@ def get_relj_codomains():
     for x in index_iterator(P, X1):
         label = P._vertex_to_element(x)
         N, i, g, a, n = label.split(".")
-        if int(g) >= 3 and not hyp_lookup.get(label):
+        if 3 <= int(g) <= 24 and not hyp_lookup.get(label):
             tmp = [(label, M((1,0,0,1)))]
             for y in H.neighbors_in(x):
                 ylabel = P._vertex_to_element(y)
