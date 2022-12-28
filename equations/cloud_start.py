@@ -30,7 +30,8 @@ opj = os.path.join
 ope = os.path.exists
 parser = argparse.ArgumentParser("Dispatch to appropriate magma script")
 parser.add_argument("job", type=int, help="job number")
-parser.add_argument("verbose", action="store_true")
+parser.add_argument("--verbose", action="store_true")
+parser.add_argument("--cod", action="store_true")
 
 # These folders are needed by the scripts to be called below
 os.makedirs("canonical_models", exist_ok=True)
@@ -49,6 +50,10 @@ os.makedirs("stdout", exist_ok=True)
 
 args = parser.parse_args()
 job = args.job - 1 # shift from 1-based to 0-based indexing
+if args.cod:
+    todo = "codtodo.txt"
+else:
+    todo = "todo.txt"
 with open("todo.txt") as F:
     L = F.read().strip().split("\n")
     label = L[job]
