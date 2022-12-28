@@ -900,7 +900,7 @@ def write_models_maps(cans, planes, ghyps, jcusps):
         dontdisplay = dontdisplay_str(can)
         models[label].append(f"{label}|{can}|{nvar}|{model_type}|{smooth}|{dontdisplay}\n")
     for label, lines in jcusps.items():
-        assert len(lines) == 1:
+        assert len(lines) == 1
         line = lines[0]
         if line.count("|") == 4:
             model_type, codomain, jmap, cuspcoords, cuspfields = line.split("|")
