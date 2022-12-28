@@ -90,7 +90,7 @@ if #jinvs gt 0 then
         ReportEnd(label, Sprintf("computing rational points above j=%o", jL), t1);
         // Throw out points that actually lie in a subfield
         if L ne QQ then
-            Xcoords := [pt : pt in Xcoords | Degree(sub<L | Eltseq(pt)>) eq Degree(K)];
+            Xcoords := [pt : pt in Xcoords | Degree(sub<L | Eltseq(pt)>) eq Degree(L)];
         end if;
         // Only keep one point from each Galois orbit
         if #autL gt 0 and #Xcoords gt 1 then
@@ -115,7 +115,7 @@ if #jinvs gt 0 then
             // We first see if an improved gonality bound can solve the problem
             gon_bounds := LMFDBReadGonalityBounds(label);
             gon_low := gon_bounds[1];
-            degree := Degree(K);
+            degree := Degree(L);
             if degree lt gon_low / 2 then
                 isolated := 4;
             else
@@ -128,7 +128,7 @@ if #jinvs gt 0 then
         end for;
         if #Cs gt 0 then
             // This produces extra points, which I think are singular
-            //Cpt := Xpt @ (CprojK);
+            //Cpt := Xpt @ (CprojL);
             //Ccoords := RationalPoints(Cpt);
             //for coords in Ccoords do
             //    Append(~ans, <2, j, coords>);
