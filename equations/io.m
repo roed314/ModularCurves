@@ -139,7 +139,7 @@ end intrinsic;
 intrinsic LMFDBReadCusps(label::MonStgElt : rational_only:=false) -> SeqEnum, RngIntElt, RngIntElt, List
 {Returns XG model, model_type, genus, and cusps}
     X, g, model_type := LMFDBReadXGModel(label);
-    data := Split(Read(Sprintf("jcusps/%o", label)), "\n")[1]
+    data := Split(Read(Sprintf("jcusps/%o", label)), "\n")[1];
     data := Split(data, "|");
     if #data eq 4 then
         codomain, j, cusps, fields := Explode(data);
