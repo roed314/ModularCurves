@@ -156,7 +156,7 @@ intrinsic AbsoluteJMap(label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEn
   gp := sub<GL(2,Integers(N))|gens>;
 
   M := CreateModularCurveRec(N,gens);
-  M, model_type, mind, maxd := FindModelOfXG(M, label);
+  M, model_type, mind, maxd, maxprec := FindModelOfXG(M, label);
   if model_type eq 5 then
     LMFDBWriteXGModel(M`C, model_type, label);
     ReportEnd(label, "AbsoluteJMap", tttt);
@@ -221,7 +221,7 @@ intrinsic AbsoluteJMap(label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEn
       vprint User1: Sprintf("For cusp %o, Fourier coefficient field is %o.", c, R!DefiningPolynomial(KK));
       PP<qN> := LaurentSeriesRing(KK);
       Embed(KK,Parent(z),prim);
-      totalprec := totalprec + M`prec*Degree(KK);
+      totalprec := totalprec + maxprec*Degree(KK);
       curfour := <>;
       for i in [1..#modforms0] do
 	  newfourier := &+[ KK!Coefficient(modforms0[i][c],l)*qN^l : l in [0..AbsolutePrecision(modforms0[i][c])-1]] + BigO(qN^AbsolutePrecision(modforms0[i][c]));
@@ -288,7 +288,7 @@ intrinsic AbsoluteJMap(label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEn
 
   ttemp := ReportStart(label, "linear algebra");
   FFFF<qN> := LaurentSeriesRing(Rationals());
-  j := (1728*Eisenstein(4,qN : Precision := Ceiling((M`prec+2*N)/N))^3)/(Eisenstein(4,qN : Precision := Ceiling((M`prec+2*N)/N))^3 - Eisenstein(6,qN : Precision := Ceiling((M`prec+2*N)/N))^2);
+  j := (1728*Eisenstein(4,qN : Precision := Ceiling((maxprec+2*N)/N))^3)/(Eisenstein(4,qN : Precision := Ceiling((maxprec+2*N)/N))^3 - Eisenstein(6,qN : Precision := Ceiling((maxprec+2*N)/N))^2);
   j := Evaluate(j,qN^N);
 
   func := j;
@@ -301,7 +301,7 @@ for i in [1..#canring[curd][1]] do
   vecseq := [];
   for jj in [1..#chosencusps] do
     pp := (func*canring[curd][1][i][jj]);
-    vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+M`prec-2]]);
+    vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+maxprec-2]]);
   end for;
   jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
 end for;
@@ -310,7 +310,7 @@ for i in [1..#canring[curd][1]] do
   vecseq := [];
   for jj in [1..#chosencusps] do
     pp := -canring[curd][1][i][jj];
-    vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+M`prec-2]]);
+    vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+maxprec-2]]);
   end for;
   jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
 end for;
@@ -328,7 +328,7 @@ if (done eq false) then
     vecseq := [];
     for jj in [1..#chosencusps] do
       pp := (func*canring[curd][1][i][jj]);
-      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+M`prec-2]]);
+      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+maxprec-2]]);
     end for;
     jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
   end for;
@@ -337,7 +337,7 @@ if (done eq false) then
     vecseq := [];
     for jj in [1..#chosencusps] do
       pp := -canring[curd][1][i][jj];
-      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+M`prec-2]]);
+      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [curd*chosenmult[jj]-N..curd*chosenmult[jj]-N+maxprec-2]]);
     end for;
     jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
   end for;
@@ -352,7 +352,7 @@ end if;
       vecseq := [];
       for jj in [1..#chosencusps] do
 	  pp := (func*canring[curd][1][i][jj]);
-	  vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+M`prec-1]]);
+	  vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+maxprec-1]]);
       end for;
       jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
   end for;
@@ -361,7 +361,7 @@ end if;
       vecseq := [];
       for jj in [1..#chosencusps] do
 	  pp := -canring[curd][1][i][jj];
-	  vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+M`prec-1]]);
+	  vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+maxprec-1]]);
       end for;
       jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
   end for;
@@ -379,7 +379,7 @@ end if;
 	  vecseq := [];
 	  for jj in [1..#chosencusps] do
 	      pp := (func*canring[curd][1][i][jj]);
-	      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+M`prec-1]]);
+	      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+maxprec-1]]);
 	  end for;
 	  jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
       end for;
@@ -388,7 +388,7 @@ end if;
 	  vecseq := [];
 	  for jj in [1..#chosencusps] do
 	      pp := -canring[curd][1][i][jj];
-	      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+M`prec-1]]);
+	      vecseq := vecseq cat (&cat [ Eltseq(Coefficient(pp,m)) : m in [-N..-N+maxprec-1]]);
 	  end for;
 	  jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
       end for;

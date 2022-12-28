@@ -88,9 +88,10 @@ if #jinvs gt 0 then
         t1 := ReportStart(label, Sprintf("computing rational points above j=%o", jL));
         Xcoords := RationalPoints(Xpt);
         ReportEnd(label, Sprintf("computing rational points above j=%o", jL), t1);
+        Xcoords := [Eltseq(pt) : pt in Xcoords];
         // Throw out points that actually lie in a subfield
         if L ne QQ then
-            Xcoords := [pt : pt in Xcoords | Degree(sub<L | Eltseq(pt)>) eq Degree(L)];
+            Xcoords := [pt : pt in Xcoords | Degree(sub<L | pt>) eq Degree(L)];
         end if;
         // Only keep one point from each Galois orbit
         if #autL gt 0 and #Xcoords gt 1 then

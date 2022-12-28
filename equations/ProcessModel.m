@@ -111,7 +111,7 @@ intrinsic FindModelOfXG(M::Rec, label::MonStgElt) -> Rec, RngIntElt, RngIntElt, 
         end if;
     end if;
     ReportEnd(label, "model and modular forms", ttemp);
-    return M, model_type, mind, maxd;
+    return M, model_type, mind, maxd, maxprec;
 end intrinsic;
 
 BareGenus := recformat<genus>;
