@@ -618,7 +618,8 @@ def get_relj_codomains():
         _ = F.write("\n".join(cods) + "\n")
     with open(opj("..", "equations", "todo.txt"), "w") as F:
         for label in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, "label"):
-            _ = F.write(label + "\n")
+            if label not in cods:
+                _ = F.write(label + "\n")
 
 def prep_all():
     make_input_data()
