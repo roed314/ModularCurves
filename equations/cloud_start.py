@@ -61,7 +61,7 @@ if args.cod:
     todo = "codtodo.txt"
 else:
     todo = "todo.txt"
-with open("todo.txt") as F:
+with open(todo) as F:
     L = F.read().strip().split("\n")
     label = L[job]
 
