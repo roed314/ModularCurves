@@ -250,9 +250,9 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
         NextProjector(~state, ~M);
         MF := F0Combination(rec`F0, M);
         for m in [low..high] do
-            ttmp := ReportStart(label, Sprintf("plane relation"));
+            //ttmp := ReportStart(label, Sprintf("plane relation"));
             rels := FindRelations(MF, m);
-            ReportEnd(label, Sprintf("plane relation"), ttmp);
+            //ReportEnd(label, Sprintf("plane relation"), ttmp);
             trel +:= Cputime() - ttmp;
             if #rels gt 0 then
                 f := R!rels[1];
