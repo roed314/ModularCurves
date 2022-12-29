@@ -17,10 +17,17 @@
 # Check Shiva's fix
 # Create picture database
 # Factor j-map, update/check on other todos in compute_lattice_x
-# Homogenize j (for elliptic curves)
+# Homogenize j (for elliptic curves 6.12.1.b.1 Argument types given: RngMPolResElt, RngMPolResElt, RngIntElt)
 # Check lifting of rational points (and cusps?) on relative j-maps
 # Need to move rational point and cusp data from output file to folders before second deployment
 # Update save_ecnf_data to account for updated base_change records in ec_nfcurves
+
+# In file "/home/roed/ModularCurves/equations/OpenImage/main/ModularCurves.m", line 386, column 12:
+# >>     F_:=[R1!f : f in F_];
+# Runtime error in '!': Illegal coercion
+# cover_label: 16.384.13.p.1,
+# covered_label: 8.96.3.g.1,
+# conjugator: [10  9] [ 9 12]
 
 import os
 import argparse

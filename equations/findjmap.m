@@ -100,7 +100,7 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     G := sub<GLN | [GLN!v : v in gens]>;
     G0 := sub<GLN0 | [GLN0!v : v in gens0]>;
     // Have to invert the conjugator since we're transposing the gens
-    conjugator := (GLN0!conjugator)^-1;
+    conjugator := Transpose(GLN0!conjugator)^-1;
     G0 := G0^conjugator;
     assert ChangeRing(G0, Integers(N)) subset G;
 
@@ -119,7 +119,7 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     g0 := M0`genus;
     assert g0 ge 3;
     t0 := ReportStart(cover_label, "CoverModel");
-    prec0 := RequiredPrecision(M0);
+    prec0 := Max(RequiredPrecision(M0), M`prec);
     flag0, psi0, F0 := FindCanonicalModel(M0, prec0);
     //M0, model_type0 := FindModelOfXG(M0, cover_label);
     ReportEnd(cover_label, "CoverModel", t0);
@@ -141,8 +141,9 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     // The entries in F1 are laurent series, but we need power series to fit with F
     R := Parent(F[1][1]);
     F1 := [[R!qexp : qexp in f] : f in F1];
+    // We need to express every entry in F in terms of F1
     rels := FindRelations(F cat F1, 1);
-    mat := Matrix(Rationals(), g, g+g0, [[Coefficient(rels[i], j, 1) : j in [1..g + g0]] : i in [1..g]]);
+    mat := Matrix(Rationals(), #rels, g+g0, [[Coefficient(rels[i], j, 1) : j in [1..g + g0]] : i in [1..#rels]]);
     mat := EchelonForm(mat);
     ReportEnd(cover_label, "ConvertModularFormExpansions", t1);
     assert mat[g,g] eq 1;
