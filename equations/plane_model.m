@@ -251,6 +251,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
         MF := F0Combination(rec`F0, M);
         for m in [low..high] do
             //ttmp := ReportStart(label, Sprintf("plane relation"));
+            ttmp := Cputime();
             rels := FindRelations(MF, m);
             //ReportEnd(label, Sprintf("plane relation"), ttmp);
             trel +:= Cputime() - ttmp;
