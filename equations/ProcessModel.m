@@ -207,6 +207,8 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, SeqEnum,
         codomain, conj := LMFDBReadRelativeJCodomain(label);
         if #codomain gt 0 then
             X, j, F0, M := RelativeJMap(label, codomain, conj); // writes model
+            // gens were changed to define the relative j-map
+            gens := M`gens;
             model_type := 0;
         else
             X, j, model_type, F0, M := AbsoluteJMap(label); // writes model
