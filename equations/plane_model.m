@@ -566,7 +566,7 @@ intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> Tup
     error "No plane map computed from gonal map";
 end intrinsic;
 
-intrinsic planemodel_fromgonalmap2(gonal_map::MapSch) -> Tup
+intrinsic planemodel_fromgonalmap2(gonal_map::MapSch, label::MonStgElt) -> Tup
 {
     Input:
             gonal_map:  a gonal map from a canonically embedded curve X, as returned by GenusNGonalMap for 3 <= N <= 6
@@ -978,7 +978,7 @@ intrinsic PlaneModelAndGonalityBounds(label::MonStgElt) -> Tup, SeqEnum
                     C, bestkey := RecordPlaneModel(eqsplanemap, X, C, bestkey, label);
                 else
                     t0 := ReportStart(label, "planemodel_fromgonalmap2");
-                    eqsplanemap := planemodel_fromgonalmap2(gonal_map);
+                    eqsplanemap := planemodel_fromgonalmap2(gonal_map, label);
                     ReportEnd(label, "planemodel_fromgonalmap2", t0);
                     C, bestkey := RecordPlaneModel(eqsplanemap, X, C, bestkey, label);
                 end if;
