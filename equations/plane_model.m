@@ -476,7 +476,7 @@ intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> Tup
 
     for v in V do
         if &+v eq 0 then continue; end if;
-        vprint User1 Sprintf("Trying %o", v);
+        vprint User1: Sprintf("Trying %o", v);
         g := FFX ! ((&+[v[i]*x[i] : i in [1..#x]])/defeqs[2]);
         if f eq g then continue; end if;
         try
