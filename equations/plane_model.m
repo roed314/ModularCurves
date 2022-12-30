@@ -596,7 +596,8 @@ intrinsic planemodel_fromgonalmap2(gonal_map::MapSch, label::MonStgElt) -> Tup
             model := Image(mp);
             vprint User1: "Found map to P2";
             plane_eqn := Equations(model)[1];
-            if ValidModel(Restriction(mp, X, model)) then
+            Cmp := map<X->model | [defeqs[1],&+[v[i]*x[i] : i in [1..#x]],defeqs[2]]>;
+            if ValidModel(Cmp) then
                 AssignNames(~P2,["X","Y","Z"]);
                 result := <plane_eqn, [defeqs[1],&+[v[i]*x[i] : i in [1..#x]],defeqs[2]]>;
                 return result;
@@ -610,6 +611,7 @@ intrinsic planemodel_fromgonalmap2(gonal_map::MapSch, label::MonStgElt) -> Tup
                 print plane_eqn;
                 print #x;
                 print X;
+                print Cmp;
             end if;
         catch e;
             print e;
