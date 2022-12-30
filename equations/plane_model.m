@@ -70,14 +70,14 @@ intrinsic HasIndeterminacy(Igens::SeqEnum, lin_forms::SeqEnum) -> BoolElt
 end intrinsic;
 
 // These two methods were slower approaches for checking whether a plane model was valid
-/*
+
 intrinsic ValidPlaneModel(f::RngMPolElt, g::RngIntElt) -> BoolElt
 {A quick check for whether the plane curve defined by f is a valid reduction}
     p := reduction_prime;
     fbar := ChangeRing(f, GF(p));
     return IsIrreducible(fbar) and Genus(Curve(Proj(Parent(f)), f)) eq g;
 end intrinsic;
-
+/*
 intrinsic ValidPlaneModel2(f::RngMPolElt, X::Crv, proj::ModMatRngElt) -> BoolElt
 {A quick check for whether the plane curve defined by f is a valid reduction}
     p := reduction_prime;
@@ -246,7 +246,7 @@ File output:
             try
                 error "Invalid model";
             catch e
-                print e;
+                print e`traceback;
             end try;
         end if;
         return best, bestkey, false, tval, 0.0;
@@ -600,6 +600,11 @@ intrinsic planemodel_fromgonalmap2(gonal_map::MapSch) -> Tup
                 AssignNames(~P2,["X","Y","Z"]);
                 result := <plane_eqn, [defeqs[1],&+[v[i]*x[i] : i in [1..#x]],defeqs[2]]>;
                 return result;
+            elif ValidPlaneModel(plane_eqn, #x) then
+                print  "Uncertain map validity", label;
+                print plane_eqn;
+                print #x;
+                print X;
             end if;
         catch e;
             print e;
