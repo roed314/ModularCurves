@@ -154,7 +154,7 @@ if get_canonical_model(label, args.verbose):
         get_ghyperelliptic_model(label, args.verbose)
     if ope(opj("jcusps", label)): # These need a j-map
         get_plane_model(label, args.verbose)
-        get_rational_coordinates(label, args.verbose)
+        #get_rational_coordinates(label, args.verbose)
         get_cusp_coordinates(label, args.verbose)
 get_lattice_coords(label)
 collate_data(label)
