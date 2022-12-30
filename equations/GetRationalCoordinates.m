@@ -24,7 +24,9 @@ if #jinvs gt 0 then
     Cs := LMFDBReadPlaneModel(label);
     if #codomain eq 0 then
         Y := ProjectiveSpace(QQ, 1);
-        jinvs := [* <[pair[1], 1], pair[2]> : pair in jinvs *];
+        // For now, we ignore isolatedness
+        // Instead, the first coordinate is the j-invariant, and the second is the X-Y coordinates on P1.
+        jinvs := [* <pair[1], [pair[1], 1]> : pair in jinvs *];
     else
         Y, gY, modtY := LMFDBReadXGModel(codomain);
         Y := Curve(Proj(Universe(Y)), Y);
@@ -65,8 +67,8 @@ if #jinvs gt 0 then
     end if;
     auts := AssociativeArray();
     for pair in jinvs do
-        jL, isolated := Explode(pair);
-        L := Universe(jL);
+        jL, cod_coord := Explode(pair);
+        L := Parent(jL);
         if L eq QQ then
             autL := [];
         elif IsDefined(auts, L) then
@@ -83,7 +85,7 @@ if #jinvs gt 0 then
             T := ChangeRing(Universe(Cs[1][2]), L);
             CprojL := map<XL -> CL| [T!f : f in Cs[1][2]]>;
         end if;
-        Ypt := YL!jL;
+        Ypt := YL!cod_coord;
         Xpt := Ypt @@ (projL);
         t1 := ReportStart(label, Sprintf("computing rational points above j=%o", jL));
         Xcoords := RationalPoints(Xpt);

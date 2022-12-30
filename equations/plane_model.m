@@ -109,6 +109,25 @@ intrinsic ValidPlaneModel3(f::RngMPolElt, X::Crv, proj::ModMatRngElt) -> BoolElt
     return IsMaximal(I) and #(R / I) eq p;
 end intrinsic;
 
+intrinsic ValidModel4(proj::MapSch) -> BoolElt
+{A quick check that proj is birational; same approach as ValidPlaneModel3}
+    p := reduction_prime;
+    X := Domain(proj);
+    C := Codomain(proj);
+    Xbar := ChangeRing(X, GF(p));
+    Cbar := ChangeRing(C, GF(p));
+    if not IsIrreducible(Cbar) then return false; end if;
+    P := Random(Cbar(GF(p)));
+    Igens := DefiningEquations(X);
+    R := ChangeRing(Universe(Igens), GF(p));
+    Igens := [R!g : g in Igens];
+    coords := [R!g : g in DefiningEquations(proj)];
+    if HasIndeterminacy(Igens, coords) then return false; end if;
+    Igens cat:= [coords[j] - P[j] : j in [1..#coords]];
+    I := Ideal(Igens);
+    return IsMaximal(I) and #(R / I) eq p;
+end intrinsic;
+
 intrinsic F0Combination(F0::SeqEnum, M::ModMatRngElt) -> SeqEnum
 {F0 is as in ModularCurveRec, M is a 3 by n matrix over the integers with full rank, where n is the length of F0.
 Applies the matrix M to the expansions, projecting F0 onto 3 modular forms (given by expansions at cusps as normal)}
@@ -691,7 +710,7 @@ intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum) -> Tup
 {
     Input:
             X:          a canonically embedded curve X, as returned by ProcessModel()
-            cusps:      cusps on X, as returned by ProcessModel()
+            cusps:      rational cusps on X, as returned by ProcessModel()
     Output:
             result:     a tuple consisting of an equation defining a plane model C of X, and equations defining a map from X to C
 }
@@ -773,10 +792,15 @@ intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum) -> Tup
             newmodel, projmap, out3blowup := ProjectionFromNonsingularPoint(C,c);
             projmap := Restriction(projmap,C,newmodel);
             phi := map_XtoC*projmap;
+            //print "validating";
+            if not ValidModel4(phi) then continue; end if;
             defeqsphi := DefiningEquations(phi);
+            //print defeqsphi;
             if Dimension(AmbientSpace(newmodel)) eq 2 then
                 P2<X,Y,Z> := AmbientSpace(newmodel);
                 plane_eqn := DefiningEquation(newmodel);
+                //print "gDom", Genus(Domain(phi));
+                //print "gCod", Genus(Curve(P2, plane_eqn));
                 return <plane_eqn, defeqsphi>; // TODO done
             else
                 rational_imageofcusps := {};
@@ -830,6 +854,7 @@ High genus is a bit of a misnomer: this works as long as g > 0 and the canonical
         C, bestkey := ReducePlaneModel(fproj, C, bestkey, label);
         gonbnd := bestkey[1];
         if gonbnd lt q_high then
+            assert gonbnd ge Max(q_low, qbar_low);
             q_high := Min(q_high, gonbnd);
             qbar_high := Min(qbar_high, gonbnd);
             LMFDBWriteGonalityBounds(<q_low, q_high, qbar_low, qbar_high>, label);
@@ -919,6 +944,7 @@ intrinsic PlaneModelAndGonalityBounds(label::MonStgElt) -> Tup, SeqEnum
             ReportEnd(label, "gonality", t0);
             q_low := qbar_low;
             qbar_high := qbar_low;
+            //print "Gon", q_low, q_high, qbar_low, qbar_high;
             F := BaseField(Domain(gonal_map));
             if F eq Rationals() then
                 // If gonal map is rational, get q_high as well
@@ -929,10 +955,13 @@ intrinsic PlaneModelAndGonalityBounds(label::MonStgElt) -> Tup, SeqEnum
                 eqsplanemap, gonality := planemodel_gonalitybound(curve);
                 ReportEnd(label, "planemodel_gonalitybound", t0);
                 if q_high eq gonality then
+                    //print "A", eqsplanemap, q_high, gonality;
                     C, bestkey := ReducePlaneModel(eqsplanemap, C, bestkey, label);
                 else
+                    //print "B", eqsplanemap, q_high, gonality;
                     t0 := ReportStart(label, "planemodel_fromgonalmap2");
                     eqsplanemap := planemodel_fromgonalmap2(gonal_map);
+                    //print "C", eqsplanemap;
                     ReportEnd(label, "planemodel_fromgonalmap2", t0);
                     C, bestkey := ReducePlaneModel(eqsplanemap, C, bestkey, label);
                 end if;
