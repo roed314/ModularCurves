@@ -5,7 +5,7 @@
 # Add adelic_reductions to ec_galrep (Drew)
 # Use upload/cloud_prep.py to create equations/input_data/ (generators), equations/graphviz_in/ (lattice), equations/jinvs/ (rational points) and upload/picture_labels.txt and the tarball
 # In the cloud (or wherever you want to unpack the tarball), run cloud_start.py, producing data for inclusion in gp2_gl2zhat_fine (gonality bounds, lattice_x, lattice_labels), modcurve_models (all columns), modcurve_maps (all columns), modcurve_points (coordinates, isolated)
-# On a server (since you're going to be creating pictures in parallel), run make_modular_curve_pictures.py
+# On a server (since you're going to be creating pictures in parallel), run make_modular_curve_pictures.py AND MAKE_LATTICES.PY
 # On a server, run cloud_collect.py, which will propogate gonalities, create the copy_from files for modcurve_points, modcurve_models, modcurve_maps and an update_from_file file gps_gl2zhat_coarse
 
 # TODO
@@ -93,7 +93,7 @@ def get_canonical_model(label, verbose):
     g = int(label.split(".")[2])
     if g <= 24:
         verb = "verbose:= " if verbose else ""
-        subprocess.run('parallel --timeout 3600 "magma -b label:={1} %sGetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+        subprocess.run('parallel --timeout 900 "magma -b label:={1} %sGetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
     return g != 0 and ope(opj("canonical_models", label))
 
 def get_plane_and_gonality(label, verbose):
@@ -101,7 +101,7 @@ def get_plane_and_gonality(label, verbose):
     # Returns true whether the curve is geometrically hyperelliptic
     g = int(label.split(".")[2])
     verb = "verbose:= " if verbose else ""
-    subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetPlaneAndGonality.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+    subprocess.run('parallel --timeout 600 "magma -b label:={1} %sGetPlaneAndGonality.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
     gon = opj("gonality", label)
     with open(opj("canonical_models", label)) as F:
         model_type = F.read().strip().split("|")[-1]
@@ -109,7 +109,7 @@ def get_plane_and_gonality(label, verbose):
 
 def get_ghyperelliptic_model(label, verbose):
     verb = "verbose:= " if verbose else ""
-    for prec in [100, 200, 300, 400, 600, 1200]:
+    for prec in [100, 300, 600]:
         if ope(opj("ghyp_models", label)):
             break
         subprocess.run('parallel --timeout 600 "magma -b label:={1} %sprec:=%s GetGHyperellipticModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, prec, label), shell=True)
@@ -117,15 +117,15 @@ def get_ghyperelliptic_model(label, verbose):
 def get_plane_model(label, verbose):
     # Attempts to contruct a plane model via projection from rational points
     verb = "verbose:= " if verbose else ""
-    subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetPlaneModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+    subprocess.run('parallel --timeout 300 "magma -b label:={1} %sGetPlaneModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def get_rational_coordinates(label, verbose):
     verb = "verbose:= " if verbose else ""
-    subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetRationalCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+    subprocess.run('parallel --timeout 300 "magma -b label:={1} %sGetRationalCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def get_cusp_coordinates(label, verbose):
     verb = "verbose:= " if verbose else ""
-    subprocess.run('parallel --timeout 1200 "magma -b label:={1} %sGetCuspCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+    subprocess.run('parallel --timeout 60 "magma -b label:={1} %sGetCuspCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def collate_data(label):
     with open("output", "a") as Fout:
