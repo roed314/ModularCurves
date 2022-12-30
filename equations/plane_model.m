@@ -604,6 +604,9 @@ intrinsic planemodel_fromgonalmap2(gonal_map::MapSch, label::MonStgElt) -> Tup
                 print  "Uncertain map validity", label;
                 AA := Parent(plane_eqn);
                 AssignCanonicalNames(~AA);
+                CanEqs := DefiningEquations(X);
+                Xpar := Universe(CanEqs);
+                AssignCanonicalNames(~Xpar);
                 print plane_eqn;
                 print #x;
                 print X;
