@@ -313,7 +313,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
             if #rels gt 0 then
                 f := R!rels[1];
                 proj := [&+[M[i,j] * Rg.j : j in [1..g]] : i in [1..3]];
-                best, bestkey, vld, tmpval, tmpred := RecordPlaneModel(<f, proj>, CanEqs, best, bestkey, label);
+                best, bestkey, vld, tmpval, tmpred := RecordPlaneModel(<f, proj>, CanEqs, best, bestkey, label : warn_invalid:=false);
                 tval +:= tmpval; tred +:= tmpred;
                 if vld then
                     vprint User1: Sprintf("Plane model: found valid model of degree = %o", m);
