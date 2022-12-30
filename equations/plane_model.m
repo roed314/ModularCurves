@@ -871,7 +871,8 @@ High genus is a bit of a misnomer: this works as long as g > 0 and the canonical
     X, model_type, g, cusps := LMFDBReadCusps(label : rational_only:=true);
     rcusps := [c : c in cusps];
     C, bestkey := LMFDBReadPlaneModel(label);
-    curve := Curve(Proj(Universe(X)), X);
+    P := Universe(X);
+    curve := Curve(Proj(P), X);
     if g gt 0 and Rank(P) gt 3 then
         t0 := ReportStart(label, "planemodel_highgenus");
         fproj := planemodel_highgenus(curve, rcusps);
