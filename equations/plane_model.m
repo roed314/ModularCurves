@@ -716,23 +716,28 @@ intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum, best::SeqEnum, 
     Input:
             C:          a model in P^n (n greater than 2) of the curve X returned by ProcessModel()
             phi:        a map from X to C
-            ratcusps:   image under phi of the cusps on X returned by ProcessModel(), whenever rational
+            ratcusps:   the rational cusps on X returned by ProcessModel()
     Output:
             result:     a tuple consisting of an equation defining a plane model C of X, and equations defining a map from X to C
 }
     Can := Domain(phi);
     Pn := AmbientSpace(C);
     n := Dimension(Pn);
+    defeqsphi := DefiningEquations(phi);
     if n eq 2 then
         CanEq := DefiningEquations(Can);
-        defeqsphi := DefiningEquations(phi);
         plane_eqn := DefiningEquation(C);
         _, _, valid := RecordPlaneModel(<plane_eqn, defeqsphi>, CanEq, best, bestkey, "pr", label : warn_invalid:=false);
         return valid;
     end if;
     vprint User1: Sprintf("The ambient space is now P%o", n);
     for i in [1..#ratcusps] do
+        // We don't want to do any hard work if we run into the locus of indeterminancy
+        // cusp := ratcusps[i] @ phi;
         cusp := ratcusps[i];
+        cusp := [Evaluate(pol, Eltseq(cusp)) : pol in defeqsphi];
+        if &and[c eq 0 : c in cusp] then continue; end if;
+        cusp := C!cusp;
         later_cusps := ratcusps[i+1..#ratcusps];
         if IsSingular(C, cusp) then
             newmodel, projmap := Projection(C, cusp);
@@ -740,10 +745,6 @@ intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum, best::SeqEnum, 
             newmodel, projmap, out3blowup := ProjectionFromNonsingularPoint(C,cusp);
         end if;
         vprint User1: "Computed new projection map";
-        // We don't want to do any hard work if we run into the locus of indeterminancy
-        //later_cusps := [c @ projmap : c in later_cusps];
-        imgs := [[Evaluate(pol, Eltseq(c)) : pol in DefiningEquations(phi)] : c in later_cusps];
-        imgs := [newmodel!pt : pt in imgs | not &and[c eq 0 : c in pt]];
         defeqsnewphi := DefiningPolynomialsComposite(phi, projmap);
         valid := projecttoplane(newmodel, map<Can->newmodel|defeqsnewphi>, imgs, best, bestkey, label);
         if valid then return true; end if;
@@ -779,19 +780,10 @@ intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum, best::SeqEnum, bestkey::T
     defeqs := DefiningEquations(map_XtoC);
     vprint User1: "Found defining equations of the map";
     if #cusps gt 0 and Type(cusps[1]) eq CspDat then
-        cusps := <c`coords : c in cusps>;
+        cusps := [c`coords : c in cusps];
     end if;
     vprint User1: Sprintf("Extracted coordinates of the %o cusps", #cusps);
-    cusps_on_C := {};
-    QQ := Rationals();
-    for cusp in cusps do
-        img := [Evaluate(pol,Eltseq(cusp)) : pol in defeqs];
-        if &and[c in QQ: c in img] and not &and[c eq 0 : c in img] then
-            Include(~cusps_on_C, C!img);
-        end if;
-    end for;
-    vprint User1: Sprintf("Projected rational cusps down from the canonical model. Found %o cusps\nThey are:\n%o", #cusps_on_C, cusps_on_C);
-    return projecttoplane(C, map_XtoC, SetToSequence(cusps_on_C), best, bestkey, label);
+    return projecttoplane(C, map_XtoC, cusps, best, bestkey, label);
 end intrinsic;
 
 intrinsic HighGenusPlaneModel(label::MonStgElt) -> BoolElt

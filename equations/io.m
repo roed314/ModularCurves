@@ -252,6 +252,8 @@ intrinsic LMFDBWritePlaneModel(f::RngMPolElt, proj::SeqEnum, alg::MonStgElt, lab
     if Type(proj[1]) eq FldFunRatMElt then
         proj := [Numerator(proj[1])*Denominator(proj[2])*Denominator(proj[3]), Numerator(proj[2])*Denominator(proj[3])*Denominator(proj[1]), Numerator(proj[3])*Denominator(proj[1])*Denominator(proj[2])];
     end if;
+    S := Parent(f);
+    AssignCanonicalNames(~S);
     R := Universe(proj);
     nvars := Rank(R);
     g := StringToInteger(Split(label, ".")[3]);
