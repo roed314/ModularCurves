@@ -145,11 +145,11 @@ intrinsic LMFDBReadCusps(label::MonStgElt : rational_only:=false) -> SeqEnum, Rn
     data := Split(data, "|");
     if #data eq 5 then
         mtype, codomain, j, cusps, fields := Explode(data);
-        assert mtype eq model_type;
+        assert StringToInteger(mtype) eq model_type;
     elif #data eq 4 then
         codomain := "";
         mtype, j, cusps, fields := Explode(data);
-        assert mtype eq model_type;
+        assert StringToInteger(mtype) eq model_type;
     else
         error "Invalid jcusp format";
     end if;
