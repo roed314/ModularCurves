@@ -143,11 +143,15 @@ intrinsic LMFDBReadCusps(label::MonStgElt : rational_only:=false) -> SeqEnum, Rn
     X, g, model_type := LMFDBReadXGModel(label);
     data := Split(Read(Sprintf("jcusps/%o", label)), "\n")[1];
     data := Split(data, "|");
-    if #data eq 4 then
-        codomain, j, cusps, fields := Explode(data);
-    else
+    if #data eq 5 then
+        mtype, codomain, j, cusps, fields := Explode(data);
+        assert mtype eq model_type;
+    elif #data eq 4 then
         codomain := "";
-        j, cusps, fields := Explode(data);
+        mtype, j, cusps, fields := Explode(data);
+        assert mtype eq model_type;
+    else
+        error "Invalid jcusp format";
     end if;
     if #cusps gt 2 then
         cusps := Split(cusps[2..#cusps-1], ",");

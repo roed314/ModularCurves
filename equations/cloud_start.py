@@ -14,9 +14,12 @@
 # - Base change for CM points (duplicated points in rats/).  Need to throw away points of lower degree?
 
 # Copied into the home directory for running
-# Check Shiva's fix
 # Create picture database
-# Factor j-map, update/check on other todos in compute_lattice_x
+# Factor j-map
+# Update ecnf to omit base changes
+# Update prepare_rational_points so we don't need to iterate over lattice again, skip genus 0
+# Check whether we have successfully removed dollar signs
+# update/check on other todos in compute_lattice_x
 # Homogenize j (for elliptic curves 6.12.1.b.1 Argument types given: RngMPolResElt, RngMPolResElt, RngIntElt)
 # Check lifting of rational points (and cusps?) on relative j-maps
 # Need to move rational point and cusp data from output file to folders before second deployment
