@@ -244,7 +244,7 @@ intrinsic LMFDBReadXGModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIntElt
     return X, g, StringToInteger(model_type);
 end intrinsic;
 
-intrinsic LMFDBWritePlaneModel(f::RngMPolElt, proj::SeqEnum, label::MonStgElt)
+intrinsic LMFDBWritePlaneModel(f::RngMPolElt, proj::SeqEnum, alg::MonStgElt, label::MonStgElt)
 {}
     assert #proj eq 3;
     System("mkdir -p plane_models");
@@ -267,7 +267,7 @@ intrinsic LMFDBWritePlaneModel(f::RngMPolElt, proj::SeqEnum, label::MonStgElt)
     else
         smooth := "f";
     end if;
-    Write(fname, Sprintf("%o|%o|%o|%o", sprint(f), Join([sprint(c) : c in proj], ","), nvars, smooth) : Overwrite);
+    Write(fname, Sprintf("%o|%o|%o|%o|%o", sprint(f), Join([sprint(c) : c in proj], ","), nvars, smooth, alg) : Overwrite);
 end intrinsic;
 
 intrinsic LMFDBReadPlaneModel(label::MonStgElt) -> SeqEnum, Tup

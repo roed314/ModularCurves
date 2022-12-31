@@ -104,16 +104,26 @@ Output:
     C := Codomain(proj);
     Xbar := ChangeRing(X, GF(p));
     Cbar := ChangeRing(C, GF(p));
-    if not IsIrreducible(Cbar) then return false; end if;
+    if not IsIrreducible(Cbar) then
+        vprint User1: "Invalid model: reducible";
+        return false;
+    end if;
     P := Random(Cbar(GF(p)));
     Igens := DefiningEquations(X);
     R := ChangeRing(Universe(Igens), GF(p));
     Igens := [R!g : g in Igens];
     coords := [R!g : g in DefiningEquations(proj)];
-    if HasIndeterminacy(Igens, coords) then return false; end if;
+    if HasIndeterminacy(Igens, coords) then
+        vprint User1: "Invalid model: indeterminacy";
+        return false;
+    end if;
     Igens cat:= [coords[j] - P[j] : j in [1..#coords]];
     I := Ideal(Igens);
-    return IsMaximal(I) and #(R / I) eq p;
+    if QuotientDimension(I) ne 1 then
+        vprint User1: Sprintf("Invalid model: %o mod-%o preimages", QuotientDimension(I), p);
+        return false;
+    end if;
+    return true;
 end intrinsic;
 
 intrinsic F0Combination(F0::SeqEnum, M::ModMatRngElt) -> SeqEnum
@@ -206,7 +216,7 @@ intrinsic planemodel_sortkey(f::RngMPolElt) -> Tup
     return <planemodel_gonbound(f), #sprint(f)>;
 end intrinsic;
 
-intrinsic RecordPlaneModel(fproj::Tup, X::SeqEnum, best::SeqEnum, bestkey::Tup, label::MonStgElt : warn_invalid:=true) -> SeqEnum, Tup, BoolElt, FldReElt, FldReElt
+intrinsic RecordPlaneModel(fproj::Tup, X::SeqEnum, best::SeqEnum, bestkey::Tup, alg::MonStgElt, label::MonStgElt : warn_invalid:=true) -> SeqEnum, Tup, BoolElt, FldReElt, FldReElt
 {
 Input:
     fproj - a pair, with the first value a polynomial in X,Y,Z defining a plane curve, and the second a sequence of length 3 giving the projection map from the canonical model
@@ -235,7 +245,9 @@ File output:
     try
         projection := map<XC -> C | proj>;
     catch e
-        print e;
+        if warn_invalid then
+            print e;
+        end if;
         return best, bestkey, false, Cputime(tval), 0.0;
     end try;
     valid := ValidModel(projection);
@@ -246,7 +258,10 @@ File output:
             try
                 error "Invalid model";
             catch e
-                print e`traceback;
+                print "error: invalid model";
+                if assigned e`Traceback then
+                    print e`Traceback;
+                end if;
             end try;
         end if;
         return best, bestkey, false, tval, 0.0;
@@ -313,7 +328,8 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
             if #rels gt 0 then
                 f := R!rels[1];
                 proj := [&+[M[i,j] * Rg.j : j in [1..g]] : i in [1..3]];
-                best, bestkey, vld, tmpval, tmpred := RecordPlaneModel(<f, proj>, CanEqs, best, bestkey, label : warn_invalid:=false);
+                // Note that FindRelations is inexact: the modular forms may not actually satisfy the relations exactly, but instead only up to some precision which is lower than the precision of the forms themselves.  As a consequence, proj may not actually define a map from Can to the plane model.  This is checked in RecordPlaneModel.
+                best, bestkey, vld, tmpval, tmpred := RecordPlaneModel(<f, proj>, CanEqs, best, bestkey, "mf", label : warn_invalid:=false);
                 tval +:= tmpval; tred +:= tmpred;
                 if vld then
                     vprint User1: Sprintf("Plane model: found valid model of degree = %o", m);
@@ -324,7 +340,7 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
                 break;
             end if;
         end for;
-    until nvalid ge 25 or state`nonpiv_ctr[1] ge 728 or (nvalid gt 0 and Cputime() - t0 gt 120);
+    until nvalid ge 25 or state`nonpiv_ctr[1] ge 728 or (nvalid gt 0 and Cputime() - t0 gt 60);
     ReportEnd(label, "searching for plane models", t0);
     ReportEnd(label, "plane model relations", trel : elapsed:=trel);
     ReportEnd(label, "plane model validations", tval : elapsed:=tval);
@@ -596,28 +612,19 @@ intrinsic planemodel_fromgonalmap2(gonal_map::MapSch, label::MonStgElt) -> Tup
             model := Image(mp);
             vprint User1: "Found map to P2";
             plane_eqn := Equations(model)[1];
-            Cmp := map<X->model | [defeqs[1],&+[v[i]*x[i] : i in [1..#x]],defeqs[2]]>;
-            if ValidModel(Cmp) then
+            proj := [defeqs[1],&+[v[i]*x[i] : i in [1..#x]],defeqs[2]];
+            mp := map<X->model | proj>;
+            if ValidModel(mp) then
                 AssignNames(~P2,["X","Y","Z"]);
-                result := <plane_eqn, [defeqs[1],&+[v[i]*x[i] : i in [1..#x]],defeqs[2]]>;
+                result := <plane_eqn, proj>;
                 return result;
-            elif ValidPlaneModel(plane_eqn, #x) then
-                print  "Uncertain map validity", label;
-                AA := Parent(plane_eqn);
-                AssignCanonicalNames(~AA);
-                CanEqs := DefiningEquations(X);
-                Xpar := Universe(CanEqs);
-                AssignCanonicalNames(~Xpar);
-                print plane_eqn;
-                print #x;
-                print X;
-                print Cmp;
             end if;
         catch e;
             print e;
             continue v;
         end try;
     end for;
+    error "No valid plane model found";
 end intrinsic;
 
 function gonalitybound_fromfuncfield(eqs,ind);
@@ -704,7 +711,7 @@ intrinsic DefiningPolynomialsComposite(alpha, beta) -> SeqEnum
     return [Evaluate(f,DefiningPolynomials(alpha)): f in DefiningPolynomials(beta)];
 end intrinsic;
 
-intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum) -> Tup
+intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum, best::SeqEnum, bestkey::Tup, label::MonStgElt) -> Tup
 {
     Input:
             C:          a model in P^n (n greater than 2) of the curve X returned by ProcessModel()
@@ -713,44 +720,47 @@ intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum) -> Tup
     Output:
             result:     a tuple consisting of an equation defining a plane model C of X, and equations defining a map from X to C
 }
-    if Dimension(AmbientSpace(C)) eq 2 then
-        P2<X,Y,Z> := AmbientSpace(C);
-        defeqsphi := DefiningEquations(phi);
-        plane_eqn := DefiningEquation(C);
-        return <plane_eqn, defeqsphi>; // TODO done
-    end if;
+    Can := Domain(phi);
     Pn := AmbientSpace(C);
     n := Dimension(Pn);
-    Can := Domain(phi);
+    if n eq 2 then
+        CanEq := DefiningEquations(Can);
+        defeqsphi := DefiningEquations(phi);
+        plane_eqn := DefiningEquation(C);
+        _, _, valid := RecordPlaneModel(<plane_eqn, defeqsphi>, CanEq, best, bestkey, "pr", label : warn_invalid:=false);
+        return valid;
+    end if;
     vprint User1: Sprintf("The ambient space is now P%o", n);
-    if ratcusps ne [] then
-        cusp := ratcusps[1];
-        ratcusps := ratcusps[2..#ratcusps];
-        if IsSingular(C,cusp) then
-            newmodel, projmap := Projection(C,cusp);
-            vprint User1: "Computed new projection map";
+    for i in [1..#ratcusps] do
+        cusp := ratcusps[i];
+        later_cusps := ratcusps[i+1..#ratcusps];
+        if IsSingular(C, cusp) then
+            newmodel, projmap := Projection(C, cusp);
         else
             newmodel, projmap, out3blowup := ProjectionFromNonsingularPoint(C,cusp);
-            vprint User1: "Computed new projection map";
         end if;
-        // newphi := phi*projmap;
-        // defeqsnewphi := DefiningPolynomials(newphi);
-        // invdefeqsnewphi := InverseDefiningPolynomials(newphi); This is only birational, so don't have inverse
-        // return projecttoplane(newmodel, map<X->newmodel|defeqsnewphi,invdefeqsnewphi>, ratcusps);
-    else
-        pt := Pn ! ([1] cat [0 : i in [1..n]]);
-        newmodel, projmap := Projection(C,pt);
         vprint User1: "Computed new projection map";
-        // newphi := phi*projmap;
-        // defeqsnewphi := DefiningPolynomials(newphi);
-        // invdefeqsnewphi := InverseDefiningPolynomials(newphi); This is only birational, so don't have inverse
-        // return projecttoplane(newmodel, map<X->newmodel|defeqsnewphi,invdefeqsnewphi>, []);
-    end if;
-    defeqsnewphi := DefiningPolynomialsComposite(phi, projmap);
-    return projecttoplane(newmodel, map<Can->newmodel|defeqsnewphi>, ratcusps);
+        // We don't want to do any hard work if we run into the locus of indeterminancy
+        //later_cusps := [c @ projmap : c in later_cusps];
+        imgs := [[Evaluate(pol, Eltseq(c)) : pol in DefiningEquations(phi)] : c in later_cusps];
+        imgs := [newmodel!pt : pt in imgs | not &and[c eq 0 : c in pt]];
+        defeqsnewphi := DefiningPolynomialsComposite(phi, projmap);
+        valid := projecttoplane(newmodel, map<Can->newmodel|defeqsnewphi>, imgs, best, bestkey, label);
+        if valid then return true; end if;
+    end for;
+    for i in [1..n] do
+        pt := [0 : i in [0..n]];
+        pt[i] := 1;
+        pt := Pn ! pt;
+        newmodel, projmap := Projection(C,pt);
+        defeqsnewphi := DefiningPolynomialsComposite(phi, projmap);
+        valid := projecttoplane(newmodel, map<Can->newmodel|defeqsnewphi>, [], best, bestkey, label);
+        if valid then return true; end if;
+    end for;
+    return false;
 end intrinsic;
 
-intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum) -> Tup
+intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum, best::SeqEnum, bestkey::Tup, label::MonStgElt) -> Tup
 {
     Input:
             X:          a canonically embedded curve X, as returned by ProcessModel()
@@ -760,138 +770,54 @@ intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum) -> Tup
 }
     C, map_XtoC, gonalitybound := modelfromfuncfield_gonalitybound(X);
     if Dimension(AmbientSpace(Codomain(map_XtoC))) eq 2 then
-        return projecttoplane(C,map_XtoC,[]);
+        // The function field model should always be birational, so this should succeed.
+        assert projecttoplane(C, map_XtoC, [], best, bestkey, label);
+        return true;
     end if;
 
-    map_XtoC := Restriction(map_XtoC,X,C);
+    map_XtoC := Restriction(map_XtoC, X, C);
     defeqs := DefiningEquations(map_XtoC);
     vprint User1: "Found defining equations of the map";
     if #cusps gt 0 and Type(cusps[1]) eq CspDat then
-        cuspsnew := <c`coords : c in cusps>;
-        cusps := cuspsnew;
+        cusps := <c`coords : c in cusps>;
     end if;
     vprint User1: Sprintf("Extracted coordinates of the %o cusps", #cusps);
-
-    singular_ratcusps_on_C := {};
-    nonsingular_ratcusps_on_C := {};
-    for i := 1 to #cusps do
-        c_coords := Eltseq(cusps[i]);
-        c_imagecoords := [Evaluate(pol,c_coords) : pol in defeqs];
-        boo := exists(a){coord : coord in c_imagecoords | coord ne 0};
-        if not boo then continue i; end if;
-        c_imageaffinecoords := [x/a : x in c_imagecoords];
-        for x in c_imageaffinecoords do
-            if not x in Rationals() then
-                continue i;
-            end if;
-        end for;
-        c := C ! c_imageaffinecoords;
-        if IsSingular(C,c) then
-            Include(~singular_ratcusps_on_C,c);
-        else
-            Include(~nonsingular_ratcusps_on_C,c);
+    cusps_on_C := {};
+    QQ := Rationals();
+    for cusp in cusps do
+        img := [Evaluate(pol,Eltseq(cusp)) : pol in defeqs];
+        if &and[c in QQ: c in img] and not &and[c eq 0 : c in img] then
+            Include(~cusps_on_C, C!img);
         end if;
     end for;
-    singular_ratcusps_on_C := SetToSequence(singular_ratcusps_on_C);
-    nonsingular_ratcusps_on_C := SetToSequence(nonsingular_ratcusps_on_C);
-    vprint User1: Sprintf("Projected rational cusps down from the canonical model. Found %o singular ones and %o nonsingular ones\nThey are:\n%o\n%o", #singular_ratcusps_on_C, #nonsingular_ratcusps_on_C, singular_ratcusps_on_C, nonsingular_ratcusps_on_C);
-
-    for c in singular_ratcusps_on_C do
-        newmodel, projmap := Projection(C,c);
-        vprint User1: "Computed projection map";
-        projmap := Restriction(projmap,C,newmodel);
-        vprint User1: "Restricted projection map";
-        phi := map_XtoC*projmap;
-        defeqsphi := DefiningEquations(phi);
-        if Dimension(AmbientSpace(newmodel)) eq 2 then
-            P2<X,Y,Z> := AmbientSpace(newmodel);
-            plane_eqn := DefiningEquation(newmodel);
-            return <plane_eqn, defeqsphi>; // TODO done
-        else
-            rational_imageofcusps := {};
-            for cc in cusps do
-                c_coords := Eltseq(cc);
-                c_imagecoords := [Evaluate(pol,c_coords) : pol in defeqsphi];
-                boo := exists(a){coord : coord in c_imagecoords | coord ne 0};
-                if not boo then continue cc; end if;
-                c_imageaffinecoords := [x/a : x in c_imagecoords];
-                for x in c_imageaffinecoords do
-                    if not x in Rationals() then
-                        continue cc;
-                    end if;
-                end for;
-                ccimage := newmodel ! c_imageaffinecoords;
-                Include(~rational_imageofcusps,ccimage);
-                // TODO done
-            end for;
-            rational_imageofcusps := SetToSequence(rational_imageofcusps);
-            vprint User1: Sprintf("There are %o rational cusps after 1 projection.\nThey are:\n%o\nUsing these to project further (if needed)", #rational_imageofcusps, rational_imageofcusps);
-            return projecttoplane(newmodel,map<X->newmodel|defeqsphi>,rational_imageofcusps);
-            // TODO done
-        end if;
-    end for;
-
-    for c in nonsingular_ratcusps_on_C do
-        try
-            newmodel, projmap, out3blowup := ProjectionFromNonsingularPoint(C,c);
-            projmap := Restriction(projmap,C,newmodel);
-            phi := map_XtoC*projmap;
-            if not ValidModel(phi) then continue; end if;
-            defeqsphi := DefiningEquations(phi);
-            if Dimension(AmbientSpace(newmodel)) eq 2 then
-                P2<X,Y,Z> := AmbientSpace(newmodel);
-                plane_eqn := DefiningEquation(newmodel);
-                return <plane_eqn, defeqsphi>; // TODO done
-            else
-                rational_imageofcusps := {};
-                for cc in cusps do
-                    c_coords := Eltseq(cc);
-                    c_imagecoords := [Evaluate(pol,c_coords) : pol in defeqsphi];
-                    boo := exists(a){coord : coord in c_imagecoords | coord ne 0};
-                    if not boo then continue cc; end if;
-                    c_imageaffinecoords := [x/a : x in c_imagecoords];
-                    for x in c_imageaffinecoords do
-                        if not x in Rationals() then
-                            continue cc;
-                        end if;
-                    end for;
-                    ccimage := newmodel ! c_imageaffinecoords;
-                    Include(~rational_imageofcusps,ccimage);
-                    // TODO done
-                end for;
-                rational_imageofcusps := SetToSequence(rational_imageofcusps);
-                return projecttoplane(newmodel,map<X->newmodel|defeqsphi>,rational_imageofcusps);
-                // TODO done
-            end if;
-        catch e;
-            continue c;
-        end try;
-    end for;
-    return projecttoplane(C,map_XtoC,[]);
-    // TODO done
+    vprint User1: Sprintf("Projected rational cusps down from the canonical model. Found %o cusps\nThey are:\n%o", #cusps_on_C, cusps_on_C);
+    return projecttoplane(C, map_XtoC, SetToSequence(cusps_on_C), best, bestkey, label);
 end intrinsic;
 
-intrinsic HighGenusPlaneModel(label::MonStgElt) -> SeqEnum
+intrinsic HighGenusPlaneModel(label::MonStgElt) -> BoolElt
 {
 Input: label of a modular curve.
 File input: LMFDBWriteCanonicalModel must have been called, stored in canonical_models/<label>
-Output: a sequence of length 0 or 1 of known plane models (provided as a tuple, with first entry the defining polynomial and the second entry a sequence of three polynomials giving the map from the canonical model X to C).  May be a model read from plane_models/<label>.
+Output: returns true if a model was successfully computed, even if not better than a prior model stored in plane_models/<label>
 File output: Writes a plane model to plane_models/<label>, if the model is better than the one already present
 
 High genus is a bit of a misnomer: this works as long as g > 0 and the canonical model is not already a plane model.
 }
     X, model_type, g, cusps := LMFDBReadCusps(label : rational_only:=true);
     rcusps := [c : c in cusps];
-    C, bestkey := LMFDBReadPlaneModel(label);
+    best, bestkey := LMFDBReadPlaneModel(label);
     P := Universe(X);
     curve := Curve(Proj(P), X);
+    success := false;
     if g gt 0 and Rank(P) gt 3 then
         t0 := ReportStart(label, "planemodel_highgenus");
-        fproj := planemodel_highgenus(curve, rcusps);
+        success := planemodel_highgenus(curve, rcusps, best, bestkey, label);
         ReportEnd(label, "planemodel_highgenus", t0);
-        C, bestkey := RecordPlaneModel(fproj, X, C, bestkey, label);
     end if;
-    return C;
+    if success then
+        vprint User1: "High genus model found";
+    end if;
+    return success;
 end intrinsic;
 
 intrinsic PlaneModelAndGonalityBounds(label::MonStgElt) -> Tup, SeqEnum
@@ -982,12 +908,12 @@ intrinsic PlaneModelAndGonalityBounds(label::MonStgElt) -> Tup, SeqEnum
                 eqsplanemap, gonality := planemodel_gonalitybound(curve);
                 ReportEnd(label, "planemodel_gonalitybound", t0);
                 if q_high eq gonality then
-                    C, bestkey := RecordPlaneModel(eqsplanemap, X, C, bestkey, label);
+                    C, bestkey := RecordPlaneModel(eqsplanemap, X, C, bestkey, "ff", label);
                 else
                     t0 := ReportStart(label, "planemodel_fromgonalmap2");
                     eqsplanemap := planemodel_fromgonalmap2(gonal_map, label);
                     ReportEnd(label, "planemodel_fromgonalmap2", t0);
-                    C, bestkey := RecordPlaneModel(eqsplanemap, X, C, bestkey, label);
+                    C, bestkey := RecordPlaneModel(eqsplanemap, X, C, bestkey, "go", label);
                 end if;
             end if;
         catch e

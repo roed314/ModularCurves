@@ -105,6 +105,20 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     assert ChangeRing(G0, Integers(N)) subset G;
     gens0 := [Eltseq(g) : g in Generators(G0)];
 
+    M0 := CreateModularCurveRec(N0, gens0);
+    g0 := M0`genus;
+    assert g0 ge 3;
+    t0 := ReportStart(cover_label, "CoverModel");
+    M0, model_type0 := FindModelOfXG(M0, cover_label);
+    ReportEnd(cover_label, "CoverModel", t0);
+    assert model_type0 eq 0;
+    F0 := M0`F0;
+    S0 := Universe(M0`psi);
+    AssignCanonicalNames(~S0);
+    C0 := Curve(Proj(S0), M0`psi);
+
+    LMFDBWriteXGModel(C0, model_type0, cover_label);
+
     M := CreateModularCurveRec(N, gens);
     t := ReportStart(cover_label, "CoveredModel");
     M, model_type := FindModelOfXG(M, covered_label);
@@ -115,19 +129,6 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     S := Universe(M`psi);
     AssignCanonicalNames(~S);
     C := Curve(Proj(S), M`psi);
-
-    M0 := CreateModularCurveRec(N0, gens0);
-    g0 := M0`genus;
-    assert g0 ge 3;
-    t0 := ReportStart(cover_label, "CoverModel");
-    M0, model_type0 := FindModelOfXG(M0, cover_label);
-    ReportEnd(cover_label, "CoverModel", t0);
-    assert model_type0 eq 0;
-    psi0 := M0`psi;
-    F0 := M0`F0;
-    S0 := Universe(psi0);
-    AssignCanonicalNames(~S0);
-    C0 := Curve(Proj(S0), psi0);
 
     t1 := ReportStart(cover_label, "ConvertModularFormExpansions");
     F1 := [ConvertModularFormExpansions(M0, M, [1,0,0,1], f) : f in F];

@@ -930,7 +930,7 @@ def write_models_maps(cans, planes, ghyps, jcusps):
     for label, lines in planes.items():
         assert len(lines) == 1
         line = lines[0]
-        plane, proj, nvar, smooth = line.split("|") # Note that nvar is the number of variables in the domain of the projection
+        plane, proj, nvar, smooth, alg = line.split("|") # Note that nvar is the number of variables in the domain of the projection
         dontdisplay = dontdisplay_str(plane)
         models[label].append(f"{label}|{{{plane}}}|3|2|{smooth}|{dontdisplay}\n")
         leading_coefficients = r"\N"
