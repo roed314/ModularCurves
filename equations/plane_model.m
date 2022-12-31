@@ -746,7 +746,7 @@ intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum, best::SeqEnum, 
         end if;
         vprint User1: "Computed new projection map";
         defeqsnewphi := DefiningPolynomialsComposite(phi, projmap);
-        valid := projecttoplane(newmodel, map<Can->newmodel|defeqsnewphi>, imgs, best, bestkey, label);
+        valid := projecttoplane(newmodel, map<Can->newmodel|defeqsnewphi>, later_cusps, best, bestkey, label);
         if valid then return true; end if;
     end for;
     for i in [1..n] do
