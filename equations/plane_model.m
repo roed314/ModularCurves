@@ -276,7 +276,7 @@ File output:
         proj := [proj[i] / QQ!adjust[i] : i in [1..3]];
         best := [<f, proj>];
         bestkey := skey;
-        LMFDBWritePlaneModel(f, proj, label);
+        LMFDBWritePlaneModel(f, proj, alg, label);
         if skey[1] lt gonbounds[2] then // improvement to the Q-gonality (and possibly Qbar-gonality)
             gonbounds[2] := skey[1];
             gonbounds[4] := Min(gonbounds[4], skey[1]);
