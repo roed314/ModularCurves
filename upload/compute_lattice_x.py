@@ -340,7 +340,6 @@ def save_ecnf_data(fname="ecnf_data.txt"):
     # We do that once, save it, and then load the result from disc as needed
     nfs, sub_lookup, _ = load_nf_data()
 
-    # Ideally, we would omit curves that are base changes from any subfield.
     total = db.ec_nfcurves.count()
     with open(fname, "w") as F:
         for progress, rec in enumerate(db.ec_nfcurves.search({}, ["galois_images", "degree", "field_label", "jinv", "cm", "label", "conductor_norm", "base_change"], silent=True)):
@@ -395,6 +394,8 @@ def load_ecnf_data(fname="ecnf_data.txt"):
             if Elabel in isbc:
                 continue
             for Slabel in Slabels.split(","):
+                if not S_LABEL_RE.fullmatch(Slabel):
+                    print("Warning: invalid Slabel", Slabel)
                 if Slabel in from_Slabel:
                     label = from_Slabel[Slabel]
                     yield label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, int(cm), Elabel, False, conductor_norm
@@ -494,29 +495,29 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
 
     # Check for overlap as we add points
     jinvs_seen = defaultdict(set)
-    point_counts = defaultdict(Counter)
+    #point_counts = defaultdict(Counter)
     jinvs = defaultdict(list)
-    for ctr, (label, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, known_isolated, conductor_norm) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
-        if ctr and ctr % 10000 == 0:
-            print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
-        assert label != "1.1.0.a.1"
-        # Don't want to save the interval, since that takes quadratic space
-        if label not in P:
-            label = transform_label(label)
-        for v in H.breadth_first_search(P._element_to_vertex(label)):
-            plabel = P._vertex_to_element(v)
-            gdat = gpdata[plabel]
-            if gdat["genus"] == 0: continue
-            if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:
-                jinvs_seen[plabel].add((field_of_definition, jfield, jinv))
-                point_counts[plabel][degree] += 1
-                if label == plabel and known_isolated:
-                    isolated = "4"
-                else:
-                    isolated = is_isolated(degree, gdat["genus"], gdat["rank"], gdat["q_gonality_bounds"][0], gdat["simple"], gdat["dims"])
-                if jorig == r"\N":
-                    jorig = jinv
-                jinvs[plabel].append((jorig, nf_lookup[field_of_definition], isolated))
+    with open("allpoints.txt", "w") as F:
+        for ctr, (label, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, known_isolated, conductor_norm) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
+            if ctr and ctr % 10000 == 0:
+                print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
+            assert label != "1.1.0.a.1"
+            # Don't want to save the interval, since that takes quadratic space
+            for v in H.breadth_first_search(P._element_to_vertex(label)):
+                plabel = P._vertex_to_element(v)
+                if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:
+                    jinvs_seen[plabel].add((field_of_definition, jfield, jinv))
+                    #point_counts[plabel][degree] += 1
+                    gdat = gpdata[plabel]
+                    if label == plabel and known_isolated:
+                        isolated = "4"
+                    else:
+                        isolated = is_isolated(degree, gdat["genus"], gdat["rank"], gdat["q_gonality_bounds"][0], gdat["simple"], gdat["dims"])
+                    _ = F.write(f"{plabel}|{degree}|{field_of_definition}|{jorig}|{jinv}|{jfield}|{j_height:.4f}|{cm}|{Elabel}|{isolated}|{conductor_norm}\n")
+                    if gdat["genus"] == 0: continue
+                    if jorig == r"\N":
+                        jorig = jinv
+                    jinvs[plabel].append((jorig, nf_lookup[field_of_definition], isolated))
     for plabel, pts in jinvs.items():
         # We only need to compute isolatedness and model-coordinates when genus > 0
         with open(opj(output_folder, plabel), "w") as F:
@@ -855,9 +856,9 @@ def get_model_points(rats, usps):
         for out in lines:
             if not out: continue
             poly, j, model_type, coord = out.split("|")
-            poly = poly.replace("$.1", "x")
+            poly = poly.replace("$.1", "x").replace(" ", "")
             model_type = int(model_type)
-            if poly == "x - 1":
+            if poly == "x-1":
                 points[label, "1.1.1.1", j][model_type].append(coord)
             else:
                 try:
@@ -1029,9 +1030,9 @@ def to_coarse_label(label):
     M, a, m, n = coarse.split(".")
     return f"{M}.{j}.{g}.{a}.{m}"
 
-def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_file="ecnf_data.txt", cm_data_file="cm_data.txt"):
+def create_db_uploads(input_file="output", manual_data_folder="../rational-points/data", ecnf_data_file="ecnf_data.txt", cm_data_file="cm_data.txt"):
     data = defaultdict(lambda: defaultdict(list))
-    with open("output") as F:
+    with open(input_file) as F:
         for line in F:
             label, out = line.strip().split("|", 1)
             if not out: continue
@@ -1045,36 +1046,11 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
     data["G"] = {label: [int(g) for g in gon[0].split(",")] for label,gon in data["G"].items()}
     gonalities = get_gonalities(data["G"])
 
-    # Get lattice_models and lattice_x
-    assert all(len(D) == 1 for D in data["L"].values())
-    data["L"] = {label: L[0] for (label, L) in data["L"].items()}
-
-    with open("gps_gl2zhat_fine.update", "w") as F:
-        _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds|lattice_labels|lattice_x\ninteger|integer|integer[]|integer[]|text[]|integer[]\n\n")
-        default = r"\N|\N"
-        for label, gon in gonalities.items():
-            _ = F.write(f"{label}|{gon}|{data['L'].get(label, [default])[0]}\n")
-
-    model_points, cusps = get_model_points(data["R"], data["U"])
     # Construct modcurve_points
-    lit_data = load_points_files(manual_data_folder)
-    lit_fields = sorted(set([datum[2] for datum in lit_data]))
-    print("Loaded tables from files")
-
+    model_points, cusps = get_model_points(data["R"], data["U"])
     gpdata = load_gl2zhat_rational_data()
     gpcuspdata = load_gl2zhat_cusp_data()
 
-    # TODO: Rewrite prep code so that we don't need to redo the poset rational point propogation
-    P = get_rational_poset()
-    H = P._hasse_diagram
-    ecq_db_data = load_ecq_data(cm_data_file)
-
-    ecnf_db_data = list(load_ecnf_data(ecnf_data_file))
-
-
-    # Check for overlap as we add points
-    jinvs_seen = defaultdict(set)
-    point_counts = defaultdict(Counter)
     def write_dict(D):
         if isinstance(D, str): return D # \N
         D = dict(D) # might be a defaultdict
@@ -1083,36 +1059,28 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
             coords = str(coords).replace(" ", "").replace("'", '"')
             parts.append(f'"{modtype}":{coords}')
         return "{" + ",".join(parts) + "}"
-    with open("modcurve_points.txt", "w") as F:
-        _ = F.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|coordinates|cusp\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint|jsonb|boolean\n\n")
-        # rats contains residue_field|jorig|model_type|coord
-        for ctr, (label, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, known_isolated, conductor_norm) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
-            if ctr and ctr % 10000 == 0:
-                print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
-            assert label != "1.1.0.a.1"
-            for v in H.breadth_first_search(P._element_to_vertex(label)):
-                plabel = P._vertex_to_element(v)
+    with open("modcurve_points.txt", "w") as Fout:
+        _ = Fout.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|coordinates|cusp\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint|jsonb|boolean\n\n")
+        with open("allpoints.txt") as F:
+            # Get total number of points to add
+            for total, _ in enumerate(F,1): pass
+            for ctr, line in enumerate(F):
+                if ctr and ctr % 10000 == 0:
+                    print(f"{ctr}/{total}")
+                plabel, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, isolated, conductor_norm = line.strip().split("|")
                 gdat = gpdata[plabel]
-                g = gdat["genus"]
-                ind = gdat["index"]
-                level = gdat["level"]
+                g, ind, level = gdat["genus"], gdate["index"], gdat["level"]
                 gonlow = gonalities[to_coarse_label(plabel)][2][0]
-                rank = gdat["rank"]
-                simp = gdat["simple"]
+                rank, simp, dims = gdat["rank"], gdat["simple"], gdat["dims"]
                 name = gdat["name"]
                 if name is None:
                     name = r"\N"
-                if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:
-                    jinvs_seen[plabel].add((field_of_definition, jfield, jinv))
-                    point_counts[plabel][degree] += 1
-                    if label == plabel and known_isolated:
-                        isolated = "4"
-                    else:
-                        isolated = is_isolated(degree, gdat["genus"], gdat["rank"], gonlow, gdat["simple"], gdat["dims"])
-                    jlookup = jinv if jorig == r"\N" else jorig
-                    coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
-
-                    _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, write_dict(coords), "f"]) + "\n")
+                # we can recompute isolated based on new gonalities
+                if isolated in "01":
+                    isolated = is_isolated(degree, g, rank, gonlow, simp, dims)
+                jlookup = jinv if jorig == r"\N" else jorig
+                coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
+                _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, write_dict(coords), "f"]) + "\n")
         for (plabel, nflabel), coords in cusps.items():
             degree = nflabel.split(".")[0]
             gdat = gpcuspdata[plabel]
@@ -1124,21 +1092,17 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
             name = gdat["name"]
             if name is None:
                 name = r"\N"
-            _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", write_dict(coords), "t"]) + "\n")
+            _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", write_dict(coords), "t"]) + "\n")
 
     write_models_maps(data["C"], data["P"], data["H"], data["J"], data["F"])
 
-def fix_output():
-    # Accidentally used the same letter code for cusps and plane models
-    with open("output") as F:
-        with open("output_fixed", "w") as Fout:
-            for line in F:
-                if line[0] == "P":
-                    if line.count("|") == 1:
-                        continue
-                    pieces = line.strip().split("|")
-                    if not pieces[-1].isdigit():
-                        # Cusp
-                        _ = Fout.write("U" + line[1:])
-                        continue
-                _ = Fout.write(line)
+    # Get lattice_models and lattice_x
+    assert all(len(D) == 1 for D in data["L"].values())
+    data["L"] = {label: L[0] for (label, L) in data["L"].items()}
+
+    with open("gps_gl2zhat_fine.update", "w") as F:
+        # TODO: May also want to upload number_rational_points
+        _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds|lattice_labels|lattice_x\ninteger|integer|integer[]|integer[]|text[]|integer[]\n\n")
+        default = r"\N|\N"
+        for label, gon in gonalities.items():
+            _ = F.write(f"{label}|{gon}|{data['L'].get(label, [default])[0]}\n")

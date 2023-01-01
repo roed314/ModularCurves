@@ -381,9 +381,11 @@ intrinsic LMFDBWriteCuspCoords(coords::List, label::MonStgElt)
     coord_strs := [];
     for trip in coords do
         model_type, coord := Explode(trip);
-        K := Sprint(DefiningPolynomial(Universe(Eltseq(coord))));
+        poly := DefiningPolynomial(Universe(Eltseq(coord)));
+        R := Parent(poly);
+        AssignNames(~R, ["x"]);
         coord := Join([Join([Sprint(a) : a in Eltseq(c)], ",") : c in Coordinates(coord)], ":");
-        Append(~coord_strs, Sprintf("%o|%o|%o", K, model_type, coord));
+        Append(~coord_strs, Sprintf("%o|%o|%o", sprint(poly), model_type, coord));
     end for;
     Write(fname, Join(coord_strs, "\n") : Overwrite);
 end intrinsic;
