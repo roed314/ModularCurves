@@ -513,13 +513,14 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
                         isolated = "4"
                     else:
                         isolated = is_isolated(degree, gdat["genus"], gdat["rank"], gdat["q_gonality_bounds"][0], gdat["simple"], gdat["dims"])
-                    _ = F.write(f"{plabel}|{degree}|{field_of_definition}|{jorig}|{jinv}|{jfield}|{j_height:.4f}|{cm}|{Elabel}|{isolated}|{conductor_norm}\n")
+                    _ = F.write(f"{plabel}|{degree}|{field_of_definition}|{jorig}|{jinv}|{jfield}|{j_height}|{cm}|{Elabel}|{isolated}|{conductor_norm}\n")
+
+                    # We only need to compute isolatedness and model-coordinates when genus > 0
                     if gdat["genus"] == 0: continue
                     if jorig == r"\N":
                         jorig = jinv
                     jinvs[plabel].append((jorig, nf_lookup[field_of_definition], isolated))
     for plabel, pts in jinvs.items():
-        # We only need to compute isolatedness and model-coordinates when genus > 0
         with open(opj(output_folder, plabel), "w") as F:
             for jinv, nf, isolated in pts:
                 _ = F.write(f"{jinv}|{str(nf).replace(' ','')[1:-1]}|{isolated}\n")
