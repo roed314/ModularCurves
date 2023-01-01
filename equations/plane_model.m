@@ -829,7 +829,7 @@ intrinsic PlaneModelAndGonalityBounds(label::MonStgElt) -> Tup, SeqEnum
             If hyperelliptic, writes to ghyp_models/<label> instead
 }
     X, g, model_type := LMFDBReadXGModel(label);
-    ghyp := (model_type eq -1);
+    ghyp := (model_type eq 8);
     q_low, q_high, qbar_low, qbar_high := Explode(LMFDBReadGonalityBounds(label));
     C, bestkey := LMFDBReadPlaneModel(label);
     curve := Curve(Proj(Universe(X)), X);

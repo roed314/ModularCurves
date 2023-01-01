@@ -30,7 +30,14 @@ if #jinvs gt 0 then
     else
         Y, gY, modtY := LMFDBReadXGModel(codomain);
         Y := Curve(Proj(Universe(Y)), Y);
-        Ycoords := LMFDBReadJinvCoords(codomain : can_only:=true);
+        // The computation of rational points on the codomain may have timed out,
+        // in which case we just want to exit.
+        try
+            Ycoords := LMFDBReadJinvCoords(codomain : can_only:=true);
+        catch e
+            print "Rational points not computed in codomain";
+            exit;
+        end try;
         // The field of definition may be different for Y and X, so we need to track embeddings of these fields
         new_jinvs := [* *];
         roots := AssociativeArray();

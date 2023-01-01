@@ -291,6 +291,14 @@ intrinsic LMFDBWriteGonalityBounds(gon_bounds::Tup, label::MonStgElt)
 {}
     fname := Sprintf("gonality/%o", label);
     if gon_bounds[1] gt gon_bounds[2] or gon_bounds[3] gt gon_bounds[4] or gon_bounds[4] gt gon_bounds[2] or gon_bounds[3] gt gon_bounds[1] then
+        // Annoyingly, user errors don't give tracebacks, so we get one
+        try
+            x := 1/(1-1);
+        catch e
+            if assigned e`Traceback then
+                print e`Traceback;
+            end if;
+        end try;
         error Sprintf("Invalid gonality bounds %o", sprint(gon_bounds));
     end if;
     Write(fname, Join([Sprint(c) : c in gon_bounds], ",") : Overwrite);
