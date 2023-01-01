@@ -1128,7 +1128,10 @@ def create_db_uploads(input_file="output"):
 
     with open("gps_gl2zhat_fine.update", "w") as F:
         # TODO: May also want to upload number_rational_points
-        _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds|lattice_labels|lattice_x\ninteger|integer|integer[]|integer[]|text[]|integer[]\n\n")
+        _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds|lattice_labels|lattice_x\ntext|integer|integer|integer[]|integer[]|text[]|integer[]\n\n")
         default = r"\N|\N"
         for label, gon in gonalities.items():
-            _ = F.write(f"{label}|{gon}|{data['L'].get(label, [default])[0]}\n")
+            q, qbar, qbnd, qbarbnd = gon
+            qbnd = "{%s,%s}" % qbnd
+            qbarbnd = "{%s, %s}" % qbarbnd
+            _ = F.write(f"{label}|{q}|{qbar}|{qbnd}|{qbarbnd}|{data['L'].get(label, default)}\n")
