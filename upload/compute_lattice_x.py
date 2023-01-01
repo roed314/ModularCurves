@@ -918,7 +918,7 @@ def get_model_points(rats, usps):
 
     return points, cusps
 
-def write_models_maps(cans, planes, ghyps, jcusps, facs):
+def write_models_maps(cans, planes, ghyps, jcusps, jfacs):
     def dontdisplay_str(s):
         return "t" if (len(s) > 100000) else "f"
     models = defaultdict(list)
@@ -1056,7 +1056,7 @@ def to_coarse_label(label):
     M, a, m, n = coarse.split(".")
     return f"{M}.{j}.{g}.{a}.{m}"
 
-def create_db_uploads(input_file="output", manual_data_folder="../rational-points/data", ecnf_data_file="ecnf_data.txt", cm_data_file="cm_data.txt"):
+def create_db_uploads(input_file="output"):
     data = defaultdict(lambda: defaultdict(list))
     with open(input_file) as F:
         for line in F:
