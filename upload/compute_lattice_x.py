@@ -895,7 +895,9 @@ def get_model_points(rats, usps):
                 nflabel = nf_lookup[tuple(R(poly))]
                 points[label, nflabel, j][model_type].append(coord)
 
-    for label, lines in usps.items():
+    for i, (label, lines) in enumerate(usps.items()):
+        if i and i%1000 == 0:
+            print(f"usps {i}/{len(usps)}")
         for out in lines:
             if not out: continue
             poly, model_type, coord = out.split("|")
@@ -1074,8 +1076,10 @@ def create_db_uploads(input_file="output"):
 
     # Construct modcurve_points
     model_points, cusps = get_model_points(data["R"], data["U"])
+    print "Model points loaded"
     gpdata = load_gl2zhat_rational_data()
     gpcuspdata = load_gl2zhat_cusp_data()
+    print "Group data loaded"
 
     def write_dict(D):
         if isinstance(D, str): return D # \N
@@ -1097,7 +1101,7 @@ def create_db_uploads(input_file="output"):
                     print(f"{ctr}/{total}")
                 plabel, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, isolated, conductor_norm, ainvs = line.strip().split("|")
                 gdat = gpdata[plabel]
-                g, ind, level = gdat["genus"], gdate["index"], gdat["level"]
+                g, ind, level = gdat["genus"], gdat["index"], gdat["level"]
                 gonlow = gonalities[to_coarse_label(plabel)][2][0]
                 rank, simp, dims = gdat["rank"], gdat["simple"], gdat["dims"]
                 name = gdat["name"]
