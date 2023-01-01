@@ -873,11 +873,13 @@ def get_gonalities(model_gonalities):
 
 def get_model_points(rats, usps):
     # We need to do polredabs computations for cusps, which might take a while
+    print("Creating nf lookup table")
     nf_lookup = {tuple(rec["coeffs"]): rec["label"] for rec in db.nf_fields.search({"degree":{"$lte":6}}, ["label", "coeffs"])}
     points = defaultdict(lambda: defaultdict(list))
     cusps = defaultdict(lambda: defaultdict(list))
     R = PolynomialRing(QQ, name="x")
     to_polredabs = {}
+    print("Loading polynomials")
     for label, lines in rats.items():
         for out in lines:
             if not out: continue
@@ -1109,7 +1111,7 @@ def create_db_uploads(input_file="output"):
                     name = r"\N"
                 # we can recompute isolated based on new gonalities
                 if isolated in "01":
-                    isolated = is_isolated(degree, g, rank, gonlow, simp, dims)
+                    isolated = is_isolated(int(degree), g, rank, gonlow, simp, dims)
                 jlookup = jinv if jorig == r"\N" else jorig
                 coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
                 _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, ainvs, write_dict(coords), "f"]) + "\n")
