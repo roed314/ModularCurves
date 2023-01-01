@@ -41,7 +41,12 @@ function getfac(j)
     jdegs := {Degree(coord) : coord in j};
     for coord in j do
         fac, u := Factorization(coord);
-        nfac := &+[fe[2] : fe in fac | fe[1] ne R.(Rank(R))]; // skip homogenizing terms
+        nfac := [fe[2] : fe in fac | fe[1] ne R.(Rank(R))]; // skip homogenizing terms
+        if #nfac eq 0 then
+            nfac := 0;
+        else
+            nfac := &+nfac;
+        end if;
         Append(~nfacs, Sprint(nfac));
         rescaled := [];
         for fe in fac do
