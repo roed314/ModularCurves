@@ -1076,10 +1076,10 @@ def create_db_uploads(input_file="output"):
 
     # Construct modcurve_points
     model_points, cusps = get_model_points(data["R"], data["U"])
-    print "Model points loaded"
+    print("Model points loaded")
     gpdata = load_gl2zhat_rational_data()
     gpcuspdata = load_gl2zhat_cusp_data()
-    print "Group data loaded"
+    print("Group data loaded")
 
     def write_dict(D):
         if isinstance(D, str): return D # \N
