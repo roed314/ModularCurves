@@ -776,6 +776,7 @@ intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum, best::SeqEnum, bestkey::T
         return true;
     end if;
 
+    Saturate(~X);
     map_XtoC := Restriction(map_XtoC, X, C);
     defeqs := DefiningEquations(map_XtoC);
     vprint User1: "Found defining equations of the map";
