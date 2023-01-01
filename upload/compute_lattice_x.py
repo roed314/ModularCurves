@@ -1092,7 +1092,7 @@ def create_db_uploads(input_file="output"):
             parts.append(f'"{modtype}":{coords}')
         return "{" + ",".join(parts) + "}"
     with open("modcurve_points.txt", "w") as Fout:
-        _ = Fout.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|ainvs|coordinates|cusp\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint|text|jsonb|boolean\n\n")
+        _ = Fout.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|ainvs|coordinates|cusp\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|numeric|text|jsonb|boolean\n\n")
         # Get total number of points to add
         with open("allpoints.txt") as F:
             for total, _ in enumerate(F,1):
@@ -1140,6 +1140,8 @@ def create_db_uploads(input_file="output"):
         default = r"\N|\N"
         for label, gon in gonalities.items():
             q, qbar, qbnd, qbarbnd = gon
+            if q is None: q = r"\N"
+            if qbar is None: qbar = r"\N"
             qbnd = "{%s,%s}" % qbnd
             qbarbnd = "{%s, %s}" % qbarbnd
             _ = F.write(f"{label}|{q}|{qbar}|{qbnd}|{qbarbnd}|{data['L'].get(label, default)}\n")

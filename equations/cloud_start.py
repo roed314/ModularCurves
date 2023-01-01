@@ -26,6 +26,7 @@
 # Update save_ecnf_data to account for updated base_change records in ec_nfcurves
 # Split off lattice computation, remove test for g<=24 below, update todo list generation
 # A mechanism for redoing failures
+# Is conductor_norm well defined over twists?
 
 import os
 import argparse
