@@ -97,17 +97,10 @@ intrinsic AssignCanonicalNames(~R::Rng : upper:=true)
     end if;
 end intrinsic;
 
-intrinsic ReadPoly(P::RngMPol, f::MonStgElt, nvars::RngIntElt : upper:=true, Homogenize:=false) -> RngMPolElt
+intrinsic ReadPoly(P::RngMPol, f::MonStgElt, nvars::RngIntElt : upper:=true) -> RngMPolElt
 {}
-    g := eval(ReplaceVariables(f, nvars : upper:=upper));
-    // Note that g might be a fraction field element if there was division
-    if Homogenize then
-        gnum := P!Numerator(g);
-        gden := P!Denominator(g);
-        d := Max(Degree(gnum), Degree(gden));
-        g := Homogenization(gnum, P.nvars, d) / Homogenization(gden, P.nvars, d);
-    end if;
-    return g;
+    return eval(ReplaceVariables(f, nvars : upper:=upper));
+    // Note that this might be a fraction field element if there was division
 end intrinsic;
 
 function get_cusp_str(cusps)
@@ -208,7 +201,7 @@ intrinsic LMFDBReadJMap(label::MonStgElt) -> SeqEnum, RngIntElt, MonStgElt, SeqE
     end if;
     assert model_type eq StringToInteger(jtype);
     j := Split(j[2..#j-1], "," : IncludeEmpty:=true);
-    j := [ReadPoly(P, jcoord, nvars : Homogenize:=true) : jcoord in j];
+    j := [ReadPoly(P, jcoord, nvars) : jcoord in j];
     return X, model_type, codomain, j;
 end intrinsic;
 

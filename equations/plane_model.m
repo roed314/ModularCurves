@@ -256,12 +256,12 @@ File output:
         if warn_invalid then
             // We want the traceback
             try
-                error "Invalid model";
+                print C`invalid; // User errors don't have tracebacks
             catch e
-                print "error: invalid model";
                 if assigned e`Traceback then
                     print e`Traceback;
                 end if;
+                print "error: invalid model", assigned e`Position select Sprintf("line %o", e`Position) else "";
             end try;
         end if;
         return best, bestkey, false, tval, 0.0;

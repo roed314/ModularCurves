@@ -67,7 +67,7 @@ intrinsic FindModelOfXG(M::Rec, label::MonStgElt) -> Rec, RngIntElt, RngIntElt, 
     // Compute the degree of the line bundle used
     if (M`mult ne [ 1 : i in [1..M`vinf]]) or (M`k ne 2) then
         vprint User1: "Curve is geometrically hyperelliptic.";
-        model_type := -1; // "other"
+        model_type := 8; // geometrically hyperelliptic
         k := M`k;
         degL:= ((k*(2*M`genus-2)) div 2 + Floor(k/4)*M`v2 + Floor(k/3)*M`v3 + (k div 2)*#M`cusps) - (&+M`mult);
         old_degL := 0;
@@ -212,7 +212,6 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, SeqEnum,
             model_type := 0;
         else
             X, j, model_type, F0, M := AbsoluteJMap(label); // writes model
-            j := [Numerator(j), Denominator(j)];
             // Homogenize the j-map
             //P := Universe(j);
             //d := Max([Degree(coord) : coord in j]);

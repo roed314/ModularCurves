@@ -146,8 +146,17 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     return C0, proj, F0, M0;
 end intrinsic;
 
+function LiftToTrivariate(R, f, d)
+    Rlift := OriginalRing(Parent(f));
+    f := Rlift!f;
+    coeffs, mons := CoefficientsAndMonomials(f);
+    exps := [Exponents(m) : m in mons];
+    mons := [Monomial(R, e cat [d - &+e]) : e in exps];
+    return Polynomial(coeffs, mons);
+end function;
+
 intrinsic AbsoluteJMap(label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEnum, Rec
-{Outputs a model X, j as a multivariate rational function in the ambient variables of X, the model type (5 if an elliptic curve, -1 if geometrically hyperelliptic, 0 if canonical model), F0 (a sequence of modular forms as computed by FindModelOfXG) and M (the ModularCurveRec)}
+{Outputs a model X, j as a multivariate rational function in the ambient variables of X, the model type (5 if an elliptic curve, 8 if geometrically hyperelliptic, 0 if canonical model), F0 (a sequence of modular forms as computed by FindModelOfXG) and M (the ModularCurveRec)}
   N, gens := GetLevelAndGensFromLabel(label);
   tttt := ReportStart(label, "AbsoluteJMap");
 //  gens := GetModularCurveGenerators(l);
@@ -161,7 +170,15 @@ intrinsic AbsoluteJMap(label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEn
   if model_type eq 5 then
     LMFDBWriteXGModel(M`C, model_type, label);
     ReportEnd(label, "AbsoluteJMap", tttt);
-    return M`C, M`map_to_jline, model_type, M`f cat [[1 : i in [1..#M`cusps]]], M;
+    // Need to homogenize the map to the j-line
+    num := Numerator(M`map_to_jline);
+    den := Denominator(M`map_to_jline);
+    d := Max(Degree(num), Degree(den));
+    R := PolynomialRing(Rationals(), 3);
+    num := LiftToTrivariate(R, num, d);
+    den := LiftToTrivariate(R, den, d);
+    print "jline", num, den;
+    return M`C, [num, den], model_type, M`f cat [[1 : i in [1..#M`cusps]]], M;
   end if;
   C := Curve(ProjectiveSpace(Rationals(), #M`F0 - 1), M`psi);
 
@@ -419,5 +436,5 @@ end if;
   vprint User1: Sprintf("Linear algebra time = %o.", lintime);
   ReportEnd(label, "AbsoluteJMap", tttt);
 
-  return C, num/denom, model_type, M`F0, M;
+  return C, [num, denom], model_type, M`F0, M;
 end intrinsic;

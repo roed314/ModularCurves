@@ -891,7 +891,7 @@ def get_model_points(rats, usps):
 
     return points, cusps
 
-def write_models_maps(cans, planes, ghyps, jcusps):
+def write_models_maps(cans, planes, ghyps, jcusps, facs):
     def dontdisplay_str(s):
         return "t" if (len(s) > 100000) else "f"
     models = defaultdict(list)
@@ -904,27 +904,48 @@ def write_models_maps(cans, planes, ghyps, jcusps):
         line = lines[0]
         nvar, can, model_type = line.split("|")
         assert model_type != "1"
+        # encoding for model types (in the modcurve_models and modcurve_modelmaps schemas)
+        # For a given modular curve, there should be at most one of each type of model in modcurve_models (since they're used as keys in modcurve_modelmaps)
+        # 0: canonical (including plane models for nonhyperelliptic genus 3)
+        # 1: only used in modelmaps for P^1; for the modular curve X(1), this indicates that the j-invariant is used as the coordinate (as opposed to type 3 where j-1728 is)
+        # 2: plane model, including pointless conics but excluding nonhyperelliptic genus 3 (0) and elliptic curves (5)
+        # 3: P^1, only used in modelmaps for j-1728
+        # 4: P(4,6), only used in modelmaps for (E4,E6)
+        # 5: elliptic or hyperelliptic over Q
+        # 6: bielliptic (not yet implemented)
+        # 7: double cover of a pointless conic
+        # 8: the high dimensional smooth embeddings of geometrically hyperelliptic curves produced by FindModelOfXG
+        # -1: other (currently unused)
+        # -2: external plane model (e.g. Drew's optimized ones for X0(N))
         can_type[label] = model_type
         smooth = "t"
-        index = label.split(".")[1] # coarse model, so psl2_index same as index
         dontdisplay = dontdisplay_str(can)
         models[label].append(f"{label}|{can}|{nvar}|{model_type}|{smooth}|{dontdisplay}\n")
     for label, lines in jcusps.items():
         assert len(lines) == 1
         line = lines[0]
+        index = int(label.split(".")[1]) # coarse model, so psl2_index same as index
         if line.count("|") == 4:
             model_type, codomain, jmap, cuspcoords, cuspfields = line.split("|")
-            codomain_type = "0"
             assert codomain in models
+            codomain_index = int(codomain.split(".")[1]) # coarse model, so psl2_index same as index
+            degree = index // codomain_index
+            toadd = [(str(degree), codomain, "0", jmap, r"\N", "t")]
         else:
-            model_type, jmap, cuspcoords, cuspfields = line.splie("|")
             codomain = "1.1.0.a.1"
-            codomain_type = "3"
-            assert model_type == "1" or label in models
-        dontdisplay = dontdisplay_str(jmap)
-        factored = "f" # For now, not factored
-        leading_coefficients = r"\N" # since not factored, we just use null to indicate [1,1,1...]
-        maps[label].append(f"{index}|{label}|{model_type}|{codomain}|{codomain_type}|{jmap}|{leading_coefficients}|{factored}|{dontdisplay}\n")
+            model_type, jmap, cuspcoords, cuspfields = line.split("|")
+            if label in jfacs:
+                faclines = jfacs[label]
+                toadd = []
+                for facline in faclines:
+                    codtype, jmap, leading, nfacs, jdegs = facline.split("|")
+                    toadd.append((str(index), codomain, codtype, jmap, leading, "t"))
+            else:
+                toadd = [(str(index), codomain, "1", jmap, r"\N", "f")]
+        assert model_type == "1" or label in models
+        for degree, codomain, codtype, jmap, leading, factored in toadd:
+            dontdisplay = dontdisplay_str(jmap)
+            maps[label].append(f"{degree}|{label}|{model_type}|{codomain}|{codtype}|{jmap}|{leading}|{factored}|{dontdisplay}\n")
 
     triangular_nbs = [str(i*(i-1)//2) for i in range(1, 18)]
     for label, lines in planes.items():
@@ -1105,7 +1126,7 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
                 name = r"\N"
             _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", write_dict(coords), "t"]) + "\n")
 
-    write_models_maps(data["C"], data["P"], data["H"], data["J"])
+    write_models_maps(data["C"], data["P"], data["H"], data["J"], data["F"])
 
 def fix_output():
     # Accidentally used the same letter code for cusps and plane models

@@ -24,13 +24,8 @@
 # Check lifting of rational points (and cusps?) on relative j-maps
 # Need to move rational point and cusp data from output file to folders before second deployment
 # Update save_ecnf_data to account for updated base_change records in ec_nfcurves
-
-# In file "/home/roed/ModularCurves/equations/OpenImage/main/ModularCurves.m", line 386, column 12:
-# >>     F_:=[R1!f : f in F_];
-# Runtime error in '!': Illegal coercion
-# cover_label: 16.384.13.p.1,
-# covered_label: 8.96.3.g.1,
-# conjugator: [10  9] [ 9 12]
+# Split off lattice computation, remove test for g<=24 below, update todo list generation
+# A mechanism for redoing failures
 
 import os
 import argparse
@@ -49,6 +44,7 @@ os.makedirs("plane_models", exist_ok=True)
 os.makedirs("ghyp_models", exist_ok=True)
 os.makedirs("rats", exist_ok=True)
 os.makedirs("jcusps", exist_ok=True)
+os.makedirs("jfacs", exist_ok=True)
 os.makedirs("cusps", exist_ok=True)
 os.makedirs("gonality", exist_ok=True)
 os.makedirs("graphviz_out", exist_ok=True)
@@ -67,6 +63,7 @@ else:
 with open(todo) as F:
     L = F.read().strip().split("\n")
     label = L[job]
+    genus = int(label.split(".")[2])
 
 def get_lattice_coords(label):
     # We use graphviz to lay out the displayed lattice
@@ -93,11 +90,9 @@ def get_lattice_coords(label):
 
 def get_canonical_model(label, verbose):
     # Also produces a first stab at a plane model
-    g = int(label.split(".")[2])
-    if g <= 24:
+    if genus <= 24:
         verb = "verbose:= " if verbose else ""
         subprocess.run('parallel --timeout 900 "magma -b label:={1} %sGetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
-    return g != 0 and ope(opj("canonical_models", label))
 
 def get_plane_and_gonality(label, verbose):
     # Runs the script to compute gonality bounds and a better plane model
@@ -105,17 +100,16 @@ def get_plane_and_gonality(label, verbose):
     g = int(label.split(".")[2])
     verb = "verbose:= " if verbose else ""
     subprocess.run('parallel --timeout 600 "magma -b label:={1} %sGetPlaneAndGonality.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
-    gon = opj("gonality", label)
-    with open(opj("canonical_models", label)) as F:
-        model_type = F.read().strip().split("|")[-1]
-        return g >= 3 and model_type == "-1"
 
 def get_ghyperelliptic_model(label, verbose):
-    verb = "verbose:= " if verbose else ""
-    for prec in [100, 300, 600]:
-        if ope(opj("ghyp_models", label)):
-            break
-        subprocess.run('parallel --timeout 600 "magma -b label:={1} %sprec:=%s GetGHyperellipticModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, prec, label), shell=True)
+    with open(opj("canonical_models", label)) as F:
+        model_type = F.read().strip().split("|")[-1]
+    if genus >= 3 and model_type == "8":
+        verb = "verbose:= " if verbose else ""
+        for prec in [100, 300, 600]:
+            if ope(opj("ghyp_models", label)):
+                break
+            subprocess.run('parallel --timeout 600 "magma -b label:={1} %sprec:=%s GetGHyperellipticModel.m >> stdout/{1} 2>&1" ::: %s' % (verb, prec, label), shell=True)
 
 def get_plane_model(label, verbose):
     # Attempts to contruct a plane model via projection from rational points
@@ -130,6 +124,10 @@ def get_cusp_coordinates(label, verbose):
     verb = "verbose:= " if verbose else ""
     subprocess.run('parallel --timeout 60 "magma -b label:={1} %sGetCuspCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
+def get_jfactorization(label, verbose):
+    verb = "verbose:= " if verbose else ""
+    subprocess.run('parallel --timeout 60 "magma -b label:={1} %sGetJFactorization.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+
 def collate_data(label):
     with open("output", "a") as Fout:
         for code, folder in [
@@ -138,6 +136,7 @@ def collate_data(label):
                 ("H", "ghyp_models"),
                 ("R", "rats"),
                 ("J", "jcusps"),
+                ("F", "jfacs"),
                 ("U", "cusps"),
                 ("G", "gonality"),
                 ("L", "graphviz_out"),
@@ -151,13 +150,16 @@ def collate_data(label):
                             line += "\n"
                         _ = Fout.write(f"{code}{label}|{line}")
 
-if get_canonical_model(label, args.verbose):
-#if ope("canonical_models/" + label) and label.split(".")[2] != "0":
-    if get_plane_and_gonality(label, args.verbose):
+get_canonical_model(label, args.verbose)
+if ope(opj("canonical_models", label)):
+    if genus != 0:
+        get_plane_and_gonality(label, args.verbose)
         get_ghyperelliptic_model(label, args.verbose)
-    if ope(opj("jcusps", label)): # These need a j-map
-        get_plane_model(label, args.verbose)
-        #get_rational_coordinates(label, args.verbose)
-        get_cusp_coordinates(label, args.verbose)
+        if ope(opj("jcusps", label)): # These need a j-map
+            get_plane_model(label, args.verbose)
+            #get_rational_coordinates(label, args.verbose)
+            get_cusp_coordinates(label, args.verbose)
+    if ope(opj("jcusps", label)):
+        get_jfactorization(label, args.verbose)
 get_lattice_coords(label)
 collate_data(label)

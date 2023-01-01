@@ -11,7 +11,7 @@ parser.add_argument("--savecan", action="store_true", help="whether to keep the 
 args = parser.parse_args()
 
 prefix = "mid" + args.saven + "_"
-tomove = ["ghyp_models", "graphviz_out", "output", "plane_models", "rats", "jcusps", "cusps", "stdout", "timings"]
+tomove = ["ghyp_models", "graphviz_out", "output", "plane_models", "rats", "jcusps", "jfacs", "cusps", "stdout", "timings"]
 if not args.savecan:
     tomove.extend(["canonical_models", "gonality"])
 # Don't move graphviz_in/, jinvs/ or cod/ since they generally are input-only
