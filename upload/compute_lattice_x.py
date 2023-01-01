@@ -6,7 +6,7 @@ import re
 import sys
 from collections import defaultdict, Counter
 from sage.misc.cachefunc import cached_function
-from sage.all import ZZ, QQ, Poset, DiGraph, flatten, gcd, PolynomialRing, MatrixSpace
+from sage.all import ZZ, QQ, Poset, DiGraph, flatten, gcd, PolynomialRing, MatrixSpace, EllipticCurve
 from sage.combinat.posets.posets import FinitePoset
 from sage.misc.misc import cputime, walltime
 from sage.databases.cremona import class_to_int
@@ -298,7 +298,7 @@ def load_points_files(data_folder):
         assert NFLABEL_RE.match(jfield), f"Invalid field of j {jfield} for {label}"
         assert ZZ_RE.match(cm), f"Invalid CM discriminant {cm} for {label}"
         assert quo_info == r"\N" or NN_LIST_RE.match(quo_info[1:-1]), f"Invalid quotient information {quo_info} for {label}"
-        ans.append((label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, cm, r"\N", True, r"\N"))
+        ans.append((label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, cm, r"\N", True, r"\N", r"\N"))
     return ans
 
 def get_j_height(jinv, j_field, nfs):
@@ -342,7 +342,7 @@ def save_ecnf_data(fname="ecnf_data.txt"):
 
     total = db.ec_nfcurves.count()
     with open(fname, "w") as F:
-        for progress, rec in enumerate(db.ec_nfcurves.search({}, ["galois_images", "degree", "field_label", "jinv", "cm", "label", "conductor_norm", "base_change"], silent=True)):
+        for progress, rec in enumerate(db.ec_nfcurves.search({}, ["galois_images", "degree", "field_label", "jinv", "cm", "label", "conductor_norm", "base_change", "ainvs"], silent=True)):
             if progress and progress % 10000 == 0:
                 print(f"ECNF: {progress}/{total}")
             if rec["base_change"] or not rec["galois_images"]:
@@ -368,7 +368,7 @@ def save_ecnf_data(fname="ecnf_data.txt"):
                     jorig = rec["jinv"]
             Slabels = ",".join(rec["galois_images"])
             j_height = get_j_height(jinv, jfield, nfs)
-            _ = F.write(f"{Slabels}|{rec['degree']}|{rec['field_label']}|{jorig}|{jinv}|{jfield}|{j_height}|{rec['cm']}|{rec['label']}|{rec['conductor_norm']}\n")
+            _ = F.write(f"{Slabels}|{rec['degree']}|{rec['field_label']}|{jorig}|{jinv}|{jfield}|{j_height}|{rec['cm']}|{rec['label']}|{rec['conductor_norm']}|{rec['ainvs']}\n")
 
 def load_ecnf_data(fname="ecnf_data.txt"):
     # Galois images are stored for NF curves using Sutherland labels
@@ -390,7 +390,7 @@ def load_ecnf_data(fname="ecnf_data.txt"):
 
     with open(fname) as F:
         for line in F:
-            Slabels, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, conductor_norm = line.strip().split("|")
+            Slabels, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, conductor_norm, ainvs = line.strip().split("|")
             if Elabel in isbc:
                 continue
             for Slabel in Slabels.split(","):
@@ -398,8 +398,25 @@ def load_ecnf_data(fname="ecnf_data.txt"):
                     print("Warning: invalid Slabel", Slabel)
                 if Slabel in from_Slabel:
                     label = from_Slabel[Slabel]
-                    yield label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, int(cm), Elabel, False, conductor_norm
+                    yield label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, int(cm), Elabel, False, conductor_norm, ainvs
     print("Loaded ECNF data from file")
+
+def convert_cm_datafile(cmin, cmout):
+    # Convert from Drew's format (which has some extra stuff and is missing others)
+    lookup = {tuple(rec["ainvs"]): rec["lmfdb_label"] for rec in db.ec_curvedata.search({}, ["ainvs", "lmfdb_label"])}
+    with open(cmout, "w") as Fout:
+        with open(cmin) as F:
+            for line in F:
+                level, gens, label, ainvs = line.strip().split(":")
+                ainvs = [ZZ(a) for a in ainvs[1:-1].split(",")]
+                E = EllipticCurve(ainvs)
+                cm = E.cm_discriminant()
+                j = E.j_invariant()
+                ainvs = tuple(E.minimal_model().a_invariants())
+                conductor = E.conductor()
+                lmfdb_label = lookup.get(ainvs, r"?")
+                ainvs = ";".join(str(a) for a in ainvs) # format compatible with ec_nfcurves
+                _ = Fout.write(f"{lmfdb_label}|{label}|{j}|{cm}|{ainvs}|{conductor}\n")
 
 def load_ecq_data(cm_data_file):
     t0 = walltime()
@@ -408,12 +425,13 @@ def load_ecq_data(cm_data_file):
     cm_lookup = defaultdict(list)
     with open(cm_data_file) as F:
         for line in F:
-            lmfdb_label, ainvs, modcurve_label = line.strip().split("|")
-            modcurve_label = transform_label(modcurve_label)
-            if lmfdb_label != "?" and int(modcurve_label.split(".")[0]) < 24:
+            lmfdb_label, modcurve_label, j, cm, ainvs, conductor = line.strip().split("|")
+            if lmfdb_label == "?":
+                ecq_db_data.append((modcurve_label, 1, "1.1.1.1", r"\N", j, "1.1.1.1", str(QQ(j).global_height()), int(cm), lmfdb_label, False, conductor, ainvs))
+            else:
                 cm_lookup[lmfdb_label].append(modcurve_label)
 
-    for rec in db.ec_curvedata.search({}, ["lmfdb_label", "jinv", "cm", "conductor", "modm_images"]):
+    for rec in db.ec_curvedata.search({}, ["lmfdb_label", "jinv", "cm", "conductor", "modm_images", "ainvs"]):
         Elabel = rec["lmfdb_label"]
         jinv = QQ(tuple(rec["jinv"]))
         if rec["cm"]:
@@ -421,8 +439,9 @@ def load_ecq_data(cm_data_file):
         else:
             images = rec["modm_images"]
         images = trim_modm_images(images)
+        ainvs = ";".join(str(a) for a in rec["ainvs"])
         for label in images:
-            ecq_db_data.append((label, 1, "1.1.1.1", r"\N", str(jinv), "1.1.1.1", str(jinv.global_height()), rec["cm"], Elabel, False, str(rec["conductor"])))
+            ecq_db_data.append((label, 1, "1.1.1.1", r"\N", str(jinv), "1.1.1.1", str(jinv.global_height()), rec["cm"], Elabel, False, str(rec["conductor"]), ainvs))
     print("Loaded elliptic curves over Q", walltime() - t0)
     return ecq_db_data
 
@@ -498,7 +517,7 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
     #point_counts = defaultdict(Counter)
     jinvs = defaultdict(list)
     with open("allpoints.txt", "w") as F:
-        for ctr, (label, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, known_isolated, conductor_norm) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
+        for ctr, (label, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, known_isolated, conductor_norm, ainvs) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
             if ctr and ctr % 10000 == 0:
                 print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
             assert label != "1.1.0.a.1"
@@ -513,7 +532,12 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
                         isolated = "4"
                     else:
                         isolated = is_isolated(degree, gdat["genus"], gdat["rank"], gdat["q_gonality_bounds"][0], gdat["simple"], gdat["dims"])
-                    _ = F.write(f"{plabel}|{degree}|{field_of_definition}|{jorig}|{jinv}|{jfield}|{j_height}|{cm}|{Elabel}|{isolated}|{conductor_norm}\n")
+                    # We only store ainvs for fine models, since otherwise it's recoverable from the j-invariant
+                    if "-" in plabel:
+                        ainvshow = ainvs
+                    else:
+                        ainvshow = r"\N"
+                    _ = F.write(f"{plabel}|{degree}|{field_of_definition}|{jorig}|{jinv}|{jfield}|{j_height}|{cm}|{Elabel}|{isolated}|{conductor_norm}|{ainvshow}\n")
 
                     # We only need to compute isolatedness and model-coordinates when genus > 0
                     if gdat["genus"] == 0: continue
@@ -1061,14 +1085,14 @@ def create_db_uploads(input_file="output", manual_data_folder="../rational-point
             parts.append(f'"{modtype}":{coords}')
         return "{" + ",".join(parts) + "}"
     with open("modcurve_points.txt", "w") as Fout:
-        _ = Fout.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|coordinates|cusp\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint|jsonb|boolean\n\n")
+        _ = Fout.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|ainvs|coordinates|cusp\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint|text|jsonb|boolean\n\n")
         with open("allpoints.txt") as F:
             # Get total number of points to add
             for total, _ in enumerate(F,1): pass
             for ctr, line in enumerate(F):
                 if ctr and ctr % 10000 == 0:
                     print(f"{ctr}/{total}")
-                plabel, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, isolated, conductor_norm = line.strip().split("|")
+                plabel, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, isolated, conductor_norm, ainvs = line.strip().split("|")
                 gdat = gpdata[plabel]
                 g, ind, level = gdat["genus"], gdate["index"], gdat["level"]
                 gonlow = gonalities[to_coarse_label(plabel)][2][0]
@@ -1081,7 +1105,7 @@ def create_db_uploads(input_file="output", manual_data_folder="../rational-point
                     isolated = is_isolated(degree, g, rank, gonlow, simp, dims)
                 jlookup = jinv if jorig == r"\N" else jorig
                 coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
-                _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, write_dict(coords), "f"]) + "\n")
+                _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, ainvs, write_dict(coords), "f"]) + "\n")
         for (plabel, nflabel), coords in cusps.items():
             degree = nflabel.split(".")[0]
             gdat = gpcuspdata[plabel]
@@ -1093,7 +1117,7 @@ def create_db_uploads(input_file="output", manual_data_folder="../rational-point
             name = gdat["name"]
             if name is None:
                 name = r"\N"
-            _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", write_dict(coords), "t"]) + "\n")
+            _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", r"\N", write_dict(coords), "t"]) + "\n")
 
     write_models_maps(data["C"], data["P"], data["H"], data["J"], data["F"])
 
