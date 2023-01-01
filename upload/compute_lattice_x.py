@@ -1088,7 +1088,9 @@ def create_db_uploads(input_file="output"):
     with open("modcurve_points.txt", "w") as Fout:
         _ = Fout.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|ainvs|coordinates|cusp\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint|text|jsonb|boolean\n\n")
         # Get total number of points to add
-        with open("allpoints.txt") as F: for total, _ in enumerate(F,1): pass
+        with open("allpoints.txt") as F:
+            for total, _ in enumerate(F,1):
+                pass
         with open("allpoints.txt") as F:
             for ctr, line in enumerate(F):
                 if ctr and ctr % 10000 == 0:
