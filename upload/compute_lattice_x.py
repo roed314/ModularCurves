@@ -394,7 +394,7 @@ def load_ecnf_data(fname="ecnf_data.txt"):
             if Elabel in isbc:
                 continue
             for Slabel in Slabels.split(","):
-                if not S_LABEL_RE.fullmatch(Slabel):
+                if not ("[" in Slabel or S_LABEL_RE.fullmatch(Slabel)):
                     print("Warning: invalid Slabel", Slabel)
                 if Slabel in from_Slabel:
                     label = from_Slabel[Slabel]
