@@ -520,7 +520,8 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
         for ctr, (label, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, known_isolated, conductor_norm, ainvs) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
             if ctr and ctr % 10000 == 0:
                 print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
-            assert label != "1.1.0.a.1"
+            #assert label != "1.1.0.a.1"
+            if label == "1.1.0.a.1": continue
             # Don't want to save the interval, since that takes quadratic space
             for v in H.breadth_first_search(P._element_to_vertex(label)):
                 plabel = P._vertex_to_element(v)
