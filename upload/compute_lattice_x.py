@@ -1147,3 +1147,12 @@ def create_db_uploads(input_file="output"):
             qbnd = "{%s,%s}" % qbnd
             qbarbnd = "{%s, %s}" % qbarbnd
             _ = F.write(f"{label}|{q}|{qbar}|{qbnd}|{qbarbnd}|{data['L'].get(label, default)}\n")
+
+def update_lattice_only():
+    folder = opj("..", "equations", "graphviz_out")
+    with open("lattice.update", "w") as Fout:
+        _ = Fout.write("label|lattice_labels|lattice_x\ntext|text[]|integer[]\n\n")
+        for label in os.listdir(folder):
+            with open(opj(folder, label)) as F:
+                Fout.write(label + "|" + F.read().strip() + "\n")
+    db.gps_gl2zhat_fine.update_from_file("lattice.update")
