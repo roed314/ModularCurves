@@ -8,6 +8,7 @@ import subprocess
 opj = os.path.join
 ope = os.path.exists
 
+parser = argparse.ArgumentParser("Find lattice layout for modular curves")
 parser.add_argument("label", help="label of modular curve")
 os.makedirs("graphviz_out", exist_ok=True)
 args = parser.parse_args()
