@@ -148,7 +148,7 @@ def intervals_to_save(max_size=60):
                         # Sort by index (reversed), then family
                         S.append((-i, Xfams.index(fam), d))
             S.sort()
-            I = J = set([x] + P.upper_covers(x)).union(ints[S[0][2]])
+            I = J = set([x]).union(ints[S[0][2]])
             num_tops[x] = 1
             for i, f, d in S[1:]:
                 I = I.union(ints[d])
@@ -157,7 +157,7 @@ def intervals_to_save(max_size=60):
                 num_tops[x] += 1
                 J = I
         else:
-            J = list(ints.values())[0].union(P.upper_covers(x))
+            J = list(ints.values())[0]
             num_tops[x] = 1
         if len(J) <= max_size:
             J = sorted(J, key=sort_key)
@@ -1112,6 +1112,8 @@ def create_db_uploads(input_file="output"):
                 # we can recompute isolated based on new gonalities
                 if isolated in "01":
                     isolated = is_isolated(int(degree), g, rank, gonlow, simp, dims)
+                if ainvs == "?":
+                    ainvs = r"\N"
                 jlookup = jinv if jorig == r"\N" else jorig
                 coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
                 _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, ainvs, write_dict(coords), "f"]) + "\n")

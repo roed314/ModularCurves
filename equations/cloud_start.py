@@ -27,6 +27,8 @@
 # Split off lattice computation, remove test for g<=24 below, update todo list generation
 # A mechanism for redoing failures
 # Is conductor_norm well defined over twists?
+# Clicking on lattice vertices doesn't show anything
+# Remove top line of lattice
 
 import os
 import argparse
