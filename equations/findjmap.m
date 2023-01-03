@@ -177,7 +177,6 @@ intrinsic AbsoluteJMap(label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEn
     R := PolynomialRing(Rationals(), 3);
     num := LiftToTrivariate(R, num, d);
     den := LiftToTrivariate(R, den, d);
-    print "jline", num, den;
     return M`C, [num, den], model_type, M`f cat [[1 : i in [1..#M`cusps]]], M;
   end if;
   C := Curve(ProjectiveSpace(Rationals(), #M`F0 - 1), M`psi);

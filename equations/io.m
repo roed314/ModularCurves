@@ -60,7 +60,7 @@ intrinsic ReplaceLetter(s::MonStgElt, x::MonStgElt, subs::MonStgElt) -> MonStgEl
 end intrinsic;
 
 function get_uvars(rank)
-    uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
+    uvars := Eltseq("XYZWTUVRSABCDEFGHIKLMNOPQJ");
     if (#uvars lt rank) then
         uvars := [Sprintf("X%o", i) : i in [1..rank]];
     end if;
@@ -68,7 +68,7 @@ function get_uvars(rank)
 end function;
 
 function get_lvars(rank)
-    lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
+    lvars := Eltseq("xyzwtuvrsabcdefghiklmnopqj");
     if (#lvars lt rank) then
         lvars := [Sprintf("x%o", i) : i in [1..rank]];
     end if;
@@ -428,8 +428,8 @@ intrinsic LMFDBReadModel(fname::MonStgElt) ->
       zeta := K.1;
   end if;
  */
-  uvars := Eltseq("XYZWTUVRSABCDEFGHIJKLMNOPQ");
-  lvars := Eltseq("xyzwtuvrsabcdefghijklmnopq");
+  uvars := Eltseq("XYZWTUVRSABCDEFGHIKLMNOPQJ");
+  lvars := Eltseq("xyzwtuvrsabcdefghiklmnopqj");
   P<[x]> := ProjectiveSpace(Rationals(), rank-1);
   R := CoordinateRing(P);
   AssignNames(~R, uvars[1..rank]);

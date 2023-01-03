@@ -13,22 +13,39 @@
 # - Update descriptions of labels (RSZB and LMFDB)
 # - Base change for CM points (duplicated points in rats/).  Need to throw away points of lower degree?
 
-# Copied into the home directory for running
+# ** Computation changes **
+# Code for making tarball
+# Don't compute j-1728
 # Create picture database
-# Factor j-map
-# Update ecnf to omit base changes
-# Update prepare_rational_points so we don't need to iterate over lattice again, skip genus 0
-# Check whether we have successfully removed dollar signs
-# update/check on other todos in compute_lattice_x
-# Homogenize j (for elliptic curves 6.12.1.b.1 Argument types given: RngMPolResElt, RngMPolResElt, RngIntElt)
+# Add leading_coefficients to model isomorphisms and relative j-maps
+# Correct the precision needed for relative j-map
+# Work around magma bug in pulling back j-invariants (18.81.3.a.1, 20.90.3.e.1) by checking that the image under the j-map is correct
+# Figure out why we're computing plane models when the canonical model is already a plane model (18.81.3.a.1)
+# Create a mechanism for redoing failed labels
+# Need to move rational point and cusp data from output file to folders after cod and before second deployment
+# Finish splitting off lattice computation, remove test for g<=24 below, update todo list generation
+# Bug: On https://red.lmfdb.xyz/ModularCurve/Q/16.384.21.k.2/ it claims that there are two cusps of degree 4, but magma code didn't find them (looks like a problem with the magma code since 1+1+1+1+2+2+8+8+8 isn't 24)
+# Lattice: https://red.lmfdb.xyz/ModularCurve/Q/4.12.0.a.1/ doesn't go to X(1) since it contains X(2), but maybe it should
+# Store number of points per j-inv in modcurve_points
+# Cusps that didn't get coordinates aren't included in modcurve_points
+
+# ** Checks **
+# check on other todos in compute_lattice_x
 # Check lifting of rational points (and cusps?) on relative j-maps
-# Need to move rational point and cusp data from output file to folders before second deployment
-# Update save_ecnf_data to account for updated base_change records in ec_nfcurves
-# Split off lattice computation, remove test for g<=24 below, update todo list generation
-# A mechanism for redoing failures
-# Is conductor_norm well defined over twists?
-# Clicking on lattice vertices doesn't show anything
-# Remove top line of lattice
+# Indexes for modcurve_models, modcurve_modelmaps
+# Make sure Elabel is the minimal one
+
+# ** Front-end changes **
+# Fun diagram: https://red.lmfdb.xyz/ModularCurve/Q/16.192.5.bu.1/
+# Update display of relative j-maps to account for leading coefficients differently
+# Highlight this curve initially in lattice
+# Use - instead of -1 in factoring negative integers (utils)
+# Have j-invariant infinity in modcurve_points for cusps
+# Display a-invariant list when fine model not in db
+# Add index to modcurve_points and make sortable (low)
+# Use select to set sort order when doing one-per-jinv (low)
+# Knowl for model type that's a double cover of conic
+# Display fields using pretty names (and i rather than a for coordinates and j-invariant in Q(i))
 
 import os
 import argparse

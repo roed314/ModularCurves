@@ -1,3 +1,4 @@
+#!/usr/bin/env sage
 """
 make_modular_curve_picture.sage - make pictures of modular curves
 
@@ -44,8 +45,22 @@ Below is boilerplate license code. I include this header from a template file.
 #                 <http://www.gnu.org/licenses/>.
 # **********************************************************************
 """
+import os
+import sys
+import time
+import argparse
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.hyperbolic_polygon import HyperbolicPolygon
+opj = os.path.join
+sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
+from lmfdb import db
+from lmfdb.utils.utilities import encode_plot
+
+
+parser = argparse.ArgumentParser("Compute diagramx for modular curve lattices")
+parser.add_argument("job", type=int, help="job number: 0 to n-1, where n is the number of parallel threads used")
+parser.add_argument("num_jobs", type=int, help="total number of jobs n")
+args = parser.parse_args()
 
 
 GL2 = GL(2, ZZ)
@@ -70,9 +85,9 @@ CCOLOR = COLOR_PALETTE[2]
 
 def make_picture_by_label(label):
     from lmfdb import db
-    table = db.gps_gl2zhat_test
+    table = db.gps_gl2zhat_fine
     print(f"Making picture for {label}")
-    if label == '1.1.0.1':
+    if label == '1.1.0.a.1':
         g = make_sl2z_picture_disk()
         g.save(f"mcportrait.{label}.png", figsize=[4,4])
     else:
@@ -91,13 +106,12 @@ def make_picture_by_label(label):
 
 def make_picture_by_label_and_gens(label, level, gens):
     print(f"Making picture for {label}")
-    if label == '1.1.0.1':
+    if label == '1.1.0.a.1':
         g = make_sl2z_picture_disk()
         g.save(f"mcportrait.{label}.png", figsize=[4,4])
     else:
         g = make_picture_disk(level, gens)
         g.save(f"mcportrait.{label}.png", figsize=[4,4])
-
 
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, fill=True, thickness=0, rgbcolor="blue", zorder=2, linestyle='solid')
@@ -380,3 +394,24 @@ def cayley(z):
     if z == infinity:
         return CC(0, 1)
     return (z - CC(0, 1)) / (CC(0, -1)*z + 1)
+
+t0 = time.time()
+os.makedirs("pictures", exist_ok=True)
+with open(opj("pictures", str(args.job)), "w") as Fout:
+    with open("picture_labels.txt") as F:
+        for i, line in enumerate(F):
+            if i % args.num_jobs == args.job:
+                label = line.strip()
+                if label == "1.1.0.a.1":
+                    g = make_sl2z_picture_disk()
+                else:
+                    level = ZZ(label.split(".")[0])
+                    with open(opj("..", "equations", "input_data", label)) as Finp:
+                        gens = Finp.read().split(",")
+                        matgens = []
+                        for j in range(0, len(gens), 4):
+                            matgens.append([[ZZ(gens[j]), ZZ(gens[j+1])], [ZZ(gens[j+2]), ZZ(gens[j+3])]])
+                    g = make_picture_disk(level, matgens)
+                pngstr = encode_plot(g)
+                _ = Fout.write(f"{label}|{pngstr}\n")
+print(f"Total time {time.time() - t0}")

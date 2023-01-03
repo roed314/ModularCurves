@@ -1068,8 +1068,6 @@ def create_db_uploads(input_file="output"):
             if not out: continue
             code, label = label[0], label[1:]
             data[code][label].append(out)
-    # TODO: fix $.1 at the source
-    # TODO: remove spaces
 
     # Propogate gonalities
     assert all(len(gon) == 1 for gon in data["G"].values())
