@@ -587,6 +587,13 @@ def make_input_data():
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))
 
+def make_psl2_input_data():
+    folder = opj("..", "equations", "psl2_input_data")
+    os.makedirs(folder, exist_ok=True)
+    for rec in db.gps_sl2zhat_fine.search({}, ["label", "generators"]):
+        with open(opj(folder, rec["label"]), "w") as F:
+            _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))
+
 def make_todo():
     with open(opj("..", "equations", "todo.txt"), "w") as F:
         for label in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, "label"):

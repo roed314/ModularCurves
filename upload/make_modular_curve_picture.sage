@@ -422,7 +422,7 @@ with open(opj("pictures", str(args.job)), "w") as Fout:
                     g = make_sl2z_picture_disk()
                 else:
                     level = ZZ(label.split(".")[0])
-                    with open(opj("..", "equations", "input_data", label)) as Finp:
+                    with open(opj("..", "equations", "psl2_input_data", label)) as Finp:
                         gens = Finp.read().split(",")
                         matgens = []
                         for j in range(0, len(gens), 4):

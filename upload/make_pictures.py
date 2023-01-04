@@ -23,7 +23,7 @@ for fname in os.listdir("picture_stdout"):
             if line.startswith("Total time "):
                 t += float(line.strip()[11:])
             else:
-                print(f"Error found in {fullname}")
+                print(f"Error: {line}")
 print(f"Total time {t}")
 with open("modcurve_pictures.txt", "w") as Fout:
     _ = Fout.write("psl2label|image\ntext|text\n\n")
