@@ -15,7 +15,6 @@
 
 # ** Computation changes **
 # Code for making tarball
-# Don't compute j-1728
 # Create picture database
 # Add leading_coefficients to model isomorphisms and relative j-maps
 # Correct the precision needed for relative j-map
@@ -179,7 +178,7 @@ if ope(opj("canonical_models", label)):
             get_plane_model(label, args.verbose)
             get_rational_coordinates(label, args.verbose)
             get_cusp_coordinates(label, args.verbose)
-    if ope(opj("jcusps", label)):
-        get_jfactorization(label, args.verbose)
+if ope(opj("jcusps", label)): # For P1 we don't write down a canonical model, so this is outside the above if statement
+    get_jfactorization(label, args.verbose)
 get_lattice_coords(label)
 collate_data(label)

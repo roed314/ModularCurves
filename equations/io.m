@@ -116,6 +116,20 @@ end function;
 
 intrinsic LMFDBWriteJMap(j::SeqEnum, cusps::SeqEnum[CspDat], codomain::MonStgElt, model_type::RngIntElt, label::MonStgElt)
 {Write the j-map and cusps to a file; codomain is the label of the codomain (always canonical model) or empty (for absolute map)}
+    // We clear denominators uniformly across j
+    ZZ := Integers();
+    dens := [];
+    degs := {};
+    for coord in j do
+        Include(~degs, Degree(coord));
+        coeffs := Coefficients(coord);
+        Append(~dens, LCM([Denominator(c) : c in coeffs]));
+        Append(~nums, GCD([Numerator(d*c) : c in coeffs]));
+    end for;
+    scale := LCM(dens) / GCD(nums);
+    for i in [1..#j] do
+        j[i] := scale * j[i];
+    end for;
     S := Universe(j);
     AssignCanonicalNames(~S);
     if #{Degree(coord) : coord in j} ne 1 then
@@ -222,6 +236,13 @@ end intrinsic;
 intrinsic LMFDBWriteXGModel(X::Crv, model_type::RngIntElt, label::MonStgElt)
 {Write the model produced by FindModelOfXG}
     DP := DefiningPolynomials(X);
+    // In genus 0, there are examples with denominators, which we want to clear
+    for i in [1..#DP] do
+        DP[i] := ClearDenominators(DP[i]);
+        if LeadingCoefficient(DP[i]) lt 0 then
+            DP[i] := -DP[i];
+        end if;
+    end for;
     R := Universe(DP);
     AssignCanonicalNames(~R);
     System("mkdir -p canonical_models");

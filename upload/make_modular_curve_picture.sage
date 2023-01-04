@@ -423,14 +423,16 @@ with open(opj("pictures", str(args.job)), "w") as Fout:
                 else:
                     level = ZZ(label.split(".")[0])
                     with open(opj("..", "equations", "psl2_input_data", label)) as Finp:
-                        gens = Finp.read().split(",")
                         matgens = []
-                        for j in range(0, len(gens), 4):
-                            try:
-                                matgens.append([[ZZ(gens[j]), ZZ(gens[j+1])], [ZZ(gens[j+2]), ZZ(gens[j+3])]])
-                            except TypeError:
-                                print("Error!", label)
-                                raise
+                        gens = Finp.read()
+                        if gens: # 2.6.0.a.1 = X(2) has no generators
+                            gens = gens.split(",")
+                            for j in range(0, len(gens), 4):
+                                try:
+                                    matgens.append([[ZZ(gens[j]), ZZ(gens[j+1])], [ZZ(gens[j+2]), ZZ(gens[j+3])]])
+                                except TypeError:
+                                    print("Error!", label)
+                                    raise
                     g = make_picture_disk(level, matgens)
                 pngstr = encode_mcurve_plot(g)
                 _ = Fout.write(f"{label}|{pngstr}\n")

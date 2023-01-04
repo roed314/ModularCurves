@@ -135,6 +135,7 @@ def intervals_to_save(max_size=60):
     for x, ints in flipped.items():
         if len(ints) > 1:
             # Throw out Xx(n) if n divides m and Xx(m) is also in ints
+            # Unless it's X(2) and X(1), when we go up to X(1)
             by_fam = defaultdict(dict)
             for d in ints:
                 fam = DV[d].split("(")[0]
@@ -143,7 +144,7 @@ def intervals_to_save(max_size=60):
             S = []
             for fam, ns in by_fam.items():
                 for n, d in ns.items():
-                    if len([m for m in ns if n.divides(m)]) == 1:
+                    if fam == "X" or len([m for m in ns if n.divides(m)]) == 1:
                         i = int(d.split(".")[1])
                         # Sort by index (reversed), then family
                         S.append((-i, Xfams.index(fam), d))
