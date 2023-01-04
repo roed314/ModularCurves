@@ -393,7 +393,7 @@ def cayley(z):
         return CC(0, 1)
     return (z - CC(0, 1)) / (CC(0, -1)*z + 1)
 
-def encode_mcurve_plot(P, transparent=False):
+def encode_mcurve_plot(P, transparent=True):
     from io import BytesIO as IO
     from matplotlib.backends.backend_agg import FigureCanvasAgg
     from base64 import b64encode
@@ -405,7 +405,7 @@ def encode_mcurve_plot(P, transparent=False):
     ax.set_xlim(xmin=-1, xmax=1)
     ax.set_ylim(ymin=-1, ymax=1)
     fig.set_canvas(FigureCanvasAgg(fig))
-    fig.set_size_inches(4, 4)
+    fig.set_size_inches(2.5, 2.5) # images are 200 x 200 on the website
     fig.savefig(virtual_file, format='png', bbox_inches='tight', transparent=transparent, dpi=120)
     virtual_file.seek(0)
     buf = virtual_file.getbuffer()
