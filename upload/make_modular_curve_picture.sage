@@ -426,7 +426,11 @@ with open(opj("pictures", str(args.job)), "w") as Fout:
                         gens = Finp.read().split(",")
                         matgens = []
                         for j in range(0, len(gens), 4):
-                            matgens.append([[ZZ(gens[j]), ZZ(gens[j+1])], [ZZ(gens[j+2]), ZZ(gens[j+3])]])
+                            try:
+                                matgens.append([[ZZ(gens[j]), ZZ(gens[j+1])], [ZZ(gens[j+2]), ZZ(gens[j+3])]])
+                            except TypeError:
+                                print("Error!", label)
+                                raise
                     g = make_picture_disk(level, matgens)
                 pngstr = encode_mcurve_plot(g)
                 _ = Fout.write(f"{label}|{pngstr}\n")
