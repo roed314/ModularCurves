@@ -16,15 +16,13 @@ n = args.num_jobs
 assert n < 500
 subprocess.run('parallel -j%s "sage make_modular_curve_picture.sage {1} %s >> picture_stdout/{1} 2>&1" ::: %s' % (n, n, " ".join(str(c) for c in range(n))), shell=True)
 t = 0
-# Expected output from lmfdb
-oks = ["INFO:LMFDB", "  from sage.rings.complex_field", " connection = ", "/home/roed/lmfdb/lmfdb/backend/encoding.py", "See http://trac.sagemath.org/24483 for details."]
 for fname in os.listdir("picture_stdout"):
     fullname = opj("picture_stdout", fname)
     with open(fullname) as F:
         for line in F:
             if line.startswith("Total time "):
                 t += float(line.strip()[11:])
-            elif line and not any(line.startswith(ok) for ok in oks):
+            else:
                 print(f"Error found in {fullname}")
 print(f"Total time {t}")
 with open("modcurve_pictures.txt", "w") as Fout:

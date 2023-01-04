@@ -46,18 +46,14 @@ Below is boilerplate license code. I include this header from a template file.
 # **********************************************************************
 """
 import os
-import sys
 import time
 import argparse
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.hyperbolic_polygon import HyperbolicPolygon
 opj = os.path.join
-sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
-from lmfdb import db
-from lmfdb.utils.utilities import encode_plot
 
 
-parser = argparse.ArgumentParser("Compute diagramx for modular curve lattices")
+parser = argparse.ArgumentParser("Compute pictures for modular curves")
 parser.add_argument("job", type=int, help="job number: 0 to n-1, where n is the number of parallel threads used")
 parser.add_argument("num_jobs", type=int, help="total number of jobs n")
 args = parser.parse_args()
@@ -84,6 +80,8 @@ CCOLOR = COLOR_PALETTE[2]
 
 
 def make_picture_by_label(label):
+    import sys
+    sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
     from lmfdb import db
     table = db.gps_gl2zhat_fine
     print(f"Making picture for {label}")
@@ -395,6 +393,24 @@ def cayley(z):
         return CC(0, 1)
     return (z - CC(0, 1)) / (CC(0, -1)*z + 1)
 
+def encode_mcurve_plot(P, transparent=False):
+    from io import BytesIO as IO
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+    from base64 import b64encode
+    from urllib.parse import quote
+
+    virtual_file = IO()
+    fig = P.matplotlib(axes_pad=None)
+    ax = fig.axes[0]
+    ax.set_xlim(xmin=-1, xmax=1)
+    ax.set_ylim(ymin=-1, ymax=1)
+    fig.set_canvas(FigureCanvasAgg(fig))
+    fig.set_size_inches(4, 4)
+    fig.savefig(virtual_file, format='png', bbox_inches='tight', transparent=transparent, dpi=120)
+    virtual_file.seek(0)
+    buf = virtual_file.getbuffer()
+    return "data:image/png;base64," + quote(b64encode(buf))
+
 t0 = time.time()
 os.makedirs("pictures", exist_ok=True)
 with open(opj("pictures", str(args.job)), "w") as Fout:
@@ -412,6 +428,6 @@ with open(opj("pictures", str(args.job)), "w") as Fout:
                         for j in range(0, len(gens), 4):
                             matgens.append([[ZZ(gens[j]), ZZ(gens[j+1])], [ZZ(gens[j+2]), ZZ(gens[j+3])]])
                     g = make_picture_disk(level, matgens)
-                pngstr = encode_plot(g)
+                pngstr = encode_mcurve_plot(g)
                 _ = Fout.write(f"{label}|{pngstr}\n")
 print(f"Total time {time.time() - t0}")
