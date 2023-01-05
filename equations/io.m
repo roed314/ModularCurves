@@ -204,8 +204,16 @@ end intrinsic;
 
 intrinsic LMFDBReadJMap(label::MonStgElt) -> SeqEnum, RngIntElt, MonStgElt, SeqEnum
 {Returns XG model, model_type, label of codomain, and j-map}
-    X, g, model_type := LMFDBReadXGModel(label);
-    P := Universe(X);
+    // We want to be able to read the j-map even in the case of P1, where the model is not stored
+    if OpenTest(Sprintf("canonical_models/%o", label), "r") then
+        X, g, model_type := LMFDBReadXGModel(label);
+        P := Universe(X);
+    else
+        assert Split(label, ".")[3] eq "0";
+        X := [];
+        model_type := 1;
+        P := PolynomialRing(RationalField(), 2);
+    end if;
     nvars := Rank(P);
     data := Split(Read(Sprintf("jcusps/%o", label)), "|");
     if #data eq 5 then
@@ -214,7 +222,6 @@ intrinsic LMFDBReadJMap(label::MonStgElt) -> SeqEnum, RngIntElt, MonStgElt, SeqE
         codomain := "";
         jtype, j, cusps, fields := Explode(data);
     end if;
-    assert model_type eq StringToInteger(jtype);
     j := Split(j[2..#j-1], "," : IncludeEmpty:=true);
     j := [ReadPoly(P, jcoord, nvars) : jcoord in j];
     return X, model_type, codomain, j;
@@ -244,6 +251,7 @@ Output:
             return true, max_index, "", _;
         end if;
         conjugator := [StringToInteger(c) : c in Split(data, ",")];
+        fname := Sprintf("cod/%o", codomain);
         _, max_index := Explode(Split(Read(fname), "|"));
         max_index := StringToInteger(max_index);
         return false, max_index, codomain, conjugator;
