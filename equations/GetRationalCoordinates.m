@@ -107,7 +107,7 @@ if #jinvs gt 0 then
                 if not IsDefined(bpd, val) then
                     bpd[val] := [];
                 end if;
-                Append(~bpd[val], P);
+                Append(~bpd[val], Eltseq(P));
             end for;
             base_points_dict[fL] := bpd;
             ReportEnd(label, Sprintf("computing j-map on base points for L=%o", fL), t1);
