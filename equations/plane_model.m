@@ -401,7 +401,7 @@ intrinsic planemodel_gonalitybound(X::Crv) -> Tup, RngIntElt
         mp := map<X->plane_model | [xx,yy,1]>;
         return mp, q_high;
 */
-        AssignNames(~P2,["X","Y","Z"]);
+        AssignNames(~P2,["x","y","z"]);
         xxmaptoP1 := map<X->ProjectiveSpace(Rationals(),1) | [xx,1]>;
         defeqsxx := DefiningEquations(xxmaptoP1);
         yymaptoP1 := map<X->ProjectiveSpace(Rationals(),1) | [yy,1]>;
@@ -571,7 +571,7 @@ intrinsic planemodel_fromgonalmap(gonal_map::MapSch) -> Tup
             mp := map<X->plane_model | [f,g,1]>;
             return mp
 */
-            AssignNames(~P2,["X","Y","Z"]);
+            AssignNames(~P2,["x","y","z"]);
             result := <plane_eqn, [defeqs[1],&+[v[i]*x[i] : i in [1..#x]],defeqs[2]]>;
             return result;
         catch e;
@@ -615,7 +615,7 @@ intrinsic planemodel_fromgonalmap2(gonal_map::MapSch, label::MonStgElt) -> Tup
             proj := [defeqs[1],&+[v[i]*x[i] : i in [1..#x]],defeqs[2]];
             mp := map<X->model | proj>;
             if ValidModel(mp) then
-                AssignNames(~P2,["X","Y","Z"]);
+                AssignNames(~P2,["x","y","z"]);
                 result := <plane_eqn, proj>;
                 return result;
             end if;
@@ -727,7 +727,7 @@ intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum, best::SeqEnum, 
     if n eq 2 then
         CanEq := DefiningEquations(Can);
         plane_eqn := DefiningEquation(C);
-        _, _, valid := RecordPlaneModel(<plane_eqn, defeqsphi>, CanEq, best, bestkey, "pr", label : warn_invalid:=false);
+        _, _, valid := RecordPlaneModel(<plane_eqn, defeqsphi>, CanEq, best, bestkey, "pr", label : warn_invalid:=true);
         return valid;
     end if;
     vprint User1: Sprintf("The ambient space is now P%o", n);
@@ -862,7 +862,7 @@ intrinsic PlaneModelAndGonalityBounds(label::MonStgElt) -> Tup, SeqEnum
             h_map := h_map * r_map;
             Hdef := DefiningEquation(H);
             HP := Parent(Hdef);
-            AssignNames(~HP, ["X","Y","Z"]);
+            AssignNames(~HP, ["x","y","z"]);
             Write("ghyp_models/" * label, Sprintf("%o|%o", sprint(Hdef), Join([sprint(coord) : coord in DefiningEquations(h_map)], ",")) : Overwrite);
         else
             q_low := 4;

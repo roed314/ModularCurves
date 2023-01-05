@@ -75,7 +75,7 @@ function get_lvars(rank)
     return lvars[1..rank];
 end function;
 
-function ReplaceVariables(s, nvars : upper:=true)
+function ReplaceVariables(s, nvars : upper:=false)
     variables := upper select get_uvars(nvars) else get_lvars(nvars);
     for i in [1..nvars] do
 	s := ReplaceLetter(s, variables[i], "P." cat Sprint(i));
@@ -83,7 +83,7 @@ function ReplaceVariables(s, nvars : upper:=true)
     return s;
 end function;
 
-intrinsic AssignCanonicalNames(~R::Rng : upper:=true)
+intrinsic AssignCanonicalNames(~R::Rng : upper:=false)
 {Assign names in a standard order; R should be either a multivariate polynomial ring or a function field}
     if Type(R) eq FldFun then
         rank := 1;
@@ -97,7 +97,7 @@ intrinsic AssignCanonicalNames(~R::Rng : upper:=true)
     end if;
 end intrinsic;
 
-intrinsic ReadPoly(P::RngMPol, f::MonStgElt, nvars::RngIntElt : upper:=true) -> RngMPolElt
+intrinsic ReadPoly(P::RngMPol, f::MonStgElt, nvars::RngIntElt : upper:=false) -> RngMPolElt
 {}
     return eval(ReplaceVariables(f, nvars : upper:=upper));
     // Note that this might be a fraction field element if there was division

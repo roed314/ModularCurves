@@ -175,7 +175,7 @@ if ope(opj("canonical_models", label)):
     if genus != 0:
         get_plane_and_gonality(label, args.verbose)
         get_ghyperelliptic_model(label, args.verbose)
-        if ope(opj("jcusps", label)): # These need a j-map
+        if ope(opj("jcusps", label)): # These need a j-map or cusps
             get_plane_model(label, args.verbose)
             get_rational_coordinates(label, args.verbose)
             get_cusp_coordinates(label, args.verbose)
