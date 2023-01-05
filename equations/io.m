@@ -229,26 +229,26 @@ File input:
 Output:
     absolute - whether the j-map from this curve should be computed to X(1) or not
     max_index - the maximum relative index of any model mapping to this one, passed in to FindModelOfXG for the codomain of relative j-maps so that there is enough precision to find relations between lifted modular forms
-    codomain - if absolute is false, the codomain for the relative j-map
+    codomain - if absolute is false, the codomain for the relative j-map; otherwise the emptry string
     conjugator - if absolute is false, a sequence of 4 integers giving a matrix that conjugates this GL2-subgroup into the one for the codomain
 }
     g := StringToInteger(Split(label, ".")[3]);
     if g lt 3 then
-        return true, 1, _, _;
+        return true, 1, "", _;
     end if;
     fname := Sprintf("cod/%o", label);
     if OpenTest(fname, "r") then
         codomain, data := Explode(Split(Read(fname), "|"));
         if codomain eq label then
             max_index := StringToInteger(data);
-            return true, max_index, _, _;
+            return true, max_index, "", _;
         end if;
         conjugator := [StringToInteger(c) : c in Split(data, ",")];
         _, max_index := Explode(Split(Read(fname), "|"));
         max_index := StringToInteger(max_index);
         return false, max_index, codomain, conjugator;
     else // hyperelliptic
-        return true, 1, _, _;
+        return true, 1, "", _;
     end if;
 end intrinsic;
 
