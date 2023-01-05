@@ -92,7 +92,7 @@ intrinsic ValidPlaneModel2(f::RngMPolElt, X::Crv, proj::ModMatRngElt) -> BoolElt
 end intrinsic;
 */
 
-intrinsic ValidModel(proj::MapSch) -> BoolElt
+intrinsic ValidModel(proj::MapSch : show_reason:=false) -> BoolElt
 {
 Input:
     proj - a map between irreducible curves
@@ -105,7 +105,9 @@ Output:
     Xbar := ChangeRing(X, GF(p));
     Cbar := ChangeRing(C, GF(p));
     if not IsIrreducible(Cbar) then
-        vprint User1: "Invalid model: reducible";
+        if show_reason or GetVerbose("User1") gt 0 then
+            print "Invalid model: reducible";
+        end if;
         return false;
     end if;
     P := Random(Cbar(GF(p)));
@@ -114,13 +116,17 @@ Output:
     Igens := [R!g : g in Igens];
     coords := [R!g : g in DefiningEquations(proj)];
     if HasIndeterminacy(Igens, coords) then
-        vprint User1: "Invalid model: indeterminacy";
+        if show_reason or GetVerbose("User1") gt 0 then
+            print "Invalid model: indeterminacy";
+        end if;
         return false;
     end if;
     Igens cat:= [coords[j] - P[j] : j in [1..#coords]];
     I := Ideal(Igens);
     if QuotientDimension(I) ne 1 then
-        vprint User1: Sprintf("Invalid model: %o mod-%o preimages", QuotientDimension(I), p);
+        if show_reason or GetVerbose("User1") gt 0 then
+            print Sprintf("Invalid model: %o mod-%o preimages", QuotientDimension(I), p);
+        end if;
         return false;
     end if;
     return true;
@@ -250,7 +256,7 @@ File output:
         end if;
         return best, bestkey, false, Cputime(tval), 0.0;
     end try;
-    valid := ValidModel(projection);
+    valid := ValidModel(projection : show_reason:=warn_invalid);
     tval := Cputime(tval);
     if not valid then
         if warn_invalid then
@@ -711,7 +717,7 @@ intrinsic DefiningPolynomialsComposite(alpha, beta) -> SeqEnum
     return [Evaluate(f,DefiningPolynomials(alpha)): f in DefiningPolynomials(beta)];
 end intrinsic;
 
-intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum, best::SeqEnum, bestkey::Tup, label::MonStgElt) -> Tup
+intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum, best::SeqEnum, bestkey::Tup, label::MonStgElt : warn_dim2:=false) -> Tup
 {
     Input:
             C:          a model in P^n (n greater than 2) of the curve X returned by ProcessModel()
@@ -727,7 +733,7 @@ intrinsic projecttoplane(C::Sch, phi::MapSch, ratcusps::SeqEnum, best::SeqEnum, 
     if n eq 2 then
         CanEq := DefiningEquations(Can);
         plane_eqn := DefiningEquation(C);
-        _, _, valid := RecordPlaneModel(<plane_eqn, defeqsphi>, CanEq, best, bestkey, "pr", label : warn_invalid:=true);
+        _, _, valid := RecordPlaneModel(<plane_eqn, defeqsphi>, CanEq, best, bestkey, "pr", label : warn_invalid:=warn_dim2);
         return valid;
     end if;
     vprint User1: Sprintf("The ambient space is now P%o", n);
@@ -772,8 +778,7 @@ intrinsic planemodel_highgenus(X::Sch, cusps::SeqEnum, best::SeqEnum, bestkey::T
     C, map_XtoC, gonalitybound := modelfromfuncfield_gonalitybound(X);
     if Dimension(AmbientSpace(Codomain(map_XtoC))) eq 2 then
         // The function field model should always be birational, so this should succeed.
-        assert projecttoplane(C, map_XtoC, [], best, bestkey, label);
-        return true;
+        return projecttoplane(C, map_XtoC, [], best, bestkey, label : warn_dim2:=true);
     end if;
 
     Saturate(~X);
