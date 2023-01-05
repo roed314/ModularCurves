@@ -20,14 +20,28 @@ intrinsic GetLevelAndGensFromLabel(label::MonStgElt) ->
     return level, gens;
 end intrinsic;
 
-intrinsic FindModelOfXG(M::Rec, label::MonStgElt) -> Rec, RngIntElt, RngIntElt, RngIntElt, RngIntElt
-{Version of FindModelOfXG that automatically chooses precision and sets the random seed to try to make the model more consistent.  Returns the ModularCurveRec, the model type, mind and maxd (see below)}
+intrinsic FindModelOfXG(M::Rec, max_rel_index::RngIntElt, label::MonStgElt) -> Rec, RngIntElt, RngIntElt, RngIntElt, RngIntElt
+{Version of FindModelOfXG that automatically chooses precision and sets the random seed to try to make the model more consistent.  Also returns quantities used in computation of the absolute j-map.
+
+Input:
+    M - a modular curve record, passed on to the FindModelOfXG intrinsic from the OpenImage package
+    max_rel_index - the largest relative index of a modular curve mapping into this one (used to increase the precision so that there is enough precision to compute the relative j-maps)
+    label - the label of the modular curve
+Output:
+    M - the modular curve record, with additional data computed
+    model_type - 0 (canonical model), 5 (elliptic curve) or 8 (embedded model)
+    mind - the smallest degree of line bundle that might produce a correct absolute j-map
+    maxd - a degree of line bundle that will definitely produce the right absolute j-map
+    maxprec - the final precision used for the line bundle computation (used in the computation of the absolute j-map)
+}
     ttemp := ReportStart(label, "model and modular forms");
     vprint User1: "Starting model computation with low precision";
     N := M`N;
-    prec := RequiredPrecision(M);
+    prec, ishyp, relation_degree := RequiredPrecision(M);
+    // For relative j-maps, we need to be able to find relations of degree 1 after rescaling the precision by 1/max_rel_index, and we have enough precision to find relations of degree relation_degree.
+    prec := Max(prec, Ceiling(prec * max_rel_index / relation_degree));
     SetSeed(0);
-    M := FindModelOfXG(M,prec);
+    M := FindModelOfXG(M, prec);
     if (not assigned M`prec) then
         M`prec := prec;
     end if;
@@ -204,19 +218,14 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, SeqEnum,
         M := rec<BareGenus|genus:=0>;
         codomain := "";
     else
-        codomain, conj := LMFDBReadRelativeJCodomain(label);
-        if #codomain gt 0 then
-            X, j, F0, M := RelativeJMap(label, codomain, conj); // writes model
+        use_abs_j, max_rel_index, codomain, conj := LMFDBReadRelativeJCodomain(label);
+        if use_abs_j then
+            X, j, model_type, F0, M := AbsoluteJMap(label, max_rel_index); // writes model
+        else
+            X, j, F0, M := RelativeJMap(label, codomain, conj, max_rel_index); // writes model
             // gens were changed to define the relative j-map
             gens := M`gens;
             model_type := 0;
-        else
-            X, j, model_type, F0, M := AbsoluteJMap(label); // writes model
-            // Homogenize the j-map
-            //P := Universe(j);
-            //d := Max([Degree(coord) : coord in j]);
-            //nvars := Rank(P);
-            //j := [Homogenization(coord, P.nvars, d) : coord in j];
         end if;
         cusps := CuspOrbits(level, gens);
         // We only need one representative of each orbit

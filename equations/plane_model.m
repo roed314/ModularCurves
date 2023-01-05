@@ -892,7 +892,8 @@ intrinsic PlaneModelAndGonalityBounds(label::MonStgElt) -> Tup, SeqEnum
             q_low := qbar_low;
             qbar_high := qbar_low;
             F := BaseField(Domain(gonal_map));
-            if F eq Rationals() then
+            // We don't need a new model in genus 3 since the canonical model is already a plane model
+            if g gt 3 and F eq Rationals() then
                 // If gonal map is rational, get q_high as well
                 q_high := qbar_low;
                 // We write the gonalities now, since the following may time out

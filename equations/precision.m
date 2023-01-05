@@ -1,15 +1,21 @@
-intrinsic RequiredPrecision(M::Rec) -> RngIntElt, BoolElt
-{Precision required to get a model from David Zywina's code, together with whether the curve is (geometrically) hyperelliptic}
+intrinsic RequiredPrecision(M::Rec) -> RngIntElt, BoolElt, RngIntElt
+{
+Input:
+    M - a modular curve record
+Output:
+    prec - the precision required to get a model from the OpenImage package
+    hyp - whether the modular curve is hyperelliptic
+    relation_degree - the maximum degree of an equation in the resulting model (only valid for canonical models, which is the case that's needed for relative j-maps)
+}
   M := FindModularForms(2,M,1);
   prec := Integers()!(M`N * Maximum([1/M`widths[i] : i in [1..#M`cusps]]));
   g := M`genus;
   if (g lt 3) then
-      return prec, (g eq 2);
+      return prec, (g eq 2), 1;
   end if;
   Pol<[x]>:=PolynomialRing(Rationals(),g);
   PP:=ProjectiveSpace(Rationals(),g-1);
-  done := false;
-  while (not done) do
+  while true do
       repeat
 	  prec +:= 1;
 	  found := false;
@@ -28,32 +34,25 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt, BoolElt
 	  Q0:=Scheme(PP,I2);
 	  dimQ0:=Dimension(Q0);
       until dimQ0 ge 1;
-      done := true;
       if  #I2 eq (g-1)*(g-2) div 2 then
 	  if dimQ0 gt 1 then
-	      done := false;
 	      continue;
 	  end if;
 	  Q0:=Curve(PP,I2);
 	  if not (IsIrreducible(Q0) and IsReduced(Q0)) then
-	      done := false;
 	      continue;
-	  else
-	      if Genus(Q0) ne 0 then
-		  done := false;
-		  continue;
-	      end if;
+	  elif Genus(Q0) ne 0 then
+	      continue;
 	  end if;
+          return prec, true, 2;
       end if;
       if (dimQ0 eq 1) then
-	  return prec, true;
+	  return prec, false, 2;
       end if;
       if g eq 3 then
           I4:=FindRelations(F,4);
-          if #I4 gt 1 then
-	      done := false;
-	  else
-	      return prec, false;
+          if #I4 eq 1 then
+	      return prec, false, 4;
 	  end if;
       else
 	  mon3:=[m: m in MonomialsOfWeightedDegree(Pol,3)];
@@ -67,11 +66,9 @@ intrinsic RequiredPrecision(M::Rec) -> RngIntElt, BoolElt
 
 	  Q0:=Scheme(PP,I2 cat I3);
 	  dimQ0:=Dimension(Q0);
-	  if dimQ0 lt 1 then
-	      done := false;
+	  if dimQ0 ge 1 then
+              return prec, false, 3;
 	  end if;
       end if;
   end while;
-
-  return prec, false;
 end intrinsic;

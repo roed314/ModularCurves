@@ -15,16 +15,10 @@
 
 # ** Computation changes **
 # Code for making tarball
-# Create picture database
-# Add leading_coefficients to model isomorphisms and relative j-maps
-# Correct the precision needed for relative j-map
-# Work around magma bug in pulling back j-invariants (18.81.3.a.1, 20.90.3.e.1) by checking that the image under the j-map is correct
-# Figure out why we're computing plane models when the canonical model is already a plane model (18.81.3.a.1)
 # Create a mechanism for redoing failed labels
+# Create picture database
 # Need to move rational point and cusp data from output file to folders after cod and before second deployment
 # Finish splitting off lattice computation, remove test for g<=24 below, update todo list generation
-# Bug: On https://red.lmfdb.xyz/ModularCurve/Q/16.384.21.k.2/ it claims that there are two cusps of degree 4, but magma code didn't find them (looks like a problem with the magma code since 1+1+1+1+2+2+8+8+8 isn't 24)
-# Lattice: https://red.lmfdb.xyz/ModularCurve/Q/4.12.0.a.1/ doesn't go to X(1) since it contains X(2), but maybe it should
 # Store number of points per j-inv in modcurve_points
 # Cusps that didn't get coordinates aren't included in modcurve_points
 
@@ -33,6 +27,12 @@
 # Check lifting of rational points (and cusps?) on relative j-maps
 # Indexes for modcurve_models, modcurve_modelmaps
 # Make sure Elabel is the minimal one
+# Work around magma bug in pulling back j-invariants (18.81.3.a.1, 20.90.3.e.1) by checking that the image under the j-map is correct
+# Figure out why we're computing plane models when the canonical model is already a plane model (18.81.3.a.1)
+# Add leading_coefficients to model isomorphisms and relative j-maps
+# Lattice: https://red.lmfdb.xyz/ModularCurve/Q/4.12.0.a.1/ doesn't go to X(1) since it contains X(2), but maybe it should
+# Bug: On https://red.lmfdb.xyz/ModularCurve/Q/16.384.21.k.2/ it claims that there are two cusps of degree 4, but magma code didn't find them (looks like a problem with the magma code since 1+1+1+1+2+2+8+8+8 isn't 24)
+# Correct the precision needed for relative j-map
 
 # ** Front-end changes **
 # Fun diagram: https://red.lmfdb.xyz/ModularCurve/Q/16.192.5.bu.1/

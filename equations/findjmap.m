@@ -89,7 +89,7 @@ function fieldfind(G, K)
   return NumberField(minpoly), prim;
 end function;
 
-intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjugator::SeqEnum) -> Crv, SeqEnum, SeqEnum, Rec
+intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjugator::SeqEnum, max_rel_index::RngIntElt) -> Crv, SeqEnum, SeqEnum, Rec
 {}
     tt := ReportStart(cover_label, "RelativeJMap");
     N0, gens0 := GetLevelAndGensFromLabel(cover_label);
@@ -109,7 +109,7 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     g0 := M0`genus;
     assert g0 ge 3;
     t0 := ReportStart(cover_label, "CoverModel");
-    M0, model_type0 := FindModelOfXG(M0, cover_label);
+    M0, model_type0 := FindModelOfXG(M0, 1, cover_label);
     ReportEnd(cover_label, "CoverModel", t0);
     assert model_type0 eq 0;
     F0 := M0`F0;
@@ -121,7 +121,7 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
 
     M := CreateModularCurveRec(N, gens);
     t := ReportStart(cover_label, "CoveredModel");
-    M, model_type := FindModelOfXG(M, covered_label);
+    M, model_type := FindModelOfXG(M, max_rel_index, covered_label);
     ReportEnd(cover_label, "CoveredModel", t);
     assert model_type eq 0;
     F := M`F0;
@@ -155,7 +155,7 @@ function LiftToTrivariate(R, f, d)
     return Polynomial(coeffs, mons);
 end function;
 
-intrinsic AbsoluteJMap(label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEnum, Rec
+intrinsic AbsoluteJMap(label::MonStgElt, max_rel_index:RngIntElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEnum, Rec
 {Outputs a model X, j as a multivariate rational function in the ambient variables of X, the model type (5 if an elliptic curve, 8 if geometrically hyperelliptic, 0 if canonical model), F0 (a sequence of modular forms as computed by FindModelOfXG) and M (the ModularCurveRec)}
   N, gens := GetLevelAndGensFromLabel(label);
   tttt := ReportStart(label, "AbsoluteJMap");
@@ -166,7 +166,7 @@ intrinsic AbsoluteJMap(label::MonStgElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEn
   gp := sub<GL(2,Integers(N))|gens>;
 
   M := CreateModularCurveRec(N,gens);
-  M, model_type, mind, maxd, maxprec := FindModelOfXG(M, label);
+  M, model_type, mind, maxd, maxprec := FindModelOfXG(M, max_rel_index, label);
   if model_type eq 5 then
     LMFDBWriteXGModel(M`C, model_type, label);
     ReportEnd(label, "AbsoluteJMap", tttt);

@@ -73,20 +73,45 @@ if #jinvs gt 0 then
         C := Curve(Proj(Parent(Cs[1][1])), Cs[1][1]);
     end if;
     auts := AssociativeArray();
+    base_points := AssociativeArray();
+    base_points_dict := AssociativeArray();
+    XLD := AssociativeArray();
+    YLD := AssociativeArray();
+    projLD := AssociativeArray();
     for pair in jinvs do
         jL, cod_coord := Explode(pair);
         L := Parent(jL);
-        if L eq QQ then
-            autL := [];
-        elif IsDefined(auts, L) then
-            autL := auts[L];
+        fL := DefiningPolynomial(L); // We cache using fL since it works for QQ as well as number fields
+        if IsDefined(auts, fL) then
+            autL := auts[fL];
+            YL := YLD[fL];
+            XL := XLD[fL];
+            projL := projLD[fL];
+            bp := base_points[fL];
+            bpd := base_points_dict[fL];
         else
             autL := [sigma : sigma in Automorphisms(L) | sigma(L.1) ne L.1];
-            auts[L] := autL;
+            auts[fL] := autL;
+            YL := ChangeRing(Y, L);
+            YLD[fL] := YL;
+            XL := ChangeRing(X, L);
+            XLD[fL] := XL;
+            projL := map<XL -> YL | j>;
+            projLD[fL] := projL;
+            t1 := ReportStart(label, Sprintf("computing j-map on base points for L=%o", fL));
+            bp := [pt : pt in BasePoints(projL) | L eq QQ or Degree(sub<L | Eltseq(pt)>) eq Degree(L)];
+            base_points[fL] := bp;
+            bpd := AssociativeArray();
+            for P in bp do
+                val := P @ projL;
+                if not IsDefined(bpd, val) then
+                    bpd[val] := [];
+                end if;
+                Append(~bpd[val], P);
+            end for;
+            base_points_dict[fL] := bpd;
+            ReportEnd(label, Sprintf("computing j-map on base points for L=%o", fL), t1);
         end if;
-        YL := ChangeRing(Y, L);
-        XL := ChangeRing(X, L);
-        projL := map<XL -> YL | j>;
         if #Cs gt 0 then
             CL := ChangeRing(C, L);
             T := ChangeRing(Universe(Cs[1][2]), L);
@@ -97,11 +122,8 @@ if #jinvs gt 0 then
         t1 := ReportStart(label, Sprintf("computing rational points above j=%o", jL));
         Xcoords := RationalPoints(Xpt);
         ReportEnd(label, Sprintf("computing rational points above j=%o", jL), t1);
-        Xcoords := [Eltseq(pt) : pt in Xcoords];
-        // Throw out points that actually lie in a subfield
-        if L ne QQ then
-            Xcoords := [pt : pt in Xcoords | Degree(sub<L | pt>) eq Degree(L)];
-        end if;
+        // Xpt contains everything in the indeterminacy locus, so they may not all map to the correct j-invariant
+        Xcoords := [Eltseq(pt) : pt in Xcoords | not (pt in bp) and (L eq QQ or Degree(sub<L | Eltseq(pt)>) eq Degree(L))] cat Get(bpd, Ypt, []);
         // Only keep one point from each Galois orbit
         if #autL gt 0 and #Xcoords gt 1 then
             trimmed := [];

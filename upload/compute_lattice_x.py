@@ -643,18 +643,22 @@ def get_relj_codomains():
                     conj = parents_conj[label, ylabel] * yconj
                     tmp.append((ybest, conj))
             cod[label] = min(tmp, key=index_sort_key)
-    cods = set()
+    cods = defaultdict(int)
     for label, (codomain, conj) in cod.items():
         if label != codomain:
-            cods.add(codomain)
+            # We track the maximum index used for a given codomain, since that affects the precision needed for computing the relative j-map.
+            cods[codomain] = max(cods[codomain], int(label.split(".")[1]))
             with open(opj(output_folder, label), "w") as F:
                 _ = F.write(f"{codomain}|{','.join(str(c) for c in conj.list())}")
-    with open(opj("..", "equations", "codtodo.txt"), "w") as F:
-        _ = F.write("\n".join(cods) + "\n")
-    with open(opj("..", "equations", "todo.txt"), "w") as F:
+    with open(opj("..", "equations", "codtodo.txt"), "w") as Ftodo:
+        for cod, maxind in cods.items():
+            _ = Ftodo.write(cod + "\n")
+            with open(opj(output_folder, cod), "w") as F:
+                _ = F.write(f"{cod}|{maxind}")
+    with open(opj("..", "equations", "todo.txt"), "w") as Ftodo:
         for label in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, "label"):
             if label not in cods:
-                _ = F.write(label + "\n")
+                _ = Ftodo.write(label + "\n")
 
 def prep_all():
     make_input_data()

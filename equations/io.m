@@ -118,13 +118,14 @@ intrinsic LMFDBWriteJMap(j::SeqEnum, cusps::SeqEnum[CspDat], codomain::MonStgElt
 {Write the j-map and cusps to a file; codomain is the label of the codomain (always canonical model) or empty (for absolute map)}
     // We clear denominators uniformly across j
     ZZ := Integers();
+    nums := [];
     dens := [];
     degs := {};
     for coord in j do
         Include(~degs, Degree(coord));
         coeffs := Coefficients(coord);
         Append(~dens, LCM([Denominator(c) : c in coeffs]));
-        Append(~nums, GCD([Numerator(d*c) : c in coeffs]));
+        Append(~nums, GCD([Numerator(c) : c in coeffs]));
     end for;
     scale := LCM(dens) / GCD(nums);
     for i in [1..#j] do
@@ -219,17 +220,35 @@ intrinsic LMFDBReadJMap(label::MonStgElt) -> SeqEnum, RngIntElt, MonStgElt, SeqE
     return X, model_type, codomain, j;
 end intrinsic;
 
-intrinsic LMFDBReadRelativeJCodomain(label::MonStgElt) -> MonStgElt, SeqEnum
-{}
+intrinsic LMFDBReadRelativeJCodomain(label::MonStgElt) -> BoolElt, RngIntElt, MonStgElt, SeqEnum
+{
+Input:
+    label - the label of a modular curve
+File input:
+    cod/<label> - Written by the get_relj_codomains() function in the preparation scripts
+Output:
+    absolute - whether the j-map from this curve should be computed to X(1) or not
+    max_index - the maximum relative index of any model mapping to this one, passed in to FindModelOfXG for the codomain of relative j-maps so that there is enough precision to find relations between lifted modular forms
+    codomain - if absolute is false, the codomain for the relative j-map
+    conjugator - if absolute is false, a sequence of 4 integers giving a matrix that conjugates this GL2-subgroup into the one for the codomain
+}
     g := StringToInteger(Split(label, ".")[3]);
-    if g lt 3 then return "", []; end if;
+    if g lt 3 then
+        return true, 1, _, _;
+    end if;
     fname := Sprintf("cod/%o", label);
     if OpenTest(fname, "r") then
-        codomain, conjugator := Explode(Split(Read(fname), "|"));
-        conjugator := [StringToInteger(c) : c in Split(conjugator, ",")];
-        return codomain, conjugator;
-    else
-        return "", [];
+        codomain, data := Explode(Split(Read(fname), "|"));
+        if codomain eq label then
+            max_index := StringToInteger(data);
+            return true, max_index, _, _;
+        end if;
+        conjugator := [StringToInteger(c) : c in Split(data, ",")];
+        _, max_index := Explode(Split(Read(fname), "|"));
+        max_index := StringToInteger(max_index);
+        return false, max_index, codomain, conjugator;
+    else // hyperelliptic
+        return true, 1, _, _
     end if;
 end intrinsic;
 
@@ -338,12 +357,16 @@ intrinsic LMFDBReadJinvPts(label::MonStgElt) -> List
         R := PolynomialRing(Rationals());
         lines := Split(Read(fname), "\n");
         jinvs := [* *];
+        KD := AssociativeArray();
+        KD[R![0,1]] := Rationals();
         for line in lines do
             j, coeffs, isolated := Explode(Split(line, "|"));
-            if coeffs eq "0,1" then
-                K := Rationals();
+            f := R![StringToInteger(c) : c in Split(coeffs, ",")];
+            if IsDefined(KD, f) then
+                K := KD[f];
             else
-                K := NumberField(R![StringToInteger(c) : c in Split(coeffs, ",")]);
+                K := NumberField(f);
+                KD[f] := K;
             end if;
             // The j-invariant might be a rational number in which case there are no commas
             if "," in j then
@@ -490,4 +513,14 @@ intrinsic ReportEnd(label::MonStgElt, job::MonStgElt, t0::FldReElt : elapsed:=0)
     msg := Sprintf("Finished %o in %o", job, elapsed);
     PrintFile("timings/" * label, msg);
     vprint User1: msg;
+end intrinsic;
+
+// Utility dictionary function
+
+intrinsic Get(A::Assoc, k::Any, v::Any) -> Any
+{}
+    if IsDefined(A, k) then
+        return A[k];
+    end if;
+    return v;
 end intrinsic;
