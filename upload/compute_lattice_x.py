@@ -888,7 +888,6 @@ def get_model_points(rats, usps):
     print("Creating nf lookup table")
     nf_lookup = {tuple(rec["coeffs"]): rec["label"] for rec in db.nf_fields.search({"degree":{"$lte":6}}, ["label", "coeffs"])}
     points = defaultdict(lambda: defaultdict(list))
-    cusps = defaultdict(lambda: defaultdict(list))
     R = PolynomialRing(QQ, name="x")
     to_polredabs = {}
     print("Loading polynomials")
@@ -896,7 +895,6 @@ def get_model_points(rats, usps):
         for out in lines:
             if not out: continue
             poly, j, model_type, coord = out.split("|")
-            poly = poly.replace("$.1", "x").replace(" ", "")
             model_type = int(model_type)
             if poly == "x-1":
                 points[label, "1.1.1.1", j][model_type].append(coord)
@@ -909,13 +907,13 @@ def get_model_points(rats, usps):
                 nflabel = nf_lookup[tuple(R(poly))]
                 points[label, nflabel, j][model_type].append(coord)
 
+    cusps = defaultdict(lambda: defaultdict(list))
     for i, (label, lines) in enumerate(usps.items()):
         if i and i%1000 == 0:
             print(f"usps {i}/{len(usps)}")
         for out in lines:
             if not out: continue
             poly, model_type, coord = out.split("|")
-            poly = poly.replace("$.1", "x")
             f = R(poly)
             K = NumberField(f, name='a')
             if poly not in to_polredabs:
@@ -1101,8 +1099,16 @@ def create_db_uploads(input_file="output"):
             coords = str(coords).replace(" ", "").replace("'", '"')
             parts.append(f'"{modtype}":{coords}')
         return "{" + ",".join(parts) + "}"
+    def get_card(coords):
+        if coords == r"\N":
+            return r"\N"
+        # canonical, embedded, Weierstrass
+        for model_type in "085":
+            if model_type in coords:
+                return len(coords[model_type])
+        return r"\N"
     with open("modcurve_points.txt", "w") as Fout:
-        _ = Fout.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|ainvs|coordinates|cusp\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|numeric|text|jsonb|boolean\n\n")
+        _ = Fout.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|ainvs|coordinates|cusp|cardinality\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|numeric|text|jsonb|boolean|integer\n\n")
         # Get total number of points to add
         with open("allpoints.txt") as F:
             for total, _ in enumerate(F,1):
@@ -1126,7 +1132,8 @@ def create_db_uploads(input_file="output"):
                     ainvs = r"\N"
                 jlookup = jinv if jorig == r"\N" else jorig
                 coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
-                _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, ainvs, write_dict(coords), "f"]) + "\n")
+                card = get_card(coords)
+                _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, ainvs, write_dict(coords), "f", card]) + "\n")
         for (plabel, nflabel), coords in cusps.items():
             degree = nflabel.split(".")[0]
             gdat = gpcuspdata[plabel]
@@ -1138,7 +1145,8 @@ def create_db_uploads(input_file="output"):
             name = gdat["name"]
             if name is None:
                 name = r"\N"
-            _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", r"\N", write_dict(coords), "t"]) + "\n")
+            card = get_card(coords)
+            _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", r"\N", write_dict(coords), "t", card]) + "\n")
 
     write_models_maps(data["C"], data["P"], data["H"], data["J"], data["F"])
 

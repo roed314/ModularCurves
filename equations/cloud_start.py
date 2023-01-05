@@ -16,11 +16,11 @@
 # ** Computation changes **
 # Code for making tarball
 # Create a mechanism for redoing failed labels
-# Create picture database
 # Need to move rational point and cusp data from output file to folders after cod and before second deployment
 # Finish splitting off lattice computation, remove test for g<=24 below, update todo list generation
 # Store number of points per j-inv in modcurve_points
 # Cusps that didn't get coordinates aren't included in modcurve_points
+# Parallelize polredabs
 
 # ** Checks **
 # check on other todos in compute_lattice_x
@@ -33,6 +33,7 @@
 # Lattice: https://red.lmfdb.xyz/ModularCurve/Q/4.12.0.a.1/ doesn't go to X(1) since it contains X(2), but maybe it should
 # Bug: On https://red.lmfdb.xyz/ModularCurve/Q/16.384.21.k.2/ it claims that there are two cusps of degree 4, but magma code didn't find them (looks like a problem with the magma code since 1+1+1+1+2+2+8+8+8 isn't 24)
 # Correct the precision needed for relative j-map
+# Create picture database
 
 # ** Front-end changes **
 # Fun diagram: https://red.lmfdb.xyz/ModularCurve/Q/16.192.5.bu.1/
