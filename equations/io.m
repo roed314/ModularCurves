@@ -248,7 +248,7 @@ Output:
         max_index := StringToInteger(max_index);
         return false, max_index, codomain, conjugator;
     else // hyperelliptic
-        return true, 1, _, _
+        return true, 1, _, _;
     end if;
 end intrinsic;
 
