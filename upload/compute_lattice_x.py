@@ -992,7 +992,7 @@ def get_model_points(rats, usps, jusps):
             m = amatcher.search(coord)
             if m:
                 i = int(m.group(1))
-                nflabel, K, phi = add_to_phiD(fields[i], i=i)
+                nflabel, K, phi = add_to_phiD(fields[i-1], i=i)
                 coord = [K(c) for c in coord[1:-1].split(":")]
                 coord = [phi(x) for x in coord]
                 coord = ":".join(",".join(str(c) for c in list(x)) for x in coord)
