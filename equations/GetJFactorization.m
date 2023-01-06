@@ -38,6 +38,7 @@ function getfac(j)
     facs := [];
     nfacs := [];
     R := Universe(j);
+    AssignCanonicalNames(~R);
     jdegs := {Degree(coord) : coord in j};
     for coord in j do
         fac, u := Factorization(coord);

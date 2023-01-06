@@ -1279,3 +1279,17 @@ def update_lattice_only():
             with open(opj(folder, label)) as F:
                 Fout.write(label + "|" + F.read().strip() + "\n")
     db.gps_gl2zhat_fine.update_from_file("lattice.update")
+
+def fix_dollars():
+    kinds = set()
+    lvars = "xyzwtuvrsabcdefghiklmnopqj"
+    with open("output") as F:
+        with open("output_fixed", "w") as Fout:
+            for line in F:
+                if "$" in line:
+                    kinds.add(line[0])
+                    for m in range(23,0,-1):
+                        line = line.replace(f"$.{m}", lvars[m])
+                    assert "$" not in line
+                _ = Fout.write(line)
+    return kinds
