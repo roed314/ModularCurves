@@ -92,7 +92,7 @@ intrinsic ValidPlaneModel2(f::RngMPolElt, X::Crv, proj::ModMatRngElt) -> BoolElt
 end intrinsic;
 */
 
-intrinsic ValidModel(proj::MapSch : show_reason:=false) -> BoolElt
+intrinsic ValidModel(proj::MapSch : num_tests:=3, show_reason:=false) -> BoolElt
 {
 Input:
     proj - a map between irreducible curves
@@ -110,7 +110,6 @@ Output:
         end if;
         return false;
     end if;
-    P := Random(Cbar(GF(p)));
     Igens := DefiningEquations(X);
     R := ChangeRing(Universe(Igens), GF(p));
     Igens := [R!g : g in Igens];
@@ -121,15 +120,19 @@ Output:
         end if;
         return false;
     end if;
-    Igens cat:= [coords[j] - P[j] : j in [1..#coords]];
-    I := Ideal(Igens);
-    if QuotientDimension(I) ne 1 then
-        if show_reason or GetVerbose("User1") gt 0 then
-            print Sprintf("Invalid model: %o mod-%o preimages", QuotientDimension(I), p);
+    for run in [1..num_tests] do
+        P := Random(Cbar(GF(p)));
+        Igens cat:= [coords[j] - P[j] : j in [1..#coords]];
+        I := Ideal(Igens);
+        if QuotientDimension(I) ne 1 then
+            if show_reason or GetVerbose("User1") gt 0 then
+                print Sprintf("Invalid model: %o mod-%o preimages", QuotientDimension(I), p);
+            end if;
+            continue;
         end if;
-        return false;
-    end if;
-    return true;
+        return true;
+    end for;
+    return false;
 end intrinsic;
 
 intrinsic F0Combination(F0::SeqEnum, M::ModMatRngElt) -> SeqEnum

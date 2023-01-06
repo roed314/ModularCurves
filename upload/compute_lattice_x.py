@@ -883,10 +883,59 @@ def get_gonalities(model_gonalities):
         #return f"{q}|{qbar}|{{{q_low},{q_high}}}|{{{qbar_low},{qbar_high}}}"
     return {P._vertex_to_element(v): package(gon) for (v, gon) in gonalities.items()}
 
-def get_model_points(rats, usps):
+def get_nf_lookup(pols):
+    # All polynomials should be stored without spaces
+    lookup = {}
+    R = PolynomialRing(QQ, name="x")
+    if ope("polreds.txt"):
+        with open("polreds") as F:
+            for line in F:
+                poly, g, nflabel, phi = line.strip().split("|")
+                lookup[poly] = (nflabel, g, phi)
+    save = False
+    nf_lookup = None
+    for i, poly in enumerate(pols):
+        if i and i % 1000 == 0:
+            print(f"Creating nf lookup table: {i}/{len(pols)}")
+        if poly not in lookup:
+            save = True
+            if nf_lookup is None:
+                print("Looking up number fields from database... ", end="")
+                nf_lookup = {tuple(rec["coeffs"]): rec["label"] for rec in db.nf_fields.search({"degree":{"$lte":6}}, ["label", "coeffs"])}
+                print("done")
+            f = R(poly)
+            K = NumberField(f, name='a')
+            g = R(f.__pari__().polredabs())
+            L = NumberField(g, name='b')
+            phi = K.embeddings(L)[0]
+            nflabel = nf_lookup[tuple(g)]
+            g = ",".join(str(c) for c in g)
+            phi = ",".join(str(c) for c in phi(K.gen()))
+            lookup[poly] = (nflabel, g, phi)
+    if save:
+        with open("polreds_tmp.txt", "w") as F:
+            for f, tup in lookup.items():
+                _ = F.write("|".join(tup) + "\n")
+        os.rename("polreds_tmp.txt", "polreds.txt")
+    return lookup
+
+def get_model_points(rats, usps, jusps):
     # We need to do polredabs computations for cusps, which might take a while
     print("Creating nf lookup table")
-    nf_lookup = {tuple(rec["coeffs"]): rec["label"] for rec in db.nf_fields.search({"degree":{"$lte":6}}, ["label", "coeffs"])}
+    pols = set()
+    for lines in rats.values():
+        for line in lines:
+            if line:
+                pols.add(line.split("|")[0])
+    for lines in jusps.values():
+        for line in lines:
+            toadd = line.split("|")[-1][1:-1].split(",")
+            for f in toadd:
+                pols.add(f)
+    for lines in usps.values():
+        for line in lines:
+            pols.add(line.split("|")[0])
+    nf_lookup = get_nf_lookup(pols)
     points = defaultdict(lambda: defaultdict(list))
     R = PolynomialRing(QQ, name="x")
     to_polredabs = {}
@@ -899,37 +948,59 @@ def get_model_points(rats, usps):
             if poly == "x-1":
                 points[label, "1.1.1.1", j][model_type].append(coord)
             else:
-                try:
-                    gg = R(poly)
-                except SyntaxError:
-                    print(poly)
-                    raise
-                nflabel = nf_lookup[tuple(R(poly))]
+                nflabel, g, phi = nf_lookup[poly]
                 points[label, nflabel, j][model_type].append(coord)
 
     cusps = defaultdict(lambda: defaultdict(list))
+    phiD = {}
+    def add_to_phiD(poly, i=None):
+        nflabel, g, phi = nf_lookup[poly]
+        if poly in phiD:
+            phi = phiD[poly]
+        else:
+            K = NumberField(R(poly), name="a")
+            L = NumberField(R([ZZ(c) for c in g.split(",")]), name="b")
+            phi = K.hom(L, [L([ZZ(c) for c in phi.split(",")])])
+            phiD[nflabel,g,phi] = phi
+        if i is not None:
+            phi = phi * K.change_names(f"a_{i}").structure()[0]
+        return nflabel, phi.domain(), phi
     for i, (label, lines) in enumerate(usps.items()):
         if i and i%1000 == 0:
             print(f"usps {i}/{len(usps)}")
-        for out in lines:
-            if not out: continue
-            poly, model_type, coord = out.split("|")
-            f = R(poly)
-            K = NumberField(f, name='a')
-            if poly not in to_polredabs:
-                # Need to compute the polredabs
-                g = R(f.__pari__().polredabs())
-                nflabel = nf_lookup[tuple(g)]
-                L = NumberField(g, name='b')
-                phi = K.embeddings(L)[0]
-                to_polredabs[poly] = phi, nflabel
+        for line in lines:
+            if not line: continue
+            poly, model_type, coord = line.split("|")
+            # Skip model_type 0,5,8 since that will be handled in the jusps section
+            if model_type not in "058":
+                nflabel, K, phi = add_to_phiD(poly)
+                coord = [K([QQ(c) for c in x.split(",")]) for x in coord.split(":")]
+                coord = [phi(x) for x in coord]
+                coord = ":".join(",".join(str(c) for c in list(x)) for x in coord)
+                cusps[label, nflabel][model_type].append(coord)
+    amatcher = re.compile(r"a_(\d+)")
+    for i, (label, lines) in enumerate(jusps.items()):
+        if i and i%1000 == 0:
+            print(f"jusps {i}/{len(jusps)}")
+        assert len(lines) == 1:
+        line = lines[0]
+        data = line.split("|")
+        model_type = data[0]
+        coords, fields = data[-2:]
+        coords = coords[1:-1].split(",")
+        fields = fields[1:-1].split(",")
+        for coord in coords:
+            m = amatcher.search(coord)
+            if m:
+                i = int(m.group(1))
+                nflabel, K, phi = add_to_phiD(fields[i], i=i)
+                coord = [K(c) for c in coord[1:-1].split(":")]
+                coord = [phi(x) for x in coord]
+                coord = ":".join(",".join(str(c) for c in list(x)) for x in coord)
             else:
-                phi, nflabel = to_polredabs[poly]
-            coord = [K([QQ(c) for c in x.split(",")]) for x in coord.split(":")]
-            coord = [phi(x) for x in coord]
-            coord = ":".join(",".join(str(c) for c in list(x)) for x in coord)
+                nflabel = "1.1.1.1"
+                coord = coord[1:-1]
             cusps[label, nflabel][model_type].append(coord)
-
     return points, cusps
 
 def write_models_maps(cans, planes, ghyps, jcusps, jfacs):
@@ -1085,7 +1156,7 @@ def create_db_uploads(input_file="output"):
     gonalities = get_gonalities(data["G"])
 
     # Construct modcurve_points
-    model_points, cusps = get_model_points(data["R"], data["U"])
+    model_points, cusps = get_model_points(data["R"], data["U"], data["J"])
     print("Model points loaded")
     gpdata = load_gl2zhat_rational_data()
     gpcuspdata = load_gl2zhat_cusp_data()
