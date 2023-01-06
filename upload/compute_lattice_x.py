@@ -959,7 +959,7 @@ def get_model_points(rats, usps, jusps):
         else:
             K = NumberField(R(poly), name="a")
             L = NumberField(R([ZZ(c) for c in g.split(",")]), name="b")
-            phi = K.hom(L, [L([ZZ(c) for c in phi.split(",")])])
+            phi = K.hom([L([ZZ(c) for c in phi.split(",")])])
             phiD[nflabel,g,phi] = phi
         if i is not None:
             phi = phi * K.change_names(f"a_{i}").structure()[0]
