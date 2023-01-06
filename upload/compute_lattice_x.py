@@ -1228,7 +1228,7 @@ def create_db_uploads(input_file="output"):
                         num_pts[plabel] += 1 # There is at least one point over this j-invariant
                     else:
                         num_pts[plabel] += card
-                _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), degree, field_of_definition, jorig, jinv, jfield, j_height, cm, r"\N", Elabel, isolated, conductor_norm, ainvs, write_dict(coords), "f", card]) + "\n")
+                _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), degree, field_of_definition, jorig, jinv, jfield, j_height, cm, r"\N", Elabel, isolated, conductor_norm, ainvs, write_dict(coords), "f", str(card)]) + "\n")
         for (plabel, nflabel), coords in cusps.items():
             degree = nflabel.split(".")[0]
             gdat = gpcuspdata[plabel]
@@ -1247,7 +1247,7 @@ def create_db_uploads(input_file="output"):
                 elif card != gdat["rational_cusps"]:
                     print(f"Rational cusp cardinality mismatch for {plabel} ({card} != {gdat['rational_cusps']})")
                 num_pts[plabel] += card
-            _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", r"\N", write_dict(coords), "t", card]) + "\n")
+            _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", r"\N", write_dict(coords), "t", str(card)]) + "\n")
 
     write_models_maps(data["C"], data["P"], data["H"], data["J"], data["F"])
 
