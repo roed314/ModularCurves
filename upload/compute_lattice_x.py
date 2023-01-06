@@ -1286,7 +1286,7 @@ def fix_dollars():
     with open("output") as F:
         with open("output_fixed", "w") as Fout:
             for line in F:
-                if "$" in line:
+                if line[0] != "E" and "$" in line:
                     kinds.add(line[0])
                     for m in range(23,0,-1):
                         line = line.replace(f"$.{m}", lvars[m])
