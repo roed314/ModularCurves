@@ -983,6 +983,7 @@ def get_model_points(rats, usps, jusps):
             print(f"jusps {i}/{len(jusps)}")
         assert len(lines) == 1
         line = lines[0]
+        if not line: continue
         data = line.split("|")
         model_type = data[0]
         coords, fields = data[-2:]
