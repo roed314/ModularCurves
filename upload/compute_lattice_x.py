@@ -888,7 +888,7 @@ def get_nf_lookup(pols):
     lookup = {}
     R = PolynomialRing(QQ, name="x")
     if ope("polreds.txt"):
-        with open("polreds") as F:
+        with open("polreds.txt") as F:
             for line in F:
                 poly, g, nflabel, phi = line.strip().split("|")
                 lookup[poly] = (nflabel, g, phi)
@@ -913,8 +913,8 @@ def get_nf_lookup(pols):
             lookup[poly] = (nflabel, g, phi)
     if save:
         with open("polreds_tmp.txt", "w") as F:
-            for f, tup in lookup.items():
-                _ = F.write("|".join(tup) + "\n")
+            for poly, tup in lookup.items():
+                _ = F.write("|".join((poly,) + tup) + "\n")
         os.rename("polreds_tmp.txt", "polreds.txt")
     return lookup
 
