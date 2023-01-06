@@ -890,7 +890,7 @@ def get_nf_lookup(pols):
     if ope("polreds.txt"):
         with open("polreds.txt") as F:
             for line in F:
-                poly, g, nflabel, phi = line.strip().split("|")
+                poly, nflabel, g, phi = line.strip().split("|")
                 lookup[poly] = (nflabel, g, phi)
     save = False
     nf_lookup = {}
