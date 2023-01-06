@@ -982,7 +982,7 @@ def get_model_points(rats, usps, jusps):
     for i, (label, lines) in enumerate(jusps.items()):
         if i and i%1000 == 0:
             print(f"jusps {i}/{len(jusps)}")
-        assert len(lines) == 1:
+        assert len(lines) == 1
         line = lines[0]
         data = line.split("|")
         model_type = data[0]
