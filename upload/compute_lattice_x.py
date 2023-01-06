@@ -1269,7 +1269,7 @@ def create_db_uploads(input_file="output"):
             qbnd = "{%s,%s}" % qbnd
             qbarbnd = "{%s, %s}" % qbarbnd
             card = num_pts.get(label, 0)
-            _ = F.write(f"{label}|{q}|{qbar}|{qbnd}|{qbarbnd}|{data['L'].get(label, default)}\n")
+            _ = F.write(f"{label}|{q}|{qbar}|{qbnd}|{qbarbnd}|{data['L'].get(label, default)}|{card}\n")
 
 def update_lattice_only():
     folder = opj("..", "equations", "graphviz_out")
