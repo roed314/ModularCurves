@@ -893,22 +893,21 @@ def get_nf_lookup(pols):
                 poly, g, nflabel, phi = line.strip().split("|")
                 lookup[poly] = (nflabel, g, phi)
     save = False
-    nf_lookup = None
+    nf_lookup = {}
     for i, poly in enumerate(pols):
         if i and i % 1000 == 0:
             print(f"Creating nf lookup table: {i}/{len(pols)}")
         if poly not in lookup:
             save = True
-            if nf_lookup is None:
-                print("Looking up number fields from database... ", end="")
-                nf_lookup = {tuple(rec["coeffs"]): rec["label"] for rec in db.nf_fields.search({"degree":{"$lte":6}}, ["label", "coeffs"])}
-                print("done")
             f = R(poly)
             K = NumberField(f, name='a')
             g = R(f.__pari__().polredabs())
             L = NumberField(g, name='b')
             phi = K.embeddings(L)[0]
-            nflabel = nf_lookup[tuple(g)]
+            if g not in nf_lookup:
+                nf_lookup[g] = db.nf_fields.lucky({"coeffs":tuple(g)}, "label")
+                assert nf_lookup[g] is not None
+            nflabel = nf_lookup[g]
             g = ",".join(str(c) for c in g)
             phi = ",".join(str(c) for c in phi(K.gen()))
             lookup[poly] = (nflabel, g, phi)
