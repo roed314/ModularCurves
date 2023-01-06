@@ -1218,7 +1218,7 @@ def create_db_uploads(input_file="output"):
                 if ainvs == "?":
                     ainvs = r"\N"
                 # For cm points on coarse curves, we can often improve the ellipic curve conductor from the one propogated from the maximal point
-                if cm != "0" and "-" not in plabel:
+                if degree == "1" and cm != "0" and "-" not in plabel:
                     Elabel = cm_Elabel[cm]
                 jlookup = jinv if jorig == r"\N" else jorig
                 coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
