@@ -905,7 +905,7 @@ def get_nf_lookup(pols):
             L = NumberField(g, name='b')
             phi = K.embeddings(L)[0]
             if g not in nf_lookup:
-                nf_lookup[g] = db.nf_fields.lucky({"coeffs":tuple(g)}, "label")
+                nf_lookup[g] = db.nf_fields.lucky({"coeffs":[int(c) for c in g]}, "label")
                 assert nf_lookup[g] is not None
             nflabel = nf_lookup[g]
             g = ",".join(str(c) for c in g)
