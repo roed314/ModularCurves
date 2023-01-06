@@ -18,7 +18,6 @@
 # Create a mechanism for redoing failed labels
 # Need to move rational point and cusp data from output file to folders after cod and before second deployment
 # Finish splitting off lattice computation, remove test for g<=24 below, update todo list generation
-# Store number of points per j-inv in modcurve_points
 # Optimized models
 
 # ** Checks **
@@ -35,6 +34,7 @@
 # Create picture database
 # Cusps that didn't get coordinates aren't included in modcurve_points
 # Parallelize polredabs
+# Correct the ? CM curves
 
 # ** Front-end changes **
 # Fun diagram: https://red.lmfdb.xyz/ModularCurve/Q/16.192.5.bu.1/

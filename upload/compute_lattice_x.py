@@ -450,7 +450,7 @@ def load_gl2zhat_rational_data():
     return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "coarse_label"], silent=True)}
 
 def load_gl2zhat_cusp_data():
-    return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search({"contains_negative_one": True}, ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds"], silent=True)}
+    return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search({"contains_negative_one": True}, ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "rational_cusps"], silent=True)}
 
 def is_isolated(degree, g, rank, gonlow, simp, dims):
     # We encode the isolatedness in a small integer, p + a, where
@@ -1178,6 +1178,23 @@ def create_db_uploads(input_file="output"):
             if model_type in coords:
                 return len(coords[model_type])
         return r"\N"
+    num_pts = defaultdict(int)
+    # cm_Elabel = {rec["cm"]: rec["lmfdb_label"] for rec in db.ec_curvedata.search({"cm":{"$ne": 0}}, ["cm", "lmfdb_label"], one_per=["cm"])}
+    cm_Elabel = {
+        '-3': '27.a3',
+        '-4': '32.a3',
+        '-7': '49.a2',
+        '-8': '256.a1',
+        '-11': '121.b1',
+        '-12': '36.a1',
+        '-16': '32.a1',
+        '-19': '361.a1',
+        '-27': '27.a1',
+        '-28': '49.a1',
+        '-43': '1849.b1',
+        '-67': '4489.b1',
+        '-163': '26569.a1'
+    }
     with open("modcurve_points.txt", "w") as Fout:
         _ = Fout.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|ainvs|coordinates|cusp|cardinality\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|numeric|text|jsonb|boolean|integer\n\n")
         # Get total number of points to add
@@ -1201,10 +1218,18 @@ def create_db_uploads(input_file="output"):
                     isolated = is_isolated(int(degree), g, rank, gonlow, simp, dims)
                 if ainvs == "?":
                     ainvs = r"\N"
+                # For cm points on coarse curves, we can often improve the ellipic curve conductor from the one propogated from the maximal point
+                if cm != "0" and "-" not in plabel:
+                    Elabel = cm_Elabel[cm]
                 jlookup = jinv if jorig == r"\N" else jorig
                 coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
                 card = get_card(coords)
-                _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, ainvs, write_dict(coords), "f", card]) + "\n")
+                if degree == "1":
+                    if card == r"\N":
+                        num_pts[plabel] += 1 # There is at least one point over this j-invariant
+                    else:
+                        num_pts[plabel] += card
+                _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), degree, field_of_definition, jorig, jinv, jfield, j_height, cm, r"\N", Elabel, isolated, conductor_norm, ainvs, write_dict(coords), "f", card]) + "\n")
         for (plabel, nflabel), coords in cusps.items():
             degree = nflabel.split(".")[0]
             gdat = gpcuspdata[plabel]
@@ -1217,6 +1242,12 @@ def create_db_uploads(input_file="output"):
             if name is None:
                 name = r"\N"
             card = get_card(coords)
+            if degree == "1":
+                if card == r"\N":
+                    card = gdat["rational_cusps"]
+                elif card != gdat["rational_cusps"]:
+                    print(f"Rational cusp cardinality mismatch for {plabel} ({card} != {gdat['rational_cusps']})")
+                num_pts[plabel] += card
             _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", r"\N", write_dict(coords), "t", card]) + "\n")
 
     write_models_maps(data["C"], data["P"], data["H"], data["J"], data["F"])
@@ -1227,7 +1258,7 @@ def create_db_uploads(input_file="output"):
 
     with open("gps_gl2zhat_fine.update", "w") as F:
         # TODO: May also want to upload number_rational_points
-        _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds|lattice_labels|lattice_x\ntext|integer|integer|integer[]|integer[]|text[]|integer[]\n\n")
+        _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds|lattice_labels|lattice_x|num_known_degree1_points\ntext|integer|integer|integer[]|integer[]|text[]|integer[]|integer\n\n")
         default = r"\N|\N"
         for label, gon in gonalities.items():
             q, qbar, qbnd, qbarbnd = gon
@@ -1235,6 +1266,7 @@ def create_db_uploads(input_file="output"):
             if qbar is None: qbar = r"\N"
             qbnd = "{%s,%s}" % qbnd
             qbarbnd = "{%s, %s}" % qbarbnd
+            card = num_pts.get(label, 0)
             _ = F.write(f"{label}|{q}|{qbar}|{qbnd}|{qbarbnd}|{data['L'].get(label, default)}\n")
 
 def update_lattice_only():
