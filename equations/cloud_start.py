@@ -19,6 +19,7 @@
 # Need to move rational point and cusp data from output file to folders after cod and before second deployment
 # Finish splitting off lattice computation, remove test for g<=24 below, update todo list generation
 # Optimized models
+# Coordinates on genus 0 j-map are wrong (y and z): https://red.lmfdb.xyz/ModularCurve/Q/8.12.0.x.1/
 
 # ** Checks **
 # check on other todos in compute_lattice_x
@@ -46,7 +47,7 @@
 # Add index to modcurve_points and make sortable (low)
 # Use select to set sort order when doing one-per-jinv (low)
 # Knowl for model type that's a double cover of conic
-# Display fields using pretty names (and i rather than a for coordinates and j-invariant in Q(i))
+# Display fields using pretty names (and i rather than a for coordinates and j-invariant in Q(i), maybe square roots also)
 
 import os
 import argparse

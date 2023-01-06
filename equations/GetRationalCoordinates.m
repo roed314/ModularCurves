@@ -82,6 +82,8 @@ if #jinvs gt 0 then
         jL, cod_coord := Explode(pair);
         L := Parent(jL);
         fL := DefiningPolynomial(L); // We cache using fL since it works for QQ as well as number fields
+        RL := Parent(fL);
+        AssignCanonicalNames(~RL);
         if IsDefined(auts, fL) then
             autL := auts[fL];
             YL := YLD[fL];
@@ -98,7 +100,7 @@ if #jinvs gt 0 then
             XLD[fL] := XL;
             projL := map<XL -> YL | j>;
             projLD[fL] := projL;
-            t1 := ReportStart(label, Sprintf("computing j-map on base points for L=%o", fL));
+            t1 := ReportStart(label, Sprintf("computing j-map on base points for L=%o", sprint(fL)));
             bp := [pt : pt in BasePoints(projL) | L eq QQ or Degree(sub<L | Eltseq(pt)>) eq Degree(L)];
             base_points[fL] := bp;
             bpd := AssociativeArray();
