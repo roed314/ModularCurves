@@ -7,7 +7,7 @@ import re
 import subprocess
 import argparse
 from collections import defaultdict
-from sage.all import ZZ, QQ, PolynomialRing, MatrixSpace, EllipticCurve, cached_function, flatten, walltime, cputime, DiGraph, FinitePoset
+from sage.all import ZZ, QQ, PolynomialRing, MatrixSpace, EllipticCurve, cached_function, flatten, walltime, cputime, DiGraph
 from sage.combinat.posets.posets import FinitePoset
 from sage.databases.cremona import class_to_int
 
