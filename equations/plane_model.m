@@ -867,7 +867,7 @@ intrinsic PlaneModelAndGonalityBounds(label::MonStgElt) -> Tup, SeqEnum
             q_high := 2;
             H, r_map := ReducedMinimalWeierstrassModel(H);
             h_map := h_map * r_map;
-            LMFDBWriteHyperellipticModel(DefiningEquations(H), DefiningEquations(h_map), label);
+            LMFDBWriteHyperellipticModel(H, DefiningEquations(h_map), label);
         else
             q_low := 4;
             q_high := 4;

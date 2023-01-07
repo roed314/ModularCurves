@@ -129,6 +129,19 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     S := Universe(M`psi);
     AssignCanonicalNames(~S);
     C := Curve(Proj(S), M`psi);
+    // Check that the curve is the same as the one already found
+    D, _g, _model_type := LMFDBReadXGModel(covered_label);
+    if D ne M`psi then
+        print "error: relative-j model mismatch";
+        if #D ne #M`psi then
+            print "lengths different: ", #D, #M`psi;
+        end if;
+        for i in [1..Min(#D, #M`psi)] do
+            if D[i] ne M`psi[i] then
+                print i, D[i], "versus", M`psi[i];
+            end if;
+        end for;
+    end if;
 
     t1 := ReportStart(cover_label, "ConvertModularFormExpansions");
     F1 := [ConvertModularFormExpansions(M0, M, [1,0,0,1], f) : f in F];

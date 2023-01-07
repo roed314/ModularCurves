@@ -276,6 +276,15 @@ intrinsic LMFDBWriteXGModel(X::Crv, model_type::RngIntElt, label::MonStgElt)
     System("mkdir -p canonical_models");
     fname := Sprintf("canonical_models/%o", label);
     Write(fname, Sprintf("%o|{%o}|%o", Rank(R), Join([sprint(f) : f in DP], ","), model_type) : Overwrite);
+    if model_type eq 5 then
+        g := Split(label, ".")[3];
+        // This should always be 1, but just in case
+        if g eq "1" then
+            E := EllipticCurve(X);
+            cremona_label := CremonaReference(E);
+            Write("curve_labels/" * label, cremona_label);
+        end if;
+    end if;
 end intrinsic;
 
 intrinsic LMFDBReadXGModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIntElt
@@ -336,8 +345,13 @@ intrinsic LMFDBReadPlaneModel(label::MonStgElt) -> SeqEnum, Tup
     end if;
 end intrinsic;
 
-intrinsic LMFDBWriteHyperellipticModel(Hdef::SeqEnum, h_map::SeqEnum, label::MonStgElt)
-{}
+intrinsic LMFDBWriteHyperellipticModel(H::Any, h_map::SeqEnum, label::MonStgElt)
+{H can be either a hyperelliptic curve or a sequence of polynomials defining a double cover of a conic}
+    if Type(H) eq CrvHyp then
+        Hdef := DefiningEquations(H);
+    else
+        Hdef := H;
+    end if;
     HP := Universe(Hdef);
     AssignCanonicalNames(~HP);
     s := "{" * Join([sprint(heq) : heq in Hdef], ",") * "}";
@@ -346,6 +360,23 @@ intrinsic LMFDBWriteHyperellipticModel(Hdef::SeqEnum, h_map::SeqEnum, label::Mon
         s := Sprintf("%o|{%o}|%o", s, "|" * Join([sprint(coord) : coord in h_map], ","), n);
     end if;
     Write("ghyp_models/" * label, Sprintf("%o|%o", sprint(Hdef), Join([sprint(coord) : coord in DefiningEquations(h_map)], ",")) : Overwrite);
+    if Type(H) eq CrvHyp and Split(label, ".")[3] eq "2" then
+        // Try to recognize the model in the LMFDB database
+        g2invs := G2Invariants(H);
+        fname := "g2invs/h" * Join([Sprintf("%o_%o", Numerator(c), Denominator(c)) : c in g2invs], ".");
+        if OpenTest(fname, "r") then
+            R := PolynomialRing(Rationals());
+            for poss in Split(Read(fname), "\n") do
+                lmfdb_label, HH := Explode(Split(poss, "|"));
+                HH := eval HH;
+                HH := HyperellipticCurve([R!h : h in HH]);
+                if IsIsomorphic(H, HH) then
+                    Write("curve_labels/" * label, lmfdb_label);
+                    break;
+                end if;
+            end for;
+        end if;
+    end if;
 end intrinsic;
 
 intrinsic LMFDBReadHyperellipticModel(label::MonStgElt) -> SeqEnum, SeqEnum

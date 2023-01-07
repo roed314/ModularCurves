@@ -14,20 +14,12 @@
 # - Base change for CM points (duplicated points in rats/).  Need to throw away points of lower degree?
 
 # ** Computation changes **
-# Code for making tarball
 # Create a mechanism for redoing failed labels
-# Need to move rational point and cusp data from output file to folders after cod and before second deployment
-# Finish splitting off lattice computation, remove test for g<=24 below, update todo list generation
-# Optimized models
-# Consider https://red.lmfdb.xyz/ModularCurve/Q/16.384.17.k.5/ where there's a relative j-map to 16.48.3.d.1.  It's a little sad that that curve isn't in the lattice.
-# Tweak widths of named labels in lattice layout
-# For elliptic curves and genus 2 curves, it would be good to link to them (probably using newform)
-# Propogate gonality to fine models
-# Add curve_label column
-# Use CremonaReferece
-# Print out covered model equation to double check that they all match
-# 34.171.220.230 - groups
-# 35.222.214.93 - models
+# For elliptic curves and genus 2 curves, it would be good to link to them (probably using newform) (add curve_label column, use CremonaReferece)
+# Sample todo
+# Fix these:
+# `images = [label for label in images if "?" not in label and int(label.split(".")[0]) < 24]`
+# if level >= 24: continue
 
 # ** Checks **
 # check on other todos in compute_lattice_x
@@ -37,6 +29,12 @@
 # Correct the ? CM curves
 # Should push forward points to hyperelliptic model
 # Coordinates on genus 0 j-map are wrong (y and z): https://red.lmfdb.xyz/ModularCurve/Q/8.12.0.x.1/
+# Tweak widths of named labels in lattice layout
+# Code for making tarball
+# Need to move rational point and cusp data from output file to folders after cod and before second deployment
+# Propogate gonality to fine models
+# Finish splitting off lattice computation, remove test for g<=24 below, update todo list generation
+# Print out covered model equation to double check that they all match
 
 # ** Front-end changes **
 # Fun diagram: https://red.lmfdb.xyz/ModularCurve/Q/16.192.5.bu.1/
@@ -54,6 +52,11 @@
 # Two digit exponents in j-map: https://red.lmfdb.xyz/ModularCurve/Q/20.36.0.d.2/
 # Elliptic curves aren't showing j-maps, even though they're known (e.g. 15.96.1.b.1)
 
+# ** Later **
+# Consider https://red.lmfdb.xyz/ModularCurve/Q/16.384.17.k.5/ where there's a relative j-map to 16.48.3.d.1.  It's a little sad that that curve isn't in the lattice.
+# Optimized models
+
+
 import os
 import time
 import argparse
@@ -70,6 +73,7 @@ parser.add_argument("--cod", action="store_true")
 os.makedirs("canonical_models", exist_ok=True)
 os.makedirs("plane_models", exist_ok=True)
 os.makedirs("ghyp_models", exist_ok=True)
+os.makedirs("curve_labels", exist_ok=True)
 os.makedirs("rats", exist_ok=True)
 os.makedirs("jcusps", exist_ok=True)
 os.makedirs("jfacs", exist_ok=True)
@@ -162,6 +166,7 @@ def collate_data(label):
                 ("C", "canonical_models"),
                 ("P", "plane_models"),
                 ("H", "ghyp_models"),
+                ("V", "curve_labels"),
                 ("R", "rats"),
                 ("J", "jcusps"),
                 ("F", "jfacs"),

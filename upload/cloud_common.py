@@ -1,0 +1,93 @@
+
+import os
+import sys
+from collections import defaultdict
+from sage.misc.cachefunc import cached_function
+from sage.all import DiGraph
+from sage.combinat.posets.posets import FinitePoset
+from sage.misc.misc import cputime, walltime
+
+opj = os.path.join
+ope = os.path.exists
+sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
+from lmfdb import db
+
+
+@cached_function
+def get_lattice_poset():
+    t0 = walltime()
+    R = []
+    for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "parents"]):
+        for olabel in rec["parents"]:
+            R.append([olabel, rec["label"]]) # Use backward direction so that breadth first search is faster
+    print("DB data loaded in", walltime() - t0)
+    t0 = cputime()
+    D = DiGraph()
+    D.add_edges(R, loops=False)
+    print("Edges added to graph in", cputime() - t0)
+    t0 = cputime()
+    P = FinitePoset(D)
+    print("Poset created in", cputime() - t0)
+    return P
+
+@cached_function
+def rational_poset_query():
+    # We need to also include prime levels since ec_nfcurve has prime level galois_images, and many of the hand-curated low-degree points are on curves of prime level
+    ecnf_primes = sorted(set(sum(db.ec_nfcurves.distinct('nonmax_primes'), [])))
+    return {"$or": [{"pointless": False}, {"pointless": None}, {"level": {"$in": ecnf_primes}}]}
+
+def index_iterator(P, v, reverse=False):
+    """
+    INPUT:
+
+    - P, the output of either get_lattice_poset() or get_rational_poset()
+    - v, a vertex in P._hasse_diagram
+
+    OUTPUT:
+    - an iterator over the descedents of v, in index order (and thus iterating over parents before children)
+    """
+    # Since breadth_first_search doesn't guarantee that parents are visited before children, we return an ordering of the vertices that will do so
+    H = P._hasse_diagram
+    by_index = defaultdict(list)
+    for w in H.breadth_first_search(v):
+        label = P._vertex_to_element(w)
+        ind = int(label.split(".")[1])
+        by_index[ind].append(w)
+    for ind in sorted(by_index, reverse=reverse):
+        yield from by_index[ind]
+
+def load_gl2zhat_rational_data():
+    return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "coarse_label"], silent=True)}
+
+def to_coarse_label(label):
+    # Work around broken coarse_label column
+    if label.count(".") == 4:
+        return label
+    # N.i.g-M.a.m.n
+    fine, coarse = label.split("-")
+    N, i, g = fine.split(".")
+    j = int(i)//2
+    M, a, m, n = coarse.split(".")
+    return f"{M}.{j}.{g}.{a}.{m}"
+
+def get_output_data():
+    with open("output1") as F:
+        for line in F:
+            yield line
+    if ope("output2"):
+        with open("output2") as F:
+            for line in F:
+                yield line
+
+def inbox(label):
+    """
+    Whether this label lies within the box where we're running the model calculations
+    """
+    N, i, g = label.split(".")[:3]
+    N = int(N)
+    g = int(g)
+    if N < 24:
+        return g <= 24
+    if N <120:
+        return g <= 14
+    return g <= 6
