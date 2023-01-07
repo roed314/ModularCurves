@@ -270,7 +270,11 @@ File output:
                 if assigned e`Traceback then
                     print e`Traceback;
                 end if;
-                print "error: invalid model", assigned e`Position select Sprintf("line %o", e`Position) else "";
+                print "Invalid";
+                print "fproj", fproj;
+                print "X", X;
+                print "best", best;
+                print "error: invalid model", assigned e`Position select e`Position else "";
             end try;
         end if;
         return best, bestkey, false, tval, 0.0;

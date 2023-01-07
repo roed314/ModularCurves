@@ -261,7 +261,7 @@ def distinguished_vertices():
     """
     return {rec["label"]: rec["name"] for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True, "name":{"$ne":""}}, ["label", "name"])}
 
-Xfams = ['X', 'X0', 'X1', 'Xsp', 'Xns', 'Xsp+', 'Xns+', 'XS4']
+Xfams = ['X', 'X0', 'Xpm1', 'Xpm1,', 'Xsp', 'Xns', 'Xsp+', 'Xns+', 'XS4']
 
 @cached_function
 def intervals_to_save(max_size=60):
@@ -313,7 +313,11 @@ def intervals_to_save(max_size=60):
             by_fam = defaultdict(dict)
             for d in ints:
                 fam = DV[d].split("(")[0]
-                n = ZZ(DV[d].split("(")[1].split(")")[0])
+                n = DV[d].split("(")[1].split(")")[0]
+                if "," in n: # X1(2, m)
+                    fam += ","
+                    n = n.split(",")[1]
+                n = ZZ(n)
                 by_fam[fam][n] = d
             S = []
             for fam, ns in by_fam.items():
@@ -326,9 +330,9 @@ def intervals_to_save(max_size=60):
             I = J = set([x]).union(ints[S[0][2]])
             num_tops[x] = 1
             for i, f, d in S[1:]:
-                I = I.union(ints[d])
+                I = J.union(ints[d])
                 if len(I) > max_size:
-                    break;
+                    continue
                 num_tops[x] += 1
                 J = I
         else:
