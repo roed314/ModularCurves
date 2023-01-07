@@ -123,7 +123,7 @@ def make_tarball(stage=1):
     ]
     if stage == 2:
         include.extend(["rats", "canonical_models"])
-    subprocess.run(f"tar -xf ../upload/stage{stage}_{n}.tar " + " ".join(include), shell=True)
+    subprocess.run(f"tar -cf ../upload/stage{stage}_{n}.tar " + " ".join(include), shell=True)
     print(" done")
     if stage == 1:
         print("Next steps:")
@@ -791,5 +791,5 @@ def make_g2_lookup_data():
 # Execute the main function #
 #############################
 
-prep(stage=args.stage)
-
+#prep(stage=args.stage)
+make_tarball(stage=args.stage)
