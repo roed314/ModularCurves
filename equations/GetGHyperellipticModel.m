@@ -19,8 +19,8 @@ if g lt 3 then
     label cat ":genus too small";
     exit;
 end if;
-t0 := ReportStart(label, "hyperelliptic model");
+t0 := ReportStart(label, "conic double cover model");
 C := HyperellipticModelFromLabel(label : prec:=prec);
-ReportEnd(label, "hyperelliptic model", t0);
-Write("ghyp_models/" * label, StripWhiteSpace(Sprint(DefiningEquations(C))));
+ReportEnd(label, "conic double cover model", t0);
+LMFDBWriteHyperellipticModel(DefiningEquations(C), [], label);
 exit;

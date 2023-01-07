@@ -167,10 +167,12 @@ def intervals_to_save(max_size=60):
     return stored_intervals, num_tops
 
 def display(label):
+    # We try to model how wide the latexed tag will be just using characters,
+    # leaning toward increasing the width of named vertices
     DV = distinguished_vertices()
     if label in DV:
-        return DV[label]
-    return "%s_%s^%s" % tuple(label.split(".")[:3])
+        return DV[label] + "XX"
+    return "%sX" % label.split(".")[0]
 
 def get_rank(label):
     return sum(e for (p,e) in ZZ(label.split(".")[1]).factor())
@@ -650,6 +652,7 @@ def get_relj_codomains():
             cods[codomain] = max(cods[codomain], int(label.split(".")[1]))
             with open(opj(output_folder, label), "w") as F:
                 _ = F.write(f"{codomain}|{','.join(str(c) for c in conj.list())}")
+    # Now cods contains the maximum relative index of anything mapping to the given codomain
     with open(opj("..", "equations", "codtodo.txt"), "w") as Ftodo:
         for cod, maxind in cods.items():
             _ = Ftodo.write(cod + "\n")
@@ -1076,12 +1079,9 @@ def write_models_maps(cans, planes, ghyps, jcusps, jfacs):
     for label, lines in ghyps.items():
         assert len(lines) == 1
         line = lines[0]
-        line = line.replace("[", "{").replace("]", "}") # we just printed the sequence of defining equations
         if "|" in line:
             # Hyperelliptic model where we have the projection
-            model, proj = line.split("|")
-            if model[0] != "{":
-                model = "{"+model+"}"
+            model, proj, nvar = line.split("|")
             leading_coefficients = r"\N"
             factored = "f"
             dontdisplay = dontdisplay_str(proj)

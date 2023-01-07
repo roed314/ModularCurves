@@ -863,20 +863,17 @@ intrinsic PlaneModelAndGonalityBounds(label::MonStgElt) -> Tup, SeqEnum
         LMFDBWriteGonalityBounds(<q_low, q_high, qbar_low, qbar_high>, label);
         t0 := ReportStart(label, "IsHyperelliptic");
         hyp, H, h_map := IsHyperelliptic(curve);
-        ReportEnd(label, "IsHyperelliptic", t0);
         if hyp then
             q_high := 2;
             H, r_map := ReducedMinimalWeierstrassModel(H);
             h_map := h_map * r_map;
-            Hdef := DefiningEquation(H);
-            HP := Parent(Hdef);
-            AssignNames(~HP, ["x","y","z"]);
-            Write("ghyp_models/" * label, Sprintf("%o|%o", sprint(Hdef), Join([sprint(coord) : coord in DefiningEquations(h_map)], ",")) : Overwrite);
+            LMFDBWriteHyperellipticModel(DefiningEquations(H), DefiningEquations(h_map), label);
         else
             q_low := 4;
             q_high := 4;
             // Later, we'll use Edgar and Raymond's code to find model as double cover of conic
         end if;
+        ReportEnd(label, "IsHyperelliptic", t0);
     end if;
     if g gt 1 and not ghyp then
         // not geometrically hyperelliptic

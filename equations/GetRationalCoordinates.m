@@ -17,11 +17,15 @@ end if;
 
 jinvs := LMFDBReadJinvPts(label);
 ans := [* *];
+// Required by magma's parser since we use these inside ifs
+C := 0; H := 0; g := 0;
+
 if #jinvs gt 0 then
     t0 := ReportStart(label, "pulling back j-invariants");
     QQ := Rationals();
     X, model_type, codomain, j := LMFDBReadJMap(label);
     Cs := LMFDBReadPlaneModel(label);
+    Hs, hmap := LMFDBReadHyperellipticModel(label);
     if #codomain eq 0 then
         Y := ProjectiveSpace(QQ, 1);
         // For now, we ignore isolatedness
@@ -35,7 +39,7 @@ if #jinvs gt 0 then
         try
             Ycoords := LMFDBReadJinvCoords(codomain : can_only:=true);
         catch e
-            print "Rational points not computed in codomain";
+            print "error: rational points not computed in codomain";
             exit;
         end try;
         // The field of definition may be different for Y and X, so we need to track embeddings of these fields
@@ -71,6 +75,18 @@ if #jinvs gt 0 then
     X := Curve(Proj(Universe(X)), X);
     if #Cs gt 0 then
         C := Curve(Proj(Parent(Cs[1][1])), Cs[1][1]);
+    end if;
+    if #hmap gt 0 then
+        H := Hs[1];
+        if IsEven(Degree(H)) then
+            g := Degree(H) div 2;
+            WP := WeightedProjectiveSpace([1,g,1]);
+            H := Curve(WP, [H]);
+        else
+            // We could handle this, but it wasn't observed in the test data and it would require additional code
+            print "error, odd degree hyperelliptic";
+            hmap := [];
+        end if;
     end if;
     auts := AssociativeArray();
     base_points := AssociativeArray();
@@ -118,6 +134,11 @@ if #jinvs gt 0 then
             CL := ChangeRing(C, L);
             T := ChangeRing(Universe(Cs[1][2]), L);
             CprojL := map<XL -> CL| [T!f : f in Cs[1][2]]>;
+        end if;
+        if #hmap gt 0 then
+            HL := ChangeRing(H, L);
+            T := ChangeRing(Universe(hmap), L);
+            hmapL := map<XL -> HL | [T!f : f in hmap]>;
         end if;
         Ypt := YL!cod_coord;
         Xpt := Ypt @@ (projL);
@@ -169,6 +190,21 @@ if #jinvs gt 0 then
             //end for;
             for pt in Xcoords do
                 Append(~ans, <2, jL, (XL!pt) @ CprojL>);
+            end for;
+        end if;
+        if #hmap gt 0 then
+            for pt in Xcoords do
+                Hpt := Eltseq((XL!pt) @ hmapL);
+                // points aren't normalized in weighted projective spaces, but since our weights aren't that complicated, we can do it.  We first try to make z=1, then x=1.  Note that we can't have x = z = 0, since that y^2 is a term and there are no other unaccompanied y terms.
+                if Hpt[3] eq 0 then
+                    d := 1 / Hpt[1];
+                else
+                    d := 1 / Hpt[3];
+                end if;
+                Hpt[1] *:= d;
+                Hpt[2] *:= d^g;
+                Hpt[3] *:= d;
+                Append(~ans, <5, jL, Hpt>);
             end for;
         end if;
     end for;

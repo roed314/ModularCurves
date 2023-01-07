@@ -97,8 +97,9 @@ intrinsic AssignCanonicalNames(~R::Rng : upper:=false)
     end if;
 end intrinsic;
 
-intrinsic ReadPoly(P::RngMPol, f::MonStgElt, nvars::RngIntElt : upper:=false) -> RngMPolElt
+intrinsic ReadPoly(P::RngMPol, f::MonStgElt : upper:=false) -> RngMPolElt
 {}
+    nvars := Rank(P);
     return eval(ReplaceVariables(f, nvars : upper:=upper));
     // Note that this might be a fraction field element if there was division
 end intrinsic;
@@ -223,7 +224,7 @@ intrinsic LMFDBReadJMap(label::MonStgElt) -> SeqEnum, RngIntElt, MonStgElt, SeqE
         jtype, j, cusps, fields := Explode(data);
     end if;
     j := Split(j[2..#j-1], "," : IncludeEmpty:=true);
-    j := [ReadPoly(P, jcoord, nvars) : jcoord in j];
+    j := [ReadPoly(P, jcoord) : jcoord in j];
     return X, model_type, codomain, j;
 end intrinsic;
 
@@ -285,7 +286,7 @@ intrinsic LMFDBReadXGModel(label::MonStgElt) -> SeqEnum, RngIntElt, RngIntElt
     nvars := StringToInteger(nvars);
     P := PolynomialRing(Rationals(), nvars);
     AssignCanonicalNames(~P);
-    X := [ReadPoly(P, f, nvars) : f in Split(X[2..#X-1], ",")];
+    X := [ReadPoly(P, f) : f in Split(X[2..#X-1], ",")];
     return X, g, StringToInteger(model_type);
 end intrinsic;
 
@@ -325,14 +326,49 @@ intrinsic LMFDBReadPlaneModel(label::MonStgElt) -> SeqEnum, Tup
         g := StringToInteger(g);
         P3 := PolynomialRing(Rationals(), 3);
         AssignCanonicalNames(~P3);
-        f := ReadPoly(P3, f, 3);
+        f := ReadPoly(P3, f);
         Pg := PolynomialRing(Rationals(), g);
         AssignCanonicalNames(~Pg);
-        proj := [ReadPoly(Pg, h, g) : h in Split(proj, ",")];
+        proj := [ReadPoly(Pg, h) : h in Split(proj, ",")];
         return [<f, proj>], planemodel_sortkey(f);
     else
         return [], <>;
     end if;
+end intrinsic;
+
+intrinsic LMFDBWriteHyperellipticModel(Hdef::SeqEnum, h_map::SeqEnum, label::MonStgElt)
+{}
+    HP := Universe(Hdef);
+    AssignCanonicalNames(~HP);
+    s := "{" * Join([sprint(heq) : heq in Hdef], ",") * "}";
+    if #h_map ne 0 then
+        n := Rank(Universe(h_map));
+        s := Sprintf("%o|{%o}|%o", s, "|" * Join([sprint(coord) : coord in h_map], ","), n);
+    end if;
+    Write("ghyp_models/" * label, Sprintf("%o|%o", sprint(Hdef), Join([sprint(coord) : coord in DefiningEquations(h_map)], ",")) : Overwrite);
+end intrinsic;
+
+intrinsic LMFDBReadHyperellipticModel(label::MonStgElt) -> SeqEnum, SeqEnum
+{}
+    fname := "ghyp_models/" * label;
+    if OpenTest(fname, "r") then
+        s := Split(Read(fname), "\n")[1];
+        if "|" in s then
+            R3 := PolynomialRing(Rationals(), 3);
+            AssignCanonicalNames(~R3);
+            eqs, mp, n := Explode(Split(s, "|"));
+            n := StringToInteger(n);
+            Rn := PolynomialRing(Rationals(), n);
+            AssignCanonicalNames(~Rn);
+            eqs := [ReadPoly(R3, f) : f in Split(eqs[2..#eqs-1], ",")];
+            mp := [ReadPoly(Rn, f) : f in Split(mp[2..#mp-1], ",")];
+            return eqs, mp;
+        end if;
+        R4 := PolynomialRing(Rationals(), 4);
+        AssignCanonicalNames(~R4);
+        return [ReadPoly(R4, f) : f in Split(s, ",")];
+    end if;
+    return [], [];
 end intrinsic;
 
 intrinsic LMFDBWriteGonalityBounds(gon_bounds::Tup, label::MonStgElt)

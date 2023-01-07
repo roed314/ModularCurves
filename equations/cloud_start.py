@@ -19,23 +19,24 @@
 # Need to move rational point and cusp data from output file to folders after cod and before second deployment
 # Finish splitting off lattice computation, remove test for g<=24 below, update todo list generation
 # Optimized models
-# Coordinates on genus 0 j-map are wrong (y and z): https://red.lmfdb.xyz/ModularCurve/Q/8.12.0.x.1/
+# Consider https://red.lmfdb.xyz/ModularCurve/Q/16.384.17.k.5/ where there's a relative j-map to 16.48.3.d.1.  It's a little sad that that curve isn't in the lattice.
+# Tweak widths of named labels in lattice layout
+# For elliptic curves and genus 2 curves, it would be good to link to them (probably using newform)
+# Propogate gonality to fine models
+# Add curve_label column
+# Use CremonaReferece
+# Print out covered model equation to double check that they all match
+# 34.171.220.230 - groups
+# 35.222.214.93 - models
 
 # ** Checks **
 # check on other todos in compute_lattice_x
 # Check lifting of rational points (and cusps?) on relative j-maps
 # Indexes for modcurve_models, modcurve_modelmaps
 # Make sure Elabel is the minimal one
-# Work around magma bug in pulling back j-invariants (18.81.3.a.1, 20.90.3.e.1) by checking that the image under the j-map is correct
-# Figure out why we're computing plane models when the canonical model is already a plane model (18.81.3.a.1)
-# Add leading_coefficients to model isomorphisms and relative j-maps
-# Lattice: https://red.lmfdb.xyz/ModularCurve/Q/4.12.0.a.1/ doesn't go to X(1) since it contains X(2), but maybe it should
-# Bug: On https://red.lmfdb.xyz/ModularCurve/Q/16.384.21.k.2/ it claims that there are two cusps of degree 4, but magma code didn't find them (looks like a problem with the magma code since 1+1+1+1+2+2+8+8+8 isn't 24)
-# Correct the precision needed for relative j-map
-# Create picture database
-# Cusps that didn't get coordinates aren't included in modcurve_points
-# Parallelize polredabs
 # Correct the ? CM curves
+# Should push forward points to hyperelliptic model
+# Coordinates on genus 0 j-map are wrong (y and z): https://red.lmfdb.xyz/ModularCurve/Q/8.12.0.x.1/
 
 # ** Front-end changes **
 # Fun diagram: https://red.lmfdb.xyz/ModularCurve/Q/16.192.5.bu.1/
@@ -47,9 +48,14 @@
 # Add index to modcurve_points and make sortable (low)
 # Use select to set sort order when doing one-per-jinv (low)
 # Knowl for model type that's a double cover of conic
+# Display Weierstrass models as affine
 # Display fields using pretty names (and i rather than a for coordinates and j-invariant in Q(i), maybe square roots also)
+# When the only rational points are cusps, display differently
+# Two digit exponents in j-map: https://red.lmfdb.xyz/ModularCurve/Q/20.36.0.d.2/
+# Elliptic curves aren't showing j-maps, even though they're known (e.g. 15.96.1.b.1)
 
 import os
+import time
 import argparse
 import subprocess
 
@@ -172,6 +178,9 @@ def collate_data(label):
                             line += "\n"
                         _ = Fout.write(f"{code}{label}|{line}")
 
+with open(opj("timings", label), "w") as F:
+    _ = F.write("Starting overall\n")
+t0 = time.time()
 get_canonical_model(label, args.verbose)
 if ope(opj("canonical_models", label)):
     if genus != 0:
@@ -184,4 +193,6 @@ if ope(opj("canonical_models", label)):
 if ope(opj("jcusps", label)): # For P1 we don't write down a canonical model, so this is outside the above if statement
     get_jfactorization(label, args.verbose)
 get_lattice_coords(label)
+with open(opj("timings", label), "w") as F:
+    _ = F.write(f"Finished overall in {time.time() - t0}\n")
 collate_data(label)
