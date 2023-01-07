@@ -24,6 +24,8 @@ parser.add_argument("--codprob", type=float, help="probability that each valid c
 parser.add_argument("--domprob", type=float, help="probablity that domains of relative j-maps are included, conditional on their codomain being included")
 parser.add_argument("--absprob", type=float, help="probability that non-canonical curves are included")
 
+args = parser.parse_args()
+
 def prep(stage):
     if stage == 1:
         make_input_data()
