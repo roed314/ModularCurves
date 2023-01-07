@@ -183,7 +183,7 @@ def collate_data(label):
                             line += "\n"
                         _ = Fout.write(f"{code}{label}|{line}")
 
-with open(opj("timings", label), "w") as F:
+with open(opj("timings", label), "a") as F:
     _ = F.write("Starting overall\n")
 t0 = time.time()
 get_canonical_model(label, args.verbose)
@@ -198,6 +198,6 @@ if ope(opj("canonical_models", label)):
 if ope(opj("jcusps", label)): # For P1 we don't write down a canonical model, so this is outside the above if statement
     get_jfactorization(label, args.verbose)
 get_lattice_coords(label)
-with open(opj("timings", label), "w") as F:
+with open(opj("timings", label), "a") as F:
     _ = F.write(f"Finished overall in {time.time() - t0}\n")
 collate_data(label)

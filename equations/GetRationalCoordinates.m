@@ -80,7 +80,7 @@ if #jinvs gt 0 then
         H := Hs[1];
         if IsEven(Degree(H)) then
             g := Degree(H) div 2;
-            WP := WeightedProjectiveSpace([1,g,1]);
+            WP := WeightedProjectiveSpace(Rationals(), [1,g,1]);
             H := Curve(WP, [H]);
         else
             // We could handle this, but it wasn't observed in the test data and it would require additional code

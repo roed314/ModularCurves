@@ -58,8 +58,27 @@ def extract_stage1():
     """
     Extract contents of stage 1 output file (stored in ROOT/upload/output1) for running stage 2
     """
-    os.makedirs(opj("..", "equations", "rats"), exist_ok=True)
-    os.makedirs(opj("..", "equations", "canonical_models"), exist_ok=True)
+    rfold = opj("..", "equations", "rats")
+    cfold = opj("..", "equations", "canonical_models")
+    os.makedirs(rfold, exist_ok=True)
+    os.makedirs(cfold, exist_ok=True)
+    # We need to delete any current contents of these directories (which may have been created by running locally), since the append mode below will screw things up for stage 2.
+    rdata = os.listdir(rfold)
+    if rdata:
+        delete = input("There are files in equations/rats; delete [Y/n]? ")
+        if delete and delete.lower()[0] != "y":
+            print("Exiting")
+            sys.exit(1)
+        for label in rdata:
+            os.unlink(opj(rfold, label))
+    cdata = os.listdir(cfold)
+    if cdata:
+        delete = input("There are files in equations/canonical_models; delete [Y/n]? ")
+        if delete and delete.lower()[0] != "y":
+            print("Exiting")
+            sys.exit(1)
+        for label in cdata:
+            os.unlink(opj(cfold, label))
     with open("output1") as F:
         for line in F:
             if not line: continue

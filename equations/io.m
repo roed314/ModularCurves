@@ -282,7 +282,7 @@ intrinsic LMFDBWriteXGModel(X::Crv, model_type::RngIntElt, label::MonStgElt)
         if g eq "1" then
             E := EllipticCurve(X);
             cremona_label := CremonaReference(E);
-            Write("curve_labels/" * label, cremona_label);
+            Write("curve_labels/" * label, cremona_label : Overwrite);
         end if;
     end if;
 end intrinsic;
