@@ -357,9 +357,9 @@ intrinsic LMFDBWriteHyperellipticModel(H::Any, h_map::SeqEnum, label::MonStgElt)
     s := "{" * Join([sprint(heq) : heq in Hdef], ",") * "}";
     if #h_map ne 0 then
         n := Rank(Universe(h_map));
-        s := Sprintf("%o|{%o}|%o", s, "|" * Join([sprint(coord) : coord in h_map], ","), n);
+        s := Sprintf("%o|{%o}|%o", s, Join([sprint(coord) : coord in h_map], ","), n);
     end if;
-    Write("ghyp_models/" * label, Sprintf("%o|%o", sprint(Hdef), Join([sprint(coord) : coord in DefiningEquations(h_map)], ",")) : Overwrite);
+    Write("ghyp_models/" * label, s : Overwrite);
     if Type(H) eq CrvHyp and Split(label, ".")[3] eq "2" then
         // Try to recognize the model in the LMFDB database
         g2invs := G2Invariants(H);
