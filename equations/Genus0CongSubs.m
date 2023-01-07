@@ -39,8 +39,8 @@ The following is a complete list of the congruence subgroups of genus 0 up to co
 Cummin-Pauli name given. See http://www.uncg.edu/mat/faculty/pauli/congruence/congruence.html
 */
 
-// load "Required functions.m";
-import "Required functions.m" : FindHauptmodul, SiegelExpansion, SiegelPower, FindRelation, Act;
+// load "Genus0Common.m";
+import "Genus0Common.m" : FindHauptmodul, SiegelExpansion, SiegelPower, FindRelation, Act;
 
 CPlist:=AssociativeArray();
 CPlist["1A"]:= rec<CongSubgroup | N:=1,  label:="1A", gens:=[ ], index:=1>;
@@ -198,462 +198,337 @@ CPlist["48A"]:= rec<CongSubgroup | N:=48,  label:="48A", gens:=[[ 1, 0, 24, 1 ] 
 
 // Computing Hauptmodul for multiple cusp cases except "10E", "12F".
 for k in Keys(CPlist) do
-	if k eq "1A" or k eq "2A" or k eq "3A" or k eq "4A" or k eq "5A" or k eq "6A" or k eq "6B" or k eq "7A" or k eq "8A" or k eq "9A" or k eq "10A" or k eq "10E" or k eq "12F" or k eq "11A" or k eq "12A" or k eq "14A" or k eq "15A" or k eq "16A" or k eq "18A" or k eq "21A" then
+    if k eq "1A" or k eq "2A" or k eq "3A" or k eq "4A" or k eq "5A" or k eq "6A" or k eq "6B" or k eq "7A" or k eq "8A" or k eq "9A" or k eq "10A" or k eq "10E" or k eq "12F" or k eq "11A" or k eq "12A" or k eq "14A" or k eq "15A" or k eq "16A" or k eq "18A" or k eq "21A" then
         continue k;
     end if;
-	Gamma:=CPlist[k];
-	N:=Gamma`N;
-	SL2:=SL(2,Integers(N));
-	Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
+    Gamma:=CPlist[k];
+    N:=Gamma`N;
+    SL2:=SL(2,Integers(N));
+    Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
     H_:= sub<SL2|[[1,0,0,1]]>; // This is just a dummy variable in multiple cusp case.
-	ind := Gamma`index;
- 	Gamma`hauptmodul:=FindHauptmodul(Gamma`H,H_);
+    ind := Gamma`index;
+    Gamma`hauptmodul:=FindHauptmodul(Gamma`H,H_);
     R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
     h1 := Gamma`hauptmodul;
 
     Gamma`h := R!SiegelExpansion(h1,10);
-
-
-
-
     CPlist[k] :=Gamma;
-
 end for;
-
 
 //Computing Hauptmodul for rest of the cases.
 
-
 for k in Keys(CPlist) do
-
-
      if k eq "2A" or k eq "3A" or k eq "4A" or k eq "5A" or k eq "6B" or k eq "7A" or k eq "8A" or k eq "9A" or k eq "16A" or k eq "18A" then
-
 	Gamma:=CPlist[k];
 	N:=Gamma`N;
 	SL2:=SL(2,Integers(N));
 	Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
-    Gamma_:= CPlist[Gamma`sub[1]];
-    H_:= Gamma_`H;
+        Gamma_:= CPlist[Gamma`sub[1]];
+        H_:= Gamma_`H;
 	ind := Gamma`index;
  	Gamma`hauptmodul:=FindHauptmodul(Gamma`H,H_);
-    R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
-    h1 := Gamma`hauptmodul;
-    Gamma`h := R!SiegelExpansion(h1,10);
-    CPlist[k] :=Gamma;
-
+        R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
+        h1 := Gamma`hauptmodul;
+        Gamma`h := R!SiegelExpansion(h1,10);
+        CPlist[k] :=Gamma;
     end if;
 
-
     if k eq "6A" then
-
-    Gamma:=CPlist[k];
+        Gamma:=CPlist[k];
 	N:=Gamma`N;
 	SL2:=SL(2,Integers(N));
 	Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
-    H_ := sub<SL2|[[0,1,5,1],[5,0,0,5]]>;
-    ind := Gamma`index;
+        H_ := sub<SL2|[[0,1,5,1],[5,0,0,5]]>;
+        ind := Gamma`index;
  	Gamma`hauptmodul:=FindHauptmodul(Gamma`H,H_);
-    R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
-    h1 := Gamma`hauptmodul;
+        R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
+        h1 := Gamma`hauptmodul;
 
-    Gamma`h := R!SiegelExpansion(h1,10);
+        Gamma`h := R!SiegelExpansion(h1,10);
 
-    CPlist[k] :=Gamma;
+        CPlist[k] :=Gamma;
     end if;
 
     if k eq "14A" then
 
-    Gamma:=CPlist[k];
-	N:=Gamma`N;
-	SL2:=SL(2,Integers(N));
-    K<z14> := CyclotomicField(N);
+        Gamma:=CPlist[k];
+        N:=Gamma`N;
+        SL2:=SL(2,Integers(N));
+        K<z14> := CyclotomicField(N);
 
-    L<z84> := CyclotomicField(84);
+        L<z84> := CyclotomicField(84);
 
-	Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
-    t0 := [rec<SiegelPower | a := [ 0, 2/14 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 2/14, 8/14 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 2/14, 12/14 ], m := 1, c := K!1>,
+        Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
+        t0 := [rec<SiegelPower | a := [ 0, 2/14 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 2/14, 8/14 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 2/14, 12/14 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 4/14, 0], m := 1, c := K!1>, rec<SiegelPower | a := [ 4/14, 6/14 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 4/14, 12/14 ], m := 1, c := K!1/(-z84^12 + z84^6 + 1)> ];
 
-    t1 := [rec<SiegelPower | a := [ 0, 4/14 ], m := 1, c := K!(z84^22 - z84^18 - z84^16 + z84^12 - z84^8 - z84^6 + z84^2 + 1)>, rec<SiegelPower | a := [ 2/14, 2/14 ], m := 1, c := K!1/(-z84^12 + z84^6 + 1)>,
+        t1 := [rec<SiegelPower | a := [ 0, 4/14 ], m := 1, c := K!(z84^22 - z84^18 - z84^16 + z84^12 - z84^8 - z84^6 + z84^2 + 1)>, rec<SiegelPower | a := [ 2/14, 2/14 ], m := 1, c := K!1/(-z84^12 + z84^6 + 1)>,
 
             rec<SiegelPower | a := [ 2/14, 4/14 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 2/14, 6/14], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/14, 2/14 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 6/14, 8/14 ], m := 1, c := K!1> ];
 
-    t2 := [rec<SiegelPower | a := [ 0, 6/14 ], m := 1, c := K!(z84^6/(-z84^12 + z84^6 + 1))>, rec<SiegelPower | a := [ 4/14, 8/14 ], m := 1, c := K!1>,
+        t2 := [rec<SiegelPower | a := [ 0, 6/14 ], m := 1, c := K!(z84^6/(-z84^12 + z84^6 + 1))>, rec<SiegelPower | a := [ 4/14, 8/14 ], m := 1, c := K!1>,
            rec<SiegelPower | a := [ 4/14, 10/14 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/14, 0/14], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/14, 6/14 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 6/14, 10/14 ], m := 1, c := K!1> ];
 
-    t3 := [ rec<SiegelPower | a := [ 2/14, 0/14 ], m := 1, c := K!(z84^22-z84^8)>, rec<SiegelPower | a := [ 2/14, 10/14 ], m := 1, c := K!1/(-z84^12 + z84^6 + 1)>,
+        t3 := [ rec<SiegelPower | a := [ 2/14, 0/14 ], m := 1, c := K!(z84^22-z84^8)>, rec<SiegelPower | a := [ 2/14, 10/14 ], m := 1, c := K!1/(-z84^12 + z84^6 + 1)>,
             rec<SiegelPower | a := [ 4/14, 2/14 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 4/14, 4/14], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/14, 4/14 ], m := 1, c := K!1>,
 
         rec<SiegelPower | a := [ 6/14, 12/14 ], m := 1, c := K!1> ];
 
-    t := [t0,t1,t2,t3];
+        t := [t0,t1,t2,t3];
 
-    Gamma`hauptmodul := t;
-    R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
-    h1 := Gamma`hauptmodul;
+        Gamma`hauptmodul := t;
+        R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
+        h1 := Gamma`hauptmodul;
 
-    Gamma`h := R!SiegelExpansion(h1,10);
-    CPlist[k] :=Gamma;
+        Gamma`h := R!SiegelExpansion(h1,10);
+        CPlist[k] :=Gamma;
 
     end if;
 
     if k eq "15A" then
 
-    Gamma:=CPlist[k];
+        Gamma:=CPlist[k];
 	N:=Gamma`N;
 	SL2:=SL(2,Integers(N));
-    K<z15> := CyclotomicField(N);
-    L<z60> := CyclotomicField(60);
-    Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
-    t0 := [ rec<SiegelPower | a := [ 0, 3/15 ], m := 1, c := K!(1/(-z60^12 + 2*z60^2))>, rec<SiegelPower | a := [ 0/15, 6/15 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 3/15, 12/15 ], m := 1, c := K!1>,
+        K<z15> := CyclotomicField(N);
+        L<z60> := CyclotomicField(60);
+        Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
+        t0 := [ rec<SiegelPower | a := [ 0, 3/15 ], m := 1, c := K!(1/(-z60^12 + 2*z60^2))>, rec<SiegelPower | a := [ 0/15, 6/15 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 3/15, 12/15 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 6/15, 9/15], m := 1, c := K!1> ];
 
-    t1 := [ rec<SiegelPower | a := [ 3/15, 6/15 ], m := 1, c := K!(-z60^8/(-z60^12 + 2*z60^2))>, rec<SiegelPower | a := [ 3/15, 3/15 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/15, 12/15 ], m := 1, c := K!1>,
+        t1 := [ rec<SiegelPower | a := [ 3/15, 6/15 ], m := 1, c := K!(-z60^8/(-z60^12 + 2*z60^2))>, rec<SiegelPower | a := [ 3/15, 3/15 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/15, 12/15 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 6/15, 6/15], m := 1, c := K!1> ];
 
-    t2 := [ rec<SiegelPower | a := [ 3/15, 9/15 ], m := 1, c := K!(z60^10/(-z60^12 + 2*z60^2))>, rec<SiegelPower | a := [ 3/15, 0/15 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/15, 0/15 ], m := 1, c := K!1>,
+        t2 := [ rec<SiegelPower | a := [ 3/15, 9/15 ], m := 1, c := K!(z60^10/(-z60^12 + 2*z60^2))>, rec<SiegelPower | a := [ 3/15, 0/15 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/15, 0/15 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 6/15, 3/15], m := 1, c := K!1> ];
-    t := [t0,t1,t2];
+        t := [t0,t1,t2];
 
-    Gamma`hauptmodul := t;
-    R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
-    h1 := Gamma`hauptmodul;
+        Gamma`hauptmodul := t;
+        R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
+        h1 := Gamma`hauptmodul;
 
-    Gamma`h := R!SiegelExpansion(h1,10);
-    CPlist[k] :=Gamma;
-
+        Gamma`h := R!SiegelExpansion(h1,10);
+        CPlist[k] :=Gamma;
     end if;
 
     if k eq "21A" then
-
-    Gamma:=CPlist[k];
+        Gamma:=CPlist[k];
 	N:=Gamma`N;
 	SL2:=SL(2,Integers(N));
-    K<z21> := CyclotomicField(N);
-    L<z84> := CyclotomicField(84);
-    Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
-    t0 := [ rec<SiegelPower | a := [ 0, 3/21 ], m := 1, c := K!(-1/(-z21^11 - 2*z21^6 - z21^4 + z21^3) )>, rec<SiegelPower | a := [ 3/21, 15/21 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/21, 15/21 ], m := 1, c := K!1>,
+        K<z21> := CyclotomicField(N);
+        L<z84> := CyclotomicField(84);
+        Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
+        t0 := [ rec<SiegelPower | a := [ 0, 3/21 ], m := 1, c := K!(-1/(-z21^11 - 2*z21^6 - z21^4 + z21^3) )>, rec<SiegelPower | a := [ 3/21, 15/21 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/21, 15/21 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 6/21, 18/21], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/21, 0/21 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/21, 3/21 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 9/21, 18/21 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 9/21, 9/21], m := 1, c := K!1> ];
 
-    t1 := [ rec<SiegelPower | a := [ 0/21, 6/21 ], m := 1, c := K!(1/(-z21^11 - 2*z21^6 - z21^4 + z21^3) )>, rec<SiegelPower | a := [ 3/21, 18/21 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 3/21, 3/21 ], m := 1, c := K!1>,
+        t1 := [ rec<SiegelPower | a := [ 0/21, 6/21 ], m := 1, c := K!(1/(-z21^11 - 2*z21^6 - z21^4 + z21^3) )>, rec<SiegelPower | a := [ 3/21, 18/21 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 3/21, 3/21 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 3/21, 9/21], m := 1, c := K!1>, rec<SiegelPower | a := [ 3/21, 12/21 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/21, 9/21 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 6/21, 12/21 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 9/21, 0/21], m := 1, c := K!1> ];
 
-    t2 := [ rec<SiegelPower | a := [ 0/21, 9/21 ], m := 1, c := K!((z84^22 - z84^18 - z84^16 + z84^12 - z84^8 - z84^6 + z84^2 + 1)/(-z21^11 - 2*z21^6 - z21^4 + z21^3) ) >, rec<SiegelPower | a := [ 3/21, 0/21 ], m := 1, c := K!1>,
+        t2 := [ rec<SiegelPower | a := [ 0/21, 9/21 ], m := 1, c := K!((z84^22 - z84^18 - z84^16 + z84^12 - z84^8 - z84^6 + z84^2 + 1)/(-z21^11 - 2*z21^6 - z21^4 + z21^3) ) >, rec<SiegelPower | a := [ 3/21, 0/21 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 3/21, 6/21 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 6/21, 6/21], m := 1, c := K!1>, rec<SiegelPower | a := [ 9/21, 12/21 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 9/21, 15/21 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 9/21, 3/21 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 9/21, 6/21], m := 1, c := K!1> ];
 
-     t := [t0,t1,t2];
+        t := [t0,t1,t2];
 
-    Gamma`hauptmodul := t;
-    R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
-    h1 := Gamma`hauptmodul;
+        Gamma`hauptmodul := t;
+        R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
+        h1 := Gamma`hauptmodul;
 
-    Gamma`h := R!SiegelExpansion(h1,10);
-    CPlist[k] :=Gamma;
-
+        Gamma`h := R!SiegelExpansion(h1,10);
+        CPlist[k] :=Gamma;
     end if;
 
-
     if k eq "10E" then
-
-    Gamma:=CPlist[k];
+        Gamma:=CPlist[k];
 	N:=Gamma`N;
 	SL2:=SL(2,Integers(N));
-    K<z10> := CyclotomicField(N);
-    L<z60> := CyclotomicField(60);
-    Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
-    t0 := [ rec<SiegelPower | a := [ 1/10, 4/10 ], m := 1, c := L!(1/(-3*z60^15 + 3*z60^11 + 3*z60^9 - 3*z60^3 - 3*z60))>, rec<SiegelPower | a := [ 5/10, 2/10 ], m := 1, c := K!1>,
+        K<z10> := CyclotomicField(N);
+        L<z60> := CyclotomicField(60);
+        Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
+        t0 := [ rec<SiegelPower | a := [ 1/10, 4/10 ], m := 1, c := L!(1/(-3*z60^15 + 3*z60^11 + 3*z60^9 - 3*z60^3 - 3*z60))>, rec<SiegelPower | a := [ 5/10, 2/10 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 5/10, 4/10 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 3/10, 2/10], m := 1, c := K!1>, rec<SiegelPower | a := [ 1/10, 3/10 ], m := -1, c := K!1>,
 
             rec<SiegelPower | a := [ 3/10, 9/10 ], m := -1, c := K!1>, rec<SiegelPower | a := [ 1/10, 5/10 ], m := -1, c := K!1>, rec<SiegelPower | a := [ 3/10, 5/10], m := -1, c := K!1> ];
 
-    t1 := [ rec<SiegelPower | a := [ 1/10, 7/10 ], m := 1, c := L!((z60^14 + z60^12 - z60^6 - z60^4 + 1)/(-3*z60^15 + 3*z60^11 + 3*z60^9 - 3*z60^3 - 3*z60))>, rec<SiegelPower | a := [ 1/10, 1/10 ], m := 1,
+        t1 := [ rec<SiegelPower | a := [ 1/10, 7/10 ], m := 1, c := L!((z60^14 + z60^12 - z60^6 - z60^4 + 1)/(-3*z60^15 + 3*z60^11 + 3*z60^9 - 3*z60^3 - 3*z60))>, rec<SiegelPower | a := [ 1/10, 1/10 ], m := 1,
             c := K!1>, rec<SiegelPower | a := [ 3/10, 1/10 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 3/10, 3/10], m := 1, c := K!1>, rec<SiegelPower | a := [ 0/10, 1/10 ], m := -1,  c := K!1>,
 
             rec<SiegelPower | a := [ 2/10, 3/10 ], m := -1, c := K!1>, rec<SiegelPower | a := [ 4/10, 1/10 ], m := -1,  c := K!1>, rec<SiegelPower | a := [ 0/10, 3/10], m := -1, c := K!1> ];
 
-    t2 := [ rec<SiegelPower | a := [ 2/10, 5/10 ], m := 1, c := L!((z60^12)/(-3*z60^15 + 3*z60^11 + 3*z60^9 - 3*z60^3 - 3*z60))>, rec<SiegelPower | a := [ 4/10, 5/10 ], m := 1, c := K!1>,
+        t2 := [ rec<SiegelPower | a := [ 2/10, 5/10 ], m := 1, c := L!((z60^12)/(-3*z60^15 + 3*z60^11 + 3*z60^9 - 3*z60^3 - 3*z60))>, rec<SiegelPower | a := [ 4/10, 5/10 ], m := 1, c := K!1>,
 
             rec<SiegelPower | a := [ 2/10, 1/10 ], m := 1, c := K!1>, rec<SiegelPower | a := [ 4/10, 7/10], m := 1, c := K!1>, rec<SiegelPower |  a := [ 1/10, 2/10 ], m := -1, c := K!1>,
 
             rec<SiegelPower |a := [ 1/10, 6/10 ], m := -1, c := K!1>, rec<SiegelPower | a := [ 3/10, 6/10 ], m := -1,  c := K!1>, rec<SiegelPower | a := [ 3/10, 8/10], m := -1, c := K!1> ];
 
-    t3 := [ rec<SiegelPower | a := [ 2/10, 5/10 ], m := 0, c := K!(-(z10^2 - z10))>];
+        t3 := [ rec<SiegelPower | a := [ 2/10, 5/10 ], m := 0, c := K!(-(z10^2 - z10))>];
 
-     t := [t0,t1,t2,t3];
+        t := [t0,t1,t2,t3];
 
-    Gamma`hauptmodul := t;
-    R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
-    h1 := Gamma`hauptmodul;
+        Gamma`hauptmodul := t;
+        R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
+        h1 := Gamma`hauptmodul;
 
-    Gamma`h := R!SiegelExpansion(h1,10);
-    CPlist[k] :=Gamma;
-
-
+        Gamma`h := R!SiegelExpansion(h1,10);
+        CPlist[k] :=Gamma;
     end if;
 
     if k eq "12F" then
-    Gamma:=CPlist[k];
+        Gamma:=CPlist[k];
 	N:=Gamma`N;
 	SL2:=SL(2,Integers(N));
-    K<z12> := CyclotomicField(N);
-    L<z24> := CyclotomicField(24);
-    Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
-    t0 := [
-
+        K<z12> := CyclotomicField(N);
+        L<z24> := CyclotomicField(24);
+        Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
+        t0 := [
     rec<SiegelPower |
-
         a := [ 3/12, 11/12 ],
-
         m := 1,
-
         c := L!(1/(2*z24))>,
-
     rec<SiegelPower |
-
         a := [ 3/12, 8/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 6/12, 5/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 6/12, 1/12],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 3/12, 7/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 3/12, 4/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 1/12, 8/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 1/12, 5/12],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 5/12, 4/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 5/12, 1/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 2/12, 1/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 2/12, 7/12],
-
         m := 1,
-
         c := K!1>
+             ];
 
-];
-
-t1 := [
-
+        t1 := [
     rec<SiegelPower |
-
         a := [ 5/12, 2/12 ],
-
         m := 1,
-
         c := L!(z24^3/(2*z24))>,
-
     rec<SiegelPower |
-
         a := [ 1/12, 3/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 1/12, 6/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 5/12, 11/12],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 4/12, 3/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 4/12, 7/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 4/12, 9/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 4/12, 1/12],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 5/12, 3/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 5/12, 6/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 1/12, 7/12 ],
-
         m := 1,
-
         c := K!1>,
-
     rec<SiegelPower |
-
         a := [ 1/12, 10/12],
-
         m := 1,
-
         c := K!1>
+             ];
 
-];
-
-t2 := [
-
+        t2 := [
     rec<SiegelPower |
-
         a := [ 5/12, 2/12 ],
-
         m := 0,
-
         c := K!(-(- z12^3 + z12^2 + z12) )>];
+        t := [t0,t1,t2];
 
-    t := [t0,t1,t2];
+        Gamma`hauptmodul := t;
+        R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
+        h1 := Gamma`hauptmodul;
 
-    Gamma`hauptmodul := t;
-    R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
-    h1 := Gamma`hauptmodul;
-
-    Gamma`h := R!SiegelExpansion(h1,10);
-    CPlist[k] :=Gamma;
+        Gamma`h := R!SiegelExpansion(h1,10);
+        CPlist[k] :=Gamma;
 
     end if;
-
-    end for;
+end for;
 
 for k in Keys(CPlist) do
-
     if k eq "10A" then
 
-    Gamma:=CPlist[k];
+        Gamma:=CPlist[k];
 	N:=Gamma`N;
 	SL2:=SL(2,Integers(N));
-    K<z10> := CyclotomicField(N);
-    L<z60> := CyclotomicField(60);
-    Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
-    t0:=[rec<SiegelPower | a := [ 1/10, 2/5 ],m := 1,c := L!-1/3*z60^3>,rec<SiegelPower | a := [ 1/2, 1/5 ],m := 1,c := L!1>,rec<SiegelPower | a := [ 1/2, 2/5 ],m := 1,c := L!1>,
+        K<z10> := CyclotomicField(N);
+        L<z60> := CyclotomicField(60);
+        Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
+        t0:=[rec<SiegelPower | a := [ 1/10, 2/5 ],m := 1,c := L!-1/3*z60^3>,rec<SiegelPower | a := [ 1/2, 1/5 ],m := 1,c := L!1>,rec<SiegelPower | a := [ 1/2, 2/5 ],m := 1,c := L!1>,
          rec<SiegelPower | a := [ 3/10, 1/5 ],m := 1,c := L!1>,rec<SiegelPower | a := [ 1/10, 3/10 ],m := -1,c := L!1>,rec<SiegelPower | a := [ 3/10, 9/10 ],m := -1,c := L!1>,
          rec<SiegelPower | a := [ 1/10, 1/2 ],m := -1,c := L!1>,rec<SiegelPower | a := [ 3/10, 1/2 ],m := -1,c := L!1>];
-    t1 :=[
+        t1 :=[
             rec<SiegelPower |
                 a := [ 1/10, 7/10 ],
                 m := 1,
@@ -687,7 +562,7 @@ for k in Keys(CPlist) do
                 m := -1,
                 c := L!1>
         ];
-    t2:=[
+        t2:=[
             rec<SiegelPower |
                 a := [ 1/5, 1/2 ],
                 m := 1,
@@ -721,13 +596,13 @@ for k in Keys(CPlist) do
                 m := -1,
                 c := L!1>
         ];
-    t3:=[
+        t3:=[
             rec<SiegelPower |
                 a := [ 1/5, 1/2 ],
                 m := 0,
                 c := L!-z60^12 + z60^6>
         ];
-    t4:=[
+        t4:=[
             rec<SiegelPower |
                 a := [ 3/10, 9/10 ],
                 m := 1,
@@ -761,7 +636,7 @@ for k in Keys(CPlist) do
                 m := -1,
                 c := L!z60^14 - z60^10 - z60^8 + z60^2 + 1>
         ];
-    t5:=[
+        t5:=[
             rec<SiegelPower |
                 a := [ 2/5, 1/10 ],
                 m := 1,
@@ -795,7 +670,7 @@ for k in Keys(CPlist) do
                 m := -1,
                 c := L!z60^10 - 1>
         ];
-    t6:=[
+        t6:=[
             rec<SiegelPower |
                 a := [ 3/10, 4/5 ],
                 m := 1,
@@ -829,13 +704,13 @@ for k in Keys(CPlist) do
                 m := -1,
                 c := L!z60^11>
         ];
-    t7:=[
+        t7:=[
             rec<SiegelPower |
                 a := [ 3/10, 4/5 ],
                 m := 0,
                 c := L!-z60^12 + z60^6>
         ];
-    t8:=[
+        t8:=[
             rec<SiegelPower |
                 a := [ 2/5, 3/10 ],
                 m := 1,
@@ -869,7 +744,7 @@ for k in Keys(CPlist) do
                 m := -1,
                 c := L!-z60^15>
         ];
-    t9:=[
+        t9:=[
             rec<SiegelPower |
                 a := [ 3/10, 2/5 ],
                 m := 1,
@@ -903,7 +778,7 @@ for k in Keys(CPlist) do
                 m := -1,
                 c := L!z60^15 - z60^11 - z60^9 + z60^3 + z60>
         ];
-    t10:=[
+        t10:=[
             rec<SiegelPower |
                 a := [ 1/2, 3/10 ],
                 m := 1,
@@ -937,34 +812,31 @@ for k in Keys(CPlist) do
                 m := -1,
                 c := L!z60^3>
         ];
-    t11:=[
+        t11:=[
             rec<SiegelPower |
                 a := [ 1/2, 3/10 ],
                 m := 0,
                 c := L!-z60^12 + z60^6>
         ];
 
+        t := [t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11];
 
-    t := [t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11];
+        Gamma`hauptmodul := t;
+        R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
+        h1 := Gamma`hauptmodul;
 
-    Gamma`hauptmodul := t;
-    R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
-    h1 := Gamma`hauptmodul;
-
-    Gamma`h := R!SiegelExpansion(h1,10);
-    CPlist[k] :=Gamma;
-
+        Gamma`h := R!SiegelExpansion(h1,10);
+        CPlist[k] :=Gamma;
     end if;
 
     if k eq "12A" then
-
-    Gamma:=CPlist[k];
+        Gamma:=CPlist[k];
 	N:=Gamma`N;
 	SL2:=SL(2,Integers(N));
-    K<z12> := CyclotomicField(N);
-    L<z24> := CyclotomicField(24);
-    Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
-    t0:=[
+        K<z12> := CyclotomicField(N);
+        L<z24> := CyclotomicField(24);
+        Gamma`H:=sub< SL2 | Gamma`gens cat [[-1,0,0,-1]]>;
+        t0:=[
             rec<SiegelPower |
                 a := [ 1/4, 11/12 ],
                 m := 1,
@@ -1014,7 +886,7 @@ for k in Keys(CPlist) do
                 m := 1,
                 c := L!1>
         ];
-    t1 :=[
+        t1 :=[
             rec<SiegelPower |
                 a := [ 5/12, 1/6 ],
                 m := 1,
@@ -1064,13 +936,13 @@ for k in Keys(CPlist) do
                 m := 1,
                 c := L!1>
         ];
-    t2:=[
+        t2:=[
             rec<SiegelPower |
                 a := [ 5/12, 1/6 ],
                 m := 0,
                 c := L!z12^3 - z12^2 - z12>
         ];
-    t3:=[
+        t3:=[
             rec<SiegelPower |
                 a := [ 1/4, 5/6 ],
                 m := 1,
@@ -1120,7 +992,7 @@ for k in Keys(CPlist) do
                 m := 1,
                 c := L!z24^2>
         ];
-    t4:=[
+        t4:=[
             rec<SiegelPower |
                 a := [ 5/12, 5/12 ],
                 m := 1,
@@ -1170,28 +1042,22 @@ for k in Keys(CPlist) do
                 m := 1,
                 c := L!-z24^5>
         ];
-    t5:=[
+        t5:=[
             rec<SiegelPower |
                 a := [ 5/12, 5/12 ],
                 m := 0,
                 c := L!z24^6 - z24^4 - z24^2>
         ];
 
+        t := [t0,t1,t2,t3,t4,t5];
 
-    t := [t0,t1,t2,t3,t4,t5];
+        Gamma`hauptmodul := t;
+        R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
+        h1 := Gamma`hauptmodul;
 
-    Gamma`hauptmodul := t;
-    R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
-    h1 := Gamma`hauptmodul;
-
-    Gamma`h := R!SiegelExpansion(h1,10);
-    CPlist[k] :=Gamma;
-
-
+        Gamma`h := R!SiegelExpansion(h1,10);
+        CPlist[k] :=Gamma;
     end if;
-
-
-
 end for;
 
 // Normalizing the q expansions of hauptmoduls
@@ -1207,26 +1073,18 @@ for k in Keys(CPlist) do
     if a eq 1 and b eq 0 then
         continue k;
     end if;
-
-
     t := Gamma`hauptmodul;
-
-
-
     if Type(t[1]) eq SeqEnum then
-
         for p in t do
             w := (p[1]`c)/a;
             x :=p[1];
             x`c := w;
-
         end for;
         Gamma`hauptmodul :=t;
         t1 := [rec<SiegelPower | a := [ 0, 1/N ],m := 0,c := -b/a>];
         Gamma`hauptmodul := Append(Gamma`hauptmodul,t1);
         Gamma`h := R!SiegelExpansion(Gamma`hauptmodul,10);
         CPlist[k] :=Gamma;
-
     else
         t[1]`c := (t[1]`c)/(a);
         t1 := [rec<SiegelPower | a := [ 0, 1/N ],m := 0,c := -b/a>];
@@ -1234,14 +1092,13 @@ for k in Keys(CPlist) do
         Gamma`h := R!SiegelExpansion(Gamma`hauptmodul,10);
         CPlist[k] :=Gamma;
     end if;
-
 end for;
 
 L<z96>:=CyclotomicField(96);
 K<z16>:=CyclotomicField(16);
 Gamma := CPlist["16A"];
- N:=Gamma`N;
- R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
+N:=Gamma`N;
+R<q>:=PuiseuxSeriesRing(CyclotomicField(N));
 Gamma`hauptmodul :=[
     [
         rec<SiegelPower |
@@ -1285,7 +1142,7 @@ CPlist["16A"] :=Gamma;
 // For a congruence subgroup Gamma, determines the congruence subgroups Gamma' in the list that contain, and do not equal, Gamma.
 // We then order them by decreasing index in SL(2,Z).
 
-for k  in Keys(CPlist) do
+for k in Keys(CPlist) do
     Gamma:=CPlist[k];
     if Gamma`label eq "1A" then
        CPlist[k]`sup:=[]; continue k;
@@ -1331,27 +1188,16 @@ ind:=[CPlist[k]`index:k in keys];
 ParallelSort(~ind, ~keys);
 
 for k in keys do
-
     Gamma:=CPlist[k];  N:=Gamma`N;
     F<t>:=FunctionField(CyclotomicField(N));
     if k eq "1A" then
        CPlist[k]`J:=t; CPlist[k]`h:=jInvariant(q);continue k;
-
     end if;
     if k eq "24B" then
-       CPlist[k]`J:=(t^48 - 36*t^44 + 1242*t^40 - 24084*t^36 + 407511*t^32 - 4671432*t^28 +
-
-    42908940*t^24 - 265011912*t^20 + 977319999*t^16 - 2085374484*t^12 +
-
-    2496709818*t^8 - 1549681956*t^4 + 387420489)/(t^40 - 28*t^36 + 270*t^32 -
-
-    972*t^28 + 729*t^24) ;continue k;
-
+        CPlist[k]`J:=(t^48 - 36*t^44 + 1242*t^40 - 24084*t^36 + 407511*t^32 - 4671432*t^28 + 42908940*t^24 - 265011912*t^20 + 977319999*t^16 - 2085374484*t^12 + 2496709818*t^8 - 1549681956*t^4 + 387420489)/(t^40 - 28*t^36 + 270*t^32 - 972*t^28 + 729*t^24);
+        continue k;
     end if;
     Gamma_:=CPlist[ Gamma`sup[1] ];
-
     f:=F!FindRelation(Gamma`h,Gamma_`h, Gamma`index div Gamma_`index);
-
     CPlist[k]`J:=Evaluate(F!Gamma_`J, f);
-
 end for;

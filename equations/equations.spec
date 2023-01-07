@@ -6,6 +6,7 @@
   plane_model.m
   precision.m
   ProcessModel.m
+  Genus0Models.m
   OpenImage
   {
     +OpenImage.spec

@@ -1,5 +1,3 @@
-import "Code to compute models for genus 0 groups.m" : ComputeModel;
-
 intrinsic GetLevelAndGensFromLabel(label::MonStgElt) ->
 	  RngIntElt, SeqEnum[SeqEnum[RngIntElt]]
 {.}
