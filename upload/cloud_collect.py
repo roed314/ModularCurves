@@ -372,11 +372,11 @@ def write_models_maps(cans, planes, ghyps, jcusps, jfacs):
 
 def create_db_uploads(execute=False):
     data = defaultdict(lambda: defaultdict(list))
-        for line in get_output_data():
-            label, out = line.strip().split("|", 1)
-            if not out: continue
-            code, label = label[0], label[1:]
-            data[code][label].append(out)
+    for line in get_output_data():
+        label, out = line.strip().split("|", 1)
+        if not out: continue
+        code, label = label[0], label[1:]
+        data[code][label].append(out)
 
     # Propogate gonalities
     assert all(len(gon) == 1 for gon in data["G"].values())
