@@ -2,73 +2,73 @@
 import "Required functions.m" : Act, SiegelExpansion, FindRelation, H90, CuspData;
 import "Congruence Subgroups of genus 0.m" : CPlist;
 
-function m2(A,K) 
+function m2(A,K)
 
- 
 
-// Input : A matrix A in GL_{3}(K) such that A preserves the equation for y^2=xz 
 
-// Output : A matrix C in GL_{2}(K) corresponding to A  
+// Input : A matrix A in GL_{3}(K) such that A preserves the equation for y^2=xz
 
- 
+// Output : A matrix C in GL_{2}(K) corresponding to A
 
-a := A[1,1];  
 
-b := A[1,2];  
 
-c := A[1,3];  
+a := A[1,1];
 
-d := A[2,1];  
+b := A[1,2];
 
-e := A[2,2];  
+c := A[1,3];
 
-f := A[2,3]; 
+d := A[2,1];
 
-g := A[3,1]; 
+e := A[2,2];
 
-h := A[3,2]; 
+f := A[2,3];
 
-i := A[3,3]; 
+g := A[3,1];
 
-if a eq 0 then 
+h := A[3,2];
 
-    C := Matrix(K,2,2,[0,c,e,f]); 
+i := A[3,3];
 
-else 
+if a eq 0 then
 
-    if g eq 0 then 
+    C := Matrix(K,2,2,[0,c,e,f]);
 
-        C := Matrix(K,2,2,[a,b/2,0,e]); 
+else
 
-    else 
+    if g eq 0 then
 
-        if c eq 0 then 
+        C := Matrix(K,2,2,[a,b/2,0,e]);
 
-            C := Matrix(K,2,2,[a,0,d,e]); 
+    else
 
-        else 
+        if c eq 0 then
 
-            if f eq 0 then 
+            C := Matrix(K,2,2,[a,0,d,e]);
 
-                C := Matrix(K,2,2,[a,b/2,d,0]); 
+        else
 
-            else 
+            if f eq 0 then
 
-                C := Matrix(K,2,2,[a,b/2,d,e-(b*d/(2*a))]); 
+                C := Matrix(K,2,2,[a,b/2,d,0]);
 
-            end if; 
+            else
 
-        end if; 
+                C := Matrix(K,2,2,[a,b/2,d,e-(b*d/(2*a))]);
 
-    end if; 
+            end if;
 
-end if; 
+        end if;
 
- 
+    end if;
 
-return C; 
+end if;
 
-end function;  
+
+
+return C;
+
+end function;
 
 
 
@@ -88,28 +88,28 @@ G:=sub<GL(2,Integers(M))|[g: g in Gamma`gens]>;
 /* Trying to find genus 0 congruence subgroup H such that G \intersect SL_2(Z) is conjugate to H. Once we find H, we conjugate generators of G so that
 G \intersect \SL_2(Z)=H. */
 for k in Keys(CPlist) do
-    if k eq "1A" then 
+    if k eq "1A" then
                continue k;
          end if;
-    Csub:=CPlist[k];        
+    Csub:=CPlist[k];
     N:=Csub`N;
     H:=Csub`H;
          if IsDivisibleBy(M,N) eq false then continue k;end if;
          red:=hom<SL(2,Integers(M))->SL(2,Integers(N))|[SL(2,Integers(N))!SL(2,Integers(M)).i: i in [1..#Generators(SL(2,Integers(M)))]]>;
          Hred:=H@@red;
          b,Aconj:=IsConjugate(GL(2,Integers(M)),G meet SL(2,Integers(M)),Hred);
-         if b eq false then 
+         if b eq false then
                continue k;
-         else 
+         else
                Gconj:=Conjugate(G,Aconj);Gamma`sl2label:=k;break;end if;
  end for;
- 
+
  // We now construct cocycle that gives X_G as a twist of X_H; here H = G \intersect \SL_2(Z).
- 
- L<z> := CyclotomicField(M); 
- P<t> := FunctionField(L); 
+
+ L<z> := CyclotomicField(M);
+ P<t> := FunctionField(L);
  R<q>:=PuiseuxSeriesRing(L);
- h := CPlist[Gamma`sl2label]`hauptmodul; 
+ h := CPlist[Gamma`sl2label]`hauptmodul;
  hq:=CPlist[Gamma`sl2label]`h;
  H_:= Gconj meet SL(2,Integers(M));
   _,width:=CuspData(H_);
@@ -120,30 +120,30 @@ for k in Keys(CPlist) do
 
 
 for g in Gal do;
-  for s1 in Set(H1) do;  
+  for s1 in Set(H1) do;
    d:=Determinant(s1@@q1);d:=Integers()!d;
    if sigma(g)(z) eq (z)^d then s:=s1; end if;
-  end for;                    
+  end for;
   B1,B2:=Act(P!t,s@@q1,P!t,h);
   J:=FindRelation(R!SiegelExpansion(B2,prec),R!SiegelExpansion(h,prec),1);
   Cocycle[g]:=J;
 end for;
- 
+
 m1 := map< MatrixRing(L,2) -> MatrixRing(L,3) | n :-> (1/Determinant(n))*Matrix(3,3,[n[1,1]^2,2*n[1,1]*n[1,2],n[1,2]^2,n[1,1]*n[2,1],n[1,1]*n[2,2]+n[1,2]*n[2,1],n[1,2]*n[2,2],n[2,1]^2,2*n[2,1]*n[2,2],n[2,2]^2])>;
-phi := map<Gal -> MatrixRing(L,3) | [g -> m1([Evaluate(Numerator(Cocycle[g])-Evaluate(Numerator(Cocycle[g]),0),1),Evaluate(Numerator(Cocycle[g]),0),Evaluate(Denominator(Cocycle[g])-Evaluate(Denominator(Cocycle[g]),0),1),Evaluate(Denominator(Cocycle[g]),0)] ) : g in Gal]>; 
-Amatrix := H90(3,L,Rationals(),Gal,sigma,phi);  
-D := Matrix(3,3,[0,0,-1/2,0,1,0,-1/2,0,0]);  
-Q0 := Conic(D); 
+phi := map<Gal -> MatrixRing(L,3) | [g -> m1([Evaluate(Numerator(Cocycle[g])-Evaluate(Numerator(Cocycle[g]),0),1),Evaluate(Numerator(Cocycle[g]),0),Evaluate(Denominator(Cocycle[g])-Evaluate(Denominator(Cocycle[g]),0),1),Evaluate(Denominator(Cocycle[g]),0)] ) : g in Gal]>;
+Amatrix := H90(3,L,Rationals(),Gal,sigma,phi);
+D := Matrix(3,3,[0,0,-1/2,0,1,0,-1/2,0,0]);
+Q0 := Conic(D);
 Q,_ := Conic(Transpose(Amatrix^(-1))*D*Amatrix^(-1));  // Transpose because MAGMA uses right action.
 Q := ChangeRing(Q,Rationals());  // Q is our conic.
 
-boolean,Qpt:=HasRationalPoint(Q); 
-            if boolean eq false then 
+boolean,Qpt:=HasRationalPoint(Q);
+            if boolean eq false then
             B:=Amatrix;
 	          	B:=Matrix(R,3,3,[[R!B[i,j]:j in [1..3]]:i in [1..3]]);
 		          funcx:=(B[1,1]*hq^2+B[1,2]*hq+B[1,3])/(B[3,1]*hq^2+B[3,2]*hq+B[3,3]);
-		           funcy:=(B[2,1]*hq^2+B[2,2]*hq+B[2,3])/(B[3,1]*hq^2+B[3,2]*hq+B[3,3]); 
-                
+		           funcy:=(B[2,1]*hq^2+B[2,2]*hq+B[2,3])/(B[3,1]*hq^2+B[3,2]*hq+B[3,3]);
+
                 W:=Matrix(L,[[Coefficient(funcx,i/w):i in [-1..prec]],[Coefficient(funcy,i/w):i in [-1..prec]],
                           [Coefficient(R!1,i/w):i in [-1..prec]],[Coefficient(-hq*funcx,i/w):i in [-1..prec]],
                           [Coefficient(-hq*funcy,i/w):i in [-1..prec]],[Coefficient(-hq,i/w):i in [-1..prec]]]);
@@ -158,13 +158,13 @@ boolean,Qpt:=HasRationalPoint(Q);
 			   return Q,J1,boolean, _;
             end if;
             if boolean eq true then
-                B := (Transpose(ParametrizationMatrix(Q)))^(-1); //Transpose to make it left action 
-                
-                C := (m2(B*Amatrix,L))^(-1); 
-                
-                g1 := (C[1,1]*t+C[1,2])/(C[2,1]*t+C[2,2]); 
-                
-                J1:=  Evaluate(CPlist[Gamma`sl2label]`J,g1); assert J1 in FunctionField(Rationals()); 
+                B := (Transpose(ParametrizationMatrix(Q)))^(-1); //Transpose to make it left action
+
+                C := (m2(B*Amatrix,L))^(-1);
+
+                g1 := (C[1,1]*t+C[1,2])/(C[2,1]*t+C[2,2]);
+
+                J1:=  Evaluate(CPlist[Gamma`sl2label]`J,g1); assert J1 in FunctionField(Rationals());
                 return Q, J1, boolean, Qpt;
 
 end if;
