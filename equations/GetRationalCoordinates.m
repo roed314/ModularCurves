@@ -39,7 +39,7 @@ if #jinvs gt 0 then
         try
             Ycoords := LMFDBReadJinvCoords(codomain : can_only:=true);
         catch e
-            print "error: rational points not computed in codomain";
+            printf "error: rational points not computed in codomain %o\n", codomain;
             exit;
         end try;
         // The field of definition may be different for Y and X, so we need to track embeddings of these fields

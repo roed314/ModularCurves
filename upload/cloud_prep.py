@@ -261,7 +261,7 @@ def distinguished_vertices():
     """
     return {rec["label"]: rec["name"] for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True, "name":{"$ne":""}}, ["label", "name"])}
 
-Xfams = ['X', 'X0', 'Xpm1', 'Xpm1,', 'Xsp', 'Xns', 'Xsp+', 'Xns+', 'XS4']
+Xfams = ['X', 'X0', 'Xpm1', 'Xns+', 'Xsp+', 'Xns', 'Xsp', 'Xpm1,', 'XS4']
 
 @cached_function
 def intervals_to_save(max_size=60):
