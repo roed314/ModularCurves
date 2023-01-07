@@ -15,7 +15,7 @@ opj = os.path.join
 ope = os.path.exists
 sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
 from lmfdb import db
-from cloud_common import rational_poset_query, get_lattice_poset, index_iterator, to_coarse_label, inbox
+from cloud_common import rational_poset_query, get_lattice_poset, index_iterator, to_coarse_label, inbox, load_gl2zhat_rational_data
 
 
 parser = argparse.ArgumentParser("Create a tarball for cloud computation")
