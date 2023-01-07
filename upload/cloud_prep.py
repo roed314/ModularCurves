@@ -11,13 +11,13 @@ from sage.all import ZZ, QQ, PolynomialRing, MatrixSpace, EllipticCurve, NumberF
 from sage.combinat.posets.posets import FinitePoset
 from sage.databases.cremona import class_to_int
 from sage.misc.prandom import random
-from cloud_common import rational_poset_query, get_lattice_poset, index_iterator, to_coarse_label, inbox, load_gl2zhat_rational_data
+from cloud_common import rational_poset_query, get_lattice_poset, index_iterator, to_coarse_label, inbox, load_gl2zhat_rational_data, dbtable
+
 
 opj = os.path.join
 ope = os.path.exists
 sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
 from lmfdb import db
-dbtable = db.gps_gl2zhat_tmp
 
 parser = argparse.ArgumentParser("Create a tarball for cloud computation")
 parser.add_argument("stage", type=int, help="stage of compututation (1=initial setup, 2=after getting cod data back")

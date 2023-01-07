@@ -11,13 +11,14 @@ opj = os.path.join
 ope = os.path.exists
 sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
 from lmfdb import db
+dbtable = db.gps_gl2zhat_tmp
 
 
 @cached_function
 def get_lattice_poset():
     t0 = walltime()
     R = []
-    for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "parents"]):
+    for rec in dbtable.search({"contains_negative_one":True}, ["label", "parents"]):
         for olabel in rec["parents"]:
             R.append([olabel, rec["label"]]) # Use backward direction so that breadth first search is faster
     print("DB data loaded in", walltime() - t0)
@@ -57,7 +58,7 @@ def index_iterator(P, v, reverse=False):
         yield from by_index[ind]
 
 def load_gl2zhat_rational_data():
-    return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "coarse_label"], silent=True)}
+    return {rec["label"]: rec for rec in dbtable.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "coarse_label"], silent=True)}
 
 def to_coarse_label(label):
     # Work around broken coarse_label column
