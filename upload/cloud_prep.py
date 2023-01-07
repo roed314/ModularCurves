@@ -10,13 +10,14 @@ from collections import defaultdict
 from sage.all import ZZ, QQ, PolynomialRing, MatrixSpace, EllipticCurve, NumberField, cached_function, flatten, walltime, cputime, DiGraph
 from sage.combinat.posets.posets import FinitePoset
 from sage.databases.cremona import class_to_int
+from sage.misc.prandom import random
+from cloud_common import rational_poset_query, get_lattice_poset, index_iterator, to_coarse_label, inbox, load_gl2zhat_rational_data
 
 opj = os.path.join
 ope = os.path.exists
 sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
 from lmfdb import db
-from cloud_common import rational_poset_query, get_lattice_poset, index_iterator, to_coarse_label, inbox, load_gl2zhat_rational_data
-
+dbtable = db.gps_gl2zhat_tmp
 
 parser = argparse.ArgumentParser("Create a tarball for cloud computation")
 parser.add_argument("stage", type=int, help="stage of compututation (1=initial setup, 2=after getting cod data back")
@@ -49,7 +50,7 @@ def make_input_data():
     print("Creating input data...", end="")
     folder = opj("..", "equations", "input_data")
     os.makedirs(folder, exist_ok=True)
-    for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "generators"]):
+    for rec in dbtable.search({"contains_negative_one":True}, ["label", "generators"]):
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))
     print(" done")
@@ -165,7 +166,7 @@ def prep_hyperelliptic():
     # Need to figure out which modular curves are on the "border" between canonical models and not (g=0,1 or hyperelliptic)
     print("Preparing for hyperelliptic computation...", end="")
     with open(opj("..", "equations", "hyptodo.txt"), "w") as F:
-        for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True, "genus":{"$gte":3, "$lte":17}}, ["label", "qbar_gonality_bounds"]):
+        for rec in dbtable.search({"contains_negative_one":True, "genus":{"$gte":3, "$lte":17}}, ["label", "qbar_gonality_bounds"]):
             if inbox(rec["label"]) and rec["qbar_gonality_bounds"][0] == 2 and rec["qbar_gonality_bounds"][1] > 2 and not ope(opj("..", "ishyp", rec["label"])):
                 # possibly hyperelliptic
                 _ = F.write(rec["label"] + "\n")
@@ -202,7 +203,7 @@ def get_relj_codomains():
     print("Determining codomains...", end="")
     parents_conj = {}
     M = MatrixSpace(ZZ, 2)
-    for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True, "$or": [{"level":{"$lt":24}, "genus": {"$gte": 3, "$lte": 24}}, {"level":{"$lt":120}, "genus":{"$gte":3, "$lte":14}}, {"genus":{"$gte":3, "$lte":6}}]}, ["label", "parents", "parents_conj", "qbar_gonality"]):
+    for rec in dbtable.search({"contains_negative_one":True, "$or": [{"level":{"$lt":24}, "genus": {"$gte": 3, "$lte": 24}}, {"level":{"$lt":120}, "genus":{"$gte":3, "$lte":14}}, {"genus":{"$gte":3, "$lte":6}}]}, ["label", "parents", "parents_conj", "qbar_gonality"]):
         if not inbox(rec["label"]):
             continue
         if rec["qbar_gonality"] == 2:
@@ -236,18 +237,41 @@ def get_relj_codomains():
             with open(opj(output_folder, label), "w") as F:
                 _ = F.write(f"{codomain}|{','.join(str(c) for c in conj.list())}")
     # Now cods contains the maximum relative index of anything mapping to the given codomain
+    skipped = set()
     with open("codtodo.txt", "w") as Ftodo:
         for c, maxind in cods.items():
+            if args.codprob is not None:
+                r = random()
+                if r > args.codprob:
+                    skipped.add(c)
+                    continue
             _ = Ftodo.write(c + "\n")
             with open(opj(output_folder, c), "w") as F:
                 _ = F.write(f"{c}|{maxind}")
     with open("nexttodo.txt", "w") as Fnext:
         with open("lattodo.txt", "w") as Flat:
-            for label in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, "label"):
+            for label in dbtable.search({"contains_negative_one":True}, "label"):
                 if label not in cods:
                     if inbox(label):
+                        codomain, conj = cod.get(label, (None, None))
+                        if codomain is None:
+                            # Uses absolute j-map
+                            if args.absprob is not None:
+                                r = random()
+                                if r > args.absprob:
+                                    continue
+                        elif codomain in skipped:
+                            continue
+                        elif args.domprob is not None:
+                            r = random()
+                            if r > args.domprob:
+                                continue
                         _ = Fnext.write(label + "\n")
                     else:
+                        if args.absprob is not None:
+                            r = random()
+                            if r > args.absprob:
+                                continue
                         _ = Flat.write(label + "\n")
 
 #######################################################
@@ -259,7 +283,7 @@ def distinguished_vertices():
     """
     The vertices in the lattice with special names that serve as the bottoms of intervals in the lattice
     """
-    return {rec["label"]: rec["name"] for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True, "name":{"$ne":""}}, ["label", "name"])}
+    return {rec["label"]: rec["name"] for rec in dbtable.search({"contains_negative_one":True, "name":{"$ne":""}}, ["label", "name"])}
 
 Xfams = ['X', 'X0', 'Xpm1', 'Xns+', 'Xsp+', 'Xns', 'Xsp', 'Xpm1,', 'XS4']
 
@@ -428,7 +452,8 @@ def trim_modm_images(images):
     Takes partially defined labels from the modm_images column of ec_curvedata and
     only keeps fully-defined images that are maximal (for level-divisibility)
     """
-    images = [label for label in images if "?" not in label and int(label.split(".")[0]) < 24]
+    #images = [label for label in images if "?" not in label and int(label.split(".")[0]) < 24]
+    images = [label for label in images if "?" not in label]
     Ns = [int(label.split(".")[0]) for label in images]
     locs = [i for i in range(len(Ns)) if not any(Ns[j] % Ns[i] == 0 for j in range(len(Ns)) if i != j)]
     return [images[i] for i in locs]
@@ -461,8 +486,8 @@ def load_points_files(data_folder):
     nfs, sub_lookup, embeddings = load_nf_data(list(field_labels))
 
     ans = []
-    X0s = {rec["name"]: rec["label"] for rec in db.gps_gl2zhat_fine.search({"name": {"$like": "X0%"}}, ["name", "label"], silent=True)}
-    RSZB_lookup = {rec["RSZBlabel"]: rec["label"] for rec in db.gps_gl2zhat_fine.search({"name": {"$exists": True}}, ["label", "RSZBlabel"])}
+    X0s = {rec["name"]: rec["label"] for rec in dbtable.search({"name": {"$like": "X0%"}}, ["name", "label"], silent=True)}
+    RSZB_lookup = {rec["RSZBlabel"]: rec["label"] for rec in dbtable.search({"name": {"$exists": True}}, ["label", "RSZBlabel"])}
     skipped = set()
     for pieces in all_pieces:
         name = label = pieces[0].strip()
@@ -475,7 +500,7 @@ def load_points_files(data_folder):
                     skipped.add(name)
                 continue
         level = int(label.split(".")[0])
-        if level >= 24: continue
+        #if level >= 24: continue
         if not LABEL_RE.fullmatch(label):
             label = RSZB_lookup[label]
         field_of_definition = pieces[2].strip()
@@ -541,46 +566,11 @@ def load_nf_data(field_labels=None):
     print("Constructed number field lookup tables")
     return nfs, sub_lookup, embeddings
 
-def save_ecnf_data(fname="ecnf_data.txt"):
-    # We have to modify ecnf data in a way that's somewhat slow (computing the actual field in which j lies)
-    # We do that once, save it, and then load the result from disc as needed
-    nfs, sub_lookup, _ = load_nf_data()
-
-    total = db.ec_nfcurves.count()
-    with open(fname, "w") as F:
-        for progress, rec in enumerate(db.ec_nfcurves.search({}, ["galois_images", "degree", "field_label", "jinv", "cm", "label", "conductor_norm", "base_change", "ainvs"], silent=True)):
-            if progress and progress % 10000 == 0:
-                print(f"ECNF: {progress}/{total}")
-            if rec["base_change"] or not rec["galois_images"]:
-                continue
-            if rec["jinv"].endswith(",0" * (rec["degree"] - 1)):
-                jfield = "1.1.1.1"
-                jinv = rec["jinv"].split(",")[0]
-                # Searching ecnf using a rational j-invariant works even when the residue field is not Q
-                jorig = r"\N"
-            else:
-                K = nfs[rec["field_label"]]
-                j = K([QQ(c) for c in rec["jinv"].split(",")])
-                Qj, jinc = K.subfield(j)
-                if Qj.degree() == rec["degree"]:
-                    jfield = rec["field_label"]
-                    jinv = rec["jinv"]
-                    jorig = r"\N"
-                else:
-                    jfield, f = sub_lookup[Qj.degree(), Qj.discriminant().abs()]
-                    jinv = ",".join(str(c) for c in f.roots(Qj, multiplicities=False)[0].coordinates_in_terms_of_powers()(Qj.gen()))
-                    #root = embeddings[jfield, rec["field_label"]]
-                    #jinv = ",".join(str(c) for c in root.coordinates_in_terms_of_powers()(jinc(Qj.gen())))
-                    jorig = rec["jinv"]
-            Slabels = ",".join(rec["galois_images"])
-            j_height = get_j_height(jinv, jfield, nfs)
-            _ = F.write(f"{Slabels}|{rec['degree']}|{rec['field_label']}|{jorig}|{jinv}|{jfield}|{j_height}|{rec['cm']}|{rec['label']}|{rec['conductor_norm']}|{rec['ainvs']}\n")
-
 def load_ecnf_data(fname="ecnf_data.txt"):
     # Galois images are stored for NF curves using Sutherland labels
     from_Slabel = {
         rec["Slabel"] : rec["label"]
-        for rec in db.gps_gl2zhat_fine.search(
+        for rec in dbtable.search(
                 {"Slabel": {"$exists":True}},
                 ["Slabel", "label"],
                 silent=True,
@@ -697,7 +687,7 @@ def get_rational_poset():
     # The poset of modular curves that might have rational points, omitting X(1)
     t0 = walltime()
     R = []
-    for rec in db.gps_gl2zhat_fine.search(rational_poset_query(), ["label", "parents", "coarse_label"]):
+    for rec in dbtable.search(rational_poset_query(), ["label", "parents", "coarse_label"]):
         if rec["label"] == "1.1.0.a.1": continue
         parents = [label for label in rec["parents"] if label != "1.1.0.a.1"]
         if rec["label"] != to_coarse_label(rec["label"]) and to_coarse_label(rec["label"]) != "1.1.0.a.1":
@@ -778,7 +768,7 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
 
 def make_picture_input():
     with open("picture_labels.txt", "w") as F:
-        for label in db.gps_gl2zhat_fine.distinct("psl2label"):
+        for label in dbtable.distinct("psl2label"):
             _ = F.write(label + "\n")
 
 def make_psl2_input_data():
@@ -795,7 +785,7 @@ def make_psl2_input_data():
 def make_gonality_files():
     folder = opj("..", "equations", "gonality")
     os.makedirs(folder, exist_ok=True)
-    for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"]):
+    for rec in dbtable.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"]):
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"]))
 

@@ -16,7 +16,6 @@
 # ** Computation changes **
 # Create a mechanism for redoing failed labels
 # For elliptic curves and genus 2 curves, it would be good to link to them (probably using newform) (add curve_label column, use CremonaReferece)
-# Sample todo
 # Fix these:
 # `images = [label for label in images if "?" not in label and int(label.split(".")[0]) < 24]`
 # if level >= 24: continue
@@ -35,6 +34,7 @@
 # Propogate gonality to fine models
 # Finish splitting off lattice computation, remove test for g<=24 below, update todo list generation
 # Print out covered model equation to double check that they all match
+# Sample todo
 
 # ** Front-end changes **
 # Fun diagram: https://red.lmfdb.xyz/ModularCurve/Q/16.192.5.bu.1/

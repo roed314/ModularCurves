@@ -91,3 +91,39 @@ def inbox(label):
     if N <120:
         return g <= 14
     return g <= 6
+
+def save_ecnf_data(fname="ecnf_data.txt"):
+    # We have to modify ecnf data in a way that's somewhat slow (computing the actual field in which j lies)
+    # We do that once, save it, and then load the result from disc as needed
+    nfs, sub_lookup, _ = load_nf_data()
+
+    total = db.ec_nfcurves.count()
+    with open(fname, "w") as F:
+        for progress, rec in enumerate(db.ec_nfcurves.search({}, ["galois_images", "degree", "field_label", "jinv", "cm", "label", "conductor_norm", "base_change", "ainvs"], silent=True)):
+            if progress and progress % 10000 == 0:
+                print(f"ECNF: {progress}/{total}")
+            if rec["base_change"] or not rec["galois_images"]:
+                continue
+            if rec["jinv"].endswith(",0" * (rec["degree"] - 1)):
+                jfield = "1.1.1.1"
+                jinv = rec["jinv"].split(",")[0]
+                # Searching ecnf using a rational j-invariant works even when the residue field is not Q
+                jorig = r"\N"
+            else:
+                K = nfs[rec["field_label"]]
+                j = K([QQ(c) for c in rec["jinv"].split(",")])
+                Qj, jinc = K.subfield(j)
+                if Qj.degree() == rec["degree"]:
+                    jfield = rec["field_label"]
+                    jinv = rec["jinv"]
+                    jorig = r"\N"
+                else:
+                    jfield, f = sub_lookup[Qj.degree(), Qj.discriminant().abs()]
+                    jinv = ",".join(str(c) for c in f.roots(Qj, multiplicities=False)[0].coordinates_in_terms_of_powers()(Qj.gen()))
+                    #root = embeddings[jfield, rec["field_label"]]
+                    #jinv = ",".join(str(c) for c in root.coordinates_in_terms_of_powers()(jinc(Qj.gen())))
+                    jorig = rec["jinv"]
+            Slabels = ",".join(rec["galois_images"])
+            j_height = get_j_height(jinv, jfield, nfs)
+            _ = F.write(f"{Slabels}|{rec['degree']}|{rec['field_label']}|{jorig}|{jinv}|{jfield}|{j_height}|{rec['cm']}|{rec['label']}|{rec['conductor_norm']}|{rec['ainvs']}\n")
+
