@@ -58,6 +58,8 @@ def extract_stage1():
     """
     Extract contents of stage 1 output file (stored in ROOT/upload/output1) for running stage 2
     """
+    os.makedirs(opj("..", "equations", "rats"), exist_ok=True)
+    os.makedirs(opj("..", "equations", "canonical_models"), exist_ok=True)
     with open("output1") as F:
         for line in F:
             if not line: continue
@@ -791,5 +793,4 @@ def make_g2_lookup_data():
 # Execute the main function #
 #############################
 
-#prep(stage=args.stage)
-make_tarball(stage=args.stage)
+prep(stage=args.stage)

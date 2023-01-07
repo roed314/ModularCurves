@@ -6,7 +6,7 @@ import re
 import sys
 from collections import defaultdict, Counter
 from sage.misc.cachefunc import cached_function
-from sage.all import ZZ, QQ, Poset, DiGraph, flatten, gcd, PolynomialRing, MatrixSpace, EllipticCurve
+from sage.all import ZZ, QQ, Poset, DiGraph, flatten, gcd, PolynomialRing, MatrixSpace, EllipticCurve, NumberField
 from sage.combinat.posets.posets import FinitePoset
 from sage.misc.misc import cputime, walltime
 from sage.databases.cremona import class_to_int
