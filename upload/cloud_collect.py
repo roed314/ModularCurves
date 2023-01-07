@@ -5,7 +5,7 @@ import sys
 import re
 import argparse
 from collections import defaultdict
-from sage.all import ZZ, QQ, gcd, PolynomialRing
+from sage.all import ZZ, QQ, gcd, PolynomialRing, ceil
 from sage.databases.cremona import class_to_int
 
 opj = os.path.join
