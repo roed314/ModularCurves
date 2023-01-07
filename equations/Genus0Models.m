@@ -38,8 +38,6 @@ prec is the precision with which q-expansions are computed, with subgroups upto 
 Output:
     The code computes model of X_G as a conic and if it has a rational point also computes the map J1: X_G \to P^1.
 }
-    print "Starting";
-    t0 := Cputime();
     G0group := recformat<N:RngIntElt, sl2label:MonStgElt, gens>;
     /*  N : GL_2 level of G
     sl2label : Cummins-Pauli label of G \intersect SL_2(Z/NZ)
@@ -47,14 +45,10 @@ Output:
 
     Gamma:=rec<G0group | N := M, gens := Ggens join {-Identity(GL(2,Integers(M)))}>;
     G:=sub<GL(2,Integers(M))|[g: g in Gamma`gens]>;
-    print "Here", Cputime() - t0;
-    CPkeys := Keys(CPlist);
-    print "CPdone", Cputime() - t0;
 
     /* Trying to find genus 0 congruence subgroup H such that G \intersect SL_2(Z) is conjugate to H. Once we find H, we conjugate generators of G so that
     G \intersect \SL_2(Z)=H. */
     for k in Keys(CPlist) do
-        print "Key", k, Cputime() - t0;
         if k eq "1A" then
             continue k;
         end if;
@@ -69,8 +63,8 @@ Output:
             continue k;
         else
             Gconj:=Conjugate(G,Aconj);
+            GammaCong := GetCPdata(CPlist[k]);
             Gamma`sl2label:=k;
-            print "Found";
             break;
         end if;
     end for;
@@ -79,9 +73,9 @@ Output:
 
     L<z> := CyclotomicField(M);
     P<t> := FunctionField(L);
-    R<q>:=PuiseuxSeriesRing(L);
-    h := CPlist[Gamma`sl2label]`hauptmodul;
-    hq:=CPlist[Gamma`sl2label]`h;
+    R<q> := PuiseuxSeriesRing(L);
+    h := GammaCong`hauptmodul;
+    hq := GammaCong`h;
     H_:= Gconj meet SL(2,Integers(M));
     _,width:=CuspData(H_);
     w:=width[1];
@@ -89,7 +83,6 @@ Output:
     Gal,iota,sigma:=AutomorphismGroup(L);
     Cocycle:=AssociativeArray();
 
-    print "Looping over Gal", #Gal, Cputime() - t0;
     for g in Gal do;
         for s1 in Set(H1) do;
             d:=Determinant(s1@@q1);d:=Integers()!d;
@@ -99,7 +92,6 @@ Output:
         J:=FindRelation(R!SiegelExpansion(B2,prec),R!SiegelExpansion(h,prec),1);
         Cocycle[g]:=J;
     end for;
-    print "Computed cocycle", Cputime() - t0;
 
     m1 := map< MatrixRing(L,2) -> MatrixRing(L,3) | n :-> (1/Determinant(n))*Matrix(3,3,[n[1,1]^2,2*n[1,1]*n[1,2],n[1,2]^2,n[1,1]*n[2,1],n[1,1]*n[2,2]+n[1,2]*n[2,1],n[1,2]*n[2,2],n[2,1]^2,2*n[2,1]*n[2,2],n[2,2]^2])>;
     phi := map<Gal -> MatrixRing(L,3) | [g -> m1([Evaluate(Numerator(Cocycle[g])-Evaluate(Numerator(Cocycle[g]),0),1),Evaluate(Numerator(Cocycle[g]),0),Evaluate(Denominator(Cocycle[g])-Evaluate(Denominator(Cocycle[g]),0),1),Evaluate(Denominator(Cocycle[g]),0)] ) : g in Gal]>;
@@ -109,9 +101,7 @@ Output:
     Q,_ := Conic(Transpose(Amatrix^(-1))*D*Amatrix^(-1));  // Transpose because MAGMA uses right action.
     Q := ChangeRing(Q,Rationals());  // Q is our conic.
 
-    print "Searching for rational point", Cputime() - t0;
     flag, Qpt := HasRationalPoint(Q);
-    print "Done", flag, Cputime() - t0;
     if not flag then
         B := Amatrix;
 	B := Matrix(R,3,3,[[R!B[i,j]:j in [1..3]]:i in [1..3]]);
@@ -128,17 +118,15 @@ Output:
 	pol := Evaluate(DefiningPolynomial(Q),[x,yy,1]);
 	FFQ<y> := FunctionField(pol);
 	F := (A[1]*x+A[2]*y+A[3])/(A[4]*x+A[5]*y+A[6]);
-	J1 := Evaluate(CPlist[Gamma`sl2label]`J,F);
-        print "ReturningA", Cputime() - t0;
+	J1 := Evaluate(GammaCong`J,F);
 	return Q, J1, flag, _;
     else
         B := (Transpose(ParametrizationMatrix(Q)))^(-1); //Transpose to make it left action
 
         C := (m2(B*Amatrix,L))^(-1);
         g1 := (C[1,1]*t+C[1,2])/(C[2,1]*t+C[2,2]);
-        J1:=  Evaluate(CPlist[Gamma`sl2label]`J,g1);
+        J1:=  Evaluate(GammaCong`J,g1);
         assert J1 in FunctionField(Rationals());
-        print "ReturningB", Cputime() - t0;
         return Q, J1, flag, Qpt;
     end if;
 end intrinsic;

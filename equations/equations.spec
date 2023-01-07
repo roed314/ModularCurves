@@ -7,6 +7,7 @@
   precision.m
   ProcessModel.m
   Genus0Models.m
+  Genus0CongSubs.m
   OpenImage
   {
     +OpenImage.spec
