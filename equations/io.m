@@ -599,3 +599,9 @@ intrinsic Get(A::Assoc, k::Any, v::Any) -> Any
     end if;
     return v;
 end intrinsic;
+
+intrinsic ProfileTimes(:All:=false) -> SeqEnum
+{ Lists vertices in profile graph in order of time.  You need to SetProfile(true), run something, then call this (which will SetProfile(false) before dumping). }
+    SetProfile(false);
+    return S where S := Sort([Label(V!i):i in [1..#V]|All or (r`Count gt 0 and r`Time gt 0.01 where r:=Label(V!i))] where V:=Vertices(ProfileGraph()),func<a,b|a`Time-b`Time>);
+end intrinsic;

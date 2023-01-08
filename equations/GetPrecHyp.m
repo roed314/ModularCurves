@@ -17,7 +17,11 @@ end if;
 t0 := ReportStart(label, "ishyp");
 level, gens := GetLevelAndGensFromLabel(label);
 M := CreateModularCurveRec(level, gens);
+SetProfile(true);
 prec, hyp, reldeg := RequiredPrecision(M);
+for f in ProfileTimes() do
+    print f;
+end for;
 hyp := hyp select "t" else "f";
 Write(Sprintf("ishyp/%o", label), Sprintf("%o|%o|%o", hyp, prec, reldeg));
 ReportEnd(label, "ishyp", t0);
