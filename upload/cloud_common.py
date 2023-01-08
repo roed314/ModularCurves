@@ -26,7 +26,7 @@ def rational_poset_query():
     ecnf_primes = sorted(set(sum(db.ec_nfcurves.distinct('nonmax_primes'), [])))
     return {"$and": [
         {"$or": [{"level": "$lte": 70},
-                 {"level": {"$in": qlevels}}]}
+                 {"level": {"$in": qlevels}}]},
         {"$or": [{"pointless": False}, {"pointless": None}, {"level": {"$in": ecnf_primes}}]}]}
 
 @cached_function
