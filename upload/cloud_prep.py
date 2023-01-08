@@ -811,9 +811,9 @@ def make_picture_input():
 def make_psl2_input_data():
     folder = opj("..", "equations", "psl2_input_data")
     os.makedirs(folder, exist_ok=True)
-    for rec in db.gps_sl2zhat_fine.search({}, ["label", "generators"]):
+    for rec in db.gps_sl2zhat_fine.search({}, ["label", "subgroup"]):
         with open(opj(folder, rec["label"]), "w") as F:
-            _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))
+            _ = F.write(",".join(str(c) for c in flatten(rec["subgroup"])))
 
 ########################################################
 # Functions for preparing for the gonality computation #
