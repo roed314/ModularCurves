@@ -37,7 +37,7 @@ def rational_poset_query():
     return {"$and": [
         {"$or": [{"level": {"$lte": 70}},
                  {"level": {"$in": qlevels()}}]},
-        {"$or": [{"pointless": False}, {"pointless": None}, {"level": {"$in": ecnf_primes}}]}]}
+        {"$or": [{"pointless": False}, {"pointless": {"$exists":False}}, {"level": {"$in": ecnf_primes}}]}]}
 
 def inbox(label):
     """

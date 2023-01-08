@@ -241,8 +241,9 @@ def run_hyperelliptic():
         curn = len(os.listdir("ishyp"))
         folder = os.path.abspath("ishyp")
         print(f"Determining hyperellipticity (done when {curn + n} files exist in {folder})")
+        t0 = time.time()
         subprocess.run('parallel -j80 -a ../upload/hyptodo.txt "magma -b label:={1} GetPrecHyp.m"', shell=True)
-        print("Done determining hyperellipticity")
+        print(f"Done determining hyperellipticity in {time.time() - t0:.2f}")
     os.chdir(opj("..", "upload"))
 
 def get_relj_codomains():
@@ -383,7 +384,7 @@ def intervals_to_save(max_size=60):
                     I[x] = dx
                 else:
                     T[x] = True
-    print("initial transversal in", cputime() - t0)
+    print(f"initial transversal in {cputime() - t0:.2f}")
     t0 = cputime()
     # Flip so that it's first indexed on vertex rather than distinguished vertex
     flipped = defaultdict(dict)
@@ -393,7 +394,7 @@ def intervals_to_save(max_size=60):
             if x == d: continue # Don't include single-point intervals
             flipped[P._vertex_to_element(x)][dd] = set([P._vertex_to_element(y) for y in S])
     # Choose some collection of distinguished vertices to store in each case
-    print("Flipped in", cputime() - t0)
+    print(f"Flipped in {cputime() - t0:.2f}")
     t0 = cputime()
     stored_intervals = {}
     num_tops = {}
@@ -434,7 +435,7 @@ def intervals_to_save(max_size=60):
         if len(J) <= max_size:
             J = sorted(J, key=sort_key)
             stored_intervals[x] = J
-    print("Stored in", cputime() - t0)
+    print(f"Stored in {cputime() - t0:.2f}")
     return stored_intervals, num_tops
 
 def display(label):
@@ -513,7 +514,7 @@ def make_graphviz_files():
     os.makedirs(opj("..", "equations", "graphviz_in"), exist_ok=True)
     for label in P:
         make_graphviz_file(label)
-    print(f"Graphviz files completed in {time.time() - t0:.2f}")
+    print(f"Graphviz files completed in {time.time() - t0:.2f}s")
 
 ###############################################################
 # Functions for preparing for the rational points computation #
@@ -812,6 +813,9 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
             #assert label != "1.1.0.a.1"
             if label == "1.1.0.a.1": continue
             # Don't want to save the interval, since that takes quadratic space
+            if label not in P:
+                print(f"Warning: poset missing {label}")
+                continue
             for v in H.breadth_first_search(P._element_to_vertex(label)):
                 plabel = P._vertex_to_element(v)
                 if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:
