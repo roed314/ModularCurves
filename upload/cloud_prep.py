@@ -12,7 +12,7 @@ from sage.all import ZZ, QQ, PolynomialRing, MatrixSpace, EllipticCurve, NumberF
 from sage.combinat.posets.posets import FinitePoset
 from sage.databases.cremona import class_to_int
 from sage.misc.prandom import random
-from cloud_common import rational_poset_query, lattice_query, model_query, rat_query, psl2_query, get_lattice_poset, index_iterator, to_coarse_label, inbox, pslbox, load_gl2zhat_rational_data, dbtable
+from cloud_common import rational_poset_query, lattice_query, model_query, rat_query, psl2_query, get_lattice_poset, get_rational_poset, index_iterator, to_coarse_label, inbox, pslbox, load_gl2zhat_rational_data, dbtable, load_ecq_data, load_ecnf_data, load_points_files
 
 
 opj = os.path.join
@@ -243,7 +243,7 @@ def run_hyperelliptic():
         print(f"Determining hyperellipticity (done when {curn + n} files exist in {folder})")
         t0 = time.time()
         subprocess.run('parallel -j80 -a ../upload/hyptodo.txt "magma -b label:={1} GetPrecHyp.m"', shell=True)
-        print(f"Done determining hyperellipticity in {time.time() - t0:.2f}")
+        print(f"Done determining hyperellipticity in {time.time() - t0:.2f}s")
     os.chdir(opj("..", "upload"))
 
 def get_relj_codomains():
@@ -294,7 +294,7 @@ def get_relj_codomains():
                     conj = parents_conj[label, ylabel] * yconj
                     tmp.append((ybest, conj))
             cod[label] = min(tmp, key=index_sort_key)
-    print(f"Codomains selected in {time.time() - t0:.2f}")
+    print(f"Codomains selected in {time.time() - t0:.2f}s")
     t0 = time.time()
     cods = defaultdict(int)
     for label, (codomain, conj) in cod.items():
@@ -340,7 +340,7 @@ def get_relj_codomains():
                             if r > args.absprob:
                                 continue
                         _ = Flat.write(label + "\n")
-    print(f"Todo files printed in {time.time() - t0:.2f}")
+    print(f"Todo files printed in {time.time() - t0:.2f}s")
 
 #######################################################
 # Functions for preparing for the lattice computation #
@@ -384,7 +384,7 @@ def intervals_to_save(max_size=60):
                     I[x] = dx
                 else:
                     T[x] = True
-    print(f"initial transversal in {cputime() - t0:.2f}")
+    print(f"initial transversal in {cputime() - t0:.2f}s")
     t0 = cputime()
     # Flip so that it's first indexed on vertex rather than distinguished vertex
     flipped = defaultdict(dict)
@@ -394,7 +394,7 @@ def intervals_to_save(max_size=60):
             if x == d: continue # Don't include single-point intervals
             flipped[P._vertex_to_element(x)][dd] = set([P._vertex_to_element(y) for y in S])
     # Choose some collection of distinguished vertices to store in each case
-    print(f"Flipped in {cputime() - t0:.2f}")
+    print(f"Flipped in {cputime() - t0:.2f}s")
     t0 = cputime()
     stored_intervals = {}
     num_tops = {}
@@ -435,7 +435,7 @@ def intervals_to_save(max_size=60):
         if len(J) <= max_size:
             J = sorted(J, key=sort_key)
             stored_intervals[x] = J
-    print(f"Stored in {cputime() - t0:.2f}")
+    print(f"Stored in {cputime() - t0:.2f}s")
     return stored_intervals, num_tops
 
 def display(label):
@@ -520,159 +520,6 @@ def make_graphviz_files():
 # Functions for preparing for the rational points computation #
 ###############################################################
 
-def trim_modm_images(images):
-    """
-    Takes partially defined labels from the modm_images column of ec_curvedata and
-    only keeps fully-defined images that are maximal (for level-divisibility)
-    """
-    #images = [label for label in images if "?" not in label and int(label.split(".")[0]) < 24]
-    images = [label for label in images if "?" not in label]
-    Ns = [int(label.split(".")[0]) for label in images]
-    locs = [i for i in range(len(Ns)) if not any(Ns[j] % Ns[i] == 0 for j in range(len(Ns)) if i != j)]
-    return [images[i] for i in locs]
-
-
-S_LABEL_RE = re.compile(r"^(\d+)(G|B|Cs|Cn|Ns|Nn|A4|S4|A5)(\.\d+){0,3}$")
-LABEL_RE = re.compile(r"^\d+\.\d+\.\d+\.[a-z]+\.\d+$")
-NFLABEL_RE = re.compile(r"^\d+\.\d+\.\d+\.\d+$")
-QQ_RE = re.compile(r"^-?\d+(/\d+)?$")
-ZZ_RE = re.compile(r"^(-?\d+)|\\N$")
-QQ_LIST_RE = re.compile(r"^-?\d+(/\d+)?(,-?\d+(/\d+)?)*$") # can't be empty
-NN_LIST_RE = re.compile(r"^(\d+(,\s*\d+)*)?$") # can be empty
-
-def load_points_files(data_folder):
-    all_pieces = []
-    field_labels = set()
-    for fname in os.listdir(data_folder):
-        if fname.endswith("-pts.txt"):
-            with open(os.path.join(data_folder, fname)) as F:
-                for line in F:
-                    if line.startswith("//") or not line.strip():
-                        continue
-                    line = line.replace("'", "").replace('"', '')
-                    pieces = line.strip().split("|")
-                    if len(pieces) != 8:
-                        raise ValueError(f"line has {len(pieces)} when it should have 8: {line}")
-                    all_pieces.append(pieces)
-                    field_labels.add(pieces[2].strip())
-                    field_labels.add(pieces[4].strip())
-
-    nfs, sub_lookup, embeddings = load_nf_data(list(field_labels))
-
-    ans = []
-    query = rat_query()
-    query["name"] = {"$like": "X0%"}
-    X0s = {rec["name"]: rec["label"] for rec in dbtable.search(query, ["name", "label"], silent=True)}
-    RSZB_lookup = {rec["RSZBlabel"]: rec["label"] for rec in dbtable.search({"name": {"$exists": True}, "RSZBlabel": {"$exists":True}}, ["label", "RSZBlabel"])}
-    skipped = set()
-    for pieces in all_pieces:
-        name = label = pieces[0].strip()
-        if label.startswith("X0"):
-            label = X0s.get(label)
-            if label is None:
-                # We haven't added X0(56) yet....
-                if name not in skipped:
-                    print(f"Skipping name {name}")
-                    skipped.add(name)
-                continue
-        level = int(label.split(".")[0])
-        #if level >= 24: continue
-        if not LABEL_RE.fullmatch(label):
-            label = RSZB_lookup[label]
-        field_of_definition = pieces[2].strip()
-        degree = field_of_definition.split(".")[0]
-        jinv = pieces[3].replace(" ", "").replace("[", "").replace("]", "")
-        jfield = pieces[4].strip()
-        if jfield in ["1.1.1.1", field_of_definition]:
-            jorig = r"\N"
-        else:
-            # Recover the j-invariant in the residue field from our chosen embedding.
-            K = nfs[jfield]
-            j = [QQ(c) for c in jinv.split(",")]
-            j += [0] * (K.degree() - len(j))
-            j = K(j)
-            L = nfs[field_of_definition]
-            root = embeddings[jfield, field_of_definition]
-            emb = K.hom([root])
-            jorig = ",".join(str(c) for c in list(emb(j)))
-        j_height = get_j_height(jinv, jfield, nfs)
-        cm = pieces[6].strip()
-        quo_info = pieces[7].strip().replace("[", "{").replace("]", "}")
-        assert LABEL_RE.fullmatch(label), f"Invalid curve label {label}"
-        assert ZZ_RE.match(degree), f"Invalid degree {degree} for {label}"
-        assert NFLABEL_RE.match(field_of_definition), f"Invalid field of definition {field_of_definition} for {label}"
-        assert QQ_LIST_RE.match(jinv), f"Invalid j-invariant {jinv} for {label}"
-        assert NFLABEL_RE.match(jfield), f"Invalid field of j {jfield} for {label}"
-        assert ZZ_RE.match(cm), f"Invalid CM discriminant {cm} for {label}"
-        assert quo_info == r"\N" or NN_LIST_RE.match(quo_info[1:-1]), f"Invalid quotient information {quo_info} for {label}"
-        ans.append((label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, cm, r"\N", True, r"\N", r"\N"))
-    return ans
-
-def get_j_height(jinv, j_field, nfs):
-    K = nfs[j_field]
-    j = [QQ(c) for c in jinv.split(",")]
-    j += [0] * (K.degree() - len(j))
-    j = K(j)
-    return j.global_height()
-
-def load_nf_data(field_labels=None):
-    if field_labels is None:
-        field_labels = db.ec_nfcurves.distinct("field_label")
-    R = PolynomialRing(QQ, 'x')
-    field_data = list(db.nf_fields.search({"label": {"$in": field_labels}},
-                                          ["label", "coeffs", "subfields", "degree", "disc_abs"], silent=True))
-    subs = [[int(c) for c in sub.split(".")] for sub in set(sum((rec["subfields"] for rec in field_data), []))]
-    sub_data = list(db.nf_fields.search({"$or": [{"coeffs": sub} for sub in subs]}, ["degree", "disc_abs", "label", "coeffs"], silent=True))
-    if len(subs) != len(sub_data):
-        raise RuntimeError("Sub not labeled or discriminant clash")
-    sub_lookup = {(rec["degree"], rec["disc_abs"]) : (rec["label"], R(rec["coeffs"])) for rec in sub_data}
-    by_coeffs = {tuple(rec["coeffs"]): rec["label"] for rec in sub_data}
-    sub_lookup[1, 1] = ("1.1.1.1", R.gen() - 1)
-    nfs = {"1.1.1.1": QQ}
-    embeddings = {}
-    for rec in field_data:
-        f = R(rec["coeffs"])
-        nfs[rec["label"]] = L = NumberField(f, 'a')
-        sub_lookup[rec["degree"], rec["disc_abs"]] = (rec["label"], f)
-        for sub in rec["subfields"]:
-            sub = [ZZ(c) for c in sub.split(".")]
-            g = R(sub)
-            embeddings[by_coeffs[tuple(sub)], rec["label"]] = g.roots(L, multiplicities=False)[0]
-
-    print("Constructed number field lookup tables")
-    return nfs, sub_lookup, embeddings
-
-def load_ecnf_data(fname="ecnf_data.txt"):
-    # Galois images are stored for NF curves using Sutherland labels
-    from_Slabel = {
-        rec["Slabel"] : rec["label"]
-        for rec in dbtable.search(
-                {"Slabel": {"$exists":True}},
-                ["Slabel", "label"],
-                silent=True,
-        )
-    }
-    print("Constructed Sutherland label lookup table")
-
-    # db.ec_nfcurves doesn't currently contain information about which curves are base changes
-    # We want to avoid base changes, since they would have incorrect field_of_definition
-    # We computed the set of base change curves separately
-    with open("ecnf_is_bc.txt") as F:
-        isbc = set(line.strip() for line in F)
-
-    with open(fname) as F:
-        for line in F:
-            Slabels, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, conductor_norm, ainvs = line.strip().split("|")
-            if Elabel in isbc:
-                continue
-            for Slabel in Slabels.split(","):
-                if not ("[" in Slabel or S_LABEL_RE.fullmatch(Slabel)):
-                    print("Warning: invalid Slabel", Slabel)
-                if Slabel in from_Slabel:
-                    label = from_Slabel[Slabel]
-                    yield label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, int(cm), Elabel, False, conductor_norm, ainvs
-    print("Loaded ECNF data from file")
-
 def convert_cm_datafile(cmin, cmout):
     # Convert from Drew's format (which has some extra stuff and is missing others)
     lookup = {tuple(rec["ainvs"]): rec["lmfdb_label"] for rec in db.ec_curvedata.search({}, ["ainvs", "lmfdb_label"])}
@@ -689,33 +536,6 @@ def convert_cm_datafile(cmin, cmout):
                 lmfdb_label = lookup.get(ainvs, r"?")
                 ainvs = ";".join(str(a) for a in ainvs) # format compatible with ec_nfcurves
                 _ = Fout.write(f"{lmfdb_label}|{label}|{j}|{cm}|{ainvs}|{conductor}\n")
-
-def load_ecq_data(cm_data_file):
-    t0 = walltime()
-    ecq_db_data = []
-    # CM data computed by Shiva
-    cm_lookup = defaultdict(list)
-    with open(cm_data_file) as F:
-        for line in F:
-            lmfdb_label, modcurve_label, j, cm, ainvs, conductor = line.strip().split("|")
-            if lmfdb_label == "?":
-                ecq_db_data.append((modcurve_label, 1, "1.1.1.1", r"\N", j, "1.1.1.1", str(QQ(j).global_height()), int(cm), lmfdb_label, False, conductor, ainvs))
-            else:
-                cm_lookup[lmfdb_label].append(modcurve_label)
-
-    for rec in db.ec_curvedata.search({}, ["lmfdb_label", "jinv", "cm", "conductor", "modm_images", "ainvs"]):
-        Elabel = rec["lmfdb_label"]
-        jinv = QQ(tuple(rec["jinv"]))
-        if rec["cm"]:
-            images = cm_lookup.get(rec["lmfdb_label"], [])
-        else:
-            images = rec["modm_images"]
-        images = trim_modm_images(images)
-        ainvs = ";".join(str(a) for a in rec["ainvs"])
-        for label in images:
-            ecq_db_data.append((label, 1, "1.1.1.1", r"\N", str(jinv), "1.1.1.1", str(jinv.global_height()), rec["cm"], Elabel, False, str(rec["conductor"]), ainvs))
-    print("Loaded elliptic curves over Q", walltime() - t0)
-    return ecq_db_data
 
 def is_isolated(degree, g, rank, gonlow, simp, dims):
     # We encode the isolatedness in a small integer, p + a, where
@@ -757,29 +577,6 @@ def is_isolated(degree, g, rank, gonlow, simp, dims):
             return "1"
         else:
             return "0"
-
-@cached_function
-def get_rational_poset():
-    # The poset of modular curves that might have rational points, omitting X(1)
-    t0 = walltime()
-    nodes = []
-    R = []
-    for rec in dbtable.search(rational_poset_query(), ["label", "parents", "coarse_label"]):
-        if rec["label"] == "1.1.0.a.1": continue
-        nodes.append(rec["label"])
-        parents = [label for label in rec["parents"] if label != "1.1.0.a.1"]
-        if rec["label"] != to_coarse_label(rec["label"]) and to_coarse_label(rec["label"]) != "1.1.0.a.1":
-            parents += [to_coarse_label(rec["label"])]
-        for olabel in parents:
-            R.append([rec["label"], olabel]) # note that this is the opposite direction of edges from lattice_poset
-    print("DB data loaded in", walltime() - t0)
-    t0 = cputime()
-    D = DiGraph([nodes, R], format='vertices_and_edges')
-    print("Edges added to graph in", cputime() - t0)
-    t0 = cputime()
-    P = FinitePoset(D)
-    print("Poset created in", cputime() - t0)
-    return P
 
 def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_folder="../rational-points/data", ecnf_data_file="ecnf_data.txt", cm_data_file="cm_data.txt"):
     print("Creating rational point data...")
