@@ -68,7 +68,7 @@ def make_input_data():
     for rec in dbtable.search(lattice_query(), ["label", "generators"]):
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))
-    print(" done in {time.time() - t0:.2f}s")
+    print(f" done in {time.time() - t0:.2f}s")
 
 def extract_stage0():
     print("Extracting output from stage 0...", end="")
@@ -83,7 +83,7 @@ def extract_stage0():
             if line[0] == "Y":
                 with open(opj(ifold, label), "w") as Fout:
                     _ = Fout.write(rest.strip())
-    print(" done in {time.time() - t0:.2f}s")
+    print(f" done in {time.time() - t0:.2f}s")
 
 def extract_stage1():
     """
@@ -184,7 +184,7 @@ def make_tarball(stage=1):
     if stage == 2:
         include.extend(["ishyp", "rats", "canonical_models"])
     subprocess.run(f"tar -cf ../upload/stage{stage}_{n}.tar " + " ".join(include), shell=True)
-    print(" done in {time.time() - t0:.2f}s")
+    print(f" done in {time.time() - t0:.2f}s")
     if stage == 0:
         print("Next steps:")
         print(f"  Copy stage0_{n}.tar to a server or cloud disk image, extract and run cloud_hypstart.py in parallel")
@@ -224,7 +224,7 @@ def prep_hyperelliptic():
                         continue
                 # possibly hyperelliptic
                 _ = F.write(rec["label"] + "\n")
-    print(" done in {time.time() - t0:.2f}s")
+    print(f" done in {time.time() - t0:.2f}s")
 
 def run_hyperelliptic():
     """
@@ -255,7 +255,7 @@ def get_relj_codomains():
         with open(opj("..", "equations", "ishyp", label)) as F:
             hyp, prec, reldeg = F.read().strip().split("|")
             hyp_lookup[label] = (hyp == "t")
-    print(" done in {time.time() - t0:.2f}s")
+    print(f" done in {time.time() - t0:.2f}s")
     print("Determining codomains...")
     parents_conj = {}
     M = MatrixSpace(ZZ, 2)
@@ -756,9 +756,11 @@ def is_isolated(degree, g, rank, gonlow, simp, dims):
 def get_rational_poset():
     # The poset of modular curves that might have rational points, omitting X(1)
     t0 = walltime()
+    nodes = []
     R = []
     for rec in dbtable.search(rational_poset_query(), ["label", "parents", "coarse_label"]):
         if rec["label"] == "1.1.0.a.1": continue
+        nodes.append(rec["label"])
         parents = [label for label in rec["parents"] if label != "1.1.0.a.1"]
         if rec["label"] != to_coarse_label(rec["label"]) and to_coarse_label(rec["label"]) != "1.1.0.a.1":
             parents += [to_coarse_label(rec["label"])]
@@ -766,8 +768,7 @@ def get_rational_poset():
             R.append([rec["label"], olabel]) # note that this is the opposite direction of edges from lattice_poset
     print("DB data loaded in", walltime() - t0)
     t0 = cputime()
-    D = DiGraph()
-    D.add_edges(R, loops=False)
+    D = DiGraph([nodes, R], format='vertices_and_edges')
     print("Edges added to graph in", cputime() - t0)
     t0 = cputime()
     P = FinitePoset(D)
@@ -846,7 +847,7 @@ def make_picture_input():
         for label in db.gps_sl2zhat_fine.search(psl2_query(), "label"):
             if pslbox(label): # checks that contains -1
                 _ = F.write(label + "\n")
-    print(" done in {time.time() - t0:.2f}s")
+    print(f" done in {time.time() - t0:.2f}s")
 
 def make_psl2_input_data():
     print("Writing psl2 input data...", end="")
@@ -858,7 +859,7 @@ def make_psl2_input_data():
         if pslbox(rec["label"]): # checks that contains -1
             with open(opj(folder, rec["label"]), "w") as F:
                 _ = F.write(",".join(str(c) for c in flatten(rec["subgroup"])))
-    print(" done in {time.time() - t0:.2f}s")
+    print(f" done in {time.time() - t0:.2f}s")
 
 ########################################################
 # Functions for preparing for the gonality computation #
@@ -873,7 +874,7 @@ def make_gonality_files():
     for rec in dbtable.search(model_query(), ["label", "q_gonality_bounds", "qbar_gonality_bounds"]):
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"]))
-    print(" done in {time.time() - t0:.2f}s")
+    print(f" done in {time.time() - t0:.2f}s")
 
 #########################################################
 # Functions for setting up genus 2 curve identification #
@@ -890,7 +891,7 @@ def make_g2_lookup_data():
             fname = "h" + rec["g2_inv"][1:-1].replace(",", ".").replace("/", "_")
             with open(opj(folder, fname), "a") as F:
                 _ = F.write(f"{rec['label']}|{eqn}")
-    print(" done in {time.time() - t0:.2f}s")
+    print(f" done in {time.time() - t0:.2f}s")
 
 #############################
 # Execute the main function #
