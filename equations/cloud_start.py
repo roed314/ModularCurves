@@ -16,6 +16,7 @@
 # ** Computation changes **
 # Create a mechanism for redoing failed labels
 # For elliptic curves and genus 2 curves, it would be good to link to them (probably using newform) (add curve_label column, use CremonaReferece)
+# When assigned, use M`C to save curve_label earlier (otherwise computation may time out)
 # Fix these:
 # `images = [label for label in images if "?" not in label and int(label.split(".")[0]) < 24]`
 # if level >= 24: continue
