@@ -27,6 +27,10 @@ parser.add_argument("--codprob", type=float, help="probability that each valid c
 parser.add_argument("--domprob", type=float, help="probablity that domains of relative j-maps are included, conditional on their codomain being included")
 parser.add_argument("--absprob", type=float, help="probability that non-canonical curves are included")
 
+parser.add_argument("--norelj", action="store_true", help="disable computation of relj_codomains")
+parser.add_argument("--nopsl2", action="store_true", help="disable creation of psl2_input_data and picture_labels.txt")
+parser.add_argument(
+
 args = parser.parse_args()
 
 def prep(stage):
@@ -36,9 +40,11 @@ def prep(stage):
         #run_hyperelliptic()
     elif stage == 1:
         extract_stage0()
-        get_relj_codomains()
-        make_psl2_input_data()
-        make_g2_lookup_data()
+        if not args.norelj:
+            get_relj_codomains()
+        if not args.nopsl2:
+            make_psl2_input_data()
+        make_g2_lookup_data() # if folder exists, does nothing
         make_graphviz_files()
         make_picture_input()
         make_gonality_files()
@@ -52,6 +58,7 @@ def make_input_data():
     Create the input folder that stores generators
     """
     print("Creating input data...", end="")
+    sys.stdout.flush()
     folder = opj("..", "equations", "input_data")
     os.makedirs(folder, exist_ok=True)
     for rec in dbtable.search({"contains_negative_one":True}, ["label", "generators"]):
@@ -61,6 +68,7 @@ def make_input_data():
 
 def extract_stage0():
     print("Extracting output from stage 0...", end="")
+    sys.stdout.flush()
     ifold = opj("..", "equations", "ishyp")
     os.makedirs(ifold, exist_ok=True)
     with open("output0") as F:
@@ -125,6 +133,7 @@ def make_tarball(stage=1):
         for n, line in enumerate(F, 1):
             pass
     print("Creating tarball...", end="")
+    sys.stdout.flush()
     include = [
         "equations.spec",
         "CanonicalRing.m",
@@ -191,6 +200,7 @@ def make_tarball(stage=1):
 def prep_hyperelliptic():
     # Need to figure out which modular curves are on the "border" between canonical models and not (g=0,1 or hyperelliptic)
     print("Preparing for hyperelliptic computation...", end="")
+    sys.stdout.flush()
     with open(opj("hyptodo.txt"), "w") as F:
         for rec in dbtable.search({"contains_negative_one":True, "genus":{"$gte":3, "$lte":17}}, ["label", "level", "qbar_gonality_bounds"]):
             if args.hyplevel is not None:
@@ -227,6 +237,7 @@ def run_hyperelliptic():
 def get_relj_codomains():
     # Currently, the plan is to just run GetPrecHyp.m on lovelace, so we just use the output in the folder ishyp
     print("Loading hyperelliptic data...", end="")
+    sys.stdout.flush()
     output_folder = opj("..", "equations", "cod")
     os.makedirs(output_folder, exist_ok=True)
     hyp_lookup = {}
@@ -478,12 +489,12 @@ def make_graphviz_files():
     """
     Creates input files for graphviz, storing them in a graphviz_in directory
     """
-    print("Writing graphviz files...", end="")
+    print("Writing graphviz files...")
     P = get_lattice_poset()
     os.makedirs(opj("..", "equations", "graphviz_in"), exist_ok=True)
     for label in P:
         make_graphviz_file(label)
-    print(" done")
+    print("Graphviz files completed")
 
 ###############################################################
 # Functions for preparing for the rational points computation #
@@ -523,6 +534,7 @@ def load_points_files(data_folder):
                     if len(pieces) != 8:
                         raise ValueError(f"line has {len(pieces)} when it should have 8: {line}")
                     all_pieces.append(pieces)
+                    field_labels.add(pieces[2].strip())
                     field_labels.add(pieces[4].strip())
 
     nfs, sub_lookup, embeddings = load_nf_data(list(field_labels))
@@ -812,6 +824,7 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
 
 def make_picture_input():
     print("Creating picture input...", end="")
+    sys.stdout.flush()
     with open("picture_labels.txt", "w") as F:
         for label in dbtable.distinct("psl2label"):
             if pslbox(label):
@@ -820,6 +833,7 @@ def make_picture_input():
 
 def make_psl2_input_data():
     print("Writing psl2 input data...", end="")
+    sys.stdout.flush()
     folder = opj("..", "equations", "psl2_input_data")
     os.makedirs(folder, exist_ok=True)
     for rec in db.gps_sl2zhat_fine.search({}, ["label", "subgroup"]):
@@ -834,6 +848,7 @@ def make_psl2_input_data():
 
 def make_gonality_files():
     print("Writing gonality files...", end="")
+    sys.stdout.flush()
     folder = opj("..", "equations", "gonality")
     os.makedirs(folder, exist_ok=True)
     for rec in dbtable.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"]):
@@ -847,6 +862,7 @@ def make_gonality_files():
 
 def make_g2_lookup_data():
     print("Writing g2 invariant files...", end="")
+    sys.stdout.flush()
     folder = opj("..", "equations", "g2invs")
     if not ope(folder):
         os.makedirs(folder)

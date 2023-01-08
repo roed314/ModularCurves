@@ -13,12 +13,27 @@ sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
 from lmfdb import db
 dbtable = db.gps_gl2zhat_tmp
 
+def lattice_query():
+    # Currently, dbtable contains more info than we're going to include on the website, so we trim it here
+    qlevels = [n for n in range(71,400) if ZZ(n).is_prime_power()]
+    return {"contains_negative_one": True,
+            "$or": [{"level": "$lte": 70},
+                    {"level": {"$in": qlevels}}]}
+
+@cached_function
+def rational_poset_query():
+    # We need to also include prime levels since ec_nfcurve has prime level galois_images, and many of the hand-curated low-degree points are on curves of prime level
+    ecnf_primes = sorted(set(sum(db.ec_nfcurves.distinct('nonmax_primes'), [])))
+    return {"$and": [
+        {"$or": [{"level": "$lte": 70},
+                 {"level": {"$in": qlevels}}]}
+        {"$or": [{"pointless": False}, {"pointless": None}, {"level": {"$in": ecnf_primes}}]}]}
 
 @cached_function
 def get_lattice_poset():
     t0 = walltime()
     R = []
-    for rec in dbtable.search({"contains_negative_one":True}, ["label", "parents"]):
+    for rec in dbtable.search(lattice_query(), ["label", "parents"]):
         for olabel in rec["parents"]:
             R.append([olabel, rec["label"]]) # Use backward direction so that breadth first search is faster
     print("DB data loaded in", walltime() - t0)
@@ -30,12 +45,6 @@ def get_lattice_poset():
     P = FinitePoset(D)
     print("Poset created in", cputime() - t0)
     return P
-
-@cached_function
-def rational_poset_query():
-    # We need to also include prime levels since ec_nfcurve has prime level galois_images, and many of the hand-curated low-degree points are on curves of prime level
-    ecnf_primes = sorted(set(sum(db.ec_nfcurves.distinct('nonmax_primes'), [])))
-    return {"$or": [{"pointless": False}, {"pointless": None}, {"level": {"$in": ecnf_primes}}]}
 
 def index_iterator(P, v, reverse=False):
     """
