@@ -29,7 +29,7 @@ parser.add_argument("--absprob", type=float, help="probability that non-canonica
 
 parser.add_argument("--norelj", action="store_true", help="disable computation of relj_codomains")
 parser.add_argument("--nopsl2", action="store_true", help="disable creation of psl2_input_data and picture_labels.txt")
-parser.add_argument(
+parser.add_argument("--nographviz", action="store_true", help="disable creation of graphviz input folder")
 
 args = parser.parse_args()
 
@@ -45,8 +45,10 @@ def prep(stage):
         if not args.nopsl2:
             make_psl2_input_data()
         make_g2_lookup_data() # if folder exists, does nothing
-        make_graphviz_files()
-        make_picture_input()
+        if not args.nographviz:
+            make_graphviz_files()
+        if not args.nopsl2:
+            make_picture_input()
         make_gonality_files()
         prepare_rational_points()
     else:
