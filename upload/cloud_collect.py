@@ -91,6 +91,7 @@ def get_gonalities(model_gonalities=None):
             # We alternate until no improvements are made, since gonality improvements can go either direction along maps
             improvements = 0
             for x in index_iterator(P, X1):
+                index = ig[x][0]
                 for y in H.neighbors_in(x):
                     for bar in [1,3]:
                         # Update gonality upper bound: we can compose a map to y with a gonality map from y to P1 to get a gonality map from x to P1
@@ -116,6 +117,7 @@ def get_gonalities(model_gonalities=None):
             improvements = 0
             # We iterate over x in a reverse order, and try to improve the gonality of y
             for x in index_iterator(P, X1, reverse=True):
+                index = ig[x][0]
                 for y in H.neighbors_in(x):
                     for bar in [1,3]:
                         # if X -> Y, gon(Y) >= gon(X)/deg(pi)
