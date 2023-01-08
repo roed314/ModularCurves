@@ -176,7 +176,7 @@ def make_tarball(stage=1):
 def prep_hyperelliptic():
     # Need to figure out which modular curves are on the "border" between canonical models and not (g=0,1 or hyperelliptic)
     print("Preparing for hyperelliptic computation...", end="")
-    with open(opj("..", "equations", "hyptodo.txt"), "w") as F:
+    with open(opj("hyptodo.txt"), "w") as F:
         for rec in dbtable.search({"contains_negative_one":True, "genus":{"$gte":3, "$lte":17}}, ["label", "qbar_gonality_bounds"]):
             if inbox(rec["label"]) and rec["qbar_gonality_bounds"][0] == 2 and rec["qbar_gonality_bounds"][1] > 2 and not ope(opj("..", "ishyp", rec["label"])):
                 if args.hypprob is not None:
@@ -191,16 +191,16 @@ def run_hyperelliptic():
     """
     Determines which modular curves that might be hyperelliptic actually are, since this is required for determining codomains for relative j-maps
     """
-    os.chdir(opj("..", "equations"))
     with open("hyptodo.txt") as F:
         n = 0
         for n, line in enumerate(F, 1):
             pass
+    os.chdir(opj("..", "equations"))
     if n > 0:
         curn = len(os.listdir("ishyp"))
         folder = os.path.abspath("ishyp")
         print(f"Determining hyperellipticity (done when {curn + n} files exist in {folder})")
-        subprocess.run('parallel -j80 -a hyptodo.txt "magma -b label:={1} GetPrecHyp.m"', shell=True)
+        subprocess.run('parallel -j80 -a ../upload/hyptodo.txt "magma -b label:={1} GetPrecHyp.m"', shell=True)
         print("Done determining hyperellipticity")
     os.chdir(opj("..", "upload"))
 
