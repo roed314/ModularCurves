@@ -520,23 +520,6 @@ def make_graphviz_files():
 # Functions for preparing for the rational points computation #
 ###############################################################
 
-def convert_cm_datafile(cmin, cmout):
-    # Convert from Drew's format (which has some extra stuff and is missing others)
-    lookup = {tuple(rec["ainvs"]): rec["lmfdb_label"] for rec in db.ec_curvedata.search({}, ["ainvs", "lmfdb_label"])}
-    with open(cmout, "w") as Fout:
-        with open(cmin) as F:
-            for line in F:
-                level, gens, label, ainvs = line.strip().split(":")
-                ainvs = [ZZ(a) for a in ainvs[1:-1].split(",")]
-                E = EllipticCurve(ainvs)
-                cm = E.cm_discriminant()
-                j = E.j_invariant()
-                ainvs = tuple(E.minimal_model().a_invariants())
-                conductor = E.conductor()
-                lmfdb_label = lookup.get(ainvs, r"?")
-                ainvs = ";".join(str(a) for a in ainvs) # format compatible with ec_nfcurves
-                _ = Fout.write(f"{lmfdb_label}|{label}|{j}|{cm}|{ainvs}|{conductor}\n")
-
 def is_isolated(degree, g, rank, gonlow, simp, dims):
     # We encode the isolatedness in a small integer, p + a, where
     # p = 3,0,-3 for P1 isolated/unknown/parameterized and
@@ -613,6 +596,10 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
             if "-" in label:
                 # For now, if the label is a fine label we coarsify it (so that we can get started on models)
                 label = to_coarse_label(label)
+            # For now we skip over genus > 24
+            g = int(label.split(".")[2])
+            if g > 24:
+                continue
             for v in H.breadth_first_search(P._element_to_vertex(label)):
                 plabel = P._vertex_to_element(v)
                 if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:

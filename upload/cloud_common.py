@@ -140,7 +140,6 @@ def load_gl2zhat_rational_data():
     return {rec["label"]: rec for rec in db.gps_gl2zhat_tmp.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "coarse_label"], silent=True)}
 
 def to_coarse_label(label):
-    # Work around broken coarse_label column
     if label.count(".") == 4:
         return label
     # N.i.g-M.a.m.n
@@ -379,3 +378,19 @@ def load_nf_data(field_labels=None):
     print(f"Constructed number field lookup tables in {time.time() - t0:.2f}s")
     return nfs, sub_lookup, embeddings
 
+def convert_cm_datafile(cmin, cmout):
+    # Convert from Drew's format (which has some extra stuff and is missing others)
+    lookup = {tuple(rec["ainvs"]): rec["lmfdb_label"] for rec in db.ec_curvedata.search({}, ["ainvs", "lmfdb_label"])}
+    with open(cmout, "w") as Fout:
+        with open(cmin) as F:
+            for line in F:
+                level, gens, label, ainvs = line.strip().split(":")
+                ainvs = [ZZ(a) for a in ainvs[1:-1].split(",")]
+                E = EllipticCurve(ainvs)
+                cm = E.cm_discriminant()
+                j = E.j_invariant()
+                ainvs = tuple(E.minimal_model().a_invariants())
+                conductor = E.conductor()
+                lmfdb_label = lookup.get(ainvs, r"?")
+                ainvs = ";".join(str(a) for a in ainvs) # format compatible with ec_nfcurves
+                _ = Fout.write(f"{lmfdb_label}|{label}|{j}|{cm}|{ainvs}|{conductor}\n")
