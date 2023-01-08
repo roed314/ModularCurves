@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-import time
+import argparse
 import subprocess
 
 opj = os.path.join
@@ -39,10 +39,5 @@ def collate_data(label):
                             line += "\n"
                         _ = Fout.write(f"{code}{label}|{line}")
 
-with open(opj("timings", label), "a") as F:
-    _ = F.write("Starting overall\n")
-t0 = time.time()
 get_hyperellipticity(label, args.verbose)
-with open(opj("timings", label), "a") as F:
-    _ = F.write(f"Finished overall in {time.time() - t0}\n")
 collate_data()
