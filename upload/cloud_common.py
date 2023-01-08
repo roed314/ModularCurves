@@ -17,7 +17,7 @@ def lattice_query():
     # Currently, dbtable contains more info than we're going to include on the website, so we trim it here
     qlevels = [n for n in range(71,400) if ZZ(n).is_prime_power()]
     return {"contains_negative_one": True,
-            "$or": [{"level": "$lte": 70},
+            "$or": [{"level": {"$lte": 70}},
                     {"level": {"$in": qlevels}}]}
 
 @cached_function
