@@ -21,6 +21,7 @@ from lmfdb import db
 
 parser = argparse.ArgumentParser("Create a tarball for cloud computation")
 parser.add_argument("stage", type=int, help="stage of compututation (1=initial setup, 2=after getting cod data back")
+parser.add_argument("--hypprob", type=float, help="probablity that each potentially hyperelliptic curve is tested")
 parser.add_argument("--codprob", type=float, help="probability that each valid codomain is included")
 parser.add_argument("--domprob", type=float, help="probablity that domains of relative j-maps are included, conditional on their codomain being included")
 parser.add_argument("--absprob", type=float, help="probability that non-canonical curves are included")
@@ -28,10 +29,11 @@ parser.add_argument("--absprob", type=float, help="probability that non-canonica
 args = parser.parse_args()
 
 def prep(stage):
-    if stage == 1:
+    if stage == 0:
         make_input_data()
         prep_hyperelliptic()
-        run_hyperelliptic()
+        #run_hyperelliptic()
+    elif stage == 1:
         get_relj_codomains()
         make_psl2_input_data()
         make_g2_lookup_data()
@@ -97,7 +99,9 @@ def make_tarball(stage=1):
     """
     Create a tarball with all the files needed to run on another server
     """
-    if stage == 1:
+    if stage == 0:
+        shutil.copy("hyptodo.txt", opj("..", "equations", "todo.txt"))
+    elif stage == 1:
         shutil.copy("codtodo.txt", opj("..", "equations", "todo.txt"))
     else:
         shutil.copy("nexttodo.txt", opj("..", "equations", "todo.txt"))
@@ -143,11 +147,18 @@ def make_tarball(stage=1):
         "jinvs",
         "g2invs",
     ]
+    if stage == 0:
+        include.extend(["cloud_hypstart.py"])
+    elif stage == 1:
+        include.extend(["ishyp"])
     if stage == 2:
-        include.extend(["rats", "canonical_models"])
+        include.extend(["ishyp", "rats", "canonical_models"])
     subprocess.run(f"tar -cf ../upload/stage{stage}_{n}.tar " + " ".join(include), shell=True)
     print(" done")
-    if stage == 1:
+    if stage == 0:
+        print("Next steps:")
+        print(f"  Copy stage0_{n}.tar to a server or cloud disk image, extract and run cloud_hypstart.py in parallel")
+    elif stage == 1:
         print("Next steps:")
         print(f"  Copy stage1_{n}.tar to a server or cloud disk image, extract and run cloud_start.py in parallel")
         print("  ./make_pictures.py NUM_PROC")
@@ -168,6 +179,10 @@ def prep_hyperelliptic():
     with open(opj("..", "equations", "hyptodo.txt"), "w") as F:
         for rec in dbtable.search({"contains_negative_one":True, "genus":{"$gte":3, "$lte":17}}, ["label", "qbar_gonality_bounds"]):
             if inbox(rec["label"]) and rec["qbar_gonality_bounds"][0] == 2 and rec["qbar_gonality_bounds"][1] > 2 and not ope(opj("..", "ishyp", rec["label"])):
+                if args.hypprob is not None:
+                    r = random()
+                    if r > args.hypprob:
+                        continue
                 # possibly hyperelliptic
                 _ = F.write(rec["label"] + "\n")
     print(" done")
@@ -197,7 +212,7 @@ def get_relj_codomains():
     hyp_lookup = {}
     for label in os.listdir(opj("..", "equations", "ishyp")):
         with open(opj("..", "equations", "ishyp", label)) as F:
-            hyp, prec = F.read().strip().split("|")
+            hyp, prec, reldeg = F.read().strip().split("|")
             hyp_lookup[label] = (hyp == "t")
     print(" done")
     print("Determining codomains...", end="")

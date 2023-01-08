@@ -14,9 +14,11 @@ if (not assigned label) then
     quit;
 end if;
 
+t0 := ReportStart(label, "ishyp");
 level, gens := GetLevelAndGensFromLabel(label);
 M := CreateModularCurveRec(level, gens);
-prec, hyp := RequiredPrecision(M);
+prec, hyp, reldeg := RequiredPrecision(M);
 hyp := hyp select "t" else "f";
-Write(Sprintf("ishyp/%o", label), Sprintf("%o|%o", hyp, prec));
+Write(Sprintf("ishyp/%o", label), Sprintf("%o|%o|%o", hyp, prec, reldeg));
+ReportEnd(label, "ishyp", t0);
 exit;
