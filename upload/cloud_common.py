@@ -25,7 +25,7 @@ def rational_poset_query():
     # We need to also include prime levels since ec_nfcurve has prime level galois_images, and many of the hand-curated low-degree points are on curves of prime level
     ecnf_primes = sorted(set(sum(db.ec_nfcurves.distinct('nonmax_primes'), [])))
     return {"$and": [
-        {"$or": [{"level": "$lte": 70},
+        {"$or": [{"level": {"$lte": 70}},
                  {"level": {"$in": qlevels}}]},
         {"$or": [{"pointless": False}, {"pointless": None}, {"level": {"$in": ecnf_primes}}]}]}
 
