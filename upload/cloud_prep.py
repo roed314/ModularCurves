@@ -580,12 +580,13 @@ def is_isolated(degree, g, rank, gonlow, simp, dims):
 
 def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_folder="../rational-points/data", ecnf_data_file="ecnf_data.txt", cm_data_file="cm_data.txt"):
     print("Creating rational point data...")
+    t0 = time.time()
     # Writes files with rational points for pullback along j-maps
     os.makedirs(output_folder, exist_ok=True)
 
     lit_data = load_points_files(manual_data_folder)
     lit_fields = sorted(set([datum[2] for datum in lit_data]))
-    print("Loaded tables from files")
+    print(f"Loaded tables from files in {time.time() - t0:.2f}s")
 
     gpdata = load_gl2zhat_rational_data()
 

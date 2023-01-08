@@ -137,7 +137,7 @@ def index_iterator(P, v, reverse=False):
         yield from by_index[ind]
 
 def load_gl2zhat_rational_data():
-    return {rec["label"]: rec for rec in dbtable.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "coarse_label"], silent=True)}
+    return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "coarse_label"], silent=True)}
 
 def to_coarse_label(label):
     # Work around broken coarse_label column
@@ -194,7 +194,7 @@ def save_ecnf_data(fname="ecnf_data.txt"):
             _ = F.write(f"{Slabels}|{rec['degree']}|{rec['field_label']}|{jorig}|{jinv}|{jfield}|{j_height}|{rec['cm']}|{rec['label']}|{rec['conductor_norm']}|{rec['ainvs']}\n")
 
 def load_ecq_data(cm_data_file):
-    print("Loading CM data over Q...")
+    print("Loading CM data over Q...", end="")
     t0 = walltime()
     ecq_db_data = []
     # CM data computed by Shiva
@@ -206,7 +206,7 @@ def load_ecq_data(cm_data_file):
                 ecq_db_data.append((modcurve_label, 1, "1.1.1.1", r"\N", j, "1.1.1.1", str(QQ(j).global_height()), int(cm), lmfdb_label, False, conductor, ainvs))
             else:
                 cm_lookup[lmfdb_label].append(modcurve_label)
-    print(f"Loaded CM data in {walltime() - t0:.2f}")
+    print(f" done in {walltime() - t0:.2f}s")
     t0 = walltime()
 
     for rec in db.ec_curvedata.search({}, ["lmfdb_label", "jinv", "cm", "conductor", "modm_images", "ainvs"]):
