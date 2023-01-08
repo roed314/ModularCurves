@@ -95,6 +95,16 @@ def inbox(label):
     #    return g <= 14
     #return g <= 6
 
+def pslbox(label):
+    """
+    Whether this sl2-label can show up as a psl2label (and thus needed for pictures)
+    """
+    if "-" in label:
+        return False
+    N = label.split(".")[0]
+    N = ZZ(N)
+    return N <= 70 or N.is_prime_power()
+
 def save_ecnf_data(fname="ecnf_data.txt"):
     # We have to modify ecnf data in a way that's somewhat slow (computing the actual field in which j lies)
     # We do that once, save it, and then load the result from disc as needed

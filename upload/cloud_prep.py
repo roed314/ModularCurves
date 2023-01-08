@@ -11,7 +11,7 @@ from sage.all import ZZ, QQ, PolynomialRing, MatrixSpace, EllipticCurve, NumberF
 from sage.combinat.posets.posets import FinitePoset
 from sage.databases.cremona import class_to_int
 from sage.misc.prandom import random
-from cloud_common import rational_poset_query, get_lattice_poset, index_iterator, to_coarse_label, inbox, load_gl2zhat_rational_data, dbtable
+from cloud_common import rational_poset_query, get_lattice_poset, index_iterator, to_coarse_label, inbox, pslbox, load_gl2zhat_rational_data, dbtable
 
 
 opj = os.path.join
@@ -60,6 +60,7 @@ def make_input_data():
     print(" done")
 
 def extract_stage0():
+    print("Extracting output from stage 0...", end="")
     ifold = opj("..", "equations", "ishyp")
     os.makedirs(ifold, exist_ok=True)
     with open("output0") as F:
@@ -69,6 +70,7 @@ def extract_stage0():
             if line[0] == "Y":
                 with open(opj(ifold, label), "w") as Fout:
                     _ = Fout.write(rest.strip())
+    print(" done")
 
 def extract_stage1():
     """
@@ -233,7 +235,7 @@ def get_relj_codomains():
             hyp, prec, reldeg = F.read().strip().split("|")
             hyp_lookup[label] = (hyp == "t")
     print(" done")
-    print("Determining codomains...", end="")
+    print("Determining codomains...")
     parents_conj = {}
     M = MatrixSpace(ZZ, 2)
     for rec in dbtable.search({"contains_negative_one":True, "$or": [{"level":{"$lt":24}, "genus": {"$gte": 3, "$lte": 24}}, {"level":{"$lt":120}, "genus":{"$gte":3, "$lte":14}}, {"genus":{"$gte":3, "$lte":6}}]}, ["label", "parents", "parents_conj", "qbar_gonality_bounds"]):
@@ -265,7 +267,7 @@ def get_relj_codomains():
                     conj = parents_conj[label, ylabel] * yconj
                     tmp.append((ybest, conj))
             cod[label] = min(tmp, key=index_sort_key)
-    print(" done")
+    print("Codomains selected")
     cods = defaultdict(int)
     for label, (codomain, conj) in cod.items():
         if label != codomain:
@@ -310,6 +312,7 @@ def get_relj_codomains():
                             if r > args.absprob:
                                 continue
                         _ = Flat.write(label + "\n")
+    print("Todo files printed")
 
 #######################################################
 # Functions for preparing for the lattice computation #
@@ -475,10 +478,12 @@ def make_graphviz_files():
     """
     Creates input files for graphviz, storing them in a graphviz_in directory
     """
+    print("Writing graphviz files...", end="")
     P = get_lattice_poset()
     os.makedirs(opj("..", "equations", "graphviz_in"), exist_ok=True)
     for label in P:
         make_graphviz_file(label)
+    print(" done")
 
 ###############################################################
 # Functions for preparing for the rational points computation #
@@ -524,7 +529,7 @@ def load_points_files(data_folder):
 
     ans = []
     X0s = {rec["name"]: rec["label"] for rec in dbtable.search({"name": {"$like": "X0%"}}, ["name", "label"], silent=True)}
-    RSZB_lookup = {rec["RSZBlabel"]: rec["label"] for rec in dbtable.search({"name": {"$exists": True}}, ["label", "RSZBlabel"])}
+    RSZB_lookup = {rec["RSZBlabel"]: rec["label"] for rec in dbtable.search({"name": {"$exists": True}, "RSZBlabel": {"$exists":True}}, ["label", "RSZBlabel"])}
     skipped = set()
     for pieces in all_pieces:
         name = label = pieces[0].strip()
@@ -742,6 +747,7 @@ def get_rational_poset():
     return P
 
 def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_folder="../rational-points/data", ecnf_data_file="ecnf_data.txt", cm_data_file="cm_data.txt"):
+    print("Creating rational point data...")
     # Writes files with rational points for pullback along j-maps
     os.makedirs(output_folder, exist_ok=True)
 
@@ -798,39 +804,49 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
         with open(opj(output_folder, plabel), "w") as F:
             for jinv, nf, isolated in pts:
                 _ = F.write(f"{jinv}|{str(nf).replace(' ','')[1:-1]}|{isolated}\n")
+    print("Done writing rational point files")
 
 #######################################################
 # Functions for preparing for the picture computation #
 #######################################################
 
 def make_picture_input():
+    print("Creating picture input...", end="")
     with open("picture_labels.txt", "w") as F:
         for label in dbtable.distinct("psl2label"):
-            _ = F.write(label + "\n")
+            if pslbox(label):
+                _ = F.write(label + "\n")
+    print(" done")
 
 def make_psl2_input_data():
+    print("Writing psl2 input data...", end="")
     folder = opj("..", "equations", "psl2_input_data")
     os.makedirs(folder, exist_ok=True)
     for rec in db.gps_sl2zhat_fine.search({}, ["label", "subgroup"]):
-        with open(opj(folder, rec["label"]), "w") as F:
-            _ = F.write(",".join(str(c) for c in flatten(rec["subgroup"])))
+        if pslbox(rec["label"]):
+            with open(opj(folder, rec["label"]), "w") as F:
+                _ = F.write(",".join(str(c) for c in flatten(rec["subgroup"])))
+    print(" done")
 
 ########################################################
 # Functions for preparing for the gonality computation #
 ########################################################
 
 def make_gonality_files():
+    print("Writing gonality files...", end="")
     folder = opj("..", "equations", "gonality")
     os.makedirs(folder, exist_ok=True)
     for rec in dbtable.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"]):
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"]))
+    print(" done")
 
 #########################################################
 # Functions for setting up genus 2 curve identification #
 #########################################################
 
 def make_g2_lookup_data():
+    print("Writing g2 invariant files...", end="")
     folder = opj("..", "equations", "g2invs")
     if not ope(folder):
         os.makedirs(folder)
@@ -838,6 +854,7 @@ def make_g2_lookup_data():
             fname = "h" + rec["g2_inv"][1:-1].replace(",", ".").replace("/", "_")
             with open(opj(folder, fname), "a") as F:
                 _ = F.write(f"{rec['label']}|{eqn}")
+    print(" done")
 
 #############################
 # Execute the main function #
