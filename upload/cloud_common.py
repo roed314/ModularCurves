@@ -99,7 +99,7 @@ def get_rational_poset():
     t0 = walltime()
     nodes = []
     R = []
-    for rec in dbtable.search(rational_poset_query(), ["label", "parents", "coarse_label"]):
+    for rec in dbtable.search(rational_poset_query(), ["label", "parents", "coarse_label"], silent=True):
         if rec["label"] == "1.1.0.a.1": continue
         nodes.append(rec["label"])
         parents = [label for label in rec["parents"] if label != "1.1.0.a.1"]
@@ -107,13 +107,13 @@ def get_rational_poset():
             parents += [to_coarse_label(rec["label"])]
         for olabel in parents:
             R.append([rec["label"], olabel]) # note that this is the opposite direction of edges from lattice_poset
-    print("DB data loaded in", walltime() - t0)
+    print(f"DB data loaded in {walltime() - t0:.2f}s")
     t0 = cputime()
     D = DiGraph([nodes, R], format='vertices_and_edges')
-    print("Edges added to graph in", cputime() - t0)
+    print(f"Edges added to graph in {cputime() - t0:.2f}s")
     t0 = cputime()
     P = FinitePoset(D)
-    print("Poset created in", cputime() - t0)
+    print(f"Poset created in {cputime() - t0:.2f}s")
     return P
 
 def index_iterator(P, v, reverse=False):
@@ -137,7 +137,7 @@ def index_iterator(P, v, reverse=False):
         yield from by_index[ind]
 
 def load_gl2zhat_rational_data():
-    return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "coarse_label"], silent=True)}
+    return {rec["label"]: rec for rec in db.gps_gl2zhat_tmp.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "coarse_label"], silent=True)}
 
 def to_coarse_label(label):
     # Work around broken coarse_label column
@@ -207,9 +207,10 @@ def load_ecq_data(cm_data_file):
             else:
                 cm_lookup[lmfdb_label].append(modcurve_label)
     print(f" done in {walltime() - t0:.2f}s")
+    print("Loading modm_images from ec_curvedata...")
     t0 = walltime()
 
-    for rec in db.ec_curvedata.search({}, ["lmfdb_label", "jinv", "cm", "conductor", "modm_images", "ainvs"]):
+    for rec in db.ec_curvedata.search({}, ["lmfdb_label", "jinv", "cm", "conductor", "modm_images", "ainvs"], silent=True):
         Elabel = rec["lmfdb_label"]
         jinv = QQ(tuple(rec["jinv"]))
         if rec["cm"]:
@@ -220,7 +221,7 @@ def load_ecq_data(cm_data_file):
         ainvs = ";".join(str(a) for a in rec["ainvs"])
         for label in images:
             ecq_db_data.append((label, 1, "1.1.1.1", r"\N", str(jinv), "1.1.1.1", str(jinv.global_height()), rec["cm"], Elabel, False, str(rec["conductor"]), ainvs))
-    print(f"Loaded elliptic curves over Q  from the LMFDB in {walltime() - t0:.2f}")
+    print(f" done in {walltime() - t0:.2f}")
     return ecq_db_data
 
 def load_ecnf_data(fname="ecnf_data.txt"):
