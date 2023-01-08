@@ -56,7 +56,9 @@ def get_gonalities(model_gonalities=None):
                            for g in dg[d])
                        for d in dg if gcd(d, gon) == 1):
                     if gon > low:
-                        _ = F.write(f"C|{bar}|{P._vertex_to_element(x)}|{gon}|C|{gon - low}\n")
+                        # Record information about how we got here
+                        dgrec = ":".join(f"{d}({','.join(str(g) for g in dg[d])})" for d in dg if gcd(d, gon) == 1)
+                        _ = F.write(f"C|{bar}|{P._vertex_to_element(x)}|{gon}|{dgrec}|{gon - low}\n")
                         gonalities[x][bar] = gon
                     break
             else:

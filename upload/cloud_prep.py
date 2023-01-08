@@ -22,6 +22,7 @@ from lmfdb import db
 parser = argparse.ArgumentParser("Create a tarball for cloud computation")
 parser.add_argument("stage", type=int, help="stage of compututation (1=initial setup, 2=after getting cod data back")
 parser.add_argument("--hypprob", type=float, help="probablity that each potentially hyperelliptic curve is tested")
+parser.add_argument("--hyplevel", type=int, help="for stage 0.  if negative, only include curves with level less than or equal to absolute value.  If positive, only include curves with larger level")
 parser.add_argument("--codprob", type=float, help="probability that each valid codomain is included")
 parser.add_argument("--domprob", type=float, help="probablity that domains of relative j-maps are included, conditional on their codomain being included")
 parser.add_argument("--absprob", type=float, help="probability that non-canonical curves are included")
@@ -189,7 +190,12 @@ def prep_hyperelliptic():
     # Need to figure out which modular curves are on the "border" between canonical models and not (g=0,1 or hyperelliptic)
     print("Preparing for hyperelliptic computation...", end="")
     with open(opj("hyptodo.txt"), "w") as F:
-        for rec in dbtable.search({"contains_negative_one":True, "genus":{"$gte":3, "$lte":17}}, ["label", "qbar_gonality_bounds"]):
+        for rec in dbtable.search({"contains_negative_one":True, "genus":{"$gte":3, "$lte":17}}, ["label", "level", "qbar_gonality_bounds"]):
+            if args.hyplevel is not None:
+                if args.hyplevel < 0 and rec["level"] > abs(args.hyplevel):
+                    continue
+                if args.hyplevel > 0 and rec["level"] <= args.hyplevel:
+                    continue
             if inbox(rec["label"]) and rec["qbar_gonality_bounds"][0] == 2 and rec["qbar_gonality_bounds"][1] > 2 and not ope(opj("..", "ishyp", rec["label"])):
                 if args.hypprob is not None:
                     r = random()
