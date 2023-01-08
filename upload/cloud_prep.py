@@ -4,6 +4,7 @@ import os
 import sys
 import shutil
 import re
+import time
 import subprocess
 import argparse
 from collections import defaultdict
@@ -60,16 +61,18 @@ def make_input_data():
     Create the input folder that stores generators
     """
     print("Creating input data...", end="")
+    t0 = time.time()
     sys.stdout.flush()
     folder = opj("..", "equations", "input_data")
     os.makedirs(folder, exist_ok=True)
     for rec in dbtable.search(lattice_query(), ["label", "generators"]):
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))
-    print(" done")
+    print(" done in {time.time() - t0:.2f}s")
 
 def extract_stage0():
     print("Extracting output from stage 0...", end="")
+    t0 = time.time()
     sys.stdout.flush()
     ifold = opj("..", "equations", "ishyp")
     os.makedirs(ifold, exist_ok=True)
@@ -80,7 +83,7 @@ def extract_stage0():
             if line[0] == "Y":
                 with open(opj(ifold, label), "w") as Fout:
                     _ = Fout.write(rest.strip())
-    print(" done")
+    print(" done in {time.time() - t0:.2f}s")
 
 def extract_stage1():
     """
@@ -135,6 +138,7 @@ def make_tarball(stage=1):
         for n, line in enumerate(F, 1):
             pass
     print("Creating tarball...", end="")
+    t0 = time.time()
     sys.stdout.flush()
     include = [
         "equations.spec",
@@ -180,7 +184,7 @@ def make_tarball(stage=1):
     if stage == 2:
         include.extend(["ishyp", "rats", "canonical_models"])
     subprocess.run(f"tar -cf ../upload/stage{stage}_{n}.tar " + " ".join(include), shell=True)
-    print(" done")
+    print(" done in {time.time() - t0:.2f}s")
     if stage == 0:
         print("Next steps:")
         print(f"  Copy stage0_{n}.tar to a server or cloud disk image, extract and run cloud_hypstart.py in parallel")
@@ -202,6 +206,7 @@ def make_tarball(stage=1):
 def prep_hyperelliptic():
     # Need to figure out which modular curves are on the "border" between canonical models and not (g=0,1 or hyperelliptic)
     print("Preparing for hyperelliptic computation...", end="")
+    t0 = time.time()
     sys.stdout.flush()
     with open(opj("hyptodo.txt"), "w") as F:
         query = model_query()
@@ -219,7 +224,7 @@ def prep_hyperelliptic():
                         continue
                 # possibly hyperelliptic
                 _ = F.write(rec["label"] + "\n")
-    print(" done")
+    print(" done in {time.time() - t0:.2f}s")
 
 def run_hyperelliptic():
     """
@@ -241,6 +246,7 @@ def run_hyperelliptic():
 def get_relj_codomains():
     # Currently, the plan is to just run GetPrecHyp.m on lovelace, so we just use the output in the folder ishyp
     print("Loading hyperelliptic data...", end="")
+    t0 = time.time()
     sys.stdout.flush()
     output_folder = opj("..", "equations", "cod")
     os.makedirs(output_folder, exist_ok=True)
@@ -249,7 +255,7 @@ def get_relj_codomains():
         with open(opj("..", "equations", "ishyp", label)) as F:
             hyp, prec, reldeg = F.read().strip().split("|")
             hyp_lookup[label] = (hyp == "t")
-    print(" done")
+    print(" done in {time.time() - t0:.2f}s")
     print("Determining codomains...")
     parents_conj = {}
     M = MatrixSpace(ZZ, 2)
@@ -834,15 +840,17 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
 
 def make_picture_input():
     print("Creating picture input...", end="")
+    t0 = time.time()
     sys.stdout.flush()
     with open("picture_labels.txt", "w") as F:
-        for label in db.gps_sl2zhat_fine.search(psl2_query()):
+        for label in db.gps_sl2zhat_fine.search(psl2_query(), "label"):
             if pslbox(label): # checks that contains -1
                 _ = F.write(label + "\n")
-    print(" done")
+    print(" done in {time.time() - t0:.2f}s")
 
 def make_psl2_input_data():
     print("Writing psl2 input data...", end="")
+    t0 = time.time()
     sys.stdout.flush()
     folder = opj("..", "equations", "psl2_input_data")
     os.makedirs(folder, exist_ok=True)
@@ -850,7 +858,7 @@ def make_psl2_input_data():
         if pslbox(rec["label"]): # checks that contains -1
             with open(opj(folder, rec["label"]), "w") as F:
                 _ = F.write(",".join(str(c) for c in flatten(rec["subgroup"])))
-    print(" done")
+    print(" done in {time.time() - t0:.2f}s")
 
 ########################################################
 # Functions for preparing for the gonality computation #
@@ -858,13 +866,14 @@ def make_psl2_input_data():
 
 def make_gonality_files():
     print("Writing gonality files...", end="")
+    t0 = time.time()
     sys.stdout.flush()
     folder = opj("..", "equations", "gonality")
     os.makedirs(folder, exist_ok=True)
     for rec in dbtable.search(model_query(), ["label", "q_gonality_bounds", "qbar_gonality_bounds"]):
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"]))
-    print(" done")
+    print(" done in {time.time() - t0:.2f}s")
 
 #########################################################
 # Functions for setting up genus 2 curve identification #
@@ -872,6 +881,7 @@ def make_gonality_files():
 
 def make_g2_lookup_data():
     print("Writing g2 invariant files...", end="")
+    t0 = time.time()
     sys.stdout.flush()
     folder = opj("..", "equations", "g2invs")
     if not ope(folder):
@@ -880,7 +890,7 @@ def make_g2_lookup_data():
             fname = "h" + rec["g2_inv"][1:-1].replace(",", ".").replace("/", "_")
             with open(opj(folder, fname), "a") as F:
                 _ = F.write(f"{rec['label']}|{eqn}")
-    print(" done")
+    print(" done in {time.time() - t0:.2f}s")
 
 #############################
 # Execute the main function #
