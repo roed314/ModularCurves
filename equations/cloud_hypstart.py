@@ -23,7 +23,7 @@ with open("todo.txt") as F:
 
 def get_hyperellipticity(label, verbose):
     verb = "verbose:= " if verbose else ""
-    subprocess.run('parallel --timeout 600 "magma -b label:={1} %sGetPrecHyp.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+    subprocess.run('parallel --timeout 3600 "magma -b label:={1} %sGetPrecHyp.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def collate_data(label):
     with open("output", "a") as Fout:
