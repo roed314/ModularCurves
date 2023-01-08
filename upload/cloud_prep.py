@@ -31,6 +31,7 @@ parser.add_argument("--absprob", type=float, help="probability that non-canonica
 parser.add_argument("--norelj", action="store_true", help="disable computation of relj_codomains")
 parser.add_argument("--nopsl2", action="store_true", help="disable creation of psl2_input_data and picture_labels.txt")
 parser.add_argument("--nographviz", action="store_true", help="disable creation of graphviz input folder")
+parser.add_argument("--norats", action="store_true", help="disable creation of rational points data")
 
 args = parser.parse_args()
 
@@ -51,7 +52,8 @@ def prep(stage):
         if not args.nopsl2:
             make_picture_input()
         make_gonality_files()
-        prepare_rational_points()
+        if not args.norats:
+            prepare_rational_points()
     else:
         extract_stage1()
     make_tarball(stage=stage)
@@ -257,6 +259,7 @@ def get_relj_codomains():
             hyp_lookup[label] = (hyp == "t")
     print(f" done in {time.time() - t0:.2f}s")
     print("Determining codomains...")
+    t0 = time.time()
     parents_conj = {}
     M = MatrixSpace(ZZ, 2)
     query = model_query()
@@ -290,7 +293,8 @@ def get_relj_codomains():
                     conj = parents_conj[label, ylabel] * yconj
                     tmp.append((ybest, conj))
             cod[label] = min(tmp, key=index_sort_key)
-    print("Codomains selected")
+    print(f"Codomains selected in {time.time() - t0:.2f}")
+    t0 = time.time()
     cods = defaultdict(int)
     for label, (codomain, conj) in cod.items():
         if label != codomain:
@@ -335,7 +339,7 @@ def get_relj_codomains():
                             if r > args.absprob:
                                 continue
                         _ = Flat.write(label + "\n")
-    print("Todo files printed")
+    print(f"Todo files printed in {time.time() - t0:.2f}")
 
 #######################################################
 # Functions for preparing for the lattice computation #
@@ -504,11 +508,12 @@ def make_graphviz_files():
     Creates input files for graphviz, storing them in a graphviz_in directory
     """
     print("Writing graphviz files...")
+    t0 = time.time()
     P = get_lattice_poset()
     os.makedirs(opj("..", "equations", "graphviz_in"), exist_ok=True)
     for label in P:
         make_graphviz_file(label)
-    print("Graphviz files completed")
+    print(f"Graphviz files completed in {time.time() - t0:.2f}")
 
 ###############################################################
 # Functions for preparing for the rational points computation #
@@ -723,13 +728,13 @@ def is_isolated(degree, g, rank, gonlow, simp, dims):
         return "-2"
     elif degree == 1:
         if g == 1:
-            if rank > 0:
+            if rank is None:
+                return "3"
+            elif rank > 0:
                 # Always P1 isolated and AV parameterized
                 return "2"
-            elif rank == 0:
+            else:
                 return "4"
-            else: # rank is None
-                return "3"
         else:
             return "4"
     elif degree < QQ(gonlow) / 2 or degree < gonlow and (rank == 0 or simp and degree < g):
@@ -742,7 +747,7 @@ def is_isolated(degree, g, rank, gonlow, simp, dims):
             return "-4"
         else:
             return "-2"
-    elif degree == g and rank > 0:
+    elif rank is not None and degree == g and rank > 0:
         return "-1" # AV parameterized; can compute if P1 parameterized by Riemann Roch with a model
     else:
         if rank == 0 or (dims is not None and degree <= min(dims)): # for second part, using degree < g
