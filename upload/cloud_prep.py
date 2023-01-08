@@ -609,10 +609,9 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
                 print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
             #assert label != "1.1.0.a.1"
             if label == "1.1.0.a.1": continue
-            # Don't want to save the interval, since that takes quadratic space
-            if label not in P:
-                print(f"Warning: poset missing {label}")
-                continue
+            if "-" in label:
+                # For now, if the label is a fine label we coarsify it (so that we can get started on models)
+                label = to_coarse_label(label)
             for v in H.breadth_first_search(P._element_to_vertex(label)):
                 plabel = P._vertex_to_element(v)
                 if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:
