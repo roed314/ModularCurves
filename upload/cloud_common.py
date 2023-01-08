@@ -13,12 +13,15 @@ sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
 from lmfdb import db
 dbtable = db.gps_gl2zhat_tmp
 
+@cached_function
+def qlevels():
+    return [n for n in range(71,400) if ZZ(n).is_prime_power()]
+
 def lattice_query():
     # Currently, dbtable contains more info than we're going to include on the website, so we trim it here
-    qlevels = [n for n in range(71,400) if ZZ(n).is_prime_power()]
     return {"contains_negative_one": True,
             "$or": [{"level": {"$lte": 70}},
-                    {"level": {"$in": qlevels}}]}
+                    {"level": {"$in": qlevels()}}]}
 
 def model_query():
     return {"contains_negative_one": True,
@@ -33,8 +36,42 @@ def rational_poset_query():
     ecnf_primes = sorted(set(sum(db.ec_nfcurves.distinct('nonmax_primes'), [])))
     return {"$and": [
         {"$or": [{"level": {"$lte": 70}},
-                 {"level": {"$in": qlevels}}]},
+                 {"level": {"$in": qlevels()}}]},
         {"$or": [{"pointless": False}, {"pointless": None}, {"level": {"$in": ecnf_primes}}]}]}
+
+def inbox(label):
+    """
+    Whether this label lies within the box where we're running the model calculations
+    """
+    N, i, g = label.split(".")[:3]
+    N = int(N)
+    g = int(g)
+    if N < 24:
+        return g <= 24
+    if N <= 70:
+        return g <= 14
+    return False
+    #if N <120:
+    #    return g <= 14
+    #return g <= 6
+
+def psl2_query():
+    # This doesn't include the test for containing negative one since that column isn't there yet.
+    return {"$or": [
+        {"level": {"$lte": 70}},
+        {"level": {"$in": qlevels()}},
+        {"genus": {"$lte": 24}}]}
+
+def pslbox(label):
+    """
+    Whether this sl2-label can show up as a psl2label (and thus needed for pictures)
+    """
+    if "-" in label:
+        return False
+    N, i, g = label.split(".")[:3]
+    N = ZZ(N)
+    g = int(g)
+    return N <= 70 or N.is_prime_power() or g <= 24
 
 @cached_function
 def get_lattice_poset():
@@ -94,32 +131,6 @@ def get_output_data():
             with open(fname) as F:
                 for line in F:
                     yield line
-
-def inbox(label):
-    """
-    Whether this label lies within the box where we're running the model calculations
-    """
-    N, i, g = label.split(".")[:3]
-    N = int(N)
-    g = int(g)
-    if N < 24:
-        return g <= 24
-    if N <= 70:
-        return g <= 14
-    return False
-    #if N <120:
-    #    return g <= 14
-    #return g <= 6
-
-def pslbox(label):
-    """
-    Whether this sl2-label can show up as a psl2label (and thus needed for pictures)
-    """
-    if "-" in label:
-        return False
-    N = label.split(".")[0]
-    N = ZZ(N)
-    return N <= 70 or N.is_prime_power()
 
 def save_ecnf_data(fname="ecnf_data.txt"):
     # We have to modify ecnf data in a way that's somewhat slow (computing the actual field in which j lies)

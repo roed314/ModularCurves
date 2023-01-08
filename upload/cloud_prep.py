@@ -11,7 +11,7 @@ from sage.all import ZZ, QQ, PolynomialRing, MatrixSpace, EllipticCurve, NumberF
 from sage.combinat.posets.posets import FinitePoset
 from sage.databases.cremona import class_to_int
 from sage.misc.prandom import random
-from cloud_common import rational_poset_query, lattice_query, model_query, rat_query, get_lattice_poset, index_iterator, to_coarse_label, inbox, pslbox, load_gl2zhat_rational_data, dbtable
+from cloud_common import rational_poset_query, lattice_query, model_query, rat_query, psl2_query, get_lattice_poset, index_iterator, to_coarse_label, inbox, pslbox, load_gl2zhat_rational_data, dbtable
 
 
 opj = os.path.join
@@ -836,8 +836,8 @@ def make_picture_input():
     print("Creating picture input...", end="")
     sys.stdout.flush()
     with open("picture_labels.txt", "w") as F:
-        for label in dbtable.distinct("psl2label"):
-            if pslbox(label):
+        for label in db.gps_sl2zhat_fine.search(psl2_query()):
+            if pslbox(label): # checks that contains -1
                 _ = F.write(label + "\n")
     print(" done")
 
@@ -846,8 +846,8 @@ def make_psl2_input_data():
     sys.stdout.flush()
     folder = opj("..", "equations", "psl2_input_data")
     os.makedirs(folder, exist_ok=True)
-    for rec in db.gps_sl2zhat_fine.search({}, ["label", "subgroup"]):
-        if pslbox(rec["label"]):
+    for rec in db.gps_sl2zhat_fine.search(psl2_query(), ["label", "subgroup"]):
+        if pslbox(rec["label"]): # checks that contains -1
             with open(opj(folder, rec["label"]), "w") as F:
                 _ = F.write(",".join(str(c) for c in flatten(rec["subgroup"])))
     print(" done")
