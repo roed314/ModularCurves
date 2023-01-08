@@ -3,7 +3,7 @@ import os
 import sys
 from collections import defaultdict
 from sage.misc.cachefunc import cached_function
-from sage.all import DiGraph
+from sage.all import ZZ, DiGraph
 from sage.combinat.posets.posets import FinitePoset
 from sage.misc.misc import cputime, walltime
 
