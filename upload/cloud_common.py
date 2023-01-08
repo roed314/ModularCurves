@@ -20,6 +20,13 @@ def lattice_query():
             "$or": [{"level": {"$lte": 70}},
                     {"level": {"$in": qlevels}}]}
 
+def model_query():
+    return {"contains_negative_one": True,
+            "$or": [{"level": {"$lt": 24}},
+                    {"level": {"$lte": 70}, "genus": {"$lte": 14}}]}
+def rat_query():
+    return {"level": {"$lte": 70}}
+
 @cached_function
 def rational_poset_query():
     # We need to also include prime levels since ec_nfcurve has prime level galois_images, and many of the hand-curated low-degree points are on curves of prime level

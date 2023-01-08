@@ -11,7 +11,7 @@ from sage.all import ZZ, QQ, PolynomialRing, MatrixSpace, EllipticCurve, NumberF
 from sage.combinat.posets.posets import FinitePoset
 from sage.databases.cremona import class_to_int
 from sage.misc.prandom import random
-from cloud_common import rational_poset_query, get_lattice_poset, index_iterator, to_coarse_label, inbox, pslbox, load_gl2zhat_rational_data, dbtable
+from cloud_common import rational_poset_query, lattice_query, model_query, rat_query, get_lattice_poset, index_iterator, to_coarse_label, inbox, pslbox, load_gl2zhat_rational_data, dbtable
 
 
 opj = os.path.join
@@ -63,7 +63,7 @@ def make_input_data():
     sys.stdout.flush()
     folder = opj("..", "equations", "input_data")
     os.makedirs(folder, exist_ok=True)
-    for rec in dbtable.search({"contains_negative_one":True}, ["label", "generators"]):
+    for rec in dbtable.search(lattice_query(), ["label", "generators"]):
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))
     print(" done")
@@ -204,7 +204,9 @@ def prep_hyperelliptic():
     print("Preparing for hyperelliptic computation...", end="")
     sys.stdout.flush()
     with open(opj("hyptodo.txt"), "w") as F:
-        for rec in dbtable.search({"contains_negative_one":True, "genus":{"$gte":3, "$lte":17}}, ["label", "level", "qbar_gonality_bounds"]):
+        query = model_query()
+        query["genus"] = {"$gte":3, "$lte":17}
+        for rec in dbtable.search(query, ["label", "level", "qbar_gonality_bounds"]):
             if args.hyplevel is not None:
                 if args.hyplevel < 0 and rec["level"] > abs(args.hyplevel):
                     continue
@@ -251,7 +253,9 @@ def get_relj_codomains():
     print("Determining codomains...")
     parents_conj = {}
     M = MatrixSpace(ZZ, 2)
-    for rec in dbtable.search({"contains_negative_one":True, "$or": [{"level":{"$lt":24}, "genus": {"$gte": 3, "$lte": 24}}, {"level":{"$lt":120}, "genus":{"$gte":3, "$lte":14}}, {"genus":{"$gte":3, "$lte":6}}]}, ["label", "parents", "parents_conj", "qbar_gonality_bounds"]):
+    query = model_query()
+    query["genus"] = {"$gte": 3}
+    for rec in dbtable.search(query, ["label", "parents", "parents_conj", "qbar_gonality_bounds"]):
         if not inbox(rec["label"]):
             continue
         gon = rec["qbar_gonality_bounds"]
@@ -302,7 +306,7 @@ def get_relj_codomains():
                 _ = F.write(f"{c}|{maxind}")
     with open("nexttodo.txt", "w") as Fnext:
         with open("lattodo.txt", "w") as Flat:
-            for label in dbtable.search({"contains_negative_one":True}, "label"):
+            for label in dbtable.search(lattice_query(), "label"):
                 if label not in cods:
                     if inbox(label):
                         codomain, conj = cod.get(label, (None, None))
@@ -336,7 +340,9 @@ def distinguished_vertices():
     """
     The vertices in the lattice with special names that serve as the bottoms of intervals in the lattice
     """
-    return {rec["label"]: rec["name"] for rec in dbtable.search({"contains_negative_one":True, "name":{"$ne":""}}, ["label", "name"])}
+    query = lattice_query()
+    query["name"] = {"$ne":""}
+    return {rec["label"]: rec["name"] for rec in dbtable.search(query, ["label", "name"])}
 
 Xfams = ['X', 'X0', 'Xpm1', 'Xns+', 'Xsp+', 'Xns', 'Xsp', 'Xpm1,', 'XS4']
 
@@ -542,7 +548,9 @@ def load_points_files(data_folder):
     nfs, sub_lookup, embeddings = load_nf_data(list(field_labels))
 
     ans = []
-    X0s = {rec["name"]: rec["label"] for rec in dbtable.search({"name": {"$like": "X0%"}}, ["name", "label"], silent=True)}
+    query = rat_query()
+    query["name"] = {"$like": "X0%"}
+    X0s = {rec["name"]: rec["label"] for rec in dbtable.search(query, ["name", "label"], silent=True)}
     RSZB_lookup = {rec["RSZBlabel"]: rec["label"] for rec in dbtable.search({"name": {"$exists": True}, "RSZBlabel": {"$exists":True}}, ["label", "RSZBlabel"])}
     skipped = set()
     for pieces in all_pieces:
@@ -853,7 +861,7 @@ def make_gonality_files():
     sys.stdout.flush()
     folder = opj("..", "equations", "gonality")
     os.makedirs(folder, exist_ok=True)
-    for rec in dbtable.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"]):
+    for rec in dbtable.search(model_query(), ["label", "q_gonality_bounds", "qbar_gonality_bounds"]):
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"]))
     print(" done")
