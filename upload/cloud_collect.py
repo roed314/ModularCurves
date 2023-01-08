@@ -50,21 +50,19 @@ def get_gonalities(model_gonalities=None):
         for bar in bars:
             low, high = gonalities[x][bar:bar+2]
             # See if we can increase the lower bound using maps to other modular curves
+            msg = []
             for gon in range(low, high):
-                # Try to rule out gon as a possible gonality using Castelnuovo–Severi
-                if all(all((genus - d*g) / (d - 1) + 1 <= gon
-                           for g in dg[d])
-                       for d in dg if gcd(d, gon) == 1):
-                    if gon > low:
-                        # Record information about how we got here
-                        dgrec = ":".join(f"{d}({','.join(str(g) for g in dg[d])})" for d in dg if gcd(d, gon) == 1)
-                        _ = F.write(f"C|{bar}|{P._vertex_to_element(x)}|{gon}|{dgrec}|{gon - low}\n")
-                        gonalities[x][bar] = gon
+                # Try to rule out gon as a possible gonality using Castelnuovo–Severi (Theorem 6.0.1 in overleaf)
+                csdg = [d for d in dg if gcd(d, gon) == 1]
+                csdg = [(d,g) for d in csdg for g in dg[d] if (genus - d*g) / (d - 1) + 1 > gon]
+                if csdg:
+                    msg.append("%s:%s" % csdg[0])
+                    gonalities[x][bar] = gon + 1
+                else:
                     break
-            else:
-                if high > low:
-                    _ = F.write(f"C|{bar}|{P._vertex_to_element(x)}|{high}|C|{high - low}\n")
-                    gonalities[x][bar] = high
+            if msg:
+                msg = ",".join(msg)
+                _ = F.write(f"C|{bar}|{P._vertex_to_element(x)}|{gon}|{msg}|{gonalities[x][bar] - low}\n")
 
     def get_bars(bounds):
         return ([] if bounds[0] == bounds[1] else [0]) + ([] if bounds[2] == bounds[3] else [2])
