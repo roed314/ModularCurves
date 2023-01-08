@@ -88,9 +88,12 @@ def inbox(label):
     g = int(g)
     if N < 24:
         return g <= 24
-    if N <120:
+    if N <= 70:
         return g <= 14
-    return g <= 6
+    return False
+    #if N <120:
+    #    return g <= 14
+    #return g <= 6
 
 def save_ecnf_data(fname="ecnf_data.txt"):
     # We have to modify ecnf data in a way that's somewhat slow (computing the actual field in which j lies)
