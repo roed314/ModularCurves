@@ -40,4 +40,4 @@ def collate_data(label):
                         _ = Fout.write(f"{code}{label}|{line}")
 
 get_hyperellipticity(label, args.verbose)
-collate_data()
+collate_data(label)

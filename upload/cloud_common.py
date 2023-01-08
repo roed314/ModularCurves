@@ -72,13 +72,12 @@ def to_coarse_label(label):
     return f"{M}.{j}.{g}.{a}.{m}"
 
 def get_output_data():
-    with open("output1") as F:
-        for line in F:
-            yield line
-    if ope("output2"):
-        with open("output2") as F:
-            for line in F:
-                yield line
+    for i in range(3):
+        fname = f"output{i}"
+        if ope(fname):
+            with open(fname) as F:
+                for line in F:
+                    yield line
 
 def inbox(label):
     """
