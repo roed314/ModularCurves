@@ -5,7 +5,7 @@ import re
 import sys
 from collections import defaultdict
 from sage.misc.cachefunc import cached_function
-from sage.all import ZZ, QQ, PolynomialRing, DiGraph
+from sage.all import ZZ, QQ, PolynomialRing, NumberField, DiGraph
 from sage.combinat.posets.posets import FinitePoset
 from sage.misc.misc import cputime, walltime
 
