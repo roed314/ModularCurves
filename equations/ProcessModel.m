@@ -35,7 +35,7 @@ Output:
     ttemp := ReportStart(label, "model and modular forms");
     vprint User1: "Starting model computation with low precision";
     N := M`N;
-    prec, ishyp, relation_degree := RequiredPrecision(M);
+    prec, ishyp, relation_degree := RequiredPrecision(M, label);
     // For relative j-maps, we need to be able to find relations of degree 1 after rescaling the precision by 1/max_rel_index, and we have enough precision to find relations of degree relation_degree.
     prec := Max(prec, Ceiling(prec * max_rel_index / relation_degree));
     SetSeed(0);

@@ -18,7 +18,7 @@ t0 := ReportStart(label, "ishyp");
 level, gens := GetLevelAndGensFromLabel(label);
 M := CreateModularCurveRec(level, gens);
 SetProfile(true);
-prec, hyp, reldeg := RequiredPrecision(M);
+prec, hyp, reldeg := RequiredPrecision(M, label);
 for f in ProfileTimes() do
     print f;
 end for;

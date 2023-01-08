@@ -34,6 +34,7 @@ def prep(stage):
         prep_hyperelliptic()
         #run_hyperelliptic()
     elif stage == 1:
+        extract_stage0()
         get_relj_codomains()
         make_psl2_input_data()
         make_g2_lookup_data()
@@ -56,6 +57,17 @@ def make_input_data():
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))
     print(" done")
+
+def extract_stage0():
+    ifold = opj("..", "equations", "ishyp")
+    os.makedirs(ifold, exist_ok=True)
+    with open("output0") as F:
+        for line in F:
+            if not line: continue
+            label, rest = line[1:].split("|", 1)
+            if line[0] == "Y":
+                with open(opj(ifold, label), "w") as Fout:
+                    _ = Fout.write(rest.strip())
 
 def extract_stage1():
     """
@@ -87,12 +99,12 @@ def extract_stage1():
             if not line: continue
             label, rest = line[1:].split("|", 1)
             if line[0] == "R":
-                folder = "rats"
+                folder = rfold
             elif line[0] == "C":
-                folder = "canonical_models"
+                folder = cfold
             else:
                 continue
-            with open(opj("..", "equations", folder, label), "a") as Fout:
+            with open(opj(folder, label), "a") as Fout:
                 _ = Fout.write(rest)
 
 def make_tarball(stage=1):
@@ -218,11 +230,14 @@ def get_relj_codomains():
     print("Determining codomains...", end="")
     parents_conj = {}
     M = MatrixSpace(ZZ, 2)
-    for rec in dbtable.search({"contains_negative_one":True, "$or": [{"level":{"$lt":24}, "genus": {"$gte": 3, "$lte": 24}}, {"level":{"$lt":120}, "genus":{"$gte":3, "$lte":14}}, {"genus":{"$gte":3, "$lte":6}}]}, ["label", "parents", "parents_conj", "qbar_gonality"]):
+    for rec in dbtable.search({"contains_negative_one":True, "$or": [{"level":{"$lt":24}, "genus": {"$gte": 3, "$lte": 24}}, {"level":{"$lt":120}, "genus":{"$gte":3, "$lte":14}}, {"genus":{"$gte":3, "$lte":6}}]}, ["label", "parents", "parents_conj", "qbar_gonality_bounds"]):
         if not inbox(rec["label"]):
             continue
-        if rec["qbar_gonality"] == 2:
+        gon = rec["qbar_gonality_bounds"]
+        if gon == [2, 2]:
             hyp_lookup[rec["label"]] = True
+        elif gon[0] > 2:
+            hyp_lookup[rec["label"]] = False
         for plabel, pconj in zip(rec["parents"], rec["parents_conj"]):
             parents_conj[rec["label"], plabel] = M(pconj)
     P = get_lattice_poset()
@@ -235,7 +250,7 @@ def get_relj_codomains():
     for x in index_iterator(P, X1):
         label = P._vertex_to_element(x)
         N, i, g, a, n = label.split(".")
-        if int(g) >= 3 and inbox(label) and not hyp_lookup.get(label):
+        if int(g) >= 3 and inbox(label) and hyp_lookup.get(label) is False:
             tmp = [(label, M((1,0,0,1)))]
             for y in H.neighbors_in(x):
                 ylabel = P._vertex_to_element(y)
@@ -244,6 +259,7 @@ def get_relj_codomains():
                     conj = parents_conj[label, ylabel] * yconj
                     tmp.append((ybest, conj))
             cod[label] = min(tmp, key=index_sort_key)
+    print(" done")
     cods = defaultdict(int)
     for label, (codomain, conj) in cod.items():
         if label != codomain:
