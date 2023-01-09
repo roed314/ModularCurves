@@ -781,7 +781,7 @@ def make_g2_lookup_data():
         for rec in db.g2c_curves.search({}, ["label", "eqn", "g2_inv"]):
             fname = "h" + rec["g2_inv"][1:-1].replace(",", ".").replace("/", "_")
             with open(opj(folder, fname), "a") as F:
-                _ = F.write(f"{rec['label']}|{eqn}")
+                _ = F.write(f"{rec['label']}|{rec['eqn']}")
     print(f" done in {time.time() - t0:.2f}s")
 
 #############################
