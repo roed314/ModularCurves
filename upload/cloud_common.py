@@ -241,8 +241,6 @@ def load_ecnf_data(fname="ecnf_data.txt"):
     with open(fname) as F:
         for line in F:
             Slabels, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, conductor_norm, ainvs = line.strip().split("|")
-            if Elabel in isbc:
-                continue
             for Slabel in Slabels.split(","):
                 if not ("[" in Slabel or S_LABEL_RE.fullmatch(Slabel)):
                     print("Warning: invalid Slabel", Slabel)
