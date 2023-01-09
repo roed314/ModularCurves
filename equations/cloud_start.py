@@ -120,7 +120,7 @@ def get_canonical_model(label, verbose):
     # Also produces a first stab at a plane model
     if genus <= 24:
         verb = "verbose:= " if verbose else ""
-        subprocess.run('parallel --timeout 900 "magma -b label:={1} %sGetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+        subprocess.run('parallel --timeout 3600 "magma -b label:={1} %sGetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def get_plane_and_gonality(label, verbose):
     # Runs the script to compute gonality bounds and a better plane model
