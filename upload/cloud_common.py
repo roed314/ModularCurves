@@ -391,6 +391,7 @@ def convert_cm_datafile(cmin, cmout):
                 _ = Fout.write(f"{lmfdb_label}|{label}|{j}|{cm}|{ainvs}|{conductor}\n")
 
 def create_randomizers(num_jobs, num_machines=10):
+    # parallel -j112 --memfree 50G -a rand.jobs ./cloud_start.py {1}
     import random
     for i in range(num_machines):
         L = list(range(i, num_jobs, num_machines))

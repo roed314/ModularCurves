@@ -190,7 +190,7 @@ if ope(opj("canonical_models", label)):
         get_ghyperelliptic_model(label, args.verbose)
         if ope(opj("jcusps", label)): # These need a j-map or cusps
             get_plane_model(label, args.verbose)
-            get_rational_coordinates(label, args.verbose)
+            #get_rational_coordinates(label, args.verbose)
             get_cusp_coordinates(label, args.verbose)
 if ope(opj("jcusps", label)): # For P1 we don't write down a canonical model, so this is outside the above if statement
     get_jfactorization(label, args.verbose)
