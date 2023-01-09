@@ -398,4 +398,4 @@ def create_randomizers(num_jobs, num_machines=10):
         random.shuffle(L)
         with open(f"rand{i}.jobs", "w") as F:
             for n in L:
-                _ = F.write(f"{n}\n")
+                _ = F.write(f"{n+1}\n")
