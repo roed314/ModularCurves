@@ -11,7 +11,7 @@ from collections import defaultdict
 from sage.all import ZZ, QQ, PolynomialRing, MatrixSpace, EllipticCurve, NumberField, cached_function, flatten, walltime, cputime, DiGraph
 from sage.combinat.posets.posets import FinitePoset
 from sage.databases.cremona import class_to_int
-from sage.misc.prandom import random
+from sage.misc.prandom import random, randint
 from cloud_common import rational_poset_query, lattice_query, model_query, rat_query, psl2_query, get_lattice_poset, get_rational_poset, index_iterator, to_coarse_label, inbox, pslbox, load_gl2zhat_rational_data, dbtable, load_ecq_data, load_ecnf_data, load_points_files
 
 
@@ -33,25 +33,66 @@ parser.add_argument("--nopsl2", action="store_true", help="disable creation of p
 parser.add_argument("--nographviz", action="store_true", help="disable creation of graphviz input folder")
 parser.add_argument("--norats", action="store_true", help="disable creation of rational points data")
 
-parser.add_argument("--redomissing", action="store_true", help="determine which canonical models didn't finish and create a new tarball with just them as a todo")
+parser.add_argument("--redomissing", help="determine which canonical models didn't finish and create a new tarball with just them as a todo.  Pass in the codes to be checked for (C is a common choice, for canonical model)")
+parser.add_argument("--combinemissing", help="An output file to merge into output{stage}")
 
 args = parser.parse_args()
 
 def prep(stage):
-    if args.redomissing:
-        with open("output1") as F:
+    if args.combinemissing:
+        cur_ofile = f"output{stage}"
+        gap_ofile = args.combinemissing
+        codes = args.redomissing
+        if codes is None: codes = "C"
+        done = set()
+        with open(cur_ofile) as F:
+            for line in F:
+                if line and line[0] in codes:
+                    label = line[1:].split("|")[0]
+                    done.add(label)
+        fixed = set()
+        with open(gap_ofile) as F:
+            for line in F:
+                if line and line[0] in codes:
+                    label = line[1:].split("|")[0]
+                    fixed.add(label)
+        tmpfile = "tmp" + "%04x"%(randint(0,65535))
+        with open(tmpfile, "w") as Fout:
+            with open(cur_ofile) as F:
+                for line in F:
+                    label = line[1:].split("|")[0]
+                    if label not in fixed:
+                        _ = Fout.write(line)
+            with open(gap_ofile) as F:
+                for line in F:
+                    label = line[1:].split("|")[0]
+                    if label in fixed:
+                        _ = Fout.write(line)
+        os.rename(cur_ofile, "combinemissing" + "%04x"%(randint(0,65535)) + cur_ofile)
+        os.rename(tmpfile, cur_ofile)
+        return
+    elif args.redomissing:
+        codes = args.redomissing
+        if stage == 1:
+            todofile = "codtodo.txt"
+        elif stage == 2:
+            todofile = "nexttodo.txt"
+        else:
+            raise ValueError(stage)
+        shutil.copy(todofile, "redomissing" + "%04x"%(randint(0,65535)) + todofile)
+        with open(f"output{stage}") as F:
             done = set()
             for line in F:
-                if line and line[0] == "C":
+                if line and line[0] in codes:
                     label = line[1:].split("|")[0]
                     done.add(label)
             todo = set()
-            with open("codtodo.txt") as F:
+            with open(todofile) as F:
                 for line in F:
                     label = line.strip()
                     todo.add(label)
             undone = todo.difference(done)
-        with open("codtodo.txt", "w") as F:
+        with open(todofile, "w") as F:
             for label in undone:
                 _ = F.write(label + "\n")
     elif stage == -1:
