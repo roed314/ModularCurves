@@ -425,7 +425,7 @@ def update_relj_codomains():
     sys.stdout.flush()
     t0 = time.time()
     models_available = {}
-    for label in os.listdir(opj("..", "canonical_models")):
+    for label in os.listdir(opj("..", "equations", "canonical_models")):
         codfile = opj("..", "cod", label)
         if ope(codfile): # should always exist....
             with open(codfile) as F:
