@@ -435,6 +435,8 @@ def update_relj_codomains():
                 current_cod[label] = min(tmp, key=index_sort_key) # best option at this index
             else:
                 print(f"Warning: no valid codomain for {label}")
+                # We need to delete the file in cod/ since it won't get overwritten below
+                os.unlink(opj(output_folder, label))
     print(f"Codomains selected in {time.time() - t0:.2f}s")
     ndiff = len([label for label, prior in prior_cod.items() if prior != current_cod.get(label, (None,None))[0]])
     print(f"{ndiff} codomains selected differently from stage 1")
@@ -447,12 +449,14 @@ def update_relj_codomains():
         os.rename("codtodo.txt", "stage1_nexttodo{n}.txt")
     with open("nexttodo.txt", "w") as Fnext:
         for label in db.gps_gl2zhat_coarse.search(model_query(), "label"):
-            if inbox(label) and label not in models_available:
-                codomain, conj = current_cod.get(label, (None, None))
-                if codomain is not None:
-                    # Use relative j-map
-                    with open(opj(output_folder, label), "w") as F:
-                        _ = F.write(f"{codomain}|{','.join(str(c) for c in conj.list())}")
+            if inbox(label):
+                if label not in models_available:
+                    codomain, conj = current_cod.get(label, (None, None))
+                    if codomain is not None:
+                        # Use relative j-map
+                        with open(opj(output_folder, label), "w") as F:
+                            _ = F.write(f"{codomain}|{','.join(str(c) for c in conj.list())}")
+                
                 _ = Fnext.write(label + "\n")
     print(f"Todo files printed in {time.time() - t0:.2f}s")
 
@@ -712,10 +716,6 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
             if "-" in label:
                 # For now, if the label is a fine label we coarsify it (so that we can get started on models)
                 label = to_coarse_label(label)
-            # For now we skip over genus > 24
-            g = int(label.split(".")[2])
-            if g > 24:
-                continue
             for v in H.breadth_first_search(P._element_to_vertex(label)):
                 plabel = P._vertex_to_element(v)
                 if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:

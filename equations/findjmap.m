@@ -109,7 +109,7 @@ intrinsic GL2Lift(H::GrpMat, M::RngIntElt) -> GrpMat
     require IsDivisibleBy(M,N): "Target level M must be divisible by #BaseRing(H).";
     GL2 := GL(2,Integers(M)); // using GL2Lifter is *much* faster than applying the pullback operator @@ to the reduction map
     gens := [GL2![1,N,0,1], GL2![1,0,N,1], GL2![1+N,N,-N,1-N]] cat [GL2![a,0,0,1]:a in {pi(g)^Order(R!pi(g)):g in Generators(m)}] where m,pi:=MultiplicativeGroup(Integers(M));
-    return sub<GL2|gens,[lift(h):h in Generators(H)]>,H) where lift := GL2Lifter(N,M);
+    return sub<GL2|gens,[lift(h):h in Generators(H)]> where lift := GL2Lifter(N,M);
 end intrinsic;
 
 intrinsic GL2ConjugateSubgroup(H::GrpMat, K::GrpMat) -> GrpMatElt
@@ -149,7 +149,6 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     //assert ChangeRing(G0, Integers(N)) subset G;
     conjugator := GL2ConjugateSubgroup(G, G0);
     G0 := G0^conjugator;
-    assert G0 subset GL2Lift(G, N0);
     gens0 := [Eltseq(g) : g in Generators(G0)];
 
     M0 := CreateModularCurveRec(N0, gens0);
@@ -178,27 +177,19 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     C := Curve(Proj(S), M`psi);
     // Check that the curve is the same as the one already found
     D, _g, _model_type := LMFDBReadXGModel(covered_label);
-    print "compare", #D, #M`psi;
+    if #D ne #M`psi then
+        print "error covered model mismatch", #D, #M`psi;
+    end if;
     Duniv := Universe(D);
     Mpsiuniv := Universe(M`psi);
     AssignCanonicalNames(~Duniv);
     AssignCanonicalNames(~Mpsiuniv);
     for i in [1..Min(#D, #M`psi)] do
-        print i, D[i], M`psi[i];
-    end for;
-    /* this doesn't work
-    if D ne M`psi then
-        print "error: relative-j model mismatch";
-        if #D ne #M`psi then
-            print "lengths different: ", #D, #M`psi;
+        psiconv := Duniv!(M`psi[i]);
+        if D[i] ne psiconv and D[i] ne -psiconv then
+            printf "error covered model mismatch at %o/%o: %o != %o\n", i, Min(#D, #M`psi), sprint(D[i]), sprint(M`psi[i]);
         end if;
-        for i in [1..Min(#D, #M`psi)] do
-            if D[i] ne M`psi[i] then
-                print i, D[i], "versus", M`psi[i];
-            end if;
-        end for;
-    end if;
-    */
+    end for;
 
     t1 := ReportStart(cover_label, "ConvertModularFormExpansions");
     F1 := [ConvertModularFormExpansions(M0, M, [1,0,0,1], f) : f in F];

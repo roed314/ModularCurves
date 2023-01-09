@@ -228,13 +228,10 @@ def load_ecq_data(cm_data_file):
 def load_ecnf_data(fname="ecnf_data.txt"):
     # Galois images are stored for NF curves using Sutherland labels
     t0 = time.time()
+    # We may eventually want to use fine labels here, but for now we just use coarse
     from_Slabel = {
-        rec["Slabel"] : rec["label"]
-        for rec in dbtable.search(
-                {"Slabel": {"$exists":True}},
-                ["Slabel", "label"],
-                silent=True,
-        )
+        rec["Slabel"] : rec["coarse_label"]
+        for rec in db.gps_slabels.search({}, ["Slabel", "coarse_label"])
     }
     print(f"Constructed Sutherland label lookup table in {time.time() - t0:.2f}s")
 

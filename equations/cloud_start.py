@@ -67,7 +67,7 @@ opj = os.path.join
 ope = os.path.exists
 parser = argparse.ArgumentParser("Dispatch to appropriate magma script")
 parser.add_argument("job", type=int, help="job number")
-parser.add_argument("--verbose", action="store_true")
+parser.add_argument("--silent", action="store_false")
 
 # These folders are needed by the scripts to be called below
 os.makedirs("canonical_models", exist_ok=True)
@@ -120,8 +120,7 @@ def get_canonical_model(label, verbose):
     # Also produces a first stab at a plane model
     if genus <= 24:
         verb = "verbose:= " if verbose else ""
-        # Currently an 8 hour timeout
-        subprocess.run('parallel --timeout 28800 "magma -b label:={1} %sGetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+        subprocess.run('parallel --timeout 1800 "magma -b label:={1} %sGetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def get_plane_and_gonality(label, verbose):
     # Runs the script to compute gonality bounds and a better plane model
@@ -159,19 +158,27 @@ def get_jfactorization(label, verbose):
 
 def collate_data(label):
     with open("output", "a") as Fout:
-        for code, folder in [
-                ("C", "canonical_models"),
-                ("P", "plane_models"),
-                ("H", "ghyp_models"),
-                ("V", "curve_labels"),
-                ("R", "rats"),
-                ("J", "jcusps"),
-                ("F", "jfacs"),
-                ("U", "cusps"),
-                ("G", "gonality"),
-                ("L", "graphviz_out"),
-                ("T", "timings"),
-                ("E", "stdout")]:
+        colders = [
+            ("C", "canonical_models"),
+            ("P", "plane_models"),
+            ("H", "ghyp_models"),
+            ("V", "curve_labels"),
+            ("R", "rats"),
+            ("J", "jcusps"),
+            ("F", "jfacs"),
+            ("U", "cusps"),
+            ("G", "gonality"),
+            ("L", "graphviz_out"),
+            ("T", "timings"),
+        ]
+        # We only copy error output if there was an error or warning.  This lets us run in verbose mode without including too much output
+        fname = opj("stdout", label)
+        if ope(fname):
+            with open(fname) as F:
+                s = F.read()
+            if "error" in s or "warning" in s:
+                colders.append(("E", "stdout"))
+        for code, folder in colders:
             fname = opj(folder, label)
             if ope(fname):
                 with open(fname) as F:
@@ -180,21 +187,32 @@ def collate_data(label):
                             line += "\n"
                         _ = Fout.write(f"{code}{label}|{line}")
 
-with open(opj("timings", label), "a") as F:
-    _ = F.write("Starting overall\n")
-t0 = time.time()
-get_canonical_model(label, args.verbose)
-if ope(opj("canonical_models", label)):
-    if genus != 0:
-        get_plane_and_gonality(label, args.verbose)
-        get_ghyperelliptic_model(label, args.verbose)
-        if ope(opj("jcusps", label)): # These need a j-map or cusps
-            get_plane_model(label, args.verbose)
-            #get_rational_coordinates(label, args.verbose)
-            get_cusp_coordinates(label, args.verbose)
-if ope(opj("jcusps", label)): # For P1 we don't write down a canonical model, so this is outside the above if statement
-    get_jfactorization(label, args.verbose)
-get_lattice_coords(label)
-with open(opj("timings", label), "a") as F:
-    _ = F.write(f"Finished overall in {time.time() - t0}\n")
+# We had to disable rational points for the relative-j codomains because the jinvs/ folder wasn't ready
+# So we test for whether this label is for a codomain, and just run get_rational_coordinates if so
+if ope(opj("cod", label)):
+    with open(opj("cod", label)) as F:
+        codomain, data = F.read().strip().split("|")
+else:
+    codomain = ""
+if codomain == label:
+    # This is the case where we just need rational point lifting
+    get_rational_cusp_coordinates(label, not args.silent)
+else:
+    with open(opj("timings", label), "a") as F:
+        _ = F.write("Starting overall\n")
+    t0 = time.time()
+    get_canonical_model(label, not args.silent)
+    if ope(opj("canonical_models", label)):
+        if genus != 0:
+            get_plane_and_gonality(label, not args.silent)
+            get_ghyperelliptic_model(label, not args.silent)
+            if ope(opj("jcusps", label)): # These need a j-map or cusps
+                get_plane_model(label, not args.silent)
+                get_rational_coordinates(label, not args.silent)
+                get_cusp_coordinates(label, not args.silent)
+    if ope(opj("jcusps", label)): # For P1 we don't write down a canonical model, so this is outside the above if statement
+        get_jfactorization(label, not args.silent)
+    get_lattice_coords(label)
+    with open(opj("timings", label), "a") as F:
+        _ = F.write(f"Finished overall in {time.time() - t0}\n")
 collate_data(label)
