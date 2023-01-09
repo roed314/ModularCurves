@@ -278,7 +278,7 @@ def get_relj_codomains():
     for label, (codomain, conj) in cod.items():
         if label != codomain:
             # We track the maximum index used for a given codomain, since that affects the precision needed for computing the relative j-map.
-            cods[codomain] = max(cods[codomain], int(label.split(".")[1]) // codomain.split(".")[1])
+            cods[codomain] = max(cods[codomain], int(label.split(".")[1]) // int(codomain.split(".")[1]))
             with open(opj(output_folder, label), "w") as F:
                 _ = F.write(f"{codomain}|{','.join(str(c) for c in conj.list())}")
     # Now cods contains the maximum relative index of anything mapping to the given codomain
