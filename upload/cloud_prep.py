@@ -295,7 +295,7 @@ def get_relj_codomains():
                 _ = F.write(f"{c}|{maxind}")
     with open("nexttodo.txt", "w") as Fnext:
         with open("lattodo.txt", "w") as Flat:
-            for label in db.gl2zhat_coarse.search(lattice_query(), "label"):
+            for label in db.gps_gl2zhat_coarse.search(lattice_query(), "label"):
                 if label not in cods:
                     if inbox(label):
                         codomain, conj = cod.get(label, (None, None))
