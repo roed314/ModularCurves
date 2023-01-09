@@ -122,8 +122,7 @@ Output:
     end if;
     for run in [1..num_tests] do
         P := Random(Cbar(GF(p)));
-        Igens cat:= [coords[j] - P[j] : j in [1..#coords]];
-        I := Ideal(Igens);
+        I := Ideal(Igens cat [coords[j] - P[j] : j in [1..#coords]]);
         if QuotientDimension(I) ne 1 then
             if show_reason or GetVerbose("User1") gt 0 then
                 print Sprintf("Invalid model: %o mod-%o preimages", QuotientDimension(I), p);
