@@ -183,7 +183,7 @@ def make_tarball(stage=1):
         "gonality",
         "graphviz_in",
         "input_data",
-        "jinvs",
+        #"jinvs",
         "g2invs",
     ]
     if stage == 0:
