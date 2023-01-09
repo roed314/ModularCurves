@@ -67,7 +67,7 @@ opj = os.path.join
 ope = os.path.exists
 parser = argparse.ArgumentParser("Dispatch to appropriate magma script")
 parser.add_argument("job", type=int, help="job number")
-parser.add_argument("--silent", action="store_false")
+parser.add_argument("--silent", action="store_true")
 
 # These folders are needed by the scripts to be called below
 os.makedirs("canonical_models", exist_ok=True)
