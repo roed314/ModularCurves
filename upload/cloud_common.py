@@ -35,7 +35,7 @@ def rat_query():
 @cached_function
 def rational_poset_query():
     # We need to also include prime levels since ec_nfcurve has prime level galois_images, and many of the hand-curated low-degree points are on curves of prime level
-    ecnf_primes = sorted(set(sum(db.ec_nfcurves.distinct('nonmax_primes'), [])))
+    ecnf_primes = sorted(set(sum(db.ec_nfcurves.distinct('nonmax_primes', silent=True), [])))
     return {"$and": [
         {"$or": [{"level": {"$lte": 70}},
                  {"level": {"$in": qlevels()}}]},
@@ -206,7 +206,8 @@ def load_ecq_data(cm_data_file):
             else:
                 cm_lookup[lmfdb_label].append(modcurve_label)
     print(f" done in {walltime() - t0:.2f}s")
-    print("Loading modm_images from ec_curvedata...")
+    print("Loading modm_images from ec_curvedata...", end="")
+    sys.stdout.flush()
     t0 = walltime()
 
     for rec in db.ec_curvedata.search({}, ["lmfdb_label", "jinv", "cm", "conductor", "modm_images", "ainvs"], silent=True):
@@ -220,7 +221,7 @@ def load_ecq_data(cm_data_file):
         ainvs = ";".join(str(a) for a in rec["ainvs"])
         for label in images:
             ecq_db_data.append((label, 1, "1.1.1.1", r"\N", str(jinv), "1.1.1.1", str(jinv.global_height()), rec["cm"], Elabel, False, str(rec["conductor"]), ainvs))
-    print(f" done in {walltime() - t0:.2f}")
+    print(f" done in {walltime() - t0:.2f}s")
     return ecq_db_data
 
 def load_ecnf_data(fname="ecnf_data.txt"):
@@ -236,12 +237,7 @@ def load_ecnf_data(fname="ecnf_data.txt"):
     }
     print(f"Constructed Sutherland label lookup table in {time.time() - t0:.2f}s")
 
-    # db.ec_nfcurves doesn't currently contain information about which curves are base changes
-    # We want to avoid base changes, since they would have incorrect field_of_definition
-    # We computed the set of base change curves separately
-    with open("ecnf_is_bc.txt") as F:
-        isbc = set(line.strip() for line in F)
-
+    t0 = time.time()
     with open(fname) as F:
         for line in F:
             Slabels, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, conductor_norm, ainvs = line.strip().split("|")
@@ -253,7 +249,7 @@ def load_ecnf_data(fname="ecnf_data.txt"):
                 if Slabel in from_Slabel:
                     label = from_Slabel[Slabel]
                     yield label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, int(cm), Elabel, False, conductor_norm, ainvs
-    print("Loaded ECNF data from file")
+    print(f"Loaded ECNF data from file in {time.time() - t0:.2f}s")
 
 S_LABEL_RE = re.compile(r"^(\d+)(G|B|Cs|Cn|Ns|Nn|A4|S4|A5)(\.\d+){0,3}$")
 LABEL_RE = re.compile(r"^\d+\.\d+\.\d+\.[a-z]+\.\d+$")

@@ -36,6 +36,9 @@ parser.add_argument("--norats", action="store_true", help="disable creation of r
 args = parser.parse_args()
 
 def prep(stage):
+    if stage == -1:
+        make_input_data()
+        return
     if stage == 0:
         make_input_data()
         prep_hyperelliptic()
@@ -67,7 +70,7 @@ def make_input_data():
     sys.stdout.flush()
     folder = opj("..", "equations", "input_data")
     os.makedirs(folder, exist_ok=True)
-    for rec in dbtable.search(lattice_query(), ["label", "generators"]):
+    for rec in dbtable.search(model_query(), ["label", "generators"]):
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))
     print(f" done in {time.time() - t0:.2f}s")
@@ -587,9 +590,11 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
     jinvs_seen = defaultdict(set)
     #point_counts = defaultdict(Counter)
     jinvs = defaultdict(list)
+    print("Writing rational points files...")
+    t0 = time.time()
     with open("allpoints.txt", "w") as F:
         for ctr, (label, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, known_isolated, conductor_norm, ainvs) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
-            if ctr and ctr % 10000 == 0:
+            if ctr and ctr % 100000 == 0:
                 print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
             #assert label != "1.1.0.a.1"
             if label == "1.1.0.a.1": continue
@@ -626,7 +631,7 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
         with open(opj(output_folder, plabel), "w") as F:
             for jinv, nf, isolated in pts:
                 _ = F.write(f"{jinv}|{str(nf).replace(' ','')[1:-1]}|{isolated}\n")
-    print("Done writing rational point files")
+    print(f"Done writing rational point files in {time.time() - t0:.2f}s")
 
 #######################################################
 # Functions for preparing for the picture computation #
