@@ -421,12 +421,14 @@ def update_relj_codomains():
     # Stage 0 extract into ishyp, and stage1 (hopefully) computed canonical models for a bunch of codomains.
     # Some may have failed, but there was flexibility in choosing them (We aimed to optimize the index, but having the model is obviously a lot more important)
     output_folder, hyp_lookup, parents_conj, P, H, M, X1, index_sort_key = get_relj_codomain_input()
+    codfolder = opj("..", "equations", "cod")
+    canfolder = opj("..", "equations", "canonical_models")
     print("Determining codomains...", end="")
     sys.stdout.flush()
     t0 = time.time()
     models_available = {}
-    for label in os.listdir(opj("..", "equations", "canonical_models")):
-        codfile = opj("..", "cod", label)
+    for label in os.listdir(canfolder):
+        codfile = opj(codfolder, label)
         if ope(codfile): # should always exist....
             with open(codfile) as F:
                 codomain, data = F.read().strip().split("|")
@@ -435,10 +437,10 @@ def update_relj_codomains():
                 # maximum index this codomain supports
                 models_available[label] = int(data) * int(i)
     prior_cod = {}
-    for label in os.listdir(opj("..", "cod")):
+    for label in os.listdir(codfolder):
         if label in models_available:
             continue
-        codfile = opj("..", "cod", label)
+        codfile = opj(codfolder, label)
         with open(codfile) as F:
             codomain, data = F.read().strip().split("|")
         if codomain != label:
