@@ -77,7 +77,7 @@ def prep(stage):
             prepare_rational_points()
     elif stage == 2:
         extract_stage1()
-        #update_relj_codomains()
+        update_relj_codomains()
     elif stage == 3:
         extract_stage1_2()
         return
