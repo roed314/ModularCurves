@@ -89,6 +89,49 @@ function fieldfind(G, K)
   return NumberField(minpoly), prim;
 end function;
 
+// The following three intrinsics are ported from Drew's GL2 package to conjugate the subgroups for the relative j-map into an inclusion relation
+
+intrinsic GL2Lifter(N::RngIntElt, M::RngIntElt) -> UserProgram
+{ Returns a function that will canonically lift an element of GL(2,Z/NZ) to GL(2,Z/MZ) for given integers N dividing M. }
+    require IsDivisibleBy(M, N): "Domain level (first parameter) must divide codomain level (second parameter).";
+    if N eq M then return func<h|h>; end if;
+    GL2 := GL(2,Integers(M));
+    M2 := MatrixRing(Integers(),2);
+    m := &*[a[1]^a[2]: a in Factorization(M)| N mod a[1] eq 0];
+    return func<h|GL2!CRT([M2!h, Identity(M2)], [m, M div m])>;
+end intrinsic;
+
+intrinsic GL2Lift(H::GrpMat, M::RngIntElt) -> GrpMat
+{ The full preimage in GL(2,Z/MZ) of H in GL(2,Z/NZ) for a multiple N of M. }
+    R := BaseRing(H);
+    N := #R;
+    if M eq N then return H; end if;
+    require IsDivisibleBy(M,N): "Target level M must be divisible by #BaseRing(H).";
+    GL2 := GL(2,Integers(M)); // using GL2Lifter is *much* faster than applying the pullback operator @@ to the reduction map
+    gens := [GL2![1,N,0,1], GL2![1,0,N,1], GL2![1+N,N,-N,1-N]] cat [GL2![a,0,0,1]:a in {pi(g)^Order(R!pi(g)):g in Generators(m)}] where m,pi:=MultiplicativeGroup(Integers(M));
+    return sub<GL2|gens,[lift(h):h in Generators(H)]>,H) where lift := GL2Lifter(N,M);
+end intrinsic;
+
+intrinsic GL2ConjugateSubgroup(H::GrpMat, K::GrpMat) -> GrpMatElt
+{ Given subgroups H and K of GL(2,Zhat) represented by reductions to their levels (or compatible multiples of their levels) such that K is conjugate to a subgroup of H, returns g in GL(2,BaseRing(K)) such that (the inverse image of) K^g lies in (the inverse image of) H (the element g is guaranteed to be the identity if K lies in H but is otherwise chosen at random).
+  If K is not a subgroup of H this will eventually be detected, but not efficiently (you should use GL2IsConjugateSubgroup in this situation). }
+    N := #BaseRing(K);
+    H := GL2Lift(H, N);
+    if K subset H then
+        return Identity(H);
+    end if;
+    //print sprint(GL2Generators(H));
+    G := GL(2, Integers(N));
+    for i:=1 to N*N*N*N do
+        g := Random(G);
+        if K^g subset H then
+            return g;
+        end if;
+    end for;
+    b,g := IsConjugateSubgroup(G,H,K); assert b;
+    return g;
+end intrinsic;
+
 intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjugator::SeqEnum, max_rel_index::RngIntElt) -> Crv, SeqEnum, SeqEnum, Rec
 {}
     tt := ReportStart(cover_label, "RelativeJMap");
@@ -99,10 +142,14 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     GLN0 := GL(2, Integers(N0));
     G := sub<GLN | [GLN!v : v in gens]>;
     G0 := sub<GLN0 | [GLN0!v : v in gens0]>;
-    // Have to invert the conjugator since we're transposing the gens
-    conjugator := Transpose(GLN0!conjugator)^-1;
+    // There were some problems with the conjugator, so we're just computing new ones
+    // We had to invert the conjugator from the database since we're transposing the gens; this is not required when computing our own.
+    //conjugator := Transpose(GLN0!conjugator)^-1;
+    //G0 := G0^conjugator;
+    //assert ChangeRing(G0, Integers(N)) subset G;
+    conjugator := GL2ConjugateSubgroup(G, G0);
     G0 := G0^conjugator;
-    assert ChangeRing(G0, Integers(N)) subset G;
+    assert G0 subset GL2Lift(G, N0);
     gens0 := [Eltseq(g) : g in Generators(G0)];
 
     M0 := CreateModularCurveRec(N0, gens0);
