@@ -33,13 +33,31 @@ parser.add_argument("--nopsl2", action="store_true", help="disable creation of p
 parser.add_argument("--nographviz", action="store_true", help="disable creation of graphviz input folder")
 parser.add_argument("--norats", action="store_true", help="disable creation of rational points data")
 
+parser.add_arugment("--redomissing", action="store_true", help="determine which canonical models didn't finish and create a new tarball with just them as a todo")
+
 args = parser.parse_args()
 
 def prep(stage):
-    if stage == -1:
+    if args.redomissing:
+        with open("output1") as F:
+            done = set()
+            for line in F:
+                if line and line[0] == "C":
+                    label = line[1:].split("|")[0]
+                    done.add(label)
+            todo = set()
+            with open("codtodo.txt") as F:
+                for line in F:
+                    label = line.strip()
+                    todo.add(label)
+            undone = todo.difference(done)
+            print(undone)
+            print("Number:", len(undone))
+            return
+    elif stage == -1:
         make_input_data()
         return
-    if stage == 0:
+    elif stage == 0:
         make_input_data()
         prep_hyperelliptic()
         #run_hyperelliptic()
