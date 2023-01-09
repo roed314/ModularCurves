@@ -119,7 +119,8 @@ def prep(stage):
             prepare_rational_points()
     elif stage == 2:
         extract_stage1()
-        update_relj_codomains()
+        if not args.norelj:
+            update_relj_codomains()
     elif stage == 3:
         extract_stage1_2()
         return
@@ -244,7 +245,7 @@ def make_tarball(stage=1):
         "gonality",
         "graphviz_in",
         "input_data",
-        #"jinvs",
+        "jinvs",
         "g2invs",
     ]
     if stage == 0:

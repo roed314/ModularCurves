@@ -196,7 +196,7 @@ else:
     codomain = ""
 if codomain == label:
     # This is the case where we just need rational point lifting
-    get_rational_cusp_coordinates(label, not args.silent)
+    get_rational_coordinates(label, not args.silent)
 else:
     with open(opj("timings", label), "a") as F:
         _ = F.write("Starting overall\n")
