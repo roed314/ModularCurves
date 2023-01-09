@@ -51,9 +51,9 @@ def prep(stage):
                     label = line.strip()
                     todo.add(label)
             undone = todo.difference(done)
-            print(undone)
-            print("Number:", len(undone))
-            return
+        with open("codtodo.txt", "w") as F:
+            for label in undone:
+                _ = F.write(label + "\n")
     elif stage == -1:
         make_input_data()
         return
