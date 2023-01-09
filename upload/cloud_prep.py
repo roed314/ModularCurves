@@ -74,7 +74,7 @@ def make_input_data():
     sys.stdout.flush()
     folder = opj("..", "equations", "input_data")
     os.makedirs(folder, exist_ok=True)
-    for rec in dbtable.search(model_query(), ["label", "generators"]):
+    for rec in db.gps_gl2zhat_coarse.search(model_query(), ["label", "generators"]):
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))
     print(f" done in {time.time() - t0:.2f}s")
@@ -220,7 +220,7 @@ def prep_hyperelliptic():
     with open(opj("hyptodo.txt"), "w") as F:
         query = model_query()
         query["genus"] = {"$gte":3, "$lte":17}
-        for rec in dbtable.search(query, ["label", "level", "qbar_gonality_bounds"]):
+        for rec in db.gps_gl2zhat_coarse.search(query, ["label", "level", "qbar_gonality_bounds"]):
             if args.hyplevel is not None:
                 if args.hyplevel < 0 and rec["level"] > abs(args.hyplevel):
                     continue
@@ -295,7 +295,7 @@ def get_relj_codomains():
                 _ = F.write(f"{c}|{maxind}")
     with open("nexttodo.txt", "w") as Fnext:
         with open("lattodo.txt", "w") as Flat:
-            for label in dbtable.search(lattice_query(), "label"):
+            for label in db.gl2zhat_coarse.search(lattice_query(), "label"):
                 if label not in cods:
                     if inbox(label):
                         codomain, conj = cod.get(label, (None, None))
@@ -339,7 +339,7 @@ def get_relj_codomain_input():
     M = MatrixSpace(ZZ, 2)
     query = model_query()
     query["genus"] = {"$gte": 3}
-    for rec in dbtable.search(query, ["label", "parents", "parents_conj", "qbar_gonality_bounds"]):
+    for rec in db.gps_gl2zhat_coarse.search(query, ["label", "parents", "parents_conj", "qbar_gonality_bounds"]):
         if not inbox(rec["label"]):
             continue
         gon = rec["qbar_gonality_bounds"]
@@ -428,7 +428,7 @@ def update_relj_codomains():
             n += 1
         os.rename("codtodo.txt", "stage1_nexttodo{n}.txt")
     with open("nexttodo.txt", "w") as Fnext:
-        for label in dbtable.search(model_query(), "label"):
+        for label in db.gps_gl2zhat_coarse.search(model_query(), "label"):
             if inbox(label) and label not in models_available:
                 codomain, conj = current_cod.get(label, (None, None))
                 if codomain is not None:
@@ -449,7 +449,7 @@ def distinguished_vertices():
     """
     query = lattice_query()
     query["name"] = {"$ne":""}
-    return {rec["label"]: rec["name"] for rec in dbtable.search(query, ["label", "name"])}
+    return {rec["label"]: rec["name"] for rec in db.gps_gl2zhat_coarse.search(query, ["label", "name"])}
 
 Xfams = ['X', 'X0', 'Xpm1', 'Xns+', 'Xsp+', 'Xns', 'Xsp', 'Xpm1,', 'XS4']
 
@@ -762,7 +762,7 @@ def make_gonality_files():
     sys.stdout.flush()
     folder = opj("..", "equations", "gonality")
     os.makedirs(folder, exist_ok=True)
-    for rec in dbtable.search(model_query(), ["label", "q_gonality_bounds", "qbar_gonality_bounds"]):
+    for rec in db.gps_gl2zhat_coarse.search(model_query(), ["label", "q_gonality_bounds", "qbar_gonality_bounds"]):
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"]))
     print(f" done in {time.time() - t0:.2f}s")

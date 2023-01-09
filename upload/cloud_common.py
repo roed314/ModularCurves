@@ -21,12 +21,12 @@ def qlevels():
 
 def lattice_query():
     # Currently, dbtable contains more info than we're going to include on the website, so we trim it here
-    return {"contains_negative_one": True,
+    return {#"contains_negative_one": True,
             "$or": [{"level": {"$lte": 70}},
                     {"level": {"$in": qlevels()}}]}
 
 def model_query():
-    return {"contains_negative_one": True,
+    return {#"contains_negative_one": True,
             "$or": [{"level": {"$lt": 24}},
                     {"level": {"$lte": 70}, "genus": {"$lte": 14}}]}
 def rat_query():
@@ -39,7 +39,7 @@ def rational_poset_query():
     return {"$and": [
         {"$or": [{"level": {"$lte": 70}},
                  {"level": {"$in": qlevels()}}]},
-        #{"$or": [{"pointless": False}, {"pointless": {"$exists":False}}, {"level": {"$in": ecnf_primes}}]},
+        {"$or": [{"pointless": False}, {"pointless": {"$exists":False}}, {"level": {"$in": ecnf_primes}}]},
     ]}
 
 def inbox(label):
@@ -80,7 +80,7 @@ def pslbox(label):
 def get_lattice_poset():
     t0 = walltime()
     R = []
-    for rec in dbtable.search(lattice_query(), ["label", "parents"]):
+    for rec in db.gps_gl2zhat_coarse.search(lattice_query(), ["label", "parents"]):
         for olabel in rec["parents"]:
             R.append([olabel, rec["label"]]) # Use backward direction so that breadth first search is faster
     print(f"DB data loaded in {walltime() - t0:.2f}s")
@@ -99,7 +99,8 @@ def get_rational_poset():
     t0 = walltime()
     nodes = []
     R = []
-    for rec in dbtable.search(rational_poset_query(), ["label", "parents", "coarse_label"], silent=True):
+    # This needs to be changed to db.gps_gl2zhat_fine once the data is there.
+    for rec in db.gps_gl2zhat_coarse.search(rational_poset_query(), ["label", "parents", "coarse_label"], silent=True):
         if rec["label"] == "1.1.0.a.1": continue
         nodes.append(rec["label"])
         parents = [label for label in rec["parents"] if label != "1.1.0.a.1"]
@@ -279,8 +280,8 @@ def load_points_files(data_folder):
     ans = []
     query = rat_query()
     query["name"] = {"$like": "X0%"}
-    X0s = {rec["name"]: rec["label"] for rec in dbtable.search(query, ["name", "label"], silent=True)}
-    RSZB_lookup = {rec["RSZBlabel"]: rec["label"] for rec in dbtable.search({"name": {"$exists": True}, "RSZBlabel": {"$exists":True}}, ["label", "RSZBlabel"])}
+    X0s = {rec["name"]: rec["label"] for rec in db.gps_gl2zhat_coarse.search(query, ["name", "label"], silent=True)}
+    RSZB_lookup = {rec["RSZBlabel"]: rec["label"] for rec in db.gps_gl2zhat_coarse.search({"name": {"$exists": True}, "RSZBlabel": {"$exists":True}}, ["label", "RSZBlabel"])}
     skipped = set()
     for pieces in all_pieces:
         name = label = pieces[0].strip()

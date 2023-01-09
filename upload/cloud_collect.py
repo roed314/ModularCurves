@@ -17,7 +17,7 @@ from cloud_common import load_gl2zhat_rational_data, get_lattice_poset, index_it
 def get_gonalities(model_gonalities=None):
     P = get_lattice_poset()
     H = P._hasse_diagram
-    gonalities = {P._element_to_vertex(rec["label"]): rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"] for rec in dbtable.search({"contains_negative_one":True}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"])}
+    gonalities = {P._element_to_vertex(rec["label"]): rec["q_gonality_bounds"] + rec["qbar_gonality_bounds"] for rec in db.gps_gl2zhat_coarse.search({}, ["label", "q_gonality_bounds", "qbar_gonality_bounds"])}
     for x, bounds in gonalities.items():
         for i in [0,2]:
             assert bounds[i+1] >= bounds[i]
@@ -501,7 +501,7 @@ def create_db_uploads(execute=False):
             card = num_pts.get(label, 0)
             _ = F.write(f"{label}|{gon}|{data['L'].get(label, default)}|{card}\n")
     refinements = defaultdict(list)
-    for rec in dbtable.search({"contains_negative_one":False}, ["label", "coarse_label"]):
+    for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":False}, ["label", "coarse_label"]):
         refinements[rec["coarse_label"]].append(rec["fine_label"])
     with open("gps_gl2zhat_fine.update", "w") as F:
         _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds\ntext|integer|integer|integer[]|integer[]\n\n")
