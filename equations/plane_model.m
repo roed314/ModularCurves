@@ -350,9 +350,12 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
                     vprint User1: Sprintf("Plane model: invalid model of degree = %o", m);
                 end if;
                 break;
+            elif Cputime() - t0 gt 600 then
+                break;
             end if;
         end for;
-    until nvalid ge 25 or state`nonpiv_ctr[1] ge 728 or (nvalid gt 0 and Cputime() - t0 gt 60);
+        // Since this is part of the process where we compute the canonical model (and we give that a long timeout), we don't want this to spin forever.
+    until nvalid ge 25 or state`nonpiv_ctr[1] ge 728 or (nvalid gt 0 and Cputime() - t0 gt 60) or (Cputime() - t0 gt 600);
     ReportEnd(label, "searching for plane models", t0);
     ReportEnd(label, "plane model relations", trel : elapsed:=trel);
     ReportEnd(label, "plane model validations", tval : elapsed:=tval);

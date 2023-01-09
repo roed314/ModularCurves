@@ -57,8 +57,12 @@ def prep(stage):
         make_gonality_files()
         if not args.norats:
             prepare_rational_points()
-    else:
+    elif stage == 2:
         extract_stage1()
+        update_relj_codomains()
+    elif stage == 3:
+        extract_stage1_2()
+        return
     make_tarball(stage=stage)
 
 def make_input_data():
@@ -250,41 +254,12 @@ def run_hyperelliptic():
     os.chdir(opj("..", "upload"))
 
 def get_relj_codomains():
-    # Currently, the plan is to just run GetPrecHyp.m on lovelace, so we just use the output in the folder ishyp
-    print("Loading hyperelliptic data...", end="")
-    t0 = time.time()
+    # We extracted the results of stage0 into the ishyp folder
+    output_folder, hyp_lookup, parents_conj, P, H, M, X1, index_sort_key = get_relj_codomain_input()
+    print("Determining codomains...", end="")
     sys.stdout.flush()
-    output_folder = opj("..", "equations", "cod")
-    os.makedirs(output_folder, exist_ok=True)
-    hyp_lookup = {}
-    for label in os.listdir(opj("..", "equations", "ishyp")):
-        with open(opj("..", "equations", "ishyp", label)) as F:
-            hyp, prec, reldeg = F.read().strip().split("|")
-            hyp_lookup[label] = (hyp == "t")
-    print(f" done in {time.time() - t0:.2f}s")
-    print("Determining codomains...")
     t0 = time.time()
-    parents_conj = {}
-    M = MatrixSpace(ZZ, 2)
-    query = model_query()
-    query["genus"] = {"$gte": 3}
-    for rec in dbtable.search(query, ["label", "parents", "parents_conj", "qbar_gonality_bounds"]):
-        if not inbox(rec["label"]):
-            continue
-        gon = rec["qbar_gonality_bounds"]
-        if gon == [2, 2]:
-            hyp_lookup[rec["label"]] = True
-        elif gon[0] > 2:
-            hyp_lookup[rec["label"]] = False
-        for plabel, pconj in zip(rec["parents"], rec["parents_conj"]):
-            parents_conj[rec["label"], plabel] = M(pconj)
-    P = get_lattice_poset()
-    H = P._hasse_diagram
-    X1 = P._element_to_vertex("1.1.0.a.1")
     cod = {}
-    def index_sort_key(pair):
-        N, i, g, a, n = pair[0].split(".")
-        return (int(i), int(N), int(g), class_to_int(a), int(n))
     for x in index_iterator(P, X1):
         label = P._vertex_to_element(x)
         N, i, g, a, n = label.split(".")
@@ -303,7 +278,7 @@ def get_relj_codomains():
     for label, (codomain, conj) in cod.items():
         if label != codomain:
             # We track the maximum index used for a given codomain, since that affects the precision needed for computing the relative j-map.
-            cods[codomain] = max(cods[codomain], int(label.split(".")[1]))
+            cods[codomain] = max(cods[codomain], int(label.split(".")[1]) // codomain.split(".")[1])
             with open(opj(output_folder, label), "w") as F:
                 _ = F.write(f"{codomain}|{','.join(str(c) for c in conj.list())}")
     # Now cods contains the maximum relative index of anything mapping to the given codomain
@@ -343,6 +318,124 @@ def get_relj_codomains():
                             if r > args.absprob:
                                 continue
                         _ = Flat.write(label + "\n")
+    print(f"Todo files printed in {time.time() - t0:.2f}s")
+
+def get_relj_codomain_input():
+    print("Loading hyperelliptic data...", end="")
+    t0 = time.time()
+    sys.stdout.flush()
+    output_folder = opj("..", "equations", "cod")
+    os.makedirs(output_folder, exist_ok=True)
+    hyp_lookup = {}
+    for label in os.listdir(opj("..", "equations", "ishyp")):
+        with open(opj("..", "equations", "ishyp", label)) as F:
+            hyp, prec, reldeg = F.read().strip().split("|")
+            hyp_lookup[label] = (hyp == "t")
+    print(f" done in {time.time() - t0:.2f}s")
+    print("Loading conjugators...", end="")
+    sys.stdout.flush()
+    t0 = time.time()
+    parents_conj = {}
+    M = MatrixSpace(ZZ, 2)
+    query = model_query()
+    query["genus"] = {"$gte": 3}
+    for rec in dbtable.search(query, ["label", "parents", "parents_conj", "qbar_gonality_bounds"]):
+        if not inbox(rec["label"]):
+            continue
+        gon = rec["qbar_gonality_bounds"]
+        if gon == [2, 2]:
+            hyp_lookup[rec["label"]] = True
+        elif gon[0] > 2:
+            hyp_lookup[rec["label"]] = False
+        for plabel, pconj in zip(rec["parents"], rec["parents_conj"]):
+            parents_conj[rec["label"], plabel] = M(pconj)
+    print(f" done in {time.time() - t0:.2f}s")
+    P = get_lattice_poset()
+    H = P._hasse_diagram
+    X1 = P._element_to_vertex("1.1.0.a.1")
+    def index_sort_key(pair):
+        N, i, g, a, n = pair[0].split(".")
+        return (int(i), int(N), int(g), class_to_int(a), int(n))
+    return output_folder, hyp_lookup, parents_conj, P, H, M, X1, index_sort_key
+
+def update_relj_codomains():
+    # Stage 0 extract into ishyp, and stage1 (hopefully) computed canonical models for a bunch of codomains.
+    # Some may have failed, but there was flexibility in choosing them (We aimed to optimize the index, but having the model is obviously a lot more important)
+    output_folder, hyp_lookup, parents_conj, P, H, M, X1, index_sort_key = get_relj_codomain_input()
+    print("Determining codomains...", end="")
+    sys.stdout.flush()
+    t0 = time.time()
+    models_available = {}
+    for label in os.listdir(opj("..", "canonical_models")):
+        codfile = opj("..", "cod", label)
+        if ope(codfile): # should always exist....
+            with open(codfile) as F:
+                codomain, data = F.read().strip().split("|")
+            if codomain == label and data.isdigit(): # if we've only finished stage1, this should be true
+                N, i, g, a, n = label.split(".")
+                # maximum index this codomain supports
+                models_available[label] = int(data) * int(i)
+    prior_cod = {}
+    for label in os.listdir(opj("..", "cod")):
+        if label in models_available:
+            continue
+        codfile = opj("..", "cod", label)
+        with open(codfile) as F:
+            codomain, data = F.read().strip().split("|")
+        if codomain != label:
+            prior_cod[label] = codomain
+    current_cod = {}
+    cod = defaultdict(dict)
+    # Unlike in get_relj_codomains, we may be restricted in the index allowed by a codomain
+    # So here the values of cod are a list of options
+    def collapse(tmp, ind):
+        # For each maximum index supported, keep only the minimum index_sort_key
+        D = defaultdict(list)
+        for pair in tmp:
+            D[models_available[pair[0]]].append(pair)
+        for maxind, pairs in D.items():
+            # We can omit options that don't support this index, since everything downstream will have even larger index
+            if ind <= maxind:
+                yield min(pairs, key=index_sort_key)
+    for x in index_iterator(P, X1):
+        label = P._vertex_to_element(x)
+        N, i, g, a, n = label.split(".")
+        i, g = int(i), int(g)
+        if g >= 3 and inbox(label) and hyp_lookup.get(label) is False:
+            if label in models_available:
+                tmp = [(label, M((1,0,0,1)))]
+            else:
+                tmp = []
+            for y in H.neighbors_in(x):
+                ylabel = P._vertex_to_element(y)
+                for ybest, yconj in cod.get(ylabel, []):
+                    conj = parents_conj[label, ylabel] * yconj
+                    tmp.append((ybest, conj))
+            tmp = list(collapse(tmp, i))
+            if tmp:
+                cod[label] = tmp # includes multiple options at different indexes
+                current_cod[label] = min(tmp, key=index_sort_key) # best option at this index
+            else:
+                print(f"Warning: no valid codomain for {label}")
+    print(f"Codomains selected in {time.time() - t0:.2f}s")
+    ndiff = len([label for label, prior in prior_cod.items() if prior != current_cod.get(label, (None,None))[0]])
+    print(f"{ndiff} codomains selected differently from stage 1")
+    t0 = time.time()
+    # We don't support codprob, absprob or domprob here
+    if ope("nexttodo.txt"):
+        n = 0
+        while ope(f"stage1_nexttodo{n}.txt"):
+            n += 1
+        os.rename("codtodo.txt", "stage1_nexttodo{n}.txt")
+    with open("nexttodo.txt", "w") as Fnext:
+        for label in dbtable.search(model_query(), "label"):
+            if inbox(label) and label not in models_available:
+                codomain, conj = current_cod.get(label, (None, None))
+                if codomain is not None:
+                    # Use relative j-map
+                    with open(opj(output_folder, label), "w") as F:
+                        _ = F.write(f"{codomain}|{','.join(str(c) for c in conj.list())}")
+                _ = Fnext.write(label + "\n")
     print(f"Todo files printed in {time.time() - t0:.2f}s")
 
 #######################################################

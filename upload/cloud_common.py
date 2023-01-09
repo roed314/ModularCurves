@@ -13,7 +13,7 @@ opj = os.path.join
 ope = os.path.exists
 sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
 from lmfdb import db
-dbtable = db.gps_gl2zhat_tmp
+dbtable = db.gps_gl2zhat_fine
 
 @cached_function
 def qlevels():

@@ -120,7 +120,8 @@ def get_canonical_model(label, verbose):
     # Also produces a first stab at a plane model
     if genus <= 24:
         verb = "verbose:= " if verbose else ""
-        subprocess.run('parallel --timeout 3600 "magma -b label:={1} %sGetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+        # Currently an 8 hour timeout
+        subprocess.run('parallel --timeout 28800 "magma -b label:={1} %sGetModelLMFDB.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def get_plane_and_gonality(label, verbose):
     # Runs the script to compute gonality bounds and a better plane model
@@ -146,11 +147,11 @@ def get_plane_model(label, verbose):
 
 def get_rational_coordinates(label, verbose):
     verb = "verbose:= " if verbose else ""
-    subprocess.run('parallel --timeout 300 "magma -b label:={1} %sGetRationalCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+    subprocess.run('parallel --timeout 600 "magma -b label:={1} %sGetRationalCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def get_cusp_coordinates(label, verbose):
     verb = "verbose:= " if verbose else ""
-    subprocess.run('parallel --timeout 60 "magma -b label:={1} %sGetCuspCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
+    subprocess.run('parallel --timeout 300 "magma -b label:={1} %sGetCuspCoordinates.m >> stdout/{1} 2>&1" ::: %s' % (verb, label), shell=True)
 
 def get_jfactorization(label, verbose):
     verb = "verbose:= " if verbose else ""
