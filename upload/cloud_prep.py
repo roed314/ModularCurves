@@ -32,6 +32,7 @@ parser.add_argument("--norelj", action="store_true", help="disable computation o
 parser.add_argument("--nopsl2", action="store_true", help="disable creation of psl2_input_data and picture_labels.txt")
 parser.add_argument("--nographviz", action="store_true", help="disable creation of graphviz input folder")
 parser.add_argument("--norats", action="store_true", help="disable creation of rational points data")
+parser.add_argument("--notar", action="store_true", help="disable creation of tarball")
 
 parser.add_argument("--redomissing", help="determine which canonical models didn't finish and create a new tarball with just them as a todo.  Pass in the codes to be checked for (C is a common choice, for canonical model)")
 parser.add_argument("--combinemissing", help="An output file to merge into output{stage}")
@@ -122,7 +123,8 @@ def prep(stage):
     elif stage == 3:
         extract_stage1_2()
         return
-    make_tarball(stage=stage)
+    if not args.notar:
+        make_tarball(stage=stage)
 
 def make_input_data():
     """
@@ -458,6 +460,8 @@ def update_relj_codomains():
             # We can omit options that don't support this index, since everything downstream will have even larger index
             if ind <= maxind:
                 yield min(pairs, key=index_sort_key)
+    # We track which curves map to some other canonicalizable curve, since that controls whether we warn about a lack of a codomain and need to delete a cod file (these are the examples that would have been relative before but now need to be absolute)
+    canonicalizable = set()
     for x in index_iterator(P, X1):
         label = P._vertex_to_element(x)
         N, i, g, a, n = label.split(".")
@@ -467,7 +471,11 @@ def update_relj_codomains():
                 tmp = [(label, M((1,0,0,1)))]
             else:
                 tmp = []
+            canonicalizable.add(x)
+            haverel = False
             for y in H.neighbors_in(x):
+                if y in canonicalizable:
+                    haverel = True
                 ylabel = P._vertex_to_element(y)
                 for ybest, yconj in cod.get(ylabel, []):
                     conj = parents_conj[label, ylabel] * yconj
@@ -476,7 +484,7 @@ def update_relj_codomains():
             if tmp:
                 cod[label] = tmp # includes multiple options at different indexes
                 current_cod[label] = min(tmp, key=index_sort_key) # best option at this index
-            else:
+            elif haverel:
                 print(f"Warning: no valid codomain for {label}")
                 # We need to delete the file in cod/ since it won't get overwritten below
                 os.unlink(opj(output_folder, label))
