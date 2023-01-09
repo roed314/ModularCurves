@@ -33,7 +33,7 @@ parser.add_argument("--nopsl2", action="store_true", help="disable creation of p
 parser.add_argument("--nographviz", action="store_true", help="disable creation of graphviz input folder")
 parser.add_argument("--norats", action="store_true", help="disable creation of rational points data")
 
-parser.add_arugment("--redomissing", action="store_true", help="determine which canonical models didn't finish and create a new tarball with just them as a todo")
+parser.add_argument("--redomissing", action="store_true", help="determine which canonical models didn't finish and create a new tarball with just them as a todo")
 
 args = parser.parse_args()
 
