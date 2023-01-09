@@ -389,3 +389,12 @@ def convert_cm_datafile(cmin, cmout):
                 lmfdb_label = lookup.get(ainvs, r"?")
                 ainvs = ";".join(str(a) for a in ainvs) # format compatible with ec_nfcurves
                 _ = Fout.write(f"{lmfdb_label}|{label}|{j}|{cm}|{ainvs}|{conductor}\n")
+
+def create_randomizers(num_jobs, num_machines=10):
+    import random
+    for i in range(num_machines):
+        L = list(range(i, num_jobs, num_machines))
+        random.shuffle(L)
+        with open(f"rand{i}.jobs", "w") as F:
+            for n in L:
+                _ = F.write(f"{n}\n")
