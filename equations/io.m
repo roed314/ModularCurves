@@ -482,7 +482,7 @@ intrinsic LMFDBReadJinvCoords(label::MonStgElt : can_only:=false) -> Assoc
     lines := Split(Read(fname), "\n");
     coords := AssociativeArray();
     R<x> := PolynomialRing(Rationals());
-    for line in line do
+    for line in lines do
         poly, j, model_type, coord := Explode(Split(line, "|"));
         model_type := StringToInteger(model_type);
         if can_only and model_type ne 0 then continue; end if;
