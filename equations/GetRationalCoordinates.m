@@ -54,7 +54,7 @@ if #jinvs gt 0 then
                 if IsDefined(roots, <fK, fL>) then
                     rts := roots[<fK, fL>];
                 else
-                    rts := Roots(fK, L);
+                    rts := [pair[1] : pair in Roots(fK, L)];
                     roots[<fK, fL>] := rts;
                 end if;
                 for Kpair in clist do
@@ -128,7 +128,7 @@ if #jinvs gt 0 then
                 Append(~bpd[val], Eltseq(P));
             end for;
             base_points_dict[fL] := bpd;
-            ReportEnd(label, Sprintf("computing j-map on base points for L=%o", fL), t1);
+            ReportEnd(label, Sprintf("computing j-map on base points for L=%o", sprint(fL)), t1);
         end if;
         if #Cs gt 0 then
             CL := ChangeRing(C, L);
