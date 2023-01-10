@@ -162,8 +162,10 @@ def extract_stage1():
     """
     rfold = opj("..", "equations", "rats")
     cfold = opj("..", "equations", "canonical_models")
+    jfold = opj("..", "equations", "jcusps")
     os.makedirs(rfold, exist_ok=True)
     os.makedirs(cfold, exist_ok=True)
+    os.makedirs(jfold, exist_ok=True)
     # We need to delete any current contents of these directories (which may have been created by running locally), since the append mode below will screw things up for stage 2.
     rdata = os.listdir(rfold)
     if rdata:
@@ -189,6 +191,8 @@ def extract_stage1():
                 folder = rfold
             elif line[0] == "C":
                 folder = cfold
+            elif line[0] == "J":
+                folder = jfold
             else:
                 continue
             with open(opj(folder, label), "a") as Fout:
@@ -246,6 +250,7 @@ def make_tarball(stage=1):
         "graphviz_in",
         "input_data",
         "jinvs",
+        "jcusps", # needed temporarily
         "g2invs",
     ]
     if stage == 0:
