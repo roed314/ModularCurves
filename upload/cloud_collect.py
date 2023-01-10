@@ -502,7 +502,7 @@ def create_db_uploads(execute=False):
             _ = F.write(f"{label}|{gon}|{data['L'].get(label, default)}|{card}\n")
     refinements = defaultdict(list)
     for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":False}, ["label", "coarse_label"]):
-        refinements[rec["coarse_label"]].append(rec["fine_label"])
+        refinements[rec["coarse_label"]].append(rec["label"])
     with open("gps_gl2zhat_fine.update", "w") as F:
         _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds\ntext|integer|integer|integer[]|integer[]\n\n")
         for coarse_label, gon in gonalities.items():
