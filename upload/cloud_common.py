@@ -170,7 +170,7 @@ def get_output_data():
                     if code in "ETR":
                         # I deleted the rats folder between runs, and it wasn't done in output1, so we keep everything
                         output[label][code].append(line)
-                    elif code == "CV":
+                    elif code in "CV":
                         # This better not be different...
                         if output[label][code]:
                             assert output[label][code] == [line]
