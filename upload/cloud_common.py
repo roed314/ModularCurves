@@ -7,6 +7,7 @@ from collections import defaultdict
 from sage.misc.cachefunc import cached_function
 from sage.all import ZZ, QQ, PolynomialRing, NumberField, DiGraph
 from sage.combinat.posets.posets import FinitePoset
+from sage.databases.cremona import class_to_int
 from sage.misc.misc import cputime, walltime
 
 opj = os.path.join
@@ -151,20 +152,33 @@ def to_coarse_label(label):
     return f"{M}.{j}.{g}.{a}.{m}"
 
 def get_output_data():
-    # Have to deal with duplicate lines.  Plan: Just remove exact duplicates
-    duplicates = defaultdict(set)
-    for i in range(2,-1,-1): # Backward for gonalities...
+    # Have to deal with duplicate lines.  This is annoying since we have multiple output files, and since we restarted the computation in output2 without fulling clearing the output folders.  Plan: Remove exact duplicates, and keep the *last* JG output for each label (we weren't able to delete jusps/ since it was in use, and gonalities are updated).
+    output = defaultdict(lambda: defaultdict(list))
+    def sort_key(label):
+        # only works on coarse labels, but that's okay here
+        return [(int(c) if c.isdigit() else class_to_int(c)) for c in label.split(".")]
+    for i in range(3):
         fname = f"output{i}"
         if ope(fname):
             with open(fname) as F:
                 for line in F:
                     code = line[0]
                     label = line[1:].split("|")[0]
-                    if code in "ET" or line not in duplicates[code,label]:
-                        duplicates[code,label].add(line)
-                        if code == "G" and (code,label) in duplicates:
-                            continue # we only want the most recent gonality
-                        yield line
+                    if code in "ETR":
+                        # I deleted the rats folder between runs, and it wasn't done in output1, so we keep everything
+                        output[label][code].append(line)
+                    elif code == "CV":
+                        # This better not be different...
+                        if output[label][code]:
+                            assert output[label][code] == [line]
+                        output[label][code] = [line]
+                    elif code in "PHJFGL":
+                        # Keep the last
+                        output[label][code] = [line]
+    for label in sorted(output, key=sort_key):
+        for code in sorted(output[label]):
+            for line in output[label][code]:
+                yield line
 
 def save_ecnf_data(fname="ecnf_data.txt"):
     # We have to modify ecnf data in a way that's somewhat slow (computing the actual field in which j lies)
