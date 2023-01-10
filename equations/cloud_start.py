@@ -16,6 +16,7 @@
 # ** Computation changes **
 # Create a mechanism for redoing failed labels
 # For elliptic curves and genus 2 curves, it would be good to link to them (probably using newform) (add curve_label column, use CremonaReferece)
+# It's slow pushing forward cusps when they're in the base locus (e.g. for 20.180.10.bl.1, (0:0:0:0:a_5^3+3*a_5^2+3*a_5:-a_5^2-a_5:-a_5^2-2*a_5-1:a_5^3+3*a_5^2+4*a_5+3:0:1) has x=y=z=0)
 # When assigned, use M`C to save curve_label earlier (otherwise computation may time out)
 # Fix these:
 # `images = [label for label in images if "?" not in label and int(label.split(".")[0]) < 24]`
