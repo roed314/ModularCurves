@@ -181,6 +181,7 @@ def extract_stage1():
             sys.exit(1)
         for label in cdata:
             os.unlink(opj(cfold, label))
+        print(f"Deleted {len(cdata)} old canonical_model files")
     with open("output1") as F:
         for line in F:
             if not line: continue
@@ -501,7 +502,7 @@ def update_relj_codomains():
         n = 0
         while ope(f"stage1_nexttodo{n}.txt"):
             n += 1
-        os.rename("codtodo.txt", "stage1_nexttodo{n}.txt")
+        os.rename("codtodo.txt", f"stage1_nexttodo{n}.txt")
     with open("nexttodo.txt", "w") as Fnext:
         for label in db.gps_gl2zhat_coarse.search(model_query(), "label"):
             if inbox(label):
