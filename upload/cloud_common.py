@@ -141,6 +141,9 @@ def index_iterator(P, v, reverse=False):
 def load_gl2zhat_rational_data():
     return {rec["label"]: rec for rec in db.gps_gl2zhat_coarse.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "coarse_label"], silent=True)}
 
+def load_gl2zhat_cusp_data():
+    return {rec["label"]: rec for rec in db.gps_gl2zhat_coarse.search({}, ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "rational_cusps"], silent=True)}
+
 def to_coarse_label(label):
     if label.count(".") == 4:
         return label
