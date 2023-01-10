@@ -151,12 +151,18 @@ def to_coarse_label(label):
     return f"{M}.{j}.{g}.{a}.{m}"
 
 def get_output_data():
+    # Have to deal with duplicate lines.  Plan: Just remove exact duplicates
+    duplicates = defaultdict(set)
     for i in range(3):
         fname = f"output{i}"
         if ope(fname):
             with open(fname) as F:
                 for line in F:
-                    yield line
+                    code = line[0]
+                    label = line[1:].split("|")[0]
+                    if code in "ET" or line not in duplicates[code,label]:
+                        duplicates[code,label].add(line)
+                        yield line
 
 def save_ecnf_data(fname="ecnf_data.txt"):
     # We have to modify ecnf data in a way that's somewhat slow (computing the actual field in which j lies)
