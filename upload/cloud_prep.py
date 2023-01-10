@@ -36,6 +36,7 @@ parser.add_argument("--notar", action="store_true", help="disable creation of ta
 
 parser.add_argument("--redomissing", help="determine which canonical models didn't finish and create a new tarball with just them as a todo.  Pass in the codes to be checked for (C is a common choice, for canonical model)")
 parser.add_argument("--combinemissing", help="An output file to merge into output{stage}")
+parser.add_argument("--keepold", action="store_true", help="whether to keep lines from the old output file (other than the headers listed in redomissing) when merging")
 
 args = parser.parse_args()
 
@@ -45,12 +46,6 @@ def prep(stage):
         gap_ofile = args.combinemissing
         codes = args.redomissing
         if codes is None: codes = "C"
-        done = set()
-        with open(cur_ofile) as F:
-            for line in F:
-                if line and line[0] in codes:
-                    label = line[1:].split("|")[0]
-                    done.add(label)
         fixed = set()
         with open(gap_ofile) as F:
             for line in F:
@@ -61,8 +56,11 @@ def prep(stage):
         with open(tmpfile, "w") as Fout:
             with open(cur_ofile) as F:
                 for line in F:
+                    code = line[0]
                     label = line[1:].split("|")[0]
-                    if label not in fixed:
+                    # Sometimes we want to include old data and other times we don't
+                    # It would be good to have something robust here, but for now we make the user pass in another argument
+                    if label not in fixed or (args.keepold and code not in codes):
                         _ = Fout.write(line)
             with open(gap_ofile) as F:
                 for line in F:
@@ -162,10 +160,10 @@ def extract_stage1():
     """
     rfold = opj("..", "equations", "rats")
     cfold = opj("..", "equations", "canonical_models")
-    jfold = opj("..", "equations", "jcusps")
+    #jfold = opj("..", "equations", "jcusps")
     os.makedirs(rfold, exist_ok=True)
     os.makedirs(cfold, exist_ok=True)
-    os.makedirs(jfold, exist_ok=True)
+    #os.makedirs(jfold, exist_ok=True)
     # We need to delete any current contents of these directories (which may have been created by running locally), since the append mode below will screw things up for stage 2.
     rdata = os.listdir(rfold)
     if rdata:
@@ -191,8 +189,8 @@ def extract_stage1():
                 folder = rfold
             elif line[0] == "C":
                 folder = cfold
-            elif line[0] == "J":
-                folder = jfold
+            #elif line[0] == "J":
+            #    folder = jfold
             else:
                 continue
             with open(opj(folder, label), "a") as Fout:
