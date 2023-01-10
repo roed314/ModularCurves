@@ -12,7 +12,7 @@ opj = os.path.join
 ope = os.path.exists
 sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
 from lmfdb import db
-from cloud_common import load_gl2zhat_rational_data, load_gl2zhat_cusp_data, get_lattice_poset, index_iterator, to_coarse_label, get_output_data, dbtable
+from cloud_common import load_gl2zhat_rational_data, load_gl2zhat_cusp_data, get_lattice_poset, index_iterator, to_coarse_label, get_output_data, dbtable, is_isolated
 
 def get_gonalities(model_gonalities=None):
     P = get_lattice_poset()

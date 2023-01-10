@@ -421,3 +421,44 @@ def create_randomizers(num_jobs, num_machines=10):
         with open(f"rand{i}.jobs", "w") as F:
             for n in L:
                 _ = F.write(f"{n+1}\n")
+
+def is_isolated(degree, g, rank, gonlow, simp, dims):
+    # We encode the isolatedness in a small integer, p + a, where
+    # p = 3,0,-3 for P1 isolated/unknown/parameterized and
+    # a = 1,0,-1 for AV isolated/unknown/parameterized
+    # 4 = isolated (both P1 isolated and AV isolated)
+    # 0 = unknown for both
+    # -4 = both P1 and AV parameterized
+    if g == 0:
+        # Always P1 parameterized and AV isolated
+        return "-2"
+    elif degree == 1:
+        if g == 1:
+            if rank is None:
+                return "3"
+            elif rank > 0:
+                # Always P1 isolated and AV parameterized
+                return "2"
+            else:
+                return "4"
+        else:
+            return "4"
+    elif degree < QQ(gonlow) / 2 or degree < gonlow and (rank == 0 or simp and degree < g):
+        return "4"
+    elif degree > g:
+        # Always P1 parameterized; AV parameterized if and only if rank positive
+        if rank is None:
+            return "-3"
+        if rank > 0:
+            return "-4"
+        else:
+            return "-2"
+    elif rank is not None and degree == g and rank > 0:
+        return "-1" # AV parameterized; can compute if P1 parameterized by Riemann Roch with a model
+    else:
+        if rank == 0 or (dims is not None and degree <= min(dims)): # for second part, using degree < g
+            # Actually only need to check the minimum of the dimensions where the rank is positive
+            # Always AV isolated; can try to computed whether P1 parameterized by Riemann roch
+            return "1"
+        else:
+            return "0"

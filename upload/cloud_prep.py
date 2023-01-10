@@ -12,7 +12,7 @@ from sage.all import ZZ, QQ, PolynomialRing, MatrixSpace, EllipticCurve, NumberF
 from sage.combinat.posets.posets import FinitePoset
 from sage.databases.cremona import class_to_int
 from sage.misc.prandom import random, randint
-from cloud_common import rational_poset_query, lattice_query, model_query, rat_query, psl2_query, get_lattice_poset, get_rational_poset, index_iterator, to_coarse_label, inbox, pslbox, load_gl2zhat_rational_data, dbtable, load_ecq_data, load_ecnf_data, load_points_files
+from cloud_common import rational_poset_query, lattice_query, model_query, rat_query, psl2_query, get_lattice_poset, get_rational_poset, index_iterator, to_coarse_label, inbox, pslbox, load_gl2zhat_rational_data, dbtable, load_ecq_data, load_ecnf_data, load_points_files, is_isolated
 
 
 opj = os.path.join
@@ -693,47 +693,6 @@ def make_graphviz_files():
 ###############################################################
 # Functions for preparing for the rational points computation #
 ###############################################################
-
-def is_isolated(degree, g, rank, gonlow, simp, dims):
-    # We encode the isolatedness in a small integer, p + a, where
-    # p = 3,0,-3 for P1 isolated/unknown/parameterized and
-    # a = 1,0,-1 for AV isolated/unknown/parameterized
-    # 4 = isolated (both P1 isolated and AV isolated)
-    # 0 = unknown for both
-    # -4 = both P1 and AV parameterized
-    if g == 0:
-        # Always P1 parameterized and AV isolated
-        return "-2"
-    elif degree == 1:
-        if g == 1:
-            if rank is None:
-                return "3"
-            elif rank > 0:
-                # Always P1 isolated and AV parameterized
-                return "2"
-            else:
-                return "4"
-        else:
-            return "4"
-    elif degree < QQ(gonlow) / 2 or degree < gonlow and (rank == 0 or simp and degree < g):
-        return "4"
-    elif degree > g:
-        # Always P1 parameterized; AV parameterized if and only if rank positive
-        if rank is None:
-            return "-3"
-        if rank > 0:
-            return "-4"
-        else:
-            return "-2"
-    elif rank is not None and degree == g and rank > 0:
-        return "-1" # AV parameterized; can compute if P1 parameterized by Riemann Roch with a model
-    else:
-        if rank == 0 or (dims is not None and degree <= min(dims)): # for second part, using degree < g
-            # Actually only need to check the minimum of the dimensions where the rank is positive
-            # Always AV isolated; can try to computed whether P1 parameterized by Riemann roch
-            return "1"
-        else:
-            return "0"
 
 def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_folder="../rational-points/data", ecnf_data_file="ecnf_data.txt", cm_data_file="cm_data.txt"):
     print("Creating rational point data...")
