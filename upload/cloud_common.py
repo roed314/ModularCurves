@@ -154,14 +154,17 @@ def to_coarse_label(label):
     M, a, m, n = coarse.split(".")
     return f"{M}.{j}.{g}.{a}.{m}"
 
-def get_output_data():
+def get_output_data(output_file=None):
     # Have to deal with duplicate lines.  This is annoying since we have multiple output files, and since we restarted the computation in output2 without fulling clearing the output folders.  Plan: Remove exact duplicates, and keep the *last* JG output for each label (we weren't able to delete jusps/ since it was in use, and gonalities are updated).
     output = defaultdict(lambda: defaultdict(list))
     def sort_key(label):
         # only works on coarse labels, but that's okay here
         return [(int(c) if c.isdigit() else class_to_int(c)) for c in label.split(".")]
-    for i in range(3):
-        fname = f"output{i}"
+    if output_file is None:
+        output_file = [f"output{i}" for i in range(3)]
+    elif isinstance(output_file, str):
+        output_file = [output_file]
+    for fname in output_file:
         if ope(fname):
             with open(fname) as F:
                 for line in F:

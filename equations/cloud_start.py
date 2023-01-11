@@ -22,6 +22,7 @@
 # Fix these:
 # `images = [label for label in images if "?" not in label and int(label.split(".")[0]) < 24]`
 # if level >= 24: continue
+# Didn't successfully defeat base changes: https://alpha.lmfdb.org/ModularCurve/Q/37.114.4.b.1/
 
 # ** Checks **
 # check on other todos in compute_lattice_x

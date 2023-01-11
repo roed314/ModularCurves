@@ -6,8 +6,8 @@ from numpy import mean, median, std
 from cloud_common import get_output_data
 ope = os.path.exists
 
-def timing_statistics():
-    timing_data = [line[1:].strip() for line in get_output_data() if line[0] == "T"]
+def timing_statistics(output_file=None):
+    timing_data = [line[1:].strip() for line in get_output_data(output_file=None) if line[0] == "T"]
     by_label = defaultdict(list)
     for line in timing_data:
         label, line = line.split("|")
