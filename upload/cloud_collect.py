@@ -487,6 +487,12 @@ def create_db_uploads(execute=False):
     assert all(len(D) == 1 for D in data["L"].values())
     data["L"] = {label: L[0] for (label, L) in data["L"].items()}
 
+    # Get curve labels
+    # So far, we haven't succeeded at identifying anything other than elliptic curves
+    cremonas = list(set(data["V"].values()))
+    cremonas = {rec["Clabel"]: rec["lmfdb_label"] for rec in db.ec_curvedata.search({"Clabel":{"$in":cremonas}}, ["Clabel", "lmfdb_label"])}
+    curve_labels = {label: cremonas[Clabel] for (label, Clabel) in data["V"].items()}
+
     def show_gon(gon):
         q, qbar, qbnd, qbarbnd = gon
         if q is None: q = r"\N"
@@ -495,12 +501,13 @@ def create_db_uploads(execute=False):
         qbarbnd = "{%s,%s}" % qbarbnd
         return f"{q}|{qbar}|{qbnd}|{qbarbnd}"
     with open("gps_gl2zhat_coarse.update", "w") as F:
-        _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds|lattice_labels|lattice_x|num_known_degree1_points\ntext|integer|integer|integer[]|integer[]|text[]|integer[]|integer\n\n")
+        _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds|lattice_labels|lattice_x|num_known_degree1_points|curve_label\ntext|integer|integer|integer[]|integer[]|text[]|integer[]|integer|text\n\n")
         default = r"\N|\N"
         for label, gon in gonalities.items():
             gon = show_gon(gon)
             card = num_pts.get(label, 0)
-            _ = F.write(f"{label}|{gon}|{data['L'].get(label, default)}|{card}\n")
+            curve_label = curve_labels.get(label, r"\N")
+            _ = F.write(f"{label}|{gon}|{data['L'].get(label, default)}|{card}|{curve_label}\n")
     refinements = defaultdict(list)
     for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":False}, ["label", "coarse_label"]):
         refinements[rec["coarse_label"]].append(rec["label"])
