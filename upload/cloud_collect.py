@@ -491,7 +491,7 @@ def create_db_uploads(execute=False):
     # So far, we haven't succeeded at identifying anything other than elliptic curves
     cremonas = list(set(sum(data["V"].values(), [])))
     cremonas = {rec["Clabel"]: rec["lmfdb_label"] for rec in db.ec_curvedata.search({"Clabel":{"$in":cremonas}}, ["Clabel", "lmfdb_label"])}
-    curve_labels = {label: cremonas[Clabel] for (label, Clabel) in data["V"].items()}
+    curve_labels = {label: cremonas[Clabel[0]] for (label, Clabel) in data["V"].items()}
 
     def show_gon(gon):
         q, qbar, qbnd, qbarbnd = gon
