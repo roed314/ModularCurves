@@ -346,8 +346,9 @@ def write_models_maps(cans, planes, ghyps, jcusps, jfacs):
             model, proj, nvar = line.split("|")
             leading_coefficients = r"\N"
             factored = "f"
+            # proj already has curly braces
             dontdisplay = dontdisplay_str(proj)
-            maps[label].append(f"1|{label}|{can_type[label]}|{label}|5|{{{proj}}}|{leading_coefficients}|{factored}|{dontdisplay}\n")
+            maps[label].append(f"1|{label}|{can_type[label]}|{label}|5|{proj}|{leading_coefficients}|{factored}|{dontdisplay}\n")
         else:
             model = line
         if "W" in model:

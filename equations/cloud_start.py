@@ -18,6 +18,7 @@
 # For elliptic curves and genus 2 curves, it would be good to link to them (probably using newform) (add curve_label column, use CremonaReferece)
 # It's slow pushing forward cusps when they're in the base locus (e.g. for 20.180.10.bl.1, (0:0:0:0:a_5^3+3*a_5^2+3*a_5:-a_5^2-a_5:-a_5^2-2*a_5-1:a_5^3+3*a_5^2+4*a_5+3:0:1) has x=y=z=0)
 # When assigned, use M`C to save curve_label earlier (otherwise computation may time out)
+# Should we save Glable for multiples of the level when available?  Probably most relevant for X(1) itself....
 # Fix these:
 # `images = [label for label in images if "?" not in label and int(label.split(".")[0]) < 24]`
 # if level >= 24: continue
@@ -53,6 +54,15 @@
 # When the only rational points are cusps, display differently
 # Two digit exponents in j-map: https://red.lmfdb.xyz/ModularCurve/Q/20.36.0.d.2/
 # Elliptic curves aren't showing j-maps, even though they're known (e.g. 15.96.1.b.1)
+# Better knowl for GL2(Z/NZ)-generators and abstract group (currently modcurve.level_structure)
+# Quadratic refinements should probably be a count and a link to search results page
+# Similarly, for high genus curves the list of newforms gets a bit overwhelming (https://purple.lmfdb.xyz/ModularCurve/Q/60.4320.325.ngz.1/)
+# Are cusps isolated?
+
+# !! Need to update modcurve_teximages !!
+# !! Random point producing server errors (https://purple.lmfdb.xyz/ModularCurve/Q/low_degree_points?hst=List&cusp=no&search_type=Random) !!
+
+# ** Front-end done **
 
 # ** Later **
 # Consider https://red.lmfdb.xyz/ModularCurve/Q/16.384.17.k.5/ where there's a relative j-map to 16.48.3.d.1.  It's a little sad that that curve isn't in the lattice.
