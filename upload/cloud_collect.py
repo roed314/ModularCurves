@@ -351,7 +351,7 @@ def write_models_maps(cans, planes, ghyps, jcusps, jfacs):
             maps[label].append(f"1|{label}|{can_type[label]}|{label}|5|{proj}|{leading_coefficients}|{factored}|{dontdisplay}\n")
         else:
             model = line
-        if "W" in model:
+        if "w" in model:
             model_type = 7 # geometrically hyperelliptic
             nvars = 4
         else:

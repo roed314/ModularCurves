@@ -53,16 +53,17 @@
 # Display fields using pretty names (and i rather than a for coordinates and j-invariant in Q(i), maybe square roots also)
 # When the only rational points are cusps, display differently
 # Two digit exponents in j-map: https://red.lmfdb.xyz/ModularCurve/Q/20.36.0.d.2/
-# Elliptic curves aren't showing j-maps, even though they're known (e.g. 15.96.1.b.1)
 # Better knowl for GL2(Z/NZ)-generators and abstract group (currently modcurve.level_structure)
 # Quadratic refinements should probably be a count and a link to search results page
 # Similarly, for high genus curves the list of newforms gets a bit overwhelming (https://purple.lmfdb.xyz/ModularCurve/Q/60.4320.325.ngz.1/)
 # Are cusps isolated?
 
-# !! Need to update modcurve_teximages !!
 # !! Random point producing server errors (https://purple.lmfdb.xyz/ModularCurve/Q/low_degree_points?hst=List&cusp=no&search_type=Random) !!
 
 # ** Front-end done **
+
+# !! Need to update modcurve_teximages !!
+# Elliptic curves aren't showing j-maps, even though they're known (e.g. 15.96.1.b.1)
 
 # ** Later **
 # Consider https://red.lmfdb.xyz/ModularCurve/Q/16.384.17.k.5/ where there's a relative j-map to 16.48.3.d.1.  It's a little sad that that curve isn't in the lattice.
