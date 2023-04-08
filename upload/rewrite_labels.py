@@ -52,7 +52,7 @@ def rewrite_labels(labelfile="modcurve_match.txt",
             if i % 200000 == 0: print(f"Lookup {i}")
             RSZBlabel, NewLabel, OldLabel, hsh, newgens, oldgens = line.strip().split(":")
             lookup[OldLabel] = NewLabel
-            new_gens[NewLabel] = newgens
+            new_gens[NewLabel] = newgens.replace("[","{").replace("]","}")
     def replace_list(labels, parallels):
         if labels in ["{}", r"\N"]:
             return labels, parallels
