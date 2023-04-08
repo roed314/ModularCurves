@@ -1,4 +1,4 @@
-import re
+import re, string
 from lmfdb import db
 ope = os.path.exists
 
@@ -7,7 +7,7 @@ tables = dict(coarse="gps_gl2zhat_coarse",
               models="modcurve_models",
               modelmaps="modcurve_modelmaps",
               points="modcurve_points",
-              pictures="modcurve_pictures",
+              #pictures="modcurve_pictures",
 )
 
 def class_to_int(k):
@@ -37,8 +37,9 @@ def rewrite_labels(labelfile="modcurve_match.txt",
                    modelmaps_out="modcurve_modelmaps.out",
                    points_in="modcurve_points.in",
                    points_out="modcurve_points.out",
-                   pictures_in="modcurve_pictures.in",
-                   pictures_out="modcurve_pictures.out"):
+                   #pictures_in="modcurve_pictures.in",
+                   #pictures_out="modcurve_pictures.out",
+):
     assert ope(labelfile)
     if delete_files is None:
         delete_files = do_upload
@@ -80,8 +81,8 @@ def rewrite_labels(labelfile="modcurve_match.txt",
                             D["coarse_num"] = new_label.rsplit(".", 1)[1]
                             D["parents"] = replace_list(D["parents"])
                             D["lattice_labels"] = replace_list(D["lattice_labels"])
-                            D["psl2label"] = lookup[D["psl2label"]]
-                            D["sl2label"] = lookup[D["sl2label"]]
+                            #D["psl2label"] = lookup[D["psl2label"]]
+                            #D["sl2label"] = lookup[D["sl2label"]]
                             D["canonical_generators"] = new_gens[new_label]
                         elif name == "fine":
                             new_label = D["label"] = lookup[D["label"]]
@@ -89,8 +90,8 @@ def rewrite_labels(labelfile="modcurve_match.txt",
                             D["fine_num"] = new_label.rsplit(".", 1)[1]
                             D["parents"] = replace_list(D["parents"])
                             D["lattice_labels"] = replace_list(D["lattice_labels"])
-                            D["psl2label"] = lookup[D["psl2label"]]
-                            D["sl2label"] = lookup[D["sl2label"]]
+                            #D["psl2label"] = lookup[D["psl2label"]]
+                            #D["sl2label"] = lookup[D["sl2label"]]
                             D["canonical_generators"] = new_gens[new_label]
                         elif name == "models":
                             D["modcurve"] = lookup[D["modcurve"]]
@@ -99,8 +100,8 @@ def rewrite_labels(labelfile="modcurve_match.txt",
                             D["codomain_label"] = lookup[D["codomain_label"]]
                         elif name == "points":
                             D["curve_label"] = lookup[D["curve_label"]]
-                        elif name == "pictures":
-                            D["psl2label"] = lookup[D["psl2label"]]
+                        #elif name == "pictures":
+                        #    D["psl2label"] = lookup[D["psl2label"]]
                         line = "|".join([D[col] for col in cols]) + "\n"
                     _ = Fout.write(line)
     if do_upload:
