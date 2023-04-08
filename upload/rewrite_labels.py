@@ -4,9 +4,9 @@ ope = os.path.exists
 
 tables = dict(coarse="gps_gl2zhat_coarse",
               fine="gps_gl2zhat_fine",
-              models="modcurve_models",
-              modelmaps="modcurve_modelmaps",
-              points="modcurve_points",
+              models="modcurve_models_test",
+              modelmaps="modcurve_modelmaps_test",
+              points="modcurve_points_test",
               #pictures="modcurve_pictures",
 )
 
@@ -27,11 +27,12 @@ def sort_key(label):
 def rewrite_labels(labelfile="modcurve_match.txt",
                    do_upload=False,
                    delete_files=None,
+                   skip=[],
                    coarse_in="gps_gl2zhat_coarse.in",
                    coarse_out="gps_gl2zhat_coarse.out",
                    fine_in="gps_gl2zhat_fine.in",
                    fine_out="gps_gl2zhat_fine.out",
-                   models_in="modcurve_models.in", # todo: some of these should have _test
+                   models_in="modcurve_models.in",
                    models_out="modcurve_models.out",
                    modelmaps_in="modcurve_modelmaps.in",
                    modelmaps_out="modcurve_modelmaps.out",
@@ -69,6 +70,8 @@ def rewrite_labels(labelfile="modcurve_match.txt",
             db[tblname].copy_to(fname, include_id=False)
     # Coarse table
     for name, tblname in tables.items():
+        if name in skip:
+            continue
         print(f"Rewriting {name} table")
         iname = locals()[name+"_in"]
         oname = locals()[name+"_out"]
