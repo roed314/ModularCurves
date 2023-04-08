@@ -53,7 +53,7 @@ def rewrite_labels(labelfile="modcurve_match.txt",
             lookup[OldLabel] = NewLabel
             new_gens[NewLabel] = newgens
     def replace_list(s):
-        if s == "{}":
+        if s in ["{}", r"\N"]:
             return s
         L = s[1:-1].split(",")
         L = [lookup[x] for x in L]
