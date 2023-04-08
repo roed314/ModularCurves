@@ -52,13 +52,16 @@ def rewrite_labels(labelfile="modcurve_match.txt",
             RSZBlabel, NewLabel, OldLabel, hsh, newgens, oldgens = line.strip().split(":")
             lookup[OldLabel] = NewLabel
             new_gens[NewLabel] = newgens
-    def replace_list(s):
-        if s in ["{}", r"\N"]:
-            return s
-        L = s[1:-1].split(",")
+    def replace_list(labels, parallels):
+        if labels in ["{}", r"\N"]:
+            return labels, parallels
+        L = labels[1:-1].split(",")
         L = [lookup[x] for x in L]
-        L.sort(key=sort_key)
-        return "{%s}" % (",".join(L))
+        M = parallels[1:-1].split(",")
+        LM = list(zip(L, M))
+        LM.sort(key=lambda pair: sort_key(pair[0]))
+        L, M = zip(*LM)
+        return "{%s}" % (",".join(L)), "{%s}" % (",".join(M))
     for name, tblname in tables.items():
         fname = locals()[name+"_in"]
         if not(ope(fname)):
@@ -81,8 +84,8 @@ def rewrite_labels(labelfile="modcurve_match.txt",
                         if name == "coarse":
                             new_label = D["label"] = lookup[D["label"]]
                             D["coarse_num"] = new_label.rsplit(".", 1)[1]
-                            D["parents"] = replace_list(D["parents"])
-                            D["lattice_labels"] = replace_list(D["lattice_labels"])
+                            D["parents"], D["parents_conj"] = replace_list(D["parents"], D["parents_conj"])
+                            D["lattice_labels"], D["lattice_x"] = replace_list(D["lattice_labels"], D["lattice_x"])
                             #D["psl2label"] = lookup[D["psl2label"]]
                             #D["sl2label"] = lookup[D["sl2label"]]
                             D["canonical_generators"] = new_gens[new_label]
@@ -90,8 +93,8 @@ def rewrite_labels(labelfile="modcurve_match.txt",
                             new_label = D["label"] = lookup[D["label"]]
                             D["coarse_num"] = new_label.rsplit(".", 2)[1]
                             D["fine_num"] = new_label.rsplit(".", 1)[1]
-                            D["parents"] = replace_list(D["parents"])
-                            D["lattice_labels"] = replace_list(D["lattice_labels"])
+                            D["parents"], D["parents_conj"] = replace_list(D["parents"], D["parents_conj"])
+                            D["lattice_labels"], D["lattice_x"] = replace_list(D["lattice_labels"], D["lattice_x"])
                             #D["psl2label"] = lookup[D["psl2label"]]
                             #D["sl2label"] = lookup[D["sl2label"]]
                             D["canonical_generators"] = new_gens[new_label]
