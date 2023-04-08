@@ -23,22 +23,41 @@ end if;
 // a square matrix that indicates which linear combinations of the rows of M
 // are the LLL-reduced basis
 
+intrinsic MissingMonomials(I, maxd) -> SeqEnum
+{Finds the monomials of degree 2..maxd that are not contained in the monomial ideal I.
+ Returns a sequence M so that the missing monomials of degree d can be accessed by M[d].  Note that M[1] = [], regardless of I.}
+    R := I^0;
+    Md := [mon : mon in MonomialsOfDegree(R, 2) | not (mon in I)];
+    M := [[], Md];
+    r := Rank(R);
+    for d in [3..maxd] do
+        nmon := Binomial(r+d-1, d);
+        if nmon gt r * #M[#M] then
+            Md := {mon * R.i : mon in M[#M], i in [1..r]};
+        else
+            Md := MonomialsOfDegree(R, d);
+        end if;
+        Append(~M, [mon : mon in Md | not mon in I]);
+    end for;
+    return M;
+end intrinsic;
+
 function nicefy(M)
   M0, T := EchelonForm(M);
   // Rows of T give current basis.
   ee := Eltseq(M0);
   denom := LCM([ Denominator(ee[i]) : i in [1..#ee]]);
-  printf "Nicefying %ox%o matrix.\n",NumberOfRows(M),NumberOfColumns(M);
+  vprint User1: Sprintf("Nicefying %ox%o matrix.",NumberOfRows(M),NumberOfColumns(M));
   M2 := Matrix(Integers(),NumberOfRows(M),NumberOfColumns(M),[ denom*ee[i] : i in [1..#ee]]);
-  printf "Computing saturation.\n";
+  vprint User1: "Computing saturation.";
   //SetVerbose("Saturation",2);
   AA := Saturation(M2);
-  printf "Done.\n";
+  vprint User1: "Done.";
   chk, mult := IsConsistent(ChangeRing(M2,Rationals()),ChangeRing(AA,Rationals()));
   curbat := denom*mult*T;
-  printf "Calling LLL.\n";
+  vprint User1: "Calling LLL.";
   newlatbasismat, change := LLL(AA : Proof := false);
-  printf "Done.\n";
+  vprint User1: "Done.";
   finalbat := ChangeRing(change,Rationals())*curbat;
   return finalbat;
 end function;
@@ -47,9 +66,9 @@ end function;
 // and returns a simple representation of the corresponding subfield of
 // Q(zeta_N), as well as a primitive element for the extension.
 
-function fieldfind(G,K)
+function fieldfind(G, K)
   N := Characteristic(BaseRing(G));
-  z := K.1;  
+  z := K.1;
   nprim := N;
   if (N mod 4 eq 2) then
     z := z^2;
@@ -64,17 +83,143 @@ function fieldfind(G,K)
   g := GCD(es2);
   if (g ne 0) then
     prim := prim/g;
-  end if;  
+  end if;
   minpoly := MinimalPolynomial(prim);
   assert Degree(minpoly) eq (EulerPhi(N)/#G);
   return NumberField(minpoly), prim;
 end function;
 
-//intrinsic FindJMap(N::RngIntElt, gens::SeqEnum) -> Crv, RngMPolElt, RngMPolElt
-//{.}
-// Outputs X, j, model_type, 
-function FindJMap(N, gens)
-  tttt := Cputime();
+// The following three intrinsics are ported from Drew's GL2 package to conjugate the subgroups for the relative j-map into an inclusion relation
+
+intrinsic GL2Lifter(N::RngIntElt, M::RngIntElt) -> UserProgram
+{ Returns a function that will canonically lift an element of GL(2,Z/NZ) to GL(2,Z/MZ) for given integers N dividing M. }
+    require IsDivisibleBy(M, N): "Domain level (first parameter) must divide codomain level (second parameter).";
+    if N eq M then return func<h|h>; end if;
+    GL2 := GL(2,Integers(M));
+    M2 := MatrixRing(Integers(),2);
+    m := &*[a[1]^a[2]: a in Factorization(M)| N mod a[1] eq 0];
+    return func<h|GL2!CRT([M2!h, Identity(M2)], [m, M div m])>;
+end intrinsic;
+
+intrinsic GL2Lift(H::GrpMat, M::RngIntElt) -> GrpMat
+{ The full preimage in GL(2,Z/MZ) of H in GL(2,Z/NZ) for a multiple N of M. }
+    R := BaseRing(H);
+    N := #R;
+    if M eq N then return H; end if;
+    require IsDivisibleBy(M,N): "Target level M must be divisible by #BaseRing(H).";
+    GL2 := GL(2,Integers(M)); // using GL2Lifter is *much* faster than applying the pullback operator @@ to the reduction map
+    gens := [GL2![1,N,0,1], GL2![1,0,N,1], GL2![1+N,N,-N,1-N]] cat [GL2![a,0,0,1]:a in {pi(g)^Order(R!pi(g)):g in Generators(m)}] where m,pi:=MultiplicativeGroup(Integers(M));
+    return sub<GL2|gens,[lift(h):h in Generators(H)]> where lift := GL2Lifter(N,M);
+end intrinsic;
+
+intrinsic GL2ConjugateSubgroup(H::GrpMat, K::GrpMat) -> GrpMatElt
+{ Given subgroups H and K of GL(2,Zhat) represented by reductions to their levels (or compatible multiples of their levels) such that K is conjugate to a subgroup of H, returns g in GL(2,BaseRing(K)) such that (the inverse image of) K^g lies in (the inverse image of) H (the element g is guaranteed to be the identity if K lies in H but is otherwise chosen at random).
+  If K is not a subgroup of H this will eventually be detected, but not efficiently (you should use GL2IsConjugateSubgroup in this situation). }
+    N := #BaseRing(K);
+    H := GL2Lift(H, N);
+    if K subset H then
+        return Identity(H);
+    end if;
+    //print sprint(GL2Generators(H));
+    G := GL(2, Integers(N));
+    for i:=1 to N*N*N*N do
+        g := Random(G);
+        if K^g subset H then
+            return g;
+        end if;
+    end for;
+    b,g := IsConjugateSubgroup(G,H,K); assert b;
+    return g;
+end intrinsic;
+
+intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjugator::SeqEnum, max_rel_index::RngIntElt) -> Crv, SeqEnum, SeqEnum, Rec
+{}
+    tt := ReportStart(cover_label, "RelativeJMap");
+    N0, gens0 := GetLevelAndGensFromLabel(cover_label);
+    N, gens := GetLevelAndGensFromLabel(covered_label);
+
+    GLN := GL(2, Integers(N));
+    GLN0 := GL(2, Integers(N0));
+    G := sub<GLN | [GLN!v : v in gens]>;
+    G0 := sub<GLN0 | [GLN0!v : v in gens0]>;
+    // There were some problems with the conjugator, so we're just computing new ones
+    // We had to invert the conjugator from the database since we're transposing the gens; this is not required when computing our own.
+    //conjugator := Transpose(GLN0!conjugator)^-1;
+    //G0 := G0^conjugator;
+    //assert ChangeRing(G0, Integers(N)) subset G;
+    conjugator := GL2ConjugateSubgroup(G, G0);
+    G0 := G0^conjugator;
+    gens0 := [Eltseq(g) : g in Generators(G0)];
+
+    M0 := CreateModularCurveRec(N0, gens0);
+    g0 := M0`genus;
+    assert g0 ge 3;
+    t0 := ReportStart(cover_label, "CoverModel");
+    M0, model_type0 := FindModelOfXG(M0, 1, cover_label);
+    ReportEnd(cover_label, "CoverModel", t0);
+    assert model_type0 eq 0;
+    F0 := M0`F0;
+    S0 := Universe(M0`psi);
+    AssignCanonicalNames(~S0);
+    C0 := Curve(Proj(S0), M0`psi);
+
+    LMFDBWriteXGModel(C0, model_type0, cover_label);
+
+    M := CreateModularCurveRec(N, gens);
+    t := ReportStart(cover_label, "CoveredModel");
+    M, model_type := FindModelOfXG(M, max_rel_index, covered_label);
+    ReportEnd(cover_label, "CoveredModel", t);
+    assert model_type eq 0;
+    F := M`F0;
+    g := M`genus;
+    S := Universe(M`psi);
+    AssignCanonicalNames(~S);
+    C := Curve(Proj(S), M`psi);
+    // Check that the curve is the same as the one already found
+    D, _g, _model_type := LMFDBReadXGModel(covered_label);
+    if #D ne #M`psi then
+        print "error covered model mismatch", #D, #M`psi;
+    end if;
+    Duniv := Universe(D);
+    Mpsiuniv := Universe(M`psi);
+    AssignCanonicalNames(~Duniv);
+    AssignCanonicalNames(~Mpsiuniv);
+    for i in [1..Min(#D, #M`psi)] do
+        psiconv := Duniv!(M`psi[i]);
+        if D[i] ne psiconv and D[i] ne -psiconv then
+            printf "error covered model mismatch at %o/%o: %o != %o\n", i, Min(#D, #M`psi), sprint(D[i]), sprint(M`psi[i]);
+        end if;
+    end for;
+
+    t1 := ReportStart(cover_label, "ConvertModularFormExpansions");
+    F1 := [ConvertModularFormExpansions(M0, M, [1,0,0,1], f) : f in F];
+    // The entries in F1 are laurent series, but we need power series to fit with F
+    R := Parent(F0[1][1]);
+    F1 := [[R!qexp : qexp in f] : f in F1];
+    // We need to express every entry in F1 in terms of F0
+    rels := FindRelations(F1 cat F0, 1);
+    mat := Matrix(Rationals(), #rels, g+g0, [[Coefficient(rels[i], j, 1) : j in [1..g + g0]] : i in [1..#rels]]);
+    mat := EchelonForm(mat);
+    ReportEnd(cover_label, "ConvertModularFormExpansions", t1);
+    assert mat[g,g] eq 1;
+    proj := [&+[mat[i,g + j] * S0.j : j in [1..g0]] : i in [1..g]];
+    ReportEnd(cover_label, "RelativeJMap", tt);
+    return C0, proj, F0, M0;
+end intrinsic;
+
+function LiftToTrivariate(R, f, d)
+    Rlift := OriginalRing(Parent(f));
+    f := Rlift!f;
+    coeffs, mons := CoefficientsAndMonomials(f);
+    exps := [Exponents(m) : m in mons];
+    mons := [Monomial(R, e cat [d - &+e]) : e in exps];
+    return Polynomial(coeffs, mons);
+end function;
+
+intrinsic AbsoluteJMap(label::MonStgElt, max_rel_index:RngIntElt) -> Crv, FldFunRatMElt, RngIntElt, SeqEnum, Rec
+{Outputs a model X, j as a multivariate rational function in the ambient variables of X, the model type (5 if an elliptic curve, 8 if geometrically hyperelliptic, 0 if canonical model), F0 (a sequence of modular forms as computed by FindModelOfXG) and M (the ModularCurveRec)}
+  N, gens := GetLevelAndGensFromLabel(label);
+  tttt := ReportStart(label, "AbsoluteJMap");
 //  gens := GetModularCurveGenerators(l);
 
 //  N := StringToInteger(Split(l,".")[1],10);
@@ -82,103 +227,34 @@ function FindJMap(N, gens)
   gp := sub<GL(2,Integers(N))|gens>;
 
   M := CreateModularCurveRec(N,gens);
-  printf "Starting model computation with low precision.\n";
-  ttemp := Cputime();
-  prec := RequiredPrecision(M);
-  M := FindModelOfXG(M,prec);
-  mult := M`mult;
-  if (not assigned M`prec) then
-    M`prec := prec;
+  M, model_type, mind, maxd, maxprec := FindModelOfXG(M, max_rel_index, label);
+  if model_type eq 5 then
+    LMFDBWriteXGModel(M`C, model_type, label);
+    ReportEnd(label, "AbsoluteJMap", tttt);
+    // Need to homogenize the map to the j-line
+    num := Numerator(M`map_to_jline);
+    den := Denominator(M`map_to_jline);
+    d := Max(Degree(num), Degree(den));
+    R := PolynomialRing(Rationals(), 3);
+    num := LiftToTrivariate(R, num, d);
+    den := LiftToTrivariate(R, den, d);
+    return M`C, [num, den], model_type, M`f cat [[1 : i in [1..#M`cusps]]], M;
   end if;
+  C := Curve(ProjectiveSpace(Rationals(), #M`F0 - 1), M`psi);
 
-  if (M`genus eq 1) and (assigned M`has_point) and (M`has_point) then
-    // I'm just taking a guess on the precision here.
-    // Test cases: 6.6.1.1, 6.12.1.1, 11.55.1.1, 8.48.1.3, 9.54.1.1, 20.72.1.23, 8.96.1.109
-    // Minimal prec for 11.55.1.1 is 81
-    success := false;
-    prec := 2*M`index;
-    // I'm pretty sure we only need 2*index + N, 
-    // but just in case we loop
-    while (not success) do
-	M := FindModelOfXG(M,prec);
-	PP := Parent(M`f[1][1]);
-	jinv0 := jInvariant(PP.1);
-	jinv := Evaluate(jinv0,PP.1^N);
-	jinv2 := [ jinv : i in [1..M`vinf]];
-	success, ecjmap := FindRelationElliptic(M,jinv2);
-	prec +:= N;
-    end while;
-    
-    printf "Minimal model is %o.\n",M`C;
-    printf "j-map is %o.\n",ecjmap;
-    // Write data to a file here and then stop.
-    // 5 is the code for hyperelliptic models
-    // For now, we decided it includes Weierstrass equations
-    return M`C, ecjmap, 5, M`f cat [[1 : i in [1..#M`cusps]]], M;
-  end if;
-
-  maxd := 0;
-  mind := 0;
-  maxprec := 0;
-  geomhyper := false;
-  // Compute the degree of the line bundle used
-  if (M`mult ne [ 1 : i in [1..M`vinf]]) or (M`k ne 2) then
-      printf "Curve is geometrically hyperelliptic.\n";
-      geomhyper := true;
-      k := M`k;
-      degL:= ((k*(2*M`genus-2)) div 2 + Floor(k/4)*M`v2 + Floor(k/3)*M`v3 + (k div 2)*#M`cusps) - (&+M`mult);
-      old_degL := 0;
-      while (old_degL ne degL) do
-	  old_degL := degL;
-	  maxd := Floor((M`index + M`genus - 1)/degL) + 1;
-	  mind := maxd - 1;
-	  printf "Smallest degree that might work = %o. The degree %o definitely works.\n",mind,maxd;
-	  maxprec := Floor(N*(M`k*maxd/12 + 1)) + 1;
-	  if (maxprec gt M`prec) then
-	      printf "Now that we know it's geometrically hyperelliptic, we need more precision.\n";
-	      printf "New precision chosen = %o.\n",maxprec;
-	      delete M`has_point;
-	      M := FindModelOfXG(M,maxprec);
-	      printf "Recomputation of modular forms done.\n";
-	      k := M`k;
-	      degL:= ((k*(2*M`genus-2)) div 2 + Floor(k/4)*M`v2 + Floor(k/3)*M`v3 + (k div 2)*#M`cusps) - (&+M`mult);
-	  end if;
-      end while;
-  else
-      printf "Curve is not geometrically hyperelliptic.\n";
-      maxd := Floor((M`index)/(2*M`genus-2) + 3/2);
-      if ((maxd-1) ge (M`index)/(2*M`genus-2)) and ((maxd-1) le ((M`index)/(2*M`genus-2) + 1/2)) then
-	  mind := maxd-1;
-	  printf "The smallest degree that might work is %o.\n",mind;
-	  printf "Degree %o definitly works.\n",maxd;  
-      else
-	  mind := maxd;
-	  printf "The smallest degree that might work is %o and it definitely works.\n",maxd;
-      end if;  
-      maxprec := Floor(N*(1 + maxd/6)+1);
-      if (maxprec gt M`prec) then
-	  printf "Now that we know it's non-hyperelliptic, we need more precision.\n";
-	  printf "New precision chosen = %o.\n",maxprec;
-	  delete M`has_point;    
-	  M := FindModelOfXG(M,maxprec);
-	  printf "Recomputation of modular forms done.\n";
-      end if;   
-  end if; 
-  modeltime := Cputime(ttemp); 
-  printf "Model and modular forms done. Total time = %o.\n",modeltime;
+  LMFDBWriteXGModel(C, model_type, label);
+  modeltime := Cputime(tttt);
 
   // Post-processing on q-expansions
-  
-  postproctime := Cputime();
 
   // Step 1 - Determine Galois orbits of cusps and choose one representative from each
 
   // Computes the action of (Z/NZ)^* on the cusps of X_G.  This corresponds to the action of Gal(Q(zeta_N)/Q) on the cusps.
-  printf "Determining Galois action on cusps.\n";
+  postproctime := ReportStart(label, "determining Galois action on cusps");
   G := gp;
   G0 := gp;
   GL2 := GL(2,Integers(N));
-  SL2 := SL(2,Integers(N));    
+  SL2 := SL(2,Integers(N));
   U,pi:=UnitGroup(Integers(N));
   s:={};
   for u in Generators(U) do
@@ -201,14 +277,14 @@ function FindJMap(N, gens)
   S:=sub<SymmetricGroup(#M`cusps)|s>;
   ind:=[[i:i in O]: O in Orbits(S)];  // orbits of cusps under the actions of G0 and Gal_Q.
   chosencusps := [ ind[j][1] : j in [1..#ind]];
-  chosenmult := [ mult[c] : c in chosencusps];
-  printf "Galois orbits of cusps are: %o.\n",{* #ind[j] : j in [1..#ind]*};
-  printf "Using %o Fourier expansions (out of %o).\n",#chosencusps,#M`cusps;
+  chosenmult := [ M`mult[c] : c in chosencusps];
+  vprint User1: Sprintf("Galois orbits of cusps are: %o.", {* #ind[j] : j in [1..#ind] *});
+  vprint User1: Sprintf("Using %o Fourier expansions (out of %o).", #chosencusps, #M`cusps);
   modforms0 := [ [ M`F0[i][c] : c in chosencusps] : i in [1..#M`F0]];
 
   // Step 2 - Rewrite modular coefficients as elements of smaller subfield
 
-  printf "Rewriting Fourier expansions over smaller fields.\n";
+  vprint User1: "Rewriting Fourier expansions over smaller fields.";
   GL2Galois := sub<GL2 | [[1,0,0,pi(u)] : u in Generators(U)]>;
   z := Parent(Coefficient(modforms0[1][1],0)).1;
   R<x> := PolynomialRing(Rationals());
@@ -218,9 +294,9 @@ function FindJMap(N, gens)
       galoiscusp0 := GL2Galois meet Conjugate(G,M`cusps[chosencusps[c]]);
       // The subfield of Q(zeta_N) corresponding to galoiscusp is the field of definition of the Fourier coeffs.
       galoiscusp := Sort([g[2][2] : g in galoiscusp0]);
-      //printf "For cusp %o, Galois group is %o.\n",c,galoiscusp;
+      //vprint User1: Sprintf("For cusp %o, Galois group is %o.", c, galoiscusp);
       KK, prim := fieldfind(sub<GL(1,Integers(N)) | [[g[2][2]] : g in Generators(galoiscusp0)]>,Parent(z));
-      printf "For cusp %o, Fourier coefficient field is %o.\n",c,R!DefiningPolynomial(KK);
+      vprint User1: Sprintf("For cusp %o, Fourier coefficient field is %o.", c, R!DefiningPolynomial(KK));
       PP<qN> := LaurentSeriesRing(KK);
       Embed(KK,Parent(z),prim);
       totalprec := totalprec + maxprec*Degree(KK);
@@ -232,20 +308,19 @@ function FindJMap(N, gens)
       Append(~fourierlist,curfour);
   end for;
   modforms := << fourierlist[j][i] : j in [1..#chosencusps]> : i in [1..#modforms0]>;
+  ReportEnd(label, "determining Galois action on cusps", postproctime);
   postproctime := Cputime(postproctime);
-  printf "Done with post-processing. Time taken was %o.\n",postproctime;
 
   // Build log-canonicalish ring
-  
+
   polyring := PolynomialRing(Rationals(),#modforms,"grevlex");
   vars := [ polyring.i : i in [1..#modforms]];
   gens := [ Evaluate(M`psi[j],vars) : j in [1..#M`psi]];
-  ttemp := Cputime();
-  printf "Computing Grobner basis for ideal.\n";
+  ttemp := ReportStart(label, "Grobner basis for ideal");
   I := ideal<polyring | gens>;
   G := GroebnerBasis(I);
+  ReportEnd(label, "Grobner basis for ideal", ttemp);
   gbtime := Cputime(ttemp);
-  printf "Grobner basis time was %o.\n",gbtime;
   LMs := [ LeadingMonomial(G[i]) : i in [1..#G]];
   initideal := ideal<polyring | LMs>;
 
@@ -259,18 +334,16 @@ function FindJMap(N, gens)
 
   // Let's choose monomials that will *always* work!
 
-  printf "Generating log-canonicalish ring.\n";
-  ttime := Cputime();
+  ttemp := ReportStart(label, "log-canonicalish ring");
   multcount := 0;
   doneper := -1;
-  total := &+[ #[s : s in MonomialsOfDegree(polyring,d) | not (s in initideal)] : d in [2..maxd]];
+  missing_monomials := MissingMonomials(initideal, maxd);
+  total := &+[ #mons : mons in missing_monomials];
   for d in [2..maxd] do
-      mons := MonomialsOfDegree(polyring,d);
-      bas := [ mons[i] : i in [1..#mons] | not (mons[i] in initideal)];
+      bas := missing_monomials[d];
       newfourier := <>;
       newvars := [];
-      for j in [1..#bas] do
-	  curmon := bas[j];
+      for curmon in bas do
 	  // We have to be able to write curmon as a product of a degree (d-1)
 	  // monomial not in initideal, and a degree 1 element.
 	  // If we couldn't, then curmon would be in initideal
@@ -280,18 +353,18 @@ function FindJMap(N, gens)
 	  multcount := multcount + 1;
 	  if Floor(100*multcount/total) gt doneper then
 	      doneper := Floor(100*multcount/total);
-	      printf "Doing multiplication %o of %o. %o\%% complete.\n",multcount,total,doneper;
-	  end if;  
+	      vprint User1: Sprintf("Doing multiplication %o of %o. %o\%% complete.", multcount, total, doneper);
+	  end if;
 	  newprd := < modforms[ind2][i]*canring[d-1][1][ind][i] : i in [1..#chosencusps]>;
 	  Append(~newfourier,newprd);
 	  Append(~newvars,curmon);
       end for;
       Append(~canring,<newfourier,newvars>);
   end for;
+  ReportEnd(label, "log-canonicalish ring", ttemp);
   canringtime := Cputime(ttemp);
-  printf "Canonical ring time was %o.\n",canringtime;
-  
-  ttemp := Cputime();
+
+  ttemp := ReportStart(label, "linear algebra");
   FFFF<qN> := LaurentSeriesRing(Rationals());
   j := (1728*Eisenstein(4,qN : Precision := Ceiling((maxprec+2*N)/N))^3)/(Eisenstein(4,qN : Precision := Ceiling((maxprec+2*N)/N))^3 - Eisenstein(6,qN : Precision := Ceiling((maxprec+2*N)/N))^2);
   j := Evaluate(j,qN^N);
@@ -321,7 +394,7 @@ for i in [1..#canring[curd][1]] do
 end for;
 NN := NullSpace(jmat);
 dimdim := Dimension(NN);
-printf "For d = %o, dimension of null space is %o.\n",curd,dimdim;
+vprint User1: Sprintf("For d = %o, dimension of null space is %o.", curd, dimdim);
 if dimdim ge 1 then
   done := true;
 end if;
@@ -347,7 +420,7 @@ if (done eq false) then
     jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
   end for;
   NN := NullSpace(jmat);
-  printf "For d = %o, dimension of null space is %o.\n",curd,Dimension(NN);
+  vprint User1: Sprintf("For d = %o, dimension of null space is %o.", curd, Dimension(NN));
 end if;
 */
 
@@ -361,7 +434,7 @@ end if;
       end for;
       jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
   end for;
-  
+
   for i in [1..#canring[curd][1]] do
       vecseq := [];
       for jj in [1..#chosencusps] do
@@ -372,11 +445,11 @@ end if;
   end for;
   NN := NullSpace(jmat);
   dimdim := Dimension(NN);
-  printf "For d = %o, dimension of null space is %o.\n",curd,dimdim;
+  vprint User1: Sprintf("For d = %o, dimension of null space is %o.", curd, dimdim);
   if dimdim ge 1 then
       done := true;
   end if;
-  
+
   if (done eq false) then
       curd := maxd;
       jmat := ZeroMatrix(Rationals(),0,totalprec);
@@ -398,13 +471,13 @@ end if;
 	  jmat := VerticalJoin(jmat,Matrix(Rationals(),1,totalprec,vecseq));
       end for;
       NN := NullSpace(jmat);
-      printf "For d = %o, dimension of null space is %o.\n",curd,Dimension(NN);
+      vprint User1: Sprintf("For d = %o, dimension of null space is %o.", curd, Dimension(NN));
   end if;
 
   // Now actually write down the map to the j-line
 
+  ReportEnd(label, "linear algebra", ttemp);
   lintime := Cputime(ttemp);
-  printf "Linear algebra time was %o.\n",lintime;
 
   canringdim := #canring[curd][1];
   nullmat := Matrix(Basis(NN));
@@ -415,17 +488,13 @@ end if;
   weakzero := [ &+[ v[i]*canring[curd][1][i][j] : i in [1..canringdim]]*func - &+[ v[i+canringdim]*canring[curd][1][i][j] : i in [1..canringdim]] : j in [1..#chosencusps]];
   assert &and [ IsWeaklyZero(weakzero[i]) : i in [1..#chosencusps]];
 
-  C := Curve(ProjectiveSpace(Rationals(),#modforms-1),M`psi);
   jmap := map<C -> ProjectiveSpace(Rationals(),1) | [num,denom]>;
 
-  printf "Model time = %o.\n",modeltime;
-  printf "GB time = %o.\n",gbtime;
-  printf "Canonical ring time = %o.\n",canringtime;
-  printf "Linear algebra time = %o.\n",lintime;
-  printf "Total time was %o sec.\n",Cputime(tttt);
+  vprint User1: Sprintf("Model time = %o.", modeltime);
+  vprint User1: Sprintf("GB time = %o.", gbtime);
+  vprint User1: Sprintf("Canonical ring time = %o.", canringtime);
+  vprint User1: Sprintf("Linear algebra time = %o.", lintime);
+  ReportEnd(label, "AbsoluteJMap", tttt);
 
-  // canonical model is 0, other is -1
-  model_type := (geomhyper) select -1 else 0;
-  return C, num/denom, model_type, M`F0, M;
-end function;
-//end intrinsic;
+  return C, [num, denom], model_type, M`F0, M;
+end intrinsic;

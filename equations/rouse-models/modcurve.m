@@ -831,7 +831,7 @@ function FindModelOfXG(M: prec:=0,  compute_all:=true, G0:=1) // TODO G0??
         k:=k+2;
         degD:= (k*(2*M`genus-2)) div 2 + Floor(k/4)*M`v2 + Floor(k/3)*M`v3 + (k div 2)*#M`cusps;
     until degD ge 2*M`genus+1;
-    print "Using weight ",k," with precision ",prec;
+    vprint User1: Sprintf("Using weight %o with precision %o", k, prec);
 
     // Compute modular forms of weight k.
     M:=FindModularForms(k,M,prec);  
