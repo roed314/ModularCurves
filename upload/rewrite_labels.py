@@ -98,28 +98,24 @@ def rewrite_labels(labelfile="modcurve_match.txt",
                         if i % 200000 == 0: print(f"{name} {i}")
                         D = dict(zip(cols, line.strip().split("|")))
                         # Now the actual changes
-                        if name == "coarse":
+                        if name in ["coarse", "fine"]:
                             new_label = D["label"] = lookup[D["label"]]
-                            D["coarse_num"] = new_label.rsplit(".", 1)[1]
                             D["parents"], D["parents_conj"] = replace_list(D["parents"], D["parents_conj"])
                             D["lattice_labels"], D["lattice_x"] = replace_list(D["lattice_labels"], D["lattice_x"])
+                            D["reductions"], _ = replace_list(D["reductions"], r"\N") # need to pass a second coordinate; null doesn't affect the first
+                            D["factorization"], _ = replace_list(D["factorization"], r"\N")
                             #D["psl2label"] = lookup[D["psl2label"]]
                             #D["sl2label"] = lookup[D["sl2label"]]
                             D["canonical_generators"] = new_gens[new_label]
                             D["canonical_conjugator"] = can_conj[new_label]
+                        if name == "coarse":
+                            D["coarse_num"] = new_label.rsplit(".", 1)[1]
                         elif name == "fine":
-                            new_label = D["label"] = lookup[D["label"]]
                             if "-" in new_label:
                                 D["coarse_num"] = new_label.rsplit(".", 2)[1]
                                 D["fine_num"] = new_label.rsplit(".", 1)[1]
                             else:
                                 D["coarse_num"] = new_label.rsplit(".", 1)[1]
-                            D["parents"], D["parents_conj"] = replace_list(D["parents"], D["parents_conj"])
-                            D["lattice_labels"], D["lattice_x"] = replace_list(D["lattice_labels"], D["lattice_x"])
-                            #D["psl2label"] = lookup[D["psl2label"]]
-                            #D["sl2label"] = lookup[D["sl2label"]]
-                            D["canonical_generators"] = new_gens[new_label]
-                            D["canonical_conjugator"] = can_conj[new_label]
                         elif name == "models":
                             D["modcurve"] = lookup[D["modcurve"]]
                         elif name == "modelmaps":
