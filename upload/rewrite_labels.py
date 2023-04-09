@@ -60,7 +60,9 @@ def rewrite_labels(labelfile="modcurve_match.txt",
             return labels, parallels
         L = labels[1:-1].split(",")
         L = [lookup[x] for x in L]
-        if "{" in parallels[1:-1]:
+        if parallels == r"\N":
+            M = [None] * len(L)
+        elif "{" in parallels[1:-1]:
             # parents_conj is a list of lists
             M = ["{%s}" % x for x in parallels[2:-2].split("},{")]
         else:
@@ -69,7 +71,12 @@ def rewrite_labels(labelfile="modcurve_match.txt",
         LM = list(zip(L, M))
         LM.sort(key=lambda pair: sort_key(pair[0]))
         L, M = zip(*LM)
-        return "{%s}" % (",".join(L)), "{%s}" % (",".join(M))
+        L = "{%s}" % (",".join(L))
+        if parallels == r"\N":
+            M = r"\N"
+        else:
+            M = "{%s}" % (",".join(M))
+        return L, M
     for name, tblname in tables.items():
         fname = locals()[name+"_in"]
         if not(ope(fname)):
