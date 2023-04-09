@@ -109,8 +109,11 @@ def rewrite_labels(labelfile="modcurve_match.txt",
                             D["canonical_conjugator"] = can_conj[new_label]
                         elif name == "fine":
                             new_label = D["label"] = lookup[D["label"]]
-                            D["coarse_num"] = new_label.rsplit(".", 2)[1]
-                            D["fine_num"] = new_label.rsplit(".", 1)[1]
+                            if "-" in new_label:
+                                D["coarse_num"] = new_label.rsplit(".", 2)[1]
+                                D["fine_num"] = new_label.rsplit(".", 1)[1]
+                            else:
+                                D["coarse_num"] = new_label.rsplit(".", 1)[1]
                             D["parents"], D["parents_conj"] = replace_list(D["parents"], D["parents_conj"])
                             D["lattice_labels"], D["lattice_x"] = replace_list(D["lattice_labels"], D["lattice_x"])
                             #D["psl2label"] = lookup[D["psl2label"]]
