@@ -47,12 +47,14 @@ def rewrite_labels(labelfile="modcurve_match.txt",
     print("Building label lookup table")
     lookup = {}
     new_gens = {}
+    can_conj = {}
     with open(labelfile) as F:
         for i, line in enumerate(F):
             if i % 200000 == 0: print(f"Lookup {i}")
-            RSZBlabel, NewLabel, OldLabel, hsh, newgens, oldgens = line.strip().split(":")
+            RSZBlabel, NewLabel, OldLabel, hsh, newgens, oldgens, canconj = line.strip().split(":")
             lookup[OldLabel] = NewLabel
             new_gens[NewLabel] = newgens.replace("[","{").replace("]","}")
+            can_conj[NewLabel] = canconj.replace("[","{").replace("]","}")
     def replace_list(labels, parallels):
         if labels in ["{}", r"\N"]:
             return labels, parallels
@@ -92,6 +94,7 @@ def rewrite_labels(labelfile="modcurve_match.txt",
                             #D["psl2label"] = lookup[D["psl2label"]]
                             #D["sl2label"] = lookup[D["sl2label"]]
                             D["canonical_generators"] = new_gens[new_label]
+                            D["canonical_conjugator"] = can_conj[new_label]
                         elif name == "fine":
                             new_label = D["label"] = lookup[D["label"]]
                             D["coarse_num"] = new_label.rsplit(".", 2)[1]
@@ -101,6 +104,7 @@ def rewrite_labels(labelfile="modcurve_match.txt",
                             #D["psl2label"] = lookup[D["psl2label"]]
                             #D["sl2label"] = lookup[D["sl2label"]]
                             D["canonical_generators"] = new_gens[new_label]
+                            D["canonical_conjugator"] = can_conj[new_label]
                         elif name == "models":
                             D["modcurve"] = lookup[D["modcurve"]]
                         elif name == "modelmaps":
