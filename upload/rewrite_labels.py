@@ -60,7 +60,12 @@ def rewrite_labels(labelfile="modcurve_match.txt",
             return labels, parallels
         L = labels[1:-1].split(",")
         L = [lookup[x] for x in L]
-        M = parallels[1:-1].split(",")
+        if "{" in parallels[1:-1]:
+            # parents_conj is a list of lists
+            M = ["{%s}" % x for x in parallels[2:-2].split("},{")]
+        else:
+            M = parallels[1:-1].split(",")
+        assert len(L) == len(M)
         LM = list(zip(L, M))
         LM.sort(key=lambda pair: sort_key(pair[0]))
         L, M = zip(*LM)
