@@ -111,6 +111,22 @@ def make_picture_by_label_and_gens(label, level, gens):
         g = make_picture_disk(level, gens)
         g.save(f"mcportrait.{label}.png", figsize=[4,4])
 
+def make_picture_strings(input_file, output_file):
+    from lmfdb.utils import encode_plot
+    with open(input_file) as F:
+        _ = Fout.write(f"label|image\ntext|text\n\n")
+        with open(output_file, "w") as Fout:
+            for line in F:
+                label, level, gens = line.strip().split(":")
+                level = ZZ(level)
+                gens = sage_eval(gens)
+                if label == '1.1.0.a.1':
+                    g = make_sl2z_picture_disk()
+                else:
+                    g = make_picture_disk(level, gens)
+                s = encode_plot(g, remove_axes=True, figsize=[4,4])
+                _ = Fout.write(f"{label}|{s}\n")
+
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, fill=True, thickness=0, rgbcolor="blue", zorder=2, linestyle='solid')
 def my_hyperbolic_polygon(pts, model="PD", resolution=200,
