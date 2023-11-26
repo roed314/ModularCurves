@@ -14,6 +14,7 @@ opj = os.path.join
 ope = os.path.exists
 sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
 from lmfdb import db
+from lmfdb.backend.encoding import copy_dumps
 dbtable = db.gps_gl2zhat_fine
 
 @cached_function
@@ -475,23 +476,40 @@ def fix_modcurve_point_curve_labels():
     print("Finished jinv_to_bad_curve_labels")
     fine_to_coarse = {rec["label"]: rec["coarse_label"] for rec in db.gps_gl2zhat_fine.search({}, ["label", "coarse_label"])}
     print("Finished fine_to_coarse")
+    #models = {(rec["modcurve"], rec["model_type"]): (rec["number_variables"], rec["equation"]) for rec in db.modcurve_models.search({}, ["modcurve", "model_type", "number_variables", "equation"])}
+
+    #@cached_function
+    #def get_model(modcurve, model_type):
+    #    vars = 'xyzwtuvrsabcdefghiklmnopqj'
+
     jinv_to_good_curve_labels = {}
-    for ctr, rec in enumerate(db.ec_curvedata.search({}, ["jinv", "modm_images"])):
+    for ctr, rec in enumerate(db.ec_curvedata.search({"modm_images":{"$exists":True}}, ["jinv", "modm_images"])):
         if ctr and ctr % 100000 == 0: print(ctr)
         j = rec["jinv"]
-        j = str(j[1]/j[1])
-        leaves = set(fine_to_coarse[label] for label in rec["modm_images"])
+        j = str(j[0]/j[1])
+        leaves = set(fine_to_coarse[label] for label in rec["modm_images"] if "?" not in label)
         nodes = set()
         for v in leaves:
             nodes = nodes.union(P._vertex_to_element(x) for x in index_iterator(P, P._element_to_vertex(v)))
         jinv_to_good_curve_labels[j] = nodes
     print("Finished jinv_to_good_curve_labels")
+    curve_label_to_name = {rec["label"]: (r"\N" if rec["name"] is None else rec["name"]) for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, ["label", "name"])}
+    #bad = []
+    allcols = ['Elabel', 'ainvs', 'cardinality', 'cm', 'conductor_norm', 'coordinates', 'curve_genus', 'curve_index', 'curve_label', 'curve_level', 'curve_name', 'cusp', 'degree', 'isolated', 'j_field', 'j_height', 'jinv', 'jorig', 'quo_info', 'residue_field']
     with open("modcurve_point_curve_label.update", "w") as Fout:
-        _ = Fout.write("id|curve_label\nbigint|text\n\n")
-        for ctr, rec in enumerate(db.modcurve_points.search({"degree":1}, ["id", "curve_label", "jinv"])):
+        colstr = "|".join(allcols)
+        typstr = "|".join(db.modcurve_points.col_type[col] for col in allcols)
+        _ = Fout.write(f"{colstr}\n{typstr}\n\n")
+        for ctr, rec in enumerate(db.modcurve_points.search()):
             if ctr and ctr%100000 == 0: print(ctr)
-            good_curve_labels = jinv_to_good_curve_labels[rec["jinv"]]
-            initial = ".".join(rec["curve_label"].split(".")[:-1])
-            good_curve_labels = [x for x in good_curve_labels if x.startswith(initial)]
-            assert len(good_curve_labels) == 1
-            _ = Fout.write(f"{rec['id']}|{good_curve_labels[0]}\n")
+            if rec["degree"] == 1 and rec["cm"] == 0 and rec["jinv"] is not None:
+                good_curve_labels = jinv_to_good_curve_labels[rec["jinv"]]
+                initial = ".".join(rec["curve_label"].split(".")[:-1])
+                good_curve_labels = [x for x in good_curve_labels if x.startswith(initial)]
+                if len(good_curve_labels) == 1:
+                    rec["curve_label"] = good_curve_labels[0]
+                else:
+                    assert rec["coordinates"] is None and rec["curve_label"] in good_curve_labels
+                    # Here there's nothing pinning down the curve label except the curve_name, and we know how to associate that
+                rec["curve_name"] = curve_label_to_name[rec["curve_label"]]
+            _ = Fout.write("|".join(copy_dumps(rec[col], db.modcurve_points.col_type[col]) for col in allcols) + "\n")
