@@ -1,3 +1,4 @@
+#!/usr/bin/env sage
 """
 make_modular_curve_picture.sage - make pictures of modular curves
 
@@ -44,8 +45,20 @@ Below is boilerplate license code. I include this header from a template file.
 #                 <http://www.gnu.org/licenses/>.
 # **********************************************************************
 """
+import os
+import time
+import argparse
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.hyperbolic_polygon import HyperbolicPolygon
+opj = os.path.join
+
+
+parser = argparse.ArgumentParser("Compute pictures for modular curves")
+#parser.add_argument("job", type=int, help="job number: 0 to n-1, where n is the number of parallel threads used")
+#parser.add_argument("num_jobs", type=int, help="total number of jobs n")
+parser.add_argument("input_file")
+parser.add_argument("output_file")
+args = parser.parse_args()
 
 
 GL2 = GL(2, ZZ)
@@ -69,10 +82,12 @@ CCOLOR = COLOR_PALETTE[2]
 
 
 def make_picture_by_label(label):
+    import sys
+    sys.path.append(os.path.expanduser(opj("~", "lmfdb")))
     from lmfdb import db
-    table = db.gps_gl2zhat_test
+    table = db.gps_gl2zhat_fine
     print(f"Making picture for {label}")
-    if label == '1.1.0.1':
+    if label == '1.1.0.a.1':
         g = make_sl2z_picture_disk()
         g.save(f"mcportrait.{label}.png", figsize=[4,4])
     else:
@@ -91,13 +106,29 @@ def make_picture_by_label(label):
 
 def make_picture_by_label_and_gens(label, level, gens):
     print(f"Making picture for {label}")
-    if label == '1.1.0.1':
+    if label == '1.1.0.a.1':
         g = make_sl2z_picture_disk()
         g.save(f"mcportrait.{label}.png", figsize=[4,4])
     else:
         g = make_picture_disk(level, gens)
         g.save(f"mcportrait.{label}.png", figsize=[4,4])
 
+def make_picture_strings(input_file, output_file):
+    sys.path.append("/Users/roed/sage/lmfdb")
+    from lmfdb.utils import encode_plot
+    with open(input_file) as F:
+        with open(output_file, "w") as Fout:
+            _ = Fout.write(f"label|image\ntext|text\n\n")
+            for line in F:
+                label, level, gens = line.strip().split(":")
+                level = ZZ(level)
+                gens = sage_eval(gens)
+                if label == '1.1.0.a.1':
+                    g = make_sl2z_picture_disk()
+                else:
+                    g = make_picture_disk(level, gens)
+                s = encode_plot(g, remove_axes=True, figsize=[4,4])
+                _ = Fout.write(f"{label}|{s}\n")
 
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, fill=True, thickness=0, rgbcolor="blue", zorder=2, linestyle='solid')
@@ -380,3 +411,50 @@ def cayley(z):
     if z == infinity:
         return CC(0, 1)
     return (z - CC(0, 1)) / (CC(0, -1)*z + 1)
+
+def encode_mcurve_plot(P, transparent=True):
+    from io import BytesIO as IO
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+    from base64 import b64encode
+    from urllib.parse import quote
+
+    virtual_file = IO()
+    fig = P.matplotlib(axes_pad=None)
+    ax = fig.axes[0]
+    ax.set_xlim(xmin=-1, xmax=1)
+    ax.set_ylim(ymin=-1, ymax=1)
+    fig.set_canvas(FigureCanvasAgg(fig))
+    fig.set_size_inches(2.5, 2.5) # images are 200 x 200 on the website
+    fig.savefig(virtual_file, format='png', bbox_inches='tight', transparent=transparent, dpi=120)
+    virtual_file.seek(0)
+    buf = virtual_file.getbuffer()
+    return "data:image/png;base64," + quote(b64encode(buf))
+
+make_picture_strings(args.input_file, args.output_file)
+
+# t0 = time.time()
+# os.makedirs("pictures", exist_ok=True)
+# with open(opj("pictures", str(args.job)), "w") as Fout:
+#     with open("picture_labels.txt") as F:
+#         for i, line in enumerate(F):
+#             if i % args.num_jobs == args.job:
+#                 label = line.strip()
+#                 if label == "1.1.0.a.1":
+#                     g = make_sl2z_picture_disk()
+#                 else:
+#                     level = ZZ(label.split(".")[0])
+#                     with open(opj("..", "equations", "psl2_input_data", label)) as Finp:
+#                         matgens = []
+#                         gens = Finp.read()
+#                         if gens: # 2.6.0.a.1 = X(2) has no generators
+#                             gens = gens.split(",")
+#                             for j in range(0, len(gens), 4):
+#                                 try:
+#                                     matgens.append([[ZZ(gens[j]), ZZ(gens[j+1])], [ZZ(gens[j+2]), ZZ(gens[j+3])]])
+#                                 except TypeError:
+#                                     print("Error!", label)
+#                                     raise
+#                     g = make_picture_disk(level, matgens)
+#                 pngstr = encode_mcurve_plot(g)
+#                 _ = Fout.write(f"{label}|{pngstr}\n")
+# print(f"Total time {time.time() - t0}")

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import shutil
 import argparse
 
@@ -10,8 +11,11 @@ parser.add_argument("--savecan", action="store_true", help="whether to keep the 
 args = parser.parse_args()
 
 prefix = "mid" + args.saven + "_"
-tomove = ["ghyp_models", "graphviz_out", "output", "plane_models", "rats", "stdout", "timings"]
+tomove = ["ghyp_models", "graphviz_out", "output", "plane_models", "curve_labels", "rats", "jcusps", "jfacs", "cusps", "stdout", "timings"]
 if not args.savecan:
-    tomove.extend(["canonical_models", "jinvs"])
+    tomove.extend(["canonical_models", "gonality"])
+# Don't move graphviz_in/, jinvs/ or cod/ since they generally are input-only
+# Don't move hypstdout/ or ishyp/ since they're from a precomputation step
 for x in tomove:
-    shutil.move(x, prefix + x)
+    if os.path.exists(x):
+        shutil.move(x, prefix + x)

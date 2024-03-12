@@ -16,9 +16,10 @@ if (not assigned label) then
 end if;
 
 t0 := ReportStart(label, "pushing forward cusps");
-X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
+X, model_type, g, cusps := LMFDBReadCusps(label);
 Cs := LMFDBReadPlaneModel(label);
 X := Curve(Proj(Universe(X)), X);
+C := 0; // stupid magma needs this defined even if not used.
 if #Cs gt 0 then
     C := Curve(Proj(Parent(Cs[1][1])), Cs[1][1]);
 end if;
