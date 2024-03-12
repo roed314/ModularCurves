@@ -54,8 +54,10 @@ opj = os.path.join
 
 
 parser = argparse.ArgumentParser("Compute pictures for modular curves")
-parser.add_argument("job", type=int, help="job number: 0 to n-1, where n is the number of parallel threads used")
-parser.add_argument("num_jobs", type=int, help="total number of jobs n")
+#parser.add_argument("job", type=int, help="job number: 0 to n-1, where n is the number of parallel threads used")
+#parser.add_argument("num_jobs", type=int, help="total number of jobs n")
+parser.add_argument("input_file")
+parser.add_argument("output_file")
 args = parser.parse_args()
 
 
@@ -112,10 +114,11 @@ def make_picture_by_label_and_gens(label, level, gens):
         g.save(f"mcportrait.{label}.png", figsize=[4,4])
 
 def make_picture_strings(input_file, output_file):
+    sys.path.append("/Users/roed/sage/lmfdb")
     from lmfdb.utils import encode_plot
     with open(input_file) as F:
-        _ = Fout.write(f"label|image\ntext|text\n\n")
         with open(output_file, "w") as Fout:
+            _ = Fout.write(f"label|image\ntext|text\n\n")
             for line in F:
                 label, level, gens = line.strip().split(":")
                 level = ZZ(level)
@@ -427,29 +430,31 @@ def encode_mcurve_plot(P, transparent=True):
     buf = virtual_file.getbuffer()
     return "data:image/png;base64," + quote(b64encode(buf))
 
-t0 = time.time()
-os.makedirs("pictures", exist_ok=True)
-with open(opj("pictures", str(args.job)), "w") as Fout:
-    with open("picture_labels.txt") as F:
-        for i, line in enumerate(F):
-            if i % args.num_jobs == args.job:
-                label = line.strip()
-                if label == "1.1.0.a.1":
-                    g = make_sl2z_picture_disk()
-                else:
-                    level = ZZ(label.split(".")[0])
-                    with open(opj("..", "equations", "psl2_input_data", label)) as Finp:
-                        matgens = []
-                        gens = Finp.read()
-                        if gens: # 2.6.0.a.1 = X(2) has no generators
-                            gens = gens.split(",")
-                            for j in range(0, len(gens), 4):
-                                try:
-                                    matgens.append([[ZZ(gens[j]), ZZ(gens[j+1])], [ZZ(gens[j+2]), ZZ(gens[j+3])]])
-                                except TypeError:
-                                    print("Error!", label)
-                                    raise
-                    g = make_picture_disk(level, matgens)
-                pngstr = encode_mcurve_plot(g)
-                _ = Fout.write(f"{label}|{pngstr}\n")
-print(f"Total time {time.time() - t0}")
+make_picture_strings(args.input_file, args.output_file)
+
+# t0 = time.time()
+# os.makedirs("pictures", exist_ok=True)
+# with open(opj("pictures", str(args.job)), "w") as Fout:
+#     with open("picture_labels.txt") as F:
+#         for i, line in enumerate(F):
+#             if i % args.num_jobs == args.job:
+#                 label = line.strip()
+#                 if label == "1.1.0.a.1":
+#                     g = make_sl2z_picture_disk()
+#                 else:
+#                     level = ZZ(label.split(".")[0])
+#                     with open(opj("..", "equations", "psl2_input_data", label)) as Finp:
+#                         matgens = []
+#                         gens = Finp.read()
+#                         if gens: # 2.6.0.a.1 = X(2) has no generators
+#                             gens = gens.split(",")
+#                             for j in range(0, len(gens), 4):
+#                                 try:
+#                                     matgens.append([[ZZ(gens[j]), ZZ(gens[j+1])], [ZZ(gens[j+2]), ZZ(gens[j+3])]])
+#                                 except TypeError:
+#                                     print("Error!", label)
+#                                     raise
+#                     g = make_picture_disk(level, matgens)
+#                 pngstr = encode_mcurve_plot(g)
+#                 _ = Fout.write(f"{label}|{pngstr}\n")
+# print(f"Total time {time.time() - t0}")
