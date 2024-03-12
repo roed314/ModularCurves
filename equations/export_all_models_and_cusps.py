@@ -29,7 +29,7 @@ OutputString = ""
 for id in Crvs:
 	C = Crvs[id]
 	for i in C:
-		OutputString += '<"' + str(id) + '",' + str(i) + '>\n'
+		OutputString += '<"' + str(id) + '",' + str(i) + ',' + str(C[i][0]) + ',' + str(C[i][1]).replace("'", '"') + '>\n'
 		if not(id in Pts):
 			continue
 		OutputString += '['
@@ -39,8 +39,8 @@ for id in Crvs:
 				continue
 			if not(isFirst):
 				OutputString += ','
-				isFirst = False
-			OutputString += '<' + str(FldCoeffs[FldLabels[id][j]]) + ',' + str(Pt[str(i)]).replace("'", '"') + '>'
+			isFirst = False
+			OutputString += '<' + str(FldCoeffs[FldLabels[id][j]]) + ',' + str(Pt[str(i)]).replace("['", '[[[').replace("']", ']]]').replace(':', '],[').replace("',", ']],').replace(" '",'[[') + '>'
 		OutputString += ']\n'
 
 with open("outputfile.txt", "w") as f:
