@@ -6,7 +6,7 @@ import re
 import sys
 from collections import defaultdict, Counter
 from sage.misc.cachefunc import cached_function
-from sage.all import ZZ, QQ, Poset, DiGraph, flatten, gcd, PolynomialRing
+from sage.all import ZZ, QQ, Poset, DiGraph, flatten, gcd, PolynomialRing, MatrixSpace, EllipticCurve, NumberField
 from sage.combinat.posets.posets import FinitePoset
 from sage.misc.misc import cputime, walltime
 from sage.databases.cremona import class_to_int
@@ -135,6 +135,7 @@ def intervals_to_save(max_size=60):
     for x, ints in flipped.items():
         if len(ints) > 1:
             # Throw out Xx(n) if n divides m and Xx(m) is also in ints
+            # Unless it's X(2) and X(1), when we go up to X(1)
             by_fam = defaultdict(dict)
             for d in ints:
                 fam = DV[d].split("(")[0]
@@ -143,12 +144,12 @@ def intervals_to_save(max_size=60):
             S = []
             for fam, ns in by_fam.items():
                 for n, d in ns.items():
-                    if len([m for m in ns if n.divides(m)]) == 1:
+                    if fam == "X" or len([m for m in ns if n.divides(m)]) == 1:
                         i = int(d.split(".")[1])
                         # Sort by index (reversed), then family
                         S.append((-i, Xfams.index(fam), d))
             S.sort()
-            I = J = set([x] + P.upper_covers(x)).union(ints[S[0][2]])
+            I = J = set([x]).union(ints[S[0][2]])
             num_tops[x] = 1
             for i, f, d in S[1:]:
                 I = I.union(ints[d])
@@ -157,7 +158,7 @@ def intervals_to_save(max_size=60):
                 num_tops[x] += 1
                 J = I
         else:
-            J = list(ints.values())[0].union(P.upper_covers(x))
+            J = list(ints.values())[0]
             num_tops[x] = 1
         if len(J) <= max_size:
             J = sorted(J, key=sort_key)
@@ -166,10 +167,12 @@ def intervals_to_save(max_size=60):
     return stored_intervals, num_tops
 
 def display(label):
+    # We try to model how wide the latexed tag will be just using characters,
+    # leaning toward increasing the width of named vertices
     DV = distinguished_vertices()
     if label in DV:
-        return DV[label]
-    return "%s_%s^%s" % tuple(label.split(".")[:3])
+        return DV[label] + "XX"
+    return "%sX" % label.split(".")[0]
 
 def get_rank(label):
     return sum(e for (p,e) in ZZ(label.split(".")[1]).factor())
@@ -298,7 +301,7 @@ def load_points_files(data_folder):
         assert NFLABEL_RE.match(jfield), f"Invalid field of j {jfield} for {label}"
         assert ZZ_RE.match(cm), f"Invalid CM discriminant {cm} for {label}"
         assert quo_info == r"\N" or NN_LIST_RE.match(quo_info[1:-1]), f"Invalid quotient information {quo_info} for {label}"
-        ans.append((label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, cm, r"\N", True, r"\N"))
+        ans.append((label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, cm, r"\N", True, r"\N", r"\N"))
     return ans
 
 def get_j_height(jinv, j_field, nfs):
@@ -340,10 +343,9 @@ def save_ecnf_data(fname="ecnf_data.txt"):
     # We do that once, save it, and then load the result from disc as needed
     nfs, sub_lookup, _ = load_nf_data()
 
-    # Ideally, we would omit curves that are base changes from any subfield.
     total = db.ec_nfcurves.count()
     with open(fname, "w") as F:
-        for progress, rec in enumerate(db.ec_nfcurves.search({}, ["galois_images", "degree", "field_label", "jinv", "cm", "label", "conductor_norm", "base_change"], silent=True)):
+        for progress, rec in enumerate(db.ec_nfcurves.search({}, ["galois_images", "degree", "field_label", "jinv", "cm", "label", "conductor_norm", "base_change", "ainvs"], silent=True)):
             if progress and progress % 10000 == 0:
                 print(f"ECNF: {progress}/{total}")
             if rec["base_change"] or not rec["galois_images"]:
@@ -369,7 +371,7 @@ def save_ecnf_data(fname="ecnf_data.txt"):
                     jorig = rec["jinv"]
             Slabels = ",".join(rec["galois_images"])
             j_height = get_j_height(jinv, jfield, nfs)
-            _ = F.write(f"{Slabels}|{rec['degree']}|{rec['field_label']}|{jorig}|{jinv}|{jfield}|{j_height}|{rec['cm']}|{rec['label']}|{rec['conductor_norm']}\n")
+            _ = F.write(f"{Slabels}|{rec['degree']}|{rec['field_label']}|{jorig}|{jinv}|{jfield}|{j_height}|{rec['cm']}|{rec['label']}|{rec['conductor_norm']}|{rec['ainvs']}\n")
 
 def load_ecnf_data(fname="ecnf_data.txt"):
     # Galois images are stored for NF curves using Sutherland labels
@@ -391,14 +393,33 @@ def load_ecnf_data(fname="ecnf_data.txt"):
 
     with open(fname) as F:
         for line in F:
-            Slabels, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, conductor_norm = line.strip().split("|")
+            Slabels, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, conductor_norm, ainvs = line.strip().split("|")
             if Elabel in isbc:
                 continue
             for Slabel in Slabels.split(","):
+                if not ("[" in Slabel or S_LABEL_RE.fullmatch(Slabel)):
+                    print("Warning: invalid Slabel", Slabel)
                 if Slabel in from_Slabel:
                     label = from_Slabel[Slabel]
-                    yield label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, int(cm), Elabel, False, conductor_norm
+                    yield label, int(degree), field_of_definition, jorig, jinv, jfield, j_height, int(cm), Elabel, False, conductor_norm, ainvs
     print("Loaded ECNF data from file")
+
+def convert_cm_datafile(cmin, cmout):
+    # Convert from Drew's format (which has some extra stuff and is missing others)
+    lookup = {tuple(rec["ainvs"]): rec["lmfdb_label"] for rec in db.ec_curvedata.search({}, ["ainvs", "lmfdb_label"])}
+    with open(cmout, "w") as Fout:
+        with open(cmin) as F:
+            for line in F:
+                level, gens, label, ainvs = line.strip().split(":")
+                ainvs = [ZZ(a) for a in ainvs[1:-1].split(",")]
+                E = EllipticCurve(ainvs)
+                cm = E.cm_discriminant()
+                j = E.j_invariant()
+                ainvs = tuple(E.minimal_model().a_invariants())
+                conductor = E.conductor()
+                lmfdb_label = lookup.get(ainvs, r"?")
+                ainvs = ";".join(str(a) for a in ainvs) # format compatible with ec_nfcurves
+                _ = Fout.write(f"{lmfdb_label}|{label}|{j}|{cm}|{ainvs}|{conductor}\n")
 
 def load_ecq_data(cm_data_file):
     t0 = walltime()
@@ -407,11 +428,13 @@ def load_ecq_data(cm_data_file):
     cm_lookup = defaultdict(list)
     with open(cm_data_file) as F:
         for line in F:
-            lmfdb_label, ainvs, modcurve_label = line.strip().split("|")
-            if lmfdb_label != "?" and int(modcurve_label.split(".")[0]) < 24:
+            lmfdb_label, modcurve_label, j, cm, ainvs, conductor = line.strip().split("|")
+            if lmfdb_label == "?":
+                ecq_db_data.append((modcurve_label, 1, "1.1.1.1", r"\N", j, "1.1.1.1", str(QQ(j).global_height()), int(cm), lmfdb_label, False, conductor, ainvs))
+            else:
                 cm_lookup[lmfdb_label].append(modcurve_label)
 
-    for rec in db.ec_curvedata.search({}, ["lmfdb_label", "jinv", "cm", "conductor", "modm_images"]):
+    for rec in db.ec_curvedata.search({}, ["lmfdb_label", "jinv", "cm", "conductor", "modm_images", "ainvs"]):
         Elabel = rec["lmfdb_label"]
         jinv = QQ(tuple(rec["jinv"]))
         if rec["cm"]:
@@ -419,13 +442,17 @@ def load_ecq_data(cm_data_file):
         else:
             images = rec["modm_images"]
         images = trim_modm_images(images)
+        ainvs = ";".join(str(a) for a in rec["ainvs"])
         for label in images:
-            ecq_db_data.append((label, 1, "1.1.1.1", r"\N", str(jinv), "1.1.1.1", str(jinv.global_height()), rec["cm"], Elabel, False, str(rec["conductor"])))
+            ecq_db_data.append((label, 1, "1.1.1.1", r"\N", str(jinv), "1.1.1.1", str(jinv.global_height()), rec["cm"], Elabel, False, str(rec["conductor"]), ainvs))
     print("Loaded elliptic curves over Q", walltime() - t0)
     return ecq_db_data
 
-def load_gl2zhat_data():
+def load_gl2zhat_rational_data():
     return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search(rational_poset_query(), ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "coarse_label"], silent=True)}
+
+def load_gl2zhat_cusp_data():
+    return {rec["label"]: rec for rec in db.gps_gl2zhat_fine.search({"contains_negative_one": True}, ["label", "genus", "simple", "rank", "dims", "name", "level", "index", "q_gonality_bounds", "rational_cusps"], silent=True)}
 
 def is_isolated(degree, g, rank, gonlow, simp, dims):
     # We encode the isolatedness in a small integer, p + a, where
@@ -476,7 +503,7 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
     lit_fields = sorted(set([datum[2] for datum in lit_data]))
     print("Loaded tables from files")
 
-    gpdata = load_gl2zhat_data()
+    gpdata = load_gl2zhat_rational_data()
 
     P = get_rational_poset()
     H = P._hasse_diagram
@@ -490,29 +517,38 @@ def prepare_rational_points(output_folder="../equations/jinvs/", manual_data_fol
 
     # Check for overlap as we add points
     jinvs_seen = defaultdict(set)
-    point_counts = defaultdict(Counter)
+    #point_counts = defaultdict(Counter)
     jinvs = defaultdict(list)
-    for ctr, (label, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, known_isolated, conductor_norm) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
-        if ctr and ctr % 10000 == 0:
-            print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
-        assert label != "1.1.0.a.1"
-        # Don't want to save the interval, since that takes quadratic space
-        for v in H.breadth_first_search(P._element_to_vertex(label)):
-            plabel = P._vertex_to_element(v)
-            gdat = gpdata[plabel]
-            if gdat["genus"] == 0: continue
-            if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:
-                jinvs_seen[plabel].add((field_of_definition, jfield, jinv))
-                point_counts[plabel][degree] += 1
-                if label == plabel and known_isolated:
-                    isolated = "4"
-                else:
-                    isolated = is_isolated(degree, gdat["genus"], gdat["rank"], gdat["q_gonality_bounds"][0], gdat["simple"], gdat["dims"])
-                if jorig == r"\N":
-                    jorig = jinv
-                jinvs[plabel].append((jorig, nf_lookup[field_of_definition], isolated))
+    with open("allpoints.txt", "w") as F:
+        for ctr, (label, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, known_isolated, conductor_norm, ainvs) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
+            if ctr and ctr % 10000 == 0:
+                print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
+            #assert label != "1.1.0.a.1"
+            if label == "1.1.0.a.1": continue
+            # Don't want to save the interval, since that takes quadratic space
+            for v in H.breadth_first_search(P._element_to_vertex(label)):
+                plabel = P._vertex_to_element(v)
+                if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:
+                    jinvs_seen[plabel].add((field_of_definition, jfield, jinv))
+                    #point_counts[plabel][degree] += 1
+                    gdat = gpdata[plabel]
+                    if label == plabel and known_isolated:
+                        isolated = "4"
+                    else:
+                        isolated = is_isolated(degree, gdat["genus"], gdat["rank"], gdat["q_gonality_bounds"][0], gdat["simple"], gdat["dims"])
+                    # We only store ainvs for fine models, since otherwise it's recoverable from the j-invariant
+                    if "-" in plabel:
+                        ainvshow = ainvs
+                    else:
+                        ainvshow = r"\N"
+                    _ = F.write(f"{plabel}|{degree}|{field_of_definition}|{jorig}|{jinv}|{jfield}|{j_height}|{cm}|{Elabel}|{isolated}|{conductor_norm}|{ainvshow}\n")
+
+                    # We only need to compute isolatedness and model-coordinates when genus > 0
+                    if gdat["genus"] == 0: continue
+                    if jorig == r"\N":
+                        jorig = jinv
+                    jinvs[plabel].append((jorig, nf_lookup[field_of_definition], isolated))
     for plabel, pts in jinvs.items():
-        # We only need to compute isolatedness and model-coordinates when genus > 0
         with open(opj(output_folder, plabel), "w") as F:
             for jinv, nf, isolated in pts:
                 _ = F.write(f"{jinv}|{str(nf).replace(' ','')[1:-1]}|{isolated}\n")
@@ -554,10 +590,78 @@ def make_input_data():
         with open(opj(folder, rec["label"]), "w") as F:
             _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))
 
+def make_psl2_input_data():
+    folder = opj("..", "equations", "psl2_input_data")
+    os.makedirs(folder, exist_ok=True)
+    for rec in db.gps_sl2zhat_fine.search({}, ["label", "generators"]):
+        with open(opj(folder, rec["label"]), "w") as F:
+            _ = F.write(",".join(str(c) for c in flatten(rec["generators"])))
+
 def make_todo():
     with open(opj("..", "equations", "todo.txt"), "w") as F:
         for label in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, "label"):
             _ = F.write(label+"\n")
+
+def prep_hyperelliptic():
+    # Need to figure out which modular curves are on the "border" between canonical models and not (g=0,1 or hyperelliptic)
+    with open(opj("..", "equations", "hyptodo.txt"), "w") as F:
+        for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True, "genus":{"$gte":3, "$lte":17}}, ["label", "qbar_gonality_bounds"]):
+            if rec["qbar_gonality_bounds"][0] == 2 and rec["qbar_gonality_bounds"][1] > 2:
+                # possibly hyperelliptic
+                _ = F.write(rec["label"] + "\n")
+
+def get_relj_codomains():
+    # Currently, the plan is to just run GetPrecHyp.m on lovelace, so we just use the output in the folder ishyp
+    output_folder = opj("..", "equations", "cod")
+    os.makedirs(output_folder, exist_ok=True)
+    hyp_lookup = {}
+    for label in os.listdir(opj("..", "equations", "ishyp")):
+        with open(opj("..", "equations", "ishyp", label)) as F:
+            hyp, prec = F.read().strip().split("|")
+            hyp_lookup[label] = (hyp == "t")
+    parents_conj = {}
+    M = MatrixSpace(ZZ, 2)
+    for rec in db.gps_gl2zhat_fine.search({"contains_negative_one":True, "genus": {"$gte": 3, "$lte": 24}}, ["label", "parents", "parents_conj", "qbar_gonality"]):
+        if rec["qbar_gonality"] == 2:
+            hyp_lookup[rec["label"]] = True
+        for plabel, pconj in zip(rec["parents"], rec["parents_conj"]):
+            parents_conj[rec["label"], plabel] = M(pconj)
+    P = get_lattice_poset()
+    H = P._hasse_diagram
+    X1 = P._element_to_vertex("1.1.0.a.1")
+    cod = {}
+    def index_sort_key(pair):
+        N, i, g, a, n = pair[0].split(".")
+        return (int(i), int(N), int(g), class_to_int(a), int(n))
+    for x in index_iterator(P, X1):
+        label = P._vertex_to_element(x)
+        N, i, g, a, n = label.split(".")
+        if 3 <= int(g) <= 24 and not hyp_lookup.get(label):
+            tmp = [(label, M((1,0,0,1)))]
+            for y in H.neighbors_in(x):
+                ylabel = P._vertex_to_element(y)
+                if ylabel in cod:
+                    ybest, yconj = cod[ylabel]
+                    conj = parents_conj[label, ylabel] * yconj
+                    tmp.append((ybest, conj))
+            cod[label] = min(tmp, key=index_sort_key)
+    cods = defaultdict(int)
+    for label, (codomain, conj) in cod.items():
+        if label != codomain:
+            # We track the maximum index used for a given codomain, since that affects the precision needed for computing the relative j-map.
+            cods[codomain] = max(cods[codomain], int(label.split(".")[1]))
+            with open(opj(output_folder, label), "w") as F:
+                _ = F.write(f"{codomain}|{','.join(str(c) for c in conj.list())}")
+    # Now cods contains the maximum relative index of anything mapping to the given codomain
+    with open(opj("..", "equations", "codtodo.txt"), "w") as Ftodo:
+        for cod, maxind in cods.items():
+            _ = Ftodo.write(cod + "\n")
+            with open(opj(output_folder, cod), "w") as F:
+                _ = F.write(f"{cod}|{maxind}")
+    with open(opj("..", "equations", "todo.txt"), "w") as Ftodo:
+        for label in db.gps_gl2zhat_fine.search({"contains_negative_one":True}, "label"):
+            if label not in cods:
+                _ = Ftodo.write(label + "\n")
 
 def prep_all():
     make_input_data()
@@ -569,9 +673,6 @@ def prep_all():
     # Make tarball
 
 def timing_statistics():
-    #transform = {"log-canonicalish ring": "canonical ring",
-    #             "model computation with low precision": "model and modular forms",
-    #             "determining Galois action on cusps": "post-processing"}
     with open("output") as F:
         timing_data = [line[1:] for line in F.read().strip().split("\n") if line.startswith("T")]
         by_label = defaultdict(list)
@@ -587,7 +688,6 @@ def timing_statistics():
         for label, lines in by_label.items():
             started = [start_re.fullmatch(x) for x in lines]
             started = [m.group(1) for m in started if m is not None]
-            #started = [transform.get(x, x) for x in started]
             finished = [end_re.fullmatch(x) for x in lines]
             timings = [float(m.group(2)) for m in finished if m is not None]
             finished = [m.group(1) for m in finished if m is not None]
@@ -624,24 +724,34 @@ def timing_statistics():
         d = max(times)
         e = len(times)
         f = len(uby_task.get(task, []))
-        print(f"{printtask}       Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e}) Bad ({f})\n")
-        for N, ts in sorted(by_level.items()):
-            a = mean(ts)
-            b = median(ts)
-            c = std(ts)
-            d = max(ts)
-            e = len(ts)
-            f = uby_level.get(N, 0)
-            print(f"{printtask} N={N:<3} Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e}) Bad ({f})")
+        print(f"{printtask}       Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e:<3}) Bad ({f})\n")
+        for N in sorted(set(list(by_level) + list(uby_level))):
+            if N in by_level:
+                ts = by_level[N]
+                a = mean(ts)
+                b = median(ts)
+                c = std(ts)
+                d = max(ts)
+                e = len(ts)
+                f = uby_level.get(N, 0)
+                print(f"{printtask} N={N:<3} Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e:<3}) Bad ({f})")
+            else:
+                f = uby_level[N]
+                print(f"{printtask} N={N:<3} {' '*61} Bad ({f})")
         print("")
-        for g, ts in sorted(by_genus.items()):
-            a = mean(ts)
-            b = median(ts)
-            c = std(ts)
-            d = max(ts)
-            e = len(ts)
-            f = uby_genus.get(g, 0)
-            print(f"{printtask} g={g:<3} Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e}) Bad ({f})")
+        for g in sorted(set(list(by_genus) + list(uby_genus))):
+            if g in by_genus:
+                ts = by_genus[g]
+                a = mean(ts)
+                b = median(ts)
+                c = std(ts)
+                d = max(ts)
+                e = len(ts)
+                f = uby_genus.get(g, 0)
+                print(f"{printtask} g={g:<3} Mean ({a:5.2f}) Median ({b:5.2f}) Std ({c:5.2f}) Max ({d:6.2f}) OK ({e:<3}) Bad ({f})")
+            else:
+                f = uby_genus[g]
+                print(f"{printtask} g={g:<3} {' '*61} Bad ({f})")
         print("")
     return unfinished, by_task, uby_task
 
@@ -776,49 +886,229 @@ def get_gonalities(model_gonalities):
         #return f"{q}|{qbar}|{{{q_low},{q_high}}}|{{{qbar_low},{qbar_high}}}"
     return {P._vertex_to_element(v): package(gon) for (v, gon) in gonalities.items()}
 
-def get_model_points():
+def get_nf_lookup(pols):
+    # All polynomials should be stored without spaces
+    lookup = {}
+    R = PolynomialRing(QQ, name="x")
+    if ope("polreds.txt"):
+        with open("polreds.txt") as F:
+            for line in F:
+                poly, nflabel, g, phi = line.strip().split("|")
+                lookup[poly] = (nflabel, g, phi)
+    save = False
+    nf_lookup = {}
+    for i, poly in enumerate(pols):
+        if i and i % 1000 == 0:
+            print(f"Creating nf lookup table: {i}/{len(pols)}")
+        if poly not in lookup:
+            save = True
+            f = R(poly)
+            K = NumberField(f, name='a')
+            g = R(f.__pari__().polredabs())
+            L = NumberField(g, name='b')
+            phi = K.embeddings(L)[0]
+            if g not in nf_lookup:
+                nf_lookup[g] = db.nf_fields.lucky({"coeffs":[int(c) for c in g]}, "label")
+                assert nf_lookup[g] is not None
+            nflabel = nf_lookup[g]
+            g = ",".join(str(c) for c in g)
+            phi = ",".join(str(c) for c in phi(K.gen()))
+            lookup[poly] = (nflabel, g, phi)
+    if save:
+        with open("polreds_tmp.txt", "w") as F:
+            for poly, tup in lookup.items():
+                _ = F.write("|".join((poly,) + tup) + "\n")
+        os.rename("polreds_tmp.txt", "polreds.txt")
+    return lookup
+
+def get_model_points(rats, usps, jusps):
     # We need to do polredabs computations for cusps, which might take a while
-    nf_lookup = {tuple(rec["coeffs"]): rec["label"] for rec in db.nf_fields.search({"degree":{"$lte":6}}, ["label", "coeffs"])}
+    print("Creating nf lookup table")
+    pols = set()
+    for lines in rats.values():
+        for line in lines:
+            if line:
+                pols.add(line.split("|")[0])
+    for lines in jusps.values():
+        for line in lines:
+            toadd = line.split("|")[-1][1:-1].split(",")
+            for f in toadd:
+                pols.add(f)
+    for lines in usps.values():
+        for line in lines:
+            pols.add(line.split("|")[0])
+    nf_lookup = get_nf_lookup(pols)
     points = defaultdict(lambda: defaultdict(list))
-    cusps = defaultdict(lambda: defaultdict(list))
     R = PolynomialRing(QQ, name="x")
     to_polredabs = {}
-    with open("output") as F:
-        for line in F:
-            label, out = line.strip().split("|", 1)
+    print("Loading polynomials")
+    for label, lines in rats.items():
+        for out in lines:
             if not out: continue
-            code, label = label[0], label[1:]
-            if code == "R":
-                poly, j, model_type, coord = out.split("|")
-                poly = poly.replace("$.1", "x")
-                model_type = int(model_type)
-                if poly == "x - 1":
-                    points[label, "1.1.1.1", j][model_type].append(coord)
-                elif j == "oo":
-                    f = R(poly)
-                    K = NumberField(f, name='a')
-                    if poly not in to_polredabs:
-                        # Need to compute the polredabs
-                        g = R(f.__pari__().polredabs())
-                        nflabel = nf_lookup[tuple(g)]
-                        L = NumberField(g, name='b')
-                        phi = K.embeddings(L)[0]
-                        to_polredabs[poly] = phi, nflabel
-                    else:
-                        phi, nflabel = to_polredabs[poly]
-                    coord = [K([QQ(c) for c in x.split(",")]) for x in coord.split(":")]
-                    coord = [phi(x) for x in coord]
-                    coord = ":".join(",".join(str(c) for c in list(x)) for x in coord)
-                    cusps[label, nflabel][model_type].append(coord)
-                else:
-                    try:
-                        gg = R(poly)
-                    except SyntaxError:
-                        print(poly)
-                        raise
-                    nflabel = nf_lookup[tuple(R(poly))]
-                    points[label, nflabel, j][model_type].append(coord)
+            poly, j, model_type, coord = out.split("|")
+            model_type = int(model_type)
+            if poly == "x-1":
+                points[label, "1.1.1.1", j][model_type].append(coord)
+            else:
+                nflabel, g, phi = nf_lookup[poly]
+                points[label, nflabel, j][model_type].append(coord)
+
+    cusps = defaultdict(lambda: defaultdict(list))
+    phiD = {}
+    def add_to_phiD(poly, i=None):
+        nflabel, g, phi = nf_lookup[poly]
+        if poly in phiD:
+            phi = phiD[poly]
+        else:
+            K = NumberField(R(poly), name="a")
+            L = NumberField(R([ZZ(c) for c in g.split(",")]), name="b")
+            phi = K.hom([L([QQ(c) for c in phi.split(",")])])
+            phiD[nflabel,g,phi] = phi
+        if i is not None:
+            phi = phi * K.change_names(f"a_{i}").structure()[0]
+        return nflabel, phi.domain(), phi
+    for i, (label, lines) in enumerate(usps.items()):
+        if i and i%1000 == 0:
+            print(f"usps {i}/{len(usps)}")
+        for line in lines:
+            if not line: continue
+            poly, model_type, coord = line.split("|")
+            # Skip model_type 0,5,8 since that will be handled in the jusps section
+            if model_type not in "058":
+                nflabel, K, phi = add_to_phiD(poly)
+                coord = [K([QQ(c) for c in x.split(",")]) for x in coord.split(":")]
+                coord = [phi(x) for x in coord]
+                coord = ":".join(",".join(str(c) for c in list(x)) for x in coord)
+                cusps[label, nflabel][model_type].append(coord)
+    amatcher = re.compile(r"a_(\d+)")
+    for i, (label, lines) in enumerate(jusps.items()):
+        if i and i%1000 == 0:
+            print(f"jusps {i}/{len(jusps)}")
+        assert len(lines) == 1
+        line = lines[0]
+        data = line.split("|")
+        model_type = data[0]
+        coords, fields = data[-2:]
+        if coords == "{}":
+            # no cusps
+            continue
+        coords = coords[1:-1].split(",")
+        fields = fields[1:-1].split(",")
+        for coord in coords:
+            m = amatcher.search(coord)
+            if m:
+                i = int(m.group(1))
+                nflabel, K, phi = add_to_phiD(fields[i-1], i=i)
+                coord = [K(c) for c in coord[1:-1].split(":")]
+                coord = [phi(x) for x in coord]
+                coord = ":".join(",".join(str(c) for c in list(x)) for x in coord)
+            else:
+                nflabel = "1.1.1.1"
+                coord = coord[1:-1]
+            cusps[label, nflabel][model_type].append(coord)
     return points, cusps
+
+def write_models_maps(cans, planes, ghyps, jcusps, jfacs):
+    def dontdisplay_str(s):
+        return "t" if (len(s) > 100000) else "f"
+    models = defaultdict(list)
+    maps = defaultdict(list)
+    can_type = {}
+    # Check that P1s aren't included in models
+    assert "1.1.0.a.1" not in cans and "8.2.0.a.1" not in cans
+    for label, lines in cans.items():
+        assert len(lines) == 1
+        line = lines[0]
+        nvar, can, model_type = line.split("|")
+        assert model_type != "1"
+        # encoding for model types (in the modcurve_models and modcurve_modelmaps schemas)
+        # For a given modular curve, there should be at most one of each type of model in modcurve_models (since they're used as keys in modcurve_modelmaps)
+        # 0: canonical (including plane models for nonhyperelliptic genus 3)
+        # 1: only used in modelmaps for P^1; for the modular curve X(1), this indicates that the j-invariant is used as the coordinate (as opposed to type 3 where j-1728 is)
+        # 2: plane model, including pointless conics but excluding nonhyperelliptic genus 3 (0) and elliptic curves (5)
+        # 3: P^1, only used in modelmaps for j-1728
+        # 4: P(4,6), only used in modelmaps for (E4,E6)
+        # 5: elliptic or hyperelliptic over Q
+        # 6: bielliptic (not yet implemented)
+        # 7: double cover of a pointless conic
+        # 8: the high dimensional smooth embeddings of geometrically hyperelliptic curves produced by FindModelOfXG
+        # -1: other (currently unused)
+        # -2: external plane model (e.g. Drew's optimized ones for X0(N))
+        can_type[label] = model_type
+        smooth = "t"
+        dontdisplay = dontdisplay_str(can)
+        models[label].append(f"{label}|{can}|{nvar}|{model_type}|{smooth}|{dontdisplay}\n")
+    for label, lines in jcusps.items():
+        assert len(lines) == 1
+        line = lines[0]
+        index = int(label.split(".")[1]) # coarse model, so psl2_index same as index
+        if line.count("|") == 4:
+            model_type, codomain, jmap, cuspcoords, cuspfields = line.split("|")
+            assert codomain in models
+            codomain_index = int(codomain.split(".")[1]) # coarse model, so psl2_index same as index
+            degree = index // codomain_index
+            toadd = [(str(degree), codomain, "0", jmap, r"\N", "t")]
+        else:
+            codomain = "1.1.0.a.1"
+            model_type, jmap, cuspcoords, cuspfields = line.split("|")
+            if label in jfacs:
+                faclines = jfacs[label]
+                toadd = []
+                for facline in faclines:
+                    codtype, jmap, leading, nfacs, jdegs = facline.split("|")
+                    toadd.append((str(index), codomain, codtype, jmap, leading, "t"))
+            else:
+                toadd = [(str(index), codomain, "1", jmap, r"\N", "f")]
+        assert model_type == "1" or label in models
+        for degree, codomain, codtype, jmap, leading, factored in toadd:
+            dontdisplay = dontdisplay_str(jmap)
+            maps[label].append(f"{degree}|{label}|{model_type}|{codomain}|{codtype}|{jmap}|{leading}|{factored}|{dontdisplay}\n")
+
+    triangular_nbs = [str(i*(i-1)//2) for i in range(1, 18)]
+    for label, lines in planes.items():
+        assert len(lines) == 1
+        line = lines[0]
+        plane, proj, nvar, smooth, alg = line.split("|") # Note that nvar is the number of variables in the domain of the projection
+        dontdisplay = dontdisplay_str(plane)
+        models[label].append(f"{label}|{{{plane}}}|3|2|{smooth}|{dontdisplay}\n")
+        leading_coefficients = r"\N"
+        factored = "f"
+        dontdisplay = dontdisplay_str(proj)
+        maps[label].append(f"1|{label}|{can_type[label]}|{label}|2|{{{proj}}}|{leading_coefficients}|{factored}|{dontdisplay}\n")
+
+    for label, lines in ghyps.items():
+        assert len(lines) == 1
+        line = lines[0]
+        if "|" in line:
+            # Hyperelliptic model where we have the projection
+            model, proj, nvar = line.split("|")
+            leading_coefficients = r"\N"
+            factored = "f"
+            dontdisplay = dontdisplay_str(proj)
+            maps[label].append(f"1|{label}|{can_type[label]}|{label}|5|{{{proj}}}|{leading_coefficients}|{factored}|{dontdisplay}\n")
+        else:
+            model = line
+        if "W" in model:
+            model_type = 7 # geometrically hyperelliptic
+            nvars = 4
+        else:
+            model_type = 5 # actually hyperelliptic
+            nvars = 3
+        smooth = "t"
+        dontdisplay = dontdisplay_str(model)
+        models[label].append(f"{label}|{model}|{nvars}|{model_type}|{smooth}|{dontdisplay}\n")
+
+    def sort_key(label):
+        # only works on coarse labels, but that's okay here
+        return [(int(c) if c.isdigit() else class_to_int(c)) for c in label.split(".")]
+    with open("modcurve_models.txt", "w") as Fmodels:
+        _ = Fmodels.write("modcurve|equation|number_variables|model_type|smooth|dont_display\ntext|text[]|smallint|smallint|boolean|boolean\n\n")
+        for label in sorted(models, key=sort_key):
+            _ = Fmodels.write("".join(models[label]))
+    with open("modcurve_modelmaps.txt", "w") as Fmaps:
+        Fmaps.write("degree|domain_label|domain_model_type|codomain_label|codomain_model_type|coordinates|leading_coefficients|factored|dont_display\ninteger|text|smallint|text|smallint|text[]|text[]|boolean|boolean\n\n")
+        for label in sorted(maps, key=sort_key):
+            _ = Fmaps.write("".join(maps[label]))
 
 def transform_label(old_label):
     if old_label.count(".") == 4:
@@ -853,9 +1143,9 @@ def to_coarse_label(label):
     M, a, m, n = coarse.split(".")
     return f"{M}.{j}.{g}.{a}.{m}"
 
-def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_file="ecnf_data.txt", cm_data_file="cm_data.txt"):
+def create_db_uploads(input_file="output"):
     data = defaultdict(lambda: defaultdict(list))
-    with open("output") as F:
+    with open(input_file) as F:
         for line in F:
             label, out = line.strip().split("|", 1)
             if not out: continue
@@ -865,79 +1155,141 @@ def create_db_uploads(manual_data_folder="../rational-points/data", ecnf_data_fi
     # Propogate gonalities
     assert all(len(gon) == 1 for gon in data["G"].values())
     data["G"] = {label: [int(g) for g in gon[0].split(",")] for label,gon in data["G"].items()}
-    # Temporarily work around a bug in Drew's qbar gonality data for genus 0
-    for label, gon in data["G"].items():
-        if label.split(".")[2] == "0":
-            gon[2] = 1
-            gon[3] = 1
     gonalities = get_gonalities(data["G"])
 
-    # Get lattice_models and lattice_x
-    assert all(len(D) == 1 for D in data["L"].values())
-
-    with open("gps_gl2zhat_fine.update", "w") as F:
-        _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds|lattice_labels|lattice_x\ninteger|integer|integer[]|integer[]|text[]|integer[]\n\n")
-        default = r"\N|\N"
-        for label, gon in gonalities.items():
-            _ = F.write(f"{label}|{gon}|{data['L'].get(label, [default])[0]}\n")
-
-    model_points, cusps = get_model_points()
     # Construct modcurve_points
-    lit_data = load_points_files(manual_data_folder)
-    lit_fields = sorted(set([datum[2] for datum in lit_data]))
-    print("Loaded tables from files")
+    model_points, cusps = get_model_points(data["R"], data["U"], data["J"])
+    print("Model points loaded")
+    gpdata = load_gl2zhat_rational_data()
+    gpcuspdata = load_gl2zhat_cusp_data()
+    print("Group data loaded")
 
-    gpdata = load_gl2zhat_data()
-
-    # TODO: Rewrite prep code so that we don't need to redo the poset rational point propogation
-    P = get_rational_poset()
-    H = P._hasse_diagram
-    ecq_db_data = load_ecq_data(cm_data_file)
-
-    ecnf_db_data = list(load_ecnf_data(ecnf_data_file))
-
-
-    # Check for overlap as we add points
-    jinvs_seen = defaultdict(set)
-    point_counts = defaultdict(Counter)
-    with open("modcurve_points.txt", "w") as F:
-        _ = F.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|coordinates|cusp\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|bigint|jsonb|boolean\n\n")
-        # rats contains residue_field|jorig|model_type|coord
-        for ctr, (label, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, known_isolated, conductor_norm) in enumerate(ecq_db_data + ecnf_db_data + lit_data):
-            if ctr and ctr % 10000 == 0:
-                print(f"{ctr}/{len(ecq_db_data) + len(ecnf_db_data) + len(lit_data)}")
-            assert label != "1.1.0.a.1"
-            for v in H.breadth_first_search(P._element_to_vertex(label)):
-                plabel = P._vertex_to_element(v)
+    def write_dict(D):
+        if isinstance(D, str): return D # \N
+        D = dict(D) # might be a defaultdict
+        parts = []
+        for modtype, coords in D.items():
+            coords = str(coords).replace(" ", "").replace("'", '"')
+            parts.append(f'"{modtype}":{coords}')
+        return "{" + ",".join(parts) + "}"
+    def get_card(coords):
+        if coords == r"\N":
+            return r"\N"
+        # canonical, embedded, Weierstrass
+        for model_type in "085":
+            if model_type in coords:
+                return len(coords[model_type])
+        return r"\N"
+    num_pts = defaultdict(int)
+    # cm_Elabel = {rec["cm"]: rec["lmfdb_label"] for rec in db.ec_curvedata.search({"cm":{"$ne": 0}}, ["cm", "lmfdb_label"], one_per=["cm"])}
+    cm_Elabel = {
+        '-3': '27.a3',
+        '-4': '32.a3',
+        '-7': '49.a2',
+        '-8': '256.a1',
+        '-11': '121.b1',
+        '-12': '36.a1',
+        '-16': '32.a1',
+        '-19': '361.a1',
+        '-27': '27.a1',
+        '-28': '49.a1',
+        '-43': '1849.b1',
+        '-67': '4489.b1',
+        '-163': '26569.a1'
+    }
+    with open("modcurve_points.txt", "w") as Fout:
+        _ = Fout.write("curve_label|curve_name|curve_level|curve_genus|curve_index|degree|residue_field|jorig|jinv|j_field|j_height|cm|quo_info|Elabel|isolated|conductor_norm|ainvs|coordinates|cusp|cardinality\ntext|text|integer|integer|integer|smallint|text|text|text|text|double precision|smallint|smallint[]|text|smallint|numeric|text|jsonb|boolean|integer\n\n")
+        # Get total number of points to add
+        with open("allpoints.txt") as F:
+            for total, _ in enumerate(F,1):
+                pass
+        with open("allpoints.txt") as F:
+            for ctr, line in enumerate(F):
+                if ctr and ctr % 10000 == 0:
+                    print(f"{ctr}/{total}")
+                plabel, degree, field_of_definition, jorig, jinv, jfield, j_height, cm, Elabel, isolated, conductor_norm, ainvs = line.strip().split("|")
                 gdat = gpdata[plabel]
-                g = gdat["genus"]
-                ind = gdat["index"]
-                level = gdat["level"]
+                g, ind, level = gdat["genus"], gdat["index"], gdat["level"]
                 gonlow = gonalities[to_coarse_label(plabel)][2][0]
-                rank = gdat["rank"]
-                simp = gdat["simple"]
+                rank, simp, dims = gdat["rank"], gdat["simple"], gdat["dims"]
                 name = gdat["name"]
                 if name is None:
                     name = r"\N"
-                if (field_of_definition, jfield, jinv) not in jinvs_seen[plabel]:
-                    jinvs_seen[plabel].add((field_of_definition, jfield, jinv))
-                    point_counts[plabel][degree] += 1
-                    if label == plabel and known_isolated:
-                        isolated = "4"
+                # we can recompute isolated based on new gonalities
+                if isolated in "01":
+                    isolated = is_isolated(int(degree), g, rank, gonlow, simp, dims)
+                if ainvs == "?":
+                    ainvs = r"\N"
+                # For cm points on coarse curves, we can often improve the ellipic curve conductor from the one propogated from the maximal point
+                if degree == "1" and cm != "0" and "-" not in plabel:
+                    Elabel = cm_Elabel[cm]
+                jlookup = jinv if jorig == r"\N" else jorig
+                coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
+                card = get_card(coords)
+                if degree == "1":
+                    if card == r"\N":
+                        num_pts[plabel] += 1 # There is at least one point over this j-invariant
                     else:
-                        isolated = is_isolated(degree, gdat["genus"], gdat["rank"], gonlow, gdat["simple"], gdat["dims"])
-                    jlookup = jinv if jorig == r"\N" else jorig
-                    coords = model_points.get((plabel, field_of_definition, jlookup), r"\N")
-
-                    _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), str(degree), field_of_definition, jorig, jinv, jfield, str(j_height), str(cm), r"\N", Elabel, isolated, conductor_norm, "f", str(coords).replace(" ","")]) + "\n")
-        # Currently, we'll have no cusps on curves without rational EC points
+                        num_pts[plabel] += card
+                _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), degree, field_of_definition, jorig, jinv, jfield, j_height, cm, r"\N", Elabel, isolated, conductor_norm, ainvs, write_dict(coords), "f", str(card)]) + "\n")
         for (plabel, nflabel), coords in cusps.items():
             degree = nflabel.split(".")[0]
-            gdat = gpdata[plabel]
+            gdat = gpcuspdata[plabel]
             g = gdat["genus"]
             ind = gdat["index"]
             level = gdat["level"]
             rank = gdat["rank"]
             simp = gdat["simple"]
             name = gdat["name"]
-            _ = F.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", "t", str(coords).replace(" ", "")]) + "\n")
+            if name is None:
+                name = r"\N"
+            card = get_card(coords)
+            if degree == "1":
+                if card == r"\N":
+                    card = gdat["rational_cusps"]
+                elif card != gdat["rational_cusps"]:
+                    print(f"Rational cusp cardinality mismatch for {plabel} ({card} != {gdat['rational_cusps']})")
+                num_pts[plabel] += card
+            _ = Fout.write("|".join([plabel, name, str(level), str(g), str(ind), degree, nflabel, r"\N", r"\N", "1.1.1.1", "0", "0", r"\N", r"\N", r"\N", r"\N", r"\N", write_dict(coords), "t", str(card)]) + "\n")
+
+    write_models_maps(data["C"], data["P"], data["H"], data["J"], data["F"])
+
+    # Get lattice_models and lattice_x
+    assert all(len(D) == 1 for D in data["L"].values())
+    data["L"] = {label: L[0] for (label, L) in data["L"].items()}
+
+    with open("gps_gl2zhat_fine.update", "w") as F:
+        # TODO: May also want to upload number_rational_points
+        _ = F.write("label|q_gonality|qbar_gonality|q_gonality_bounds|qbar_gonality_bounds|lattice_labels|lattice_x|num_known_degree1_points\ntext|integer|integer|integer[]|integer[]|text[]|integer[]|integer\n\n")
+        default = r"\N|\N"
+        for label, gon in gonalities.items():
+            q, qbar, qbnd, qbarbnd = gon
+            if q is None: q = r"\N"
+            if qbar is None: qbar = r"\N"
+            qbnd = "{%s,%s}" % qbnd
+            qbarbnd = "{%s, %s}" % qbarbnd
+            card = num_pts.get(label, 0)
+            _ = F.write(f"{label}|{q}|{qbar}|{qbnd}|{qbarbnd}|{data['L'].get(label, default)}|{card}\n")
+
+def update_lattice_only():
+    folder = opj("..", "equations", "graphviz_out")
+    with open("lattice.update", "w") as Fout:
+        _ = Fout.write("label|lattice_labels|lattice_x\ntext|text[]|integer[]\n\n")
+        for label in os.listdir(folder):
+            with open(opj(folder, label)) as F:
+                Fout.write(label + "|" + F.read().strip() + "\n")
+    db.gps_gl2zhat_fine.update_from_file("lattice.update")
+
+def fix_dollars():
+    kinds = set()
+    lvars = "xyzwtuvrsabcdefghiklmnopqj"
+    with open("output") as F:
+        with open("output_fixed", "w") as Fout:
+            for line in F:
+                if line[0] != "E" and "$" in line:
+                    kinds.add(line[0])
+                    for m in range(23,0,-1):
+                        line = line.replace(f"$.{m}", lvars[m])
+                    assert "$" not in line
+                _ = Fout.write(line)
+    return kinds
