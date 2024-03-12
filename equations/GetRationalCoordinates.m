@@ -17,37 +17,151 @@ end if;
 
 jinvs := LMFDBReadJinvPts(label);
 ans := [* *];
+// Required by magma's parser since we use these inside ifs
+C := 0; H := 0; g := 0;
+
 if #jinvs gt 0 then
     t0 := ReportStart(label, "pulling back j-invariants");
     QQ := Rationals();
-    X, g, model_type, jnum, jden, cusps := LMFDBReadCanonicalModel(label);
+    X, model_type, codomain, j := LMFDBReadJMap(label);
     Cs := LMFDBReadPlaneModel(label);
+    Hs, hmap := LMFDBReadHyperellipticModel(label);
+    if #codomain eq 0 then
+        Y := ProjectiveSpace(QQ, 1);
+        // For now, we ignore isolatedness
+        // Instead, the first coordinate is the j-invariant, and the second is the X-Y coordinates on P1.
+        jinvs := [* <pair[1], [pair[1], 1]> : pair in jinvs *];
+    else
+        Y, gY, modtY := LMFDBReadXGModel(codomain);
+        Y := Curve(Proj(Universe(Y)), Y);
+        // The computation of rational points on the codomain may have timed out,
+        // in which case we just want to exit.
+        try
+            Ycoords := LMFDBReadJinvCoords(codomain : can_only:=true);
+        catch e
+            printf "error: rational points not computed in codomain %o\n", codomain;
+            exit;
+        end try;
+        // The field of definition may be different for Y and X, so we need to track embeddings of these fields
+        new_jinvs := [* *];
+        roots := AssociativeArray();
+        for Lpair in jinvs do
+            jL, isolated := Explode(Lpair);
+            L := Parent(jL);
+            fL := DefiningPolynomial(L);
+            for K -> clist in Ycoords do
+                fK := DefiningPolynomial(K);
+                if IsDefined(roots, <fK, fL>) then
+                    rts := roots[<fK, fL>];
+                else
+                    rts := [pair[1] : pair in Roots(fK, L)];
+                    roots[<fK, fL>] := rts;
+                end if;
+                for Kpair in clist do
+                    for r in rts do
+                        emb := hom<K -> L | r>;
+                        jK, Kcoord := Explode(Kpair);
+                        if emb(jK) eq jL then
+                            Append(~new_jinvs, <jL, [emb(c) : c in Kcoord]>);
+                            // There may be multiple embeddings of K into L that map the j-invariant correctly; we only one one of them since we only want one representative per Galois orbit.
+                            break;
+                        end if;
+                    end for;
+                end for;
+            end for;
+        end for;
+        jinvs := new_jinvs;
+    end if;
     X := Curve(Proj(Universe(X)), X);
     if #Cs gt 0 then
         C := Curve(Proj(Parent(Cs[1][1])), Cs[1][1]);
     end if;
-    for pair in jinvs do
-        j, isolated := Explode(pair);
-        K := Parent(j);
-        P1K := ProjectiveSpace(K, 1);
-        XK := ChangeRing(X, K);
-        projK := map<XK -> P1K | [jnum, jden]>;
-        if #Cs gt 0 then
-            CK := ChangeRing(C, K);
-            T := ChangeRing(Universe(Cs[1][2]), K);
-            CprojK := map<XK -> CK| [T!f : f in Cs[1][2]]>;
+    if #hmap gt 0 then
+        H := Hs[1];
+        if IsEven(Degree(H)) then
+            g := Degree(H) div 2;
+            WP := WeightedProjectiveSpace(Rationals(), [1,g,1]);
+            H := Curve(WP, [H]);
+        else
+            // We could handle this, but it wasn't observed in the test data and it would require additional code
+            print "error, odd degree hyperelliptic";
+            hmap := [];
         end if;
-        P1pt := P1K![j,1];
-        Xpt := P1pt @@ (projK);
-        t1 := ReportStart(label, Sprintf("computing rational points above j=%o", j));
+    end if;
+    auts := AssociativeArray();
+    base_points := AssociativeArray();
+    base_points_dict := AssociativeArray();
+    XLD := AssociativeArray();
+    YLD := AssociativeArray();
+    projLD := AssociativeArray();
+    for pair in jinvs do
+        jL, cod_coord := Explode(pair);
+        L := Parent(jL);
+        fL := DefiningPolynomial(L); // We cache using fL since it works for QQ as well as number fields
+        RL := Parent(fL);
+        AssignCanonicalNames(~RL);
+        if IsDefined(auts, fL) then
+            autL := auts[fL];
+            YL := YLD[fL];
+            XL := XLD[fL];
+            projL := projLD[fL];
+            bp := base_points[fL];
+            bpd := base_points_dict[fL];
+        else
+            autL := [sigma : sigma in Automorphisms(L) | sigma(L.1) ne L.1];
+            auts[fL] := autL;
+            YL := ChangeRing(Y, L);
+            YLD[fL] := YL;
+            XL := ChangeRing(X, L);
+            XLD[fL] := XL;
+            projL := map<XL -> YL | j>;
+            projLD[fL] := projL;
+            t1 := ReportStart(label, Sprintf("computing j-map on base points for L=%o", sprint(fL)));
+            bp := [pt : pt in BasePoints(projL) | L eq QQ or Degree(sub<L | Eltseq(pt)>) eq Degree(L)];
+            base_points[fL] := bp;
+            bpd := AssociativeArray();
+            for P in bp do
+                val := P @ projL;
+                if not IsDefined(bpd, val) then
+                    bpd[val] := [];
+                end if;
+                Append(~bpd[val], Eltseq(P));
+            end for;
+            base_points_dict[fL] := bpd;
+            ReportEnd(label, Sprintf("computing j-map on base points for L=%o", sprint(fL)), t1);
+        end if;
+        if #Cs gt 0 then
+            CL := ChangeRing(C, L);
+            T := ChangeRing(Universe(Cs[1][2]), L);
+            CprojL := map<XL -> CL| [T!f : f in Cs[1][2]]>;
+        end if;
+        if #hmap gt 0 then
+            HL := ChangeRing(H, L);
+            T := ChangeRing(Universe(hmap), L);
+            hmapL := map<XL -> HL | [T!f : f in hmap]>;
+        end if;
+        Ypt := YL!cod_coord;
+        Xpt := Ypt @@ (projL);
+        t1 := ReportStart(label, Sprintf("computing rational points above j=%o", jL));
         Xcoords := RationalPoints(Xpt);
-        ReportEnd(label, Sprintf("computing rational points above j=%o", j), t1);
-        // Throw out points that actually lie in a subfield
-        if K ne QQ then
-            Xcoords := [pt : pt in Xcoords | Degree(sub<K | Eltseq(pt)>) eq Degree(K)];
+        ReportEnd(label, Sprintf("computing rational points above j=%o", jL), t1);
+        // Xpt contains everything in the indeterminacy locus, so they may not all map to the correct j-invariant
+        Xcoords := [Eltseq(pt) : pt in Xcoords | not (pt in bp) and (L eq QQ or Degree(sub<L | Eltseq(pt)>) eq Degree(L))] cat Get(bpd, Ypt, []);
+        // Only keep one point from each Galois orbit
+        if #autL gt 0 and #Xcoords gt 1 then
+            trimmed := [];
+            while #Xcoords gt 0 do
+                pt := Xcoords[1];
+                Remove(~Xcoords, 1);
+                Append(~trimmed, pt);
+                for sigma in autL do
+                    Exclude(~Xcoords, [sigma(c) : c in pt]); // We're assuming that the coordinates are normalized so that we can just test equality of eltseq
+                end for;
+            end while;
+            Xcoords := trimmed;
         end if;
         if #Xcoords eq 0 then
-            printf "Error: no point on %o above j=%o!\n", label, j;
+            printf "Error: no point on %o above j=%o!\n", label, jL;
             continue;
         end if;
         /*
@@ -56,7 +170,7 @@ if #jinvs gt 0 then
             // We first see if an improved gonality bound can solve the problem
             gon_bounds := LMFDBReadGonalityBounds(label);
             gon_low := gon_bounds[1];
-            degree := Degree(K);
+            degree := Degree(L);
             if degree lt gon_low / 2 then
                 isolated := 4;
             else
@@ -65,17 +179,32 @@ if #jinvs gt 0 then
         end if;
         */
         for pt in Xcoords do
-            Append(~ans, <0, j, pt>);
+            Append(~ans, <model_type, jL, pt>);
         end for;
         if #Cs gt 0 then
             // This produces extra points, which I think are singular
-            //Cpt := Xpt @ (CprojK);
+            //Cpt := Xpt @ (CprojL);
             //Ccoords := RationalPoints(Cpt);
             //for coords in Ccoords do
             //    Append(~ans, <2, j, coords>);
             //end for;
             for pt in Xcoords do
-                Append(~ans, <2, j, (XK!pt) @ CprojK>);
+                Append(~ans, <2, jL, (XL!pt) @ CprojL>);
+            end for;
+        end if;
+        if #hmap gt 0 then
+            for pt in Xcoords do
+                Hpt := Eltseq((XL!pt) @ hmapL);
+                // points aren't normalized in weighted projective spaces, but since our weights aren't that complicated, we can do it.  We first try to make z=1, then x=1.  Note that we can't have x = z = 0, since that y^2 is a term and there are no other unaccompanied y terms.
+                if Hpt[3] eq 0 then
+                    d := 1 / Hpt[1];
+                else
+                    d := 1 / Hpt[3];
+                end if;
+                Hpt[1] *:= d;
+                Hpt[2] *:= d^g;
+                Hpt[3] *:= d;
+                Append(~ans, <5, jL, Hpt>);
             end for;
         end if;
     end for;

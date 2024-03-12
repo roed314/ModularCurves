@@ -15,10 +15,7 @@ if (not assigned label) then
     quit;
 end if;
 
-X, jmap, model_type, cusps, M := ProcessModel(label);
-j := New(JMapData);
-j`J := jmap;
-LMFDBWriteModel(X, j, cusps, model_type, label);
+X, jmap, model_type, cusps, M := ProcessModel(label); // writes the model, jmap and cusps to disk
 
 if M`genus gt 3 and model_type eq 0 then
     success, plane_model, proj := PlaneModelFromQExpansions(M, X, label); // writes model to file
