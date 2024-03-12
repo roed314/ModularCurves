@@ -1,6 +1,26 @@
 declare verbose ModAbVarRec, 3;
 
-import "reconstructiongenus2.m" : AlgebraizedInvariantsG2, ReconstructCurveG2, IgusaInvariantsG2;
+declare attributes ModSym:
+  integral_homology_subquo; // SeqEnum[Tup]
+
+
+intrinsic LMFDBNewform(label::MonStgElt) -> ModSym
+{ Return modular form given label }
+    filenames := GetFilenames(MakeNewformModSym);
+    assert #filenames eq 1;
+
+    dirname := "/" cat Join(s[1..(#s - 1)], "/") where s := Split(filenames[1,1],"/");
+    for elt in getrecs(dirname cat "/labelswithhecke.txt") do
+        if elt[1] eq label then
+            level := StringToInteger(elt[2]);
+            hc := eval elt[3];
+            break;
+        end if;
+    end for;
+    return MakeNewformModSym(level, hc);
+end intrinsic;
+
+import "reconstructiongenus2.m" : AlgebraizedInvariantsG2, IgusaInvariantsG2;
 
 // One can do better than this for trivial character, N square free, and when cond(chi) is a proper divisor of N, see Stein 9.19,9.21,9.22,
 // but this bound (due to Buzzard) works for all spaces M_k(N,chi) and is best possible in some cases, see Stein 9.20
@@ -11,23 +31,7 @@ intrinsic SturmBound (N::RngIntElt, k::RngIntElt) -> RngIntElt
     return Integers()!Floor(k*m/12);
 end intrinsic;
 
-intrinsic WriteStderr(s::MonStgElt)
-{ write to stderr }
-  E := Open("/dev/stderr", "w");
-  Write(E, s);
-  Flush(E);
-end intrinsic;
 
-intrinsic Strip(s::MonStgElt) -> MonStgElt
-{ Removes all white space, including newlines, from the string }
- return Join(Split(Join(Split(s," "),""),"\n"),"");
-end intrinsic;
-
-
-intrinsic WriteStderr(e::Err)
-{ write to stderr }
-  WriteStderr(Sprint(e) cat "\n");
-end intrinsic;
 
 intrinsic Eltseq(C::CrvHyp) -> SeqEnum
   {retunrns both hyperelliptic polynomials as SeqEnum}
@@ -71,6 +75,90 @@ intrinsic MachinePrint(C::CrvHyp) -> MonStgElt
   end if;
 end intrinsic;
 
+
+
+
+
+intrinsic PeriodMappingMatrix(f::ModSym : prec:=80) -> ModMatFldElt, RngIntElt, FldElt
+  { Compute the normalized period matrix associated to f }
+  // before we defaulted to this guess with the first 2 replaced by 20
+  // clear cache
+  extra_prec := Ceiling(prec/0.9 + 10); // equality is checked at 90% of the digits
+  if assigned f`PeriodMap and Precision(BaseRing(Codomain(f`PeriodMap))) lt extra_prec then
+    delete f`PeriodMap;
+  end if;
+
+  vprint ModAbVarRec: Sprintf("Computing period map, prec:=%o, for ", prec);
+  vprint ModAbVarRec: Sprintf("%o...", f);
+  default_prec := Precision(GetDefaultRealField());
+  // this is how we control the precision of the output of Periods
+  SetDefaultRealFieldPrecision(extra_prec);
+
+  CC := ComplexFieldExtra(extra_prec);
+  B := Basis(f);
+
+  function matrix_helper(ncoeffs)
+    return ChangeRing(Matrix([pi_f(b) : b in B]), CC) where pi_f := PeriodMapping(f, ncoeffs);
+  end function;
+
+
+  ncoeffs := 0;
+  ncoeffs_inc := Ceiling(2*Sqrt(Level(f))*Log(10)*prec/(2*Pi(ComplexField())));
+  ncoeffs +:= 3*ncoeffs_inc;
+  vtime ModAbVarRec:
+  P0 := matrix_helper(ncoeffs);
+  ncoeffs +:= ncoeffs_inc;
+  vtime ModAbVarRec:
+  P1 := matrix_helper(ncoeffs);
+  // P0 and P1 live in rings with extra_prec
+  // this checks if they agree up to prec
+  t, e := AlmostEqualMatrix(P0, P1);
+  while not t do
+    // FIXME: we could do this much better
+    // we could check that the errors are getting smaller and we could even estimate how much we should increase the number of coefficients
+    vprint ModAbVarRec: Sprintf("Current error: %o", ComplexField(8)!e);
+    P0 := P1;
+    ncoeffs +:= ncoeffs_inc;
+    vprintf ModAbVarRec: "ncoeffs increased to %o\n", ncoeffs;
+    vtime ModAbVarRec:
+    P1 := matrix_helper(ncoeffs);
+    t, e := AlmostEqualMatrix(P0, P1);
+    assert ncoeffs lt 50*ncoeffs_inc; // sanity check that we are converging
+  end while;
+  vprint ModAbVarRec: Sprintf("Final error: %o", ComplexField(8)!e);
+  vprint ModAbVarRec: Sprintf("Final ncoeffs: %o", ncoeffs);
+  P1 := ChangeRing(P1, ComplexFieldExtra(prec));
+  // undo the default_prec
+  SetDefaultRealFieldPrecision(default_prec);
+  vprint ModAbVarRec: "Done with PeriodMappingMatrix";
+  return Transpose(P1), ncoeffs, e;
+end intrinsic;
+
+
+intrinsic PeriodMatrix(f::ModSym : prec:=80, Quotient:=false) -> ModMatFldElt, ModMatRngElt
+  { Compute the period matrix associated to f A_f^sub or A_f^quo }
+  vprintf ModAbVarRec: "Comuting the lattices...";
+  vtime ModAbVarRec:
+  basis, E := Explode(NewformLattices(f)[Quotient select 2 else 1]);
+  P := PeriodMappingMatrix(f : prec := prec);
+  return P*Matrix(BaseRing(P),  Transpose(basis)), E;
+end intrinsic;
+
+intrinsic PeriodMatrixSubMagma(f::ModSym : prec:=80) -> ModMatFldElt
+  { Compute the period matrix associated to f A_f^sub via Magma }
+  _, ncoeffs, _ := PeriodMappingMatrix(f : prec:=prec);
+  P := Matrix(Periods(f, ncoeffs)); // this should use the cached map
+  assert Precision(BaseRing(P)) gt prec;
+  CC := ComplexFieldExtra(prec);
+  // Change convention
+  P := Transpose(ChangeRing(P, CC));
+  g := #Rows(P);
+  P1 := Submatrix(P, 1, 1, g, g);
+  P2 := Submatrix(P, 1, g + 1,g, g);
+  P := HorizontalJoin(P2, P1);
+  return P;
+end intrinsic;
+
 /*
  * No Longer need this
 intrinsic NormalizedPeriodMatrix(P::ModMatFldElt) -> ModMatFldElt
@@ -86,76 +174,8 @@ intrinsic NormalizedPeriodMatrix(P::ModMatFldElt) -> ModMatFldElt
 end intrinsic;
 */
 
-// use hecke to get the number of correct digits
-intrinsic PeriodMatrix(f::ModSym, ncoeffs::RngIntElt : prec:=80) -> ModMatFldElt
-{ Compute the normalized period matrix associated to f}
-  vprint ModAbVarRec: Sprintf("Computing periods, prec:=%o, ncoeffs:=%o", prec, ncoeffs);
-  vprint ModAbVarRec: Sprintf("%o...", f);
-  default_prec := Precision(GetDefaultRealField());
-  // this is how we control the precision of the output of Periods
-  SetDefaultRealFieldPrecision(prec + 10);
-  vprintf ModAbVarRec: "Computing PeriodMapping(f, %o)\n", ncoeffs;
-  vtime ModAbVarRec:
-  // clear cache if necessary
-  if assigned f`PeriodMap and Precision(BaseRing(Codomain(f`PeriodMap))) lt prec + 10 then
-    delete f`PeriodMap;
-  end if;
-  // PeriodMapping gives the periods up to isogeny
-  pi_f := PeriodMapping(f, ncoeffs);
-  // Apply it to the whole space
-  Pfull := Transpose(Matrix([pi_f(b) : b in Basis(CuspidalSubspace(AmbientSpace(f)))]));
-  CC := ComplexFieldExtra(Precision(BaseRing(Pfull)));
-  Pfull := Matrix(CC, Pfull);
 
-  // figure out the relations
-  kernel, b := IntegralRightKernel(Pfull);
-  S, P, Q := SmithForm(Matrix(Integers(), kernel));
-
-  // extract the correct period matrix
-  CC := BaseRing(Pfull);
-  PfullNew := Pfull*Matrix(CC, P^-1);
-  PNew := Submatrix(PfullNew, 1, 1+ Ncols(PfullNew) - Dimension(f), Dimension(f) div 2, Dimension(f));
-  // undo the default_prec
-  SetDefaultRealFieldPrecision(default_prec);
-  vprint ModAbVarRec: "Done";
-  return PNew;
-end intrinsic;
-
-intrinsic PeriodMatrix(f::ModSym : prec:=80) -> ModMatFldElt
-  { Compute the normalized period matrix associated to f }
-  // before we defaulted to this guess with the first 2 replaced by 20
-  // clear cache
-  if assigned f`PeriodMap then
-    delete f`PeriodMap;
-  end if;
-  ncoeffs := 0;
-  ncoeffs_inc := Ceiling(2*Sqrt(Level(f))*Log(10)*prec/(2*Pi(ComplexField())));
-  ncoeffs +:= 3*ncoeffs_inc;
-  vtime ModAbVarRec:
-  P0 := PeriodMatrix(f, ncoeffs : prec:=prec + 10);
-  ncoeffs +:= ncoeffs_inc;
-  vtime ModAbVarRec:
-  P1 := PeriodMatrix(f, ncoeffs : prec:=prec + 10);
-  // P0 and P1 live in rings with prec + 20
-  // this checks if they agree up to prec + 10
-  t, e := AlmostEqualMatrix(P0, P1);
-  while not t do
-    vprint ModAbVarRec: Sprintf("Current error: %o", ComplexField(8)!e);
-    P0 := P1;
-    ncoeffs +:= ncoeffs_inc;
-    vtime ModAbVarRec:
-    P1 := PeriodMatrix(f, ncoeffs : prec:=prec + 10);
-    t, e := AlmostEqualMatrix(P0, P1);
-    assert ncoeffs lt 20*ncoeffs_inc; // sanity
-  end while;
-  CC := ComplexFieldExtra(prec + 10);
-  return ChangeRing(P1, CC), e;
-end intrinsic;
-
-
-
-
-intrinsic PeriodMatrixWithMaximalOrder(P::ModMatFldElt) -> ModMatFldElt, SeqEnum
+intrinsic PeriodMatrixWithMaximalOrder(P::ModMatFldElt, E::AlgMatElt) -> ModMatFldElt, AlgMatElt, AlgMatElt, SeqEnum, RngOrd
 {
   Given a period matrix P for a dim 2 modular forms space with trivial character
   such that the coefficient ring index is > 1, return a period matrix for an isogenous abelian variety
@@ -170,16 +190,19 @@ intrinsic PeriodMatrixWithMaximalOrder(P::ModMatFldElt) -> ModMatFldElt, SeqEnum
   GeoEndoRepBase := EndomorphismRepresentation(GeoEndoRep, F, h);
   vprint ModAbVarRec:GeoEndoRep;
   vprint ModAbVarRec:GeoEndoRepBase;
-  vprint ModAbVarRec: "Done";
+  vprint ModAbVarRec: "Done computing GeometricEndomorphismRepresentation";
   require #GeoEndoRepBase eq 2: Sprintf("This does not seem to be GL2-type, dim End A = %o", #GeoEndoRepBase);
   one := GeoEndoRepBase[1][2];
   gen := GeoEndoRepBase[2][2];
   assert one eq 1 or one eq -1;
   minpoly := MinimalPolynomial(gen); //need to make (D + sqrt(D)) where D is the discriminant
   K<a> := NumberField(minpoly);
+
   if IsMaximal(EquationOrder(K)) then // nothing to do
-    return P, GeoEndoRepBase;
+    return P, E, IdentityMatrix(Integers(), Ncols(P)),  GeoEndoRepBase, EquationOrder(K);
   end if;
+
+  // Now we compute the isogeny R, such that P*R is an abelian variety with maximal order
   D:= Discriminant(Integers(K));
   x := Parent(minpoly).1;
   sqrtDpoly := x^2 - D;
@@ -188,30 +211,209 @@ intrinsic PeriodMatrixWithMaximalOrder(P::ModMatFldElt) -> ModMatFldElt, SeqEnum
   sqrtD := &+[c*gen^(i-1) : i->c in Eltseq(rt)];
   DpSqrtD := D*one + sqrtD;
   CC := BaseRing(P);
-  AuxP := Transpose(Matrix(Rows(Transpose(2*P)) cat Rows(Transpose(P*Matrix(CC, DpSqrtD)))));
-  kernel, bool := IntegralRightKernel(AuxP);
+  // We now compute the intersection of 2*Lambda with (D + Sqrt(D))*Lambda
+  kernel, bool := IntegralRightKernel(HorizontalJoin(P*2, P*Matrix(CC, DpSqrtD)));
   assert bool;
-  S, P, Q := SmithForm(Matrix(Integers(), kernel));
-  P2 := Submatrix(AuxP*Matrix(CC, P^-1), 1, 5, 2, 4);
+
+  S, T, _ := SmithForm(Matrix(Integers(), kernel));
+  assert Submatrix(S, 1, 1, 4, 4) eq 1;
+  assert Submatrix(S, 5, 1, 4, 4) eq 0;
+  Tinv := T^-1;
+
+  // we now should compute a matrix R in M_2g(ZZ)
+  // such that P2 = P*R, where End(P2) = ZZ[(D + Sqrt(D))/2]
+  A := Submatrix(Tinv, 1, 5, 4, 4);
+  B := Submatrix(Tinv, 5, 5, 4, 4);
+  R := 2*A + DpSqrtD*B;
+
+  P2 := P*Matrix(CC, R);
+  E2 := Transpose(R)*E*R;
   vprint ModAbVarRec: "Computing GeometricEndomorphismRepresentation...";
   vtime ModAbVarRec:
   GeoEndoRep2 := GeometricEndomorphismRepresentation(P2, QQ);
-  vprint ModAbVarRec: "Done";
+  vprint ModAbVarRec: "Done computing GeometricEndomorphismRepresentation";
   require #GeoEndoRep2 ge 2: Sprintf("This does not seem to be GL2-type, dim End newA_bar = %o", #GeoEndoRep2);
   F, h := InclusionOfBaseExtra(BaseRing(GeoEndoRep2[1][1]));
   GeoEndoRepBase2 := EndomorphismRepresentation(GeoEndoRep2, F, h);
-  vprint ModAbVarRec:GeoEndoRep2;
-  vprint ModAbVarRec:GeoEndoRepBase2;
+  vprint ModAbVarRec: GeoEndoRep2;
+  vprint ModAbVarRec: GeoEndoRepBase2;
   require #GeoEndoRepBase2 ge 2: Sprintf("This does not seem to be GL2-type, dim End newA = %o", #GeoEndoRepBase2);
   minpoly2 := MinimalPolynomial(GeoEndoRepBase2[2][1]);
   K2<a> := NumberField(minpoly2);
   require IsMaximal(EquationOrder(K2)) : "something went wrong, we didn't get the maximal order...";
-  //exp := MinimalPolynomial(Integers(K).2);
-  //exp2 := MinimalPolynomial(-Integers(K).2);
-  //require comp in {exp, exp2} : Sprintf("%o \noin {%o, %o}", comp, exp, exp2);
-  vprint ModAbVarRec: "Done";
-  return P2, GeoEndoRepBase2;
+  vprint ModAbVarRec: "Done computing GeometricEndomorphismRepresentation";
+  return P2, E2, R, GeoEndoRepBase2, EquationOrder(K2);
 end intrinsic;
+
+
+intrinsic RationalGenus2Curve(Omega::ModMatFldElt, f::ModSym) -> BoolElt, CrvHyp, .
+{ Given a period matrix with the standard symplectic polarization we reconstruct a RationalGenus2Curve isomorphic as torus to Omega and isogeneous to it (we use the euler factors fix twists)}
+  vprint ModAbVarRec : "RationalGenus2Curve...";
+  // First we try ReconstructGenus2Curve
+  // if that fails we try to reconstruct from IgusaInvariants
+  QQ := RationalsExtra(Precision(BaseRing(Omega)));
+  try
+    vprint ModAbVarRec : "RationalGenus2Curve calling ReconstructGenus2Curve...";
+    C, _, b, e := ReconstructGenus2Curve(Omega, QQ : Base:=true);
+    vprint ModAbVarRec : "done calling ReconstructGenus2Curve";
+    if not b then
+      vprint ModAbVarRec : "error in ReconstructGenus2Curve: " cat Sprint(e);
+    end if;
+  catch er
+    vprint ModAbVarRec : "Exception raised in ReconstructGenus2Curve";
+    b := false;
+    vprint ModAbVarRec : Sprint("Exception raised in ReconstructGenus2Curve: %o", er);
+  end try;
+  if b then
+    return true, ReducedMinimalWeierstrassModel(C), _;
+  end if;
+  b, J := IntegralReconstructionIgusaInvariants(Omega);
+  require b : "Failed to run IntegralReconstructionIgusaInvariants";
+  if J[5] eq 0 then
+    jCC := ModularTojEquation(IgusaModularInvariants(Omega));
+    // now we reconstruct jCC as rational numbers
+    b0, a0 := RationalReconstruction(jCC[1]);
+    require b0 : Sprintf("Failed to RationalReconstruction %m", jCC[1]);
+    b1, a1 := RationalReconstruction(jCC[2]);
+    require b1 : Sprintf("Failed to RationalReconstruction %m", jCC[2]);
+    return true, [a0, a1, 1], _;
+  end if;
+  C := HyperellipticCurveFromIgusaInvariants(J);
+  if Type(BaseRing(C)) ne FldRat then
+    return false, J, "no curve with given Igusa invariants defined over QQ";
+  end if;
+  D := PossibleQuadraticTwists(C, f);
+  vprintf ModAbVarRec: "Possible twisted by %o\n", D;
+  if #D eq 1 then
+    C := QuadraticTwist(C, D[1]);
+    return true, ReducedMinimalWeierstrassModel(C), _;
+  else
+    return false, J, "The curve is off by more than quadratic twists";
+  end if;
+end intrinsic;
+
+intrinsic RationalGenus2CurvesWithPolarization(Omega::ModMatFldElt, E::AlgMatElt, f::ModSym) -> BoolElt, AlgMatElt, CrvHyp, .
+{ From a period matrix Omega and a pairing E associated to f, return a boolean, an isomorphsim and Curve/Igusa invariants/j-invariants assobiated to one ot the principal polarizations }
+  vprint ModAbVarRec : "RationalGenus2CurvesWithPolarization...";
+  PPs := RationalPrincipalPolarizations(Omega, E);
+  QQ := RationalsExtra(Precision(BaseRing(Omega)));
+  vprintf ModAbVarRec: "#PPSs = %o\n", #PPs;
+  res := [* *];
+  for i->pp in PPs do
+    vprintf ModAbVarRec: "Trying polarization = %o\n", i;
+      newOmega, F := Explode(pp); // newOmega == Omega * F
+      b, C, e := RationalGenus2Curve(newOmega, f);
+      if b then
+        vprint ModAbVarRec : "RationalGenus2CurvesWithPolarization: found curve!";
+        return b, F, C, _;
+      else
+          Append(~res, <F, C, e>);
+      end if;
+  end for;
+  vprint ModAbVarRec : "RationalGenus2CurvesWithPolarization: sorting results";
+  // no curves were found
+  if #res eq 0 then
+    return true, [], [], _;
+  else
+    for r in res do
+      if "twists" in r[3] then
+        return false, r[1], r[2], r[3];
+      end if;
+    end for;
+    // no twist has been mentioned
+    return false, r[1], r[2], r[3] where r := res[1];
+  end if;
+end intrinsic;
+
+
+
+intrinsic NewformLattices(f::ModSym) -> SeqEnum[Tup]
+{Find the homology for the abelian subvariety associated to f and the quotient variety of J0N, and the intersection pairing}
+  if not assigned f`integral_homology_subquo then
+    A := AmbientSpace(f);
+    L, phi := Lattice(A);
+
+    CS := CuspidalSubspace(A);
+    // compute an integral basis for CS
+    delta := Matrix(Basis(L)) * Matrix(Integers(), BoundaryMap(A));
+    // B is an integral basis for CS
+    B := [phi(b) : b in Basis(Kernel(delta))];
+    fromCS := Matrix(Integers(), [Eltseq(elt) : elt in B]);
+
+
+    // S: B -> Basis(CS)
+    S, K := Solution(
+      Matrix([Eltseq(elt) : elt in B]),
+      Matrix([Eltseq(elt) : elt in Basis(CS)])
+      );
+    assert Dimension(K) eq 0;
+    assert Abs(Determinant(S)) eq 1;
+    if S eq 1 then
+      S := 1;
+    else
+      S := Matrix(Integers(), S);
+    end if;
+    S1 := S^-1;
+
+
+    p := 1;
+    desired_rank := Dimension(CS) - Dimension(f); // rank of If*H
+    H := ZeroMatrix(Integers(), Dimension(CS), 0);
+    V := ZeroMatrix(Integers(), 0, Dimension(CS));
+    // we are going this method as NewSubspace basis is not always equipped with an integral, e.g., 285.2.a.d
+    while Rank(H) ne desired_rank do
+        p := NextPrime(p);
+        while Level(f) mod p eq 0 do
+            p := NextPrime(p);
+        end while;
+        // Hecke operator with respect to the integral basis
+        Tp := Matrix(Integers(), S*HeckeOperator(CS, p)*S1);
+        h := ChangeRing(MinimalPolynomial(HeckeOperator(f, p)), Integers()); //degree 2
+        hp := Evaluate(h, Tp);
+        H := HorizontalJoin(H, hp);
+        V := VerticalJoin(V, hp);
+    end while;
+    Hsub := KernelMatrix(H);//this is supposed to be H[If], and If = (hp)_p, dim 4
+    //If := Ker (TT -> Z[...an(f)...]) T_n -> an(f), and min poly of an(f) is h
+    // FIXME: replace unused with _ when bug in SmithForm is fixed
+    D, unused, Q := SmithForm(V);
+    if Nrows(D) gt 0 then
+      assert Diagonal(D)[Ncols(D)-Dimension(f)+1..Ncols(D)] eq [0 : _ in [1..Dimension(f)]];
+    end if;
+
+    // this basis projects down to the standard basis of (H/If H)_free
+    // these are basis for Hquo
+    Hquo := Submatrix(Q^-1, Nrows(Q) - Dimension(f) + 1, 1, Dimension(f), Ncols(Q));
+
+    assert Rank(VerticalJoin(V, Hquo)) eq Dimension(CS);
+
+    //this is the projection of H_sub in (H/If H)_free
+    Hsub_in_Hquo := Hsub*Submatrix(Q, 1, Ncols(Q) - Dimension(f) + 1, Nrows(Q), Dimension(f));
+
+    //we now invert Hsub_in_Hquo not caring about rescaling
+    Hquo_in_Hsub := Matrix(Rationals(), Hsub_in_Hquo)^-1;
+    //Denominator(Hquo_in_Hsub);
+    Hquo_in_Hsub *:= Denominator(Hquo_in_Hsub);
+    Hquo_in_Hsub := Matrix(Integers(), Hquo_in_Hsub);
+
+    S := Matrix(Integers(), KernelMatrix(VerticalJoin( Matrix(Rationals(), Hsub*fromCS), -Matrix([Eltseq(b) : b in Basis(f)]))));
+    assert Submatrix(S, 1,1, Dimension(f), Dimension(f)) eq 1;
+    // how to write Hsub basis in terms of Basis(f)
+    Hsub_in_Bf := Submatrix(S, 1,1 + Dimension(f), Dimension(f), Dimension(f));
+
+    // how to write Hquo in terms of Basis(f)
+    Hquo_in_Bf := Hquo_in_Hsub*Hsub_in_Bf;
+
+    Ef := IntersectionPairing(f);
+    Esub, Equo := Explode([Matrix(Integers(), A*Denominator(A)) where A := S*Ef*Transpose(S) where S:=Matrix(Rationals(), elt) : elt in [Hsub_in_Bf, Hquo_in_Bf]]);
+    // Esub div:= GCD(Eltseq(Esub)); //???
+    // Equo div:= GCD(Eltseq(Equo));
+    f`integral_homology_subquo := [* <Hsub_in_Bf, Esub>, <Hquo_in_Bf, Equo>, Hquo_in_Hsub *];
+  end if;
+  return f`integral_homology_subquo;
+end intrinsic;
+
+
 
 /*
 intrinsic SomeIsogenousPrincipallyPolarized(P::ModMatFldElt: D:= [-10..10]) -> Assoc
@@ -269,21 +471,6 @@ intrinsic FindPrincipalPolarizations(P::ModMatFldElt : D:=[-10..10]) -> SeqEnum
 end intrinsic;
 
 
-function PrettyCurve(Y)
-  if Type(BaseRing(Y)) eq FldRat then
-    Y := ReducedMinimalWeierstrassModel(Y);
-    f, h := HyperellipticPolynomials(Y);
-    g := 4*f + h^2;
-    coeffs := Coefficients(g);
-    d := LCM([ Denominator(coeff) : coeff in coeffs ]);
-    coeffs := [ Integers() ! (d*coeff) : coeff in coeffs ];
-    e := GCD(coeffs);
-    coeffs := [ coeff div e : coeff in coeffs ];
-    Y := HyperellipticCurve(Polynomial(coeffs));
-    Y := ReducedMinimalWeierstrassModel(Y);
-  end if;
-  return Y;
-end function;
 
 intrinsic ReconstructModularCurve(f::ModSym) -> BoolElt, Crv
 { TODO: fill in doc }
@@ -340,7 +527,7 @@ intrinsic ReconstructIsomorphicGenus2Curve(P::ModMatFldElt : UpperBound:=16, tau
     // over a number field this is sometimes suprisingly successful
     vprintf ModAbVarRec: "Reconstructing curve by matching tangent representation...";
     vtime ModAbVarRec:
-    C, hL, b, e := ReconstructCurveG2(P, QQ : UpperBound:=UpperBound);
+    C, hL, b, e := ReconstructGenus2Curve(P, QQ : UpperBound:=UpperBound);
     if b then
       vprintf ModAbVarRec: "Done\n C = %o\n" , C;
       igusa := IgusaInvariants(C);
@@ -437,10 +624,10 @@ intrinsic PossibleQuadraticTwists(C::CrvHyp, euler_factors::UserProgram, BadPrim
   vprint ModAbVarRec: Vector(GF(2), twistdata);
   k := Nrows(M);
   solutions := [Eltseq(elt)[1..k] : elt in Kernel(VerticalJoin(M, Matrix(v))) | elt[k + 1] eq 1];
+  vprint ModAbVarRec: "PossibleQuadraticTwists: Done";
   return [#r gt 0 select &*r else 1
           where r := [badprimes[i]: i->e in sol | not IsZero(e)]
     : sol in solutions];
-  vprint ModAbVarRec: "Done";
 end intrinsic;
 
 
@@ -455,7 +642,7 @@ end intrinsic;
 
 
 // FIXME, the output might not be a curve, but just igusa invariants over some numberfield
-intrinsic ReconstructGenus2Curve(f::ModSym : prec:=80, ncoeffs:=10000, D:=[-4..4], UpperBound:=12) -> BoolElt, Any
+intrinsic ReconstructGenus2Curve(f::ModSym : prec:=80, D:=[-4..4], UpperBound:=12) -> BoolElt, Any
 {
 TODO: add documentation
 }
@@ -508,7 +695,7 @@ TODO: add documentation
       end if;
       return 2;
     end function;
-    degdisc := [<Degree(R), Discriminant(R), TypeRank(elt), #Strip(Sprint(Eltseq(elt)))> where R:=BaseRing(elt) : elt in lst];
+    degdisc := [<Degree(R), Discriminant(R), TypeRank(elt), #StripWhiteSpace(Sprint(Eltseq(elt)))> where R:=BaseRing(elt) : elt in lst];
     positions := [1..#lst];
     vprintf ModAbVarRec: "UnSorted: %o\n%o\n", degdisc, lst;
     ParallelSort(~degdisc, ~positions);
@@ -680,7 +867,7 @@ TODO: add documentation
           // over a number field this is sometimes suprisingly successful
           // and if the igusa invariants are over a NumberField there is not much u
           vtime ModAbVarRec:
-          C, _, b := ReconstructCurveG2(Pnew, QQ : UpperBound:=UpperBound);
+          C, _, b := ReconstructGenus2Curve(Pnew, QQ : UpperBound:=UpperBound);
           if b then
             vprintf ModAbVarRec: "Done\n C = %o\n" , C;
           else
@@ -764,7 +951,7 @@ TODO: add documentation
       WriteStderr(e);
     end if;
     vtime ModAbVarRec:
-    C := PrettyCurve(C);
+    C := ReducedMinimalWeierstrassModel(C);
     return true, C;
   elif #res gt 0 then
     return true, res[1];

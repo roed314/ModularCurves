@@ -41,6 +41,19 @@ intrinsic ModularToIgusaInvariants(H::SeqEnum) -> SeqEnum
   return WPSNormalize([2,4,6,8,10], [J2, J4, J6, J8, J10]);
 end intrinsic;
 
+intrinsic ModularTojEquation(H::SeqEnum) -> SeqEnum
+  { the j-invariants satisfy the coefficients of the quadratic equation}
+  // See Igusa -- Siegel modular forms of genus two page 181
+  h4, h6, h10, h12 := Explode(H);
+  y1 := 2^11*3*h4^3/h12; // = j1 j2
+  y2 := 2^13*3*h6^2/h12; // = (j1 - 1728) (j2 - 1728)
+  // => y2 = y1 - 1728 (j1 + j2) + 1728^2
+  // <=> 1728 (j1 + j2) = 1728^2 + y1 - y2
+  // (T - j1)(T - j2) = T^2 -(2985984 + y1 - y2)/1728 T + y1
+  //  = Polynomial( [y1, -(2985984 + y1 - y2)/1728, 1] )
+  return [y1, -(2985984 + y1 - y2)/1728, 1];
+end intrinsic;
+
 
 
 
@@ -127,7 +140,25 @@ function ReconstructCurveG2CC(inp)
 end function;
 
 
-function ModularInvariantsG2(inp : Reduce:=true)
+intrinsic IgusaModularInvariants(inp : Reduce:=true) -> SeqEnum, SeqEnum
+  { given a big/small period matrix computes (h_4, h_6, h_10, h_12) at the input matrix }
+  /*
+    We call the following vector of invariants the Igusa modular invariants:
+    psi4 = I4/4
+    psi6 = I6prime/4 (Streng's notation) = ((I2*I4-3*I6)/2)/4
+    chi10 = -I10/2^12
+    chi12 = I12/2^15
+
+    They correspond to the Siegel modular forms with the following
+    normalized q-expansions:
+    psi4 = 1 + 240(q1+q2) + ...
+    psi6 = 1 - 504(q1+q1) + ...
+    chi10 = (q3 - 2 + q3^-1) + ...
+    chi12 = (q3 + 10 + q3^-1) + ...
+
+    This normalization differs slightly from Igusa's, who divides
+    further chi10 and chi12 by 4 and 12, respectively.
+  */
   CC := BaseRing(Parent(inp));
   g := Nrows(inp);
   assert g eq 2;
@@ -173,9 +204,9 @@ function ModularInvariantsG2(inp : Reduce:=true)
     error "Not small enough", ComplexField(5)!m^2,  ComplexField(5)!(Abs(i6[1] -i6[2])/m)^2;
   end if;
 
-
-  return WPSNormalizeCC([4, 6, 10, 12], [h4, h6, h10, h12]);
-end function;
+  w := [4, 6, 10, 12];
+  return WPSNormalizeCC(w, [h4, h6, h10, h12]), w;
+end intrinsic;
 
 
 
@@ -216,9 +247,8 @@ function AlgebraizedInvariantsG2(inp, K : Base:=false, UpperBound:=16, G2CC:=fal
   if type eq "Igusa" then
     // if we already did the work with Theta derivatives
     vtime CurveRec: invCC := IgusaInvariantsG2(tau : G2CC:=G2CC, Reduce:=false);
-    print invCC;
   elif type eq "Modular" then
-    vtime CurveRec: invCC := ModularInvariantsG2(tau : Reduce:=false);
+    vtime CurveRec: invCC := IgusaModularInvariants(tau : Reduce:=false);
   elif type eq "j" then
     vprintf CurveRec : "Computing Igusa invariants over CC...";
     vtime CurveRec: _, _, _, _, J10 := Explode(IgusaInvariantsG2(tau : G2CC:=G2CC, Reduce:=false));
@@ -270,6 +300,45 @@ function AlgebraizedInvariantsG2(inp, K : Base:=false, UpperBound:=16, G2CC:=fal
 
 end function;
 
+
+intrinsic IntegralReconstructionIgusaInvariants(inp : G2CC:=false, Reduce:=true) -> BoolElt, SeqEnum[RntIntElt], FldComElt
+  { reconstructs the Igusa invariants in ZZ, the third argument is the error }
+  vprintf CurveRec : "IntegralReconstructionIgusaInvariants...\n";
+
+  CC := BaseRing(Parent(inp));
+  g := Nrows(inp);
+  assert g eq 2;
+  P, tau := BigAndSmallPeriodMatrix(inp);
+  if Reduce then // this speeds up the Theta computations
+    tau := ReduceSmallPeriodMatrix(tau);
+  end if;
+
+  vprintf CurveRec : "Computing Igusa invariants over CC...\n";
+  vtime CurveRec: JCC := IgusaInvariantsG2(tau : G2CC:=G2CC, Reduce:=false);
+
+  weights := [1,2,3,4,5];
+  JQQ := [];
+  maxe := 0;
+  for i->w in weights do
+      _, q := RationalReconstruction(JCC[i]);
+      Append(~JQQ, q);
+      _, e := AlmostEqual(JCC[i], q);
+      maxe := Max(e, maxe);
+      if e^2 gt CC`epscomp then
+        return false, JQQ, maxe;
+      end if;
+      f, p := PowerFreePart(Rationals()!Denominator(q), w);
+      s := &*PrimeDivisors(Integers()!f);
+      JCC := WPSMultiply(weights, JCC, s * p);
+      JQQ := WPSMultiply(weights[1..i], JQQ, s * p);
+  end for;
+  J2, J4, J6, J8, J10 := Explode(JQQ);
+  require 4*J8 eq J2*J6 - J4^2: Sprintf("%o = 4*J8 != J2*J6 - J4^2 = %o, where J := %o", 4*J8, J2*J6 - J4^2, JQQ);
+
+  vprintf CurveRec : "IntegralReconstructionIgusaInvariants... done";
+  return true, JQQ, maxe;
+end intrinsic;
+
 function ReconstructCurveGeometricG2(inp, K : Base:=false, UpperBound:=16, G2CC:=false)
 /* Alternative: implement variant of BILV */
 /* TODO: Add check of not being product of elliptic curves */
@@ -298,9 +367,8 @@ function ReconstructCurveGeometricG2(inp, K : Base:=false, UpperBound:=16, G2CC:
 end function;
 
 
-function ReconstructCurveG2(P, K : Base:=false, Dom:=[-5..5], UpperBound:=16, G2CC:=false)
-  // Reconstruct curve from period matrix P, returned over an extension of the
-  // base field K.
+intrinsic ReconstructGenus2Curve(P::., K::Fld : Base:=false, Dom:=[-5..5], UpperBound:=16, G2CC:=false) -> CrvHyp, Map, BoolElt, .
+{ Reconstruct curve from period matrix P, returned over an extension of the base field K.}
 
   CC := BaseRing(Parent(P));
   assert IsBigPeriodMatrix(P);
@@ -310,7 +378,7 @@ function ReconstructCurveG2(P, K : Base:=false, Dom:=[-5..5], UpperBound:=16, G2
   fCC, tau, P := Explode(G2CC);
 
   // one could directly call them from JCC, but the function below also normalizes them
-  JCC := IgusaInvariantsG2(P : G2CC:=G2CC);
+  JCC := IgusaInvariantsG2(P : G2CC:=G2CC); //Edgar: is this really worth it to pass G2CC?
   _, _, _, _, J10 := Explode(JCC);
 
   if Abs(J10)^2 lt CC`epscomp then
@@ -338,6 +406,8 @@ function ReconstructCurveG2(P, K : Base:=false, Dom:=[-5..5], UpperBound:=16, G2
   if #rows eq 1 then
     row := Eltseq(rows[1]);
     Lambda := &+[ row[i]*As[i] : i in [1..#As] ];
+    R := &+[ row[i]*Rs[i] : i in [1..#Rs] ];
+    assert Abs(Determinant(R)) eq 1;
     lam := Lambda[1,1];
   else
     found := false;
@@ -384,18 +454,26 @@ function ReconstructCurveG2(P, K : Base:=false, Dom:=[-5..5], UpperBound:=16, G2
   end if;
   vprint CurveRec : "done.";
 
-  R := PolynomialRing(L);
-  f := R!coeffs;
-  Y := HyperellipticCurve(f);
   YCC := RiemannSurface(fCC, 2 : Precision := Precision(CC) + 10);
   Q := ChangeRing(YCC`BigPeriodMatrix, CC) / 2;
 
-  /* The next line functions as an assertion */
+
+  // The next lines functions as an assertion
   vprint CurveRec, 2 : "Check for isomorphism...";
+  /*
+  //Edgar to Jeroen: A doesnt necessarily need to be the identity...
   A := IdentityMatrix(CC, 2);
   R := HomologyRepresentation(A, P, Q);
+  */
+  // instead check that we have an isomorphism defined over K associated to R
+  // R is the solution we found for the twist and Determinant(R) eq 1
+  b, _ := AlgebraizeElementsExtra(Eltseq(TangentRepresentation(R, P, Q)), K);
+  assert b;
   vprint CurveRec, 2 : "done.";
+
+  f := PolynomialRing(L)!coeffs;
+  Y := HyperellipticCurve(f);
   return Y, hKL, true, _;
-end function;
+end intrinsic;
 
 
