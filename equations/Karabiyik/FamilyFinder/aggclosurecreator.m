@@ -1,33 +1,32 @@
 
 
-
-
-//Based on Andrew Sutherland's intrinsic (which is faster than what I was using). 
-function FiniteLift(A,N,M) 
+//Based on Andrew Sutherland's intrinsic (which is faster than what I was using).
+intrinsic FiniteLift(A::GrpMatElt, N::RngIntElt, M::RngIntElt) -> GrpMat
+{
+    Lifts an element A of GL(2,Z/N) to GL(2, Z/M)
+}
     assert IsDivisibleBy(M, N);
     if N eq M then return A; end if;
     GL2 := GL(2,Integers(M));
     M2 := MatrixRing(Integers(),2);
     m := &*[a[1]^a[2]: a in Factorization(M)| N mod a[1] eq 0];
     return GL2!CRT([M2!A, Identity(M2)], [m, M div m]);
-end function;
+end intrinsic;
 
 
-
-
-//This is the code for, given a subgroup G of GL_2(Zhat) containing identity and having full determinant, finding the family it lies in. 
-//We first compute its agreeable closure calG', using this we find the family F(calG,B) such that calG' is conjugate to calG.  
-function FamilyFinderNew(G, T)   
- /*
+//This is the code for, given a subgroup G of GL_2(Zhat) containing identity and having full determinant, finding the family it lies in.
+//We first compute its agreeable closure calG', using this we find the family F(calG,B) such that calG' is conjugate to calG.
+intrinsic FamilyFinderNew(G::GrpMat, T::GrpMat, FAM::Assoc) -> RngIntElt, Rec, GrpMat, GrpMat, GrpMat
+{
     Input:
 	    G       : a subgroup of GL2(Zhat) full det, -I in G
 	    T       : G meet SL2
-    Output:  
-        A family that G lies in. 
-            
-    Note: Assumes that the families.
+    Output:
+        A family containing G
 
- */
+    Note: Assumes that the families... TODO
+
+}
 
     N:=#BaseRing(G);
     M:=#BaseRing(T);
@@ -50,20 +49,19 @@ function FamilyFinderNew(G, T)
     G:=ChangeRing(G,Integers(N));
     Y:=AssociativeArray();
     for k in Keys(FAM) do
-       
-       
+
        //time0:=Realtime();
         if FAM[k]`B_level eq T_level and IsConjugate(GL(2,Integers(T_level)),T,FAM[k]`B) and g eq FAM[k]`genus and FAM[k]`calG_level eq calG_level then
-            
-             A,b:=IsConjugate(GL(2,Integers(calG_level)),calG,FAM[k]`calG);
-            if A then 
+
+            A,b:=IsConjugate(GL(2,Integers(calG_level)),calG,FAM[k]`calG);
+            if A then
                 Y[k]:=<k,b>;
                 //print(k);
             end if;
         end if;
         //print(Realtime(time0));
     end for;
-    
+
     o:=1;
     for t in Keys(Y) do
         b:=FiniteLift(Y[t][2],calG_level,N);
@@ -71,7 +69,7 @@ function FamilyFinderNew(G, T)
         if ChangeRing(Tcong,Integers(T_level)) eq FAM[t]`B then;
             o:=t;
         end if;
-        
+
     end for;
 
     b:=FiniteLift(Y[o][2],calG_level,N);
@@ -81,11 +79,8 @@ function FamilyFinderNew(G, T)
     Tcong:=Conjugate(sl2Lift(T,N),b);
     assert Tcong eq sl2Lift(FAM[o]`B,N);
 
-
-    
-return o,FAM[o],Gcong,gl2Lift(FAM[o]`calG,N),Tcong;
-
-end function;
+    return o,FAM[o],Gcong,gl2Lift(FAM[o]`calG,N),Tcong;
+end intrinsic;
 
 
 

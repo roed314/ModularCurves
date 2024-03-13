@@ -16,4 +16,8 @@
   {
     +spec
   }
+  Karabiyik
+  {
+    +spec
+  }
 }
