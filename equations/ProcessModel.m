@@ -183,6 +183,8 @@ intrinsic ProcessModel(label::MonStgElt) -> Crv, SeqEnum,
             param := Parametrization(X, Xpt);
             pdef := DefiningEquations(param);
             j := [Evaluate(jcomp, pdef) : jcomp in j];
+            d := Gcd(j);
+            j := [jcomp div d : jcomp in j];
             R := Universe(j);
             AssignCanonicalNames(~R);
             vprint User1: "Now j=", j;
