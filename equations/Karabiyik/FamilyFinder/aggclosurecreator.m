@@ -24,8 +24,6 @@ intrinsic FamilyFinderNew(G::GrpMat, T::GrpMat, FAM::Assoc) -> RngIntElt, Rec, G
     Output:
         A family containing G
 
-    Note: Assumes that the families... TODO
-
 }
 
     N:=#BaseRing(G);
@@ -35,8 +33,8 @@ intrinsic FamilyFinderNew(G::GrpMat, T::GrpMat, FAM::Assoc) -> RngIntElt, Rec, G
     T:=ChangeRing(T,Integers(T_level));
     X:=AssociativeArray();
     G_level:=gl2Level(G);
-    G:=gl2Lift(G,LCM([G_level,6]));
-    T:=sl2Lift(T,LCM([T_level,6]));
+    G:=gl2Lift(G,LCM([G_level,2]));
+    T:=sl2Lift(T,LCM([T_level,2]));
     callevel:=1;
     for p in PrimeDivisors(#BaseRing(T)) do
         callevel:=callevel*p^(Maximum(Valuation(#BaseRing(T),p),Valuation(#BaseRing(G),p)));
