@@ -54,7 +54,7 @@ csg_compare := function(x,y)
   if x`index ne y`index then return x`index-y`index; end if;
  end if;
  if assigned(x`contains_minus_one) and assigned(y`contains_minus_one) then
-  if x`contains_minus_one ne y`contains_minus_one then 
+  if x`contains_minus_one ne y`contains_minus_one then
    if x`contains_minus_one then return 1; else return -1;end if;
   end if;
  end if;
@@ -77,12 +77,12 @@ csg_compare := function(x,y)
   if _fl(x`gc,y`gc) ne 0 then return _fl(x`gc,y`gc);end if;
  end if;
  if assigned(x`direct_supergroups) and assigned(y`direct_supergroups) then
-  if _fl(x`direct_supergroups,y`direct_supergroups) ne 0 then 
+  if _fl(x`direct_supergroups,y`direct_supergroups) ne 0 then
    return _fl(x`direct_supergroups,y`direct_supergroups);
   end if;
  end if;
  if assigned(x`direct_subgroups) and assigned(y`direct_subgroups) then
-  if _fl2(x`direct_subgroups,y`direct_subgroups) ne 0 then 
+  if _fl2(x`direct_subgroups,y`direct_subgroups) ne 0 then
    return _fl2(x`direct_subgroups,y`direct_subgroups);
   end if;
  end if;
@@ -104,7 +104,7 @@ csg_compare2 := function(x,y)
   if x`index ne y`index then return x`index-y`index; end if;
  end if;
  if assigned(x`contains_minus_one) and assigned(y`contains_minus_one) then
-  if x`contains_minus_one ne y`contains_minus_one then 
+  if x`contains_minus_one ne y`contains_minus_one then
    if x`contains_minus_one then return 1; else return -1;end if;
   end if;
  end if;
@@ -127,7 +127,7 @@ csg_compare2 := function(x,y)
   if _fl(x`gc,y`gc) ne 0 then return _fl(x`gc,y`gc);end if;
  end if;
  if assigned(x`direct_supergroups) and assigned(y`direct_supergroups) then
-  if _fl(x`direct_supergroups,y`direct_supergroups) ne 0 then 
+  if _fl(x`direct_supergroups,y`direct_supergroups) ne 0 then
    return _fl(x`direct_supergroups,y`direct_supergroups);
   end if;
  end if;
@@ -203,7 +203,7 @@ end function;
 /////////////////////////////////////////////
 
 _csg_c3_sub := function(G,S)
-   if (G.1*G.2)^3 eq G.0 then 
+   if (G.1*G.2)^3 eq G.0 then
     T := sub<G | G.1^3*G.2>;
    else
     T := sub<G | G.1*G.2>;
@@ -218,7 +218,7 @@ end function;
 csg_c3:= function(grp);
   if grp`index eq 1 then
     return [1];
-  else  
+  else
     c:=_csg_c3_sub(sl2(grp`level),flisttogroup(sl2(grp`level),grp`generators));
     return c;
   end if;
@@ -269,10 +269,10 @@ _csg_cusp_widths_sub := function(G,S)
 end function;
 
 csg_cusp_widths := function(grp);
-   
+
   if grp`index eq 1 then
     return [1];
-  else          
+  else
     cusps:=_csg_cusp_widths_sub
            (sl2(grp`level), csg_perm_group(grp));
     return cusps;
@@ -296,7 +296,7 @@ csg_galois_conjugates:=function(g)
   if g`index eq 1 then
     return [1];
   end if;
-  
+
   s:=sl2(g`level);
   gm:=flisttogroup(s,g`generators);
   gl,dd:=gl2(g`level);
@@ -308,7 +308,7 @@ csg_galois_conjugates:=function(g)
   p := CosetTableToRepresentation(gl,c);
   lc:= [#l : l in Orbits(dd@p)];
   Sort(~lc);
-  
+
   return lc;
 end function;
 

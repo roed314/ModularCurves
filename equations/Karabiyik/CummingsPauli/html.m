@@ -36,7 +36,7 @@ html_part := procedure(part)
   end for;
   print IntegerToString(cv) cat "<sup>" cat IntegerToString(ex) cat "</sup>";
 end procedure;
- 
+
 
 
 
@@ -65,15 +65,15 @@ html_header_blue := procedure(level,genus)
                          cat "M.html#"
                          cat "level"
                          cat IntegerToString(level)
-                         cat "\""; 
+                         cat "\"";
 
     print "<th class =\"green\"><a href=" cat greenlink cat ">&gt;</a></th>";
     print "<td class =\"blue\">Cusps</td>";
     print "<td class =\"blue\">Gal</td>";
     print "<td class =\"blue\">&nbsp;Supergroups&nbsp;</td>";
     print "<td class =\"blue\">&nbsp;Subgroups&nbsp;</td>";
-    print "</tr>";    
- 
+    print "</tr>";
+
 end procedure;
 
 
@@ -85,12 +85,12 @@ html_header_green := procedure(level,genus)
                          cat ".html#"
                          cat "level"
                          cat IntegerToString(level)
-                         cat "\""; 
+                         cat "\"";
     print "<th class =\"blue\"><a href=" cat bluelink cat ">&gt;</a></th>";
     print "<td class =\"green\">";
     print "SL(2,Z/" cat IntegerToString(level) cat "Z) Matrix Generators</td>";
-    print "</tr>";    
- 
+    print "</tr>";
+
 end procedure;
 
 
@@ -110,8 +110,8 @@ html_cols_common := procedure(grp)
           print "<td>&nbsp;</td>";
           // Label -- !! use superscript
           print "<th align=center>", html_label(grp), "</th>";
-          // Name 
-          print "<td align=center>"; 
+          // Name
+          print "<td align=center>";
           if assigned grp`special_name_html then
             for i := 1 to #grp`special_name_html do
               if i ne #grp`special_name_html then
@@ -193,7 +193,7 @@ end procedure;
 html_address := procedure()
 
     print "<address>";
-    print "<a href=\"http://cicma.mathstat.concordia.ca/faculty/cummins/welcome.html\">";    
+    print "<a href=\"http://cicma.mathstat.concordia.ca/faculty/cummins/welcome.html\">";
     print "Chris Cummins</a> and ";
     print "<a href=\"http://www.math.tu-berlin.de/~pauli\">";
     print "Sebastian Pauli</a>, computed with";
@@ -324,7 +324,7 @@ csg_list_to_html_green := procedure(grpsin)
         for grp in levL do
 
           html_cols_common(grp);
-          
+
           // matrix generators
           if assigned grp`matgens then
             print "<td align=left>";
@@ -351,7 +351,7 @@ end procedure;
 ////////////////////////////////////////////////////////////////////////
 
 csg_list_to_html_stat := procedure(grps)
- 
+
   maxgenus := 0;
   maxindex := 1;
   maxlevel := 1;
@@ -416,7 +416,7 @@ csg_list_to_html_stat := procedure(grps)
 
 
 print "</strong><br>&nbsp;<br>";
- 
+
   print "<H3><a href=\"congruence.html#top\">^</a> Statistics</H3>";
   print "<p>";
   print "The table below gives the number of congruence subgroups of genus";
@@ -441,11 +441,11 @@ print "</strong><br>&nbsp;<br>";
   print "<td class=\"blue\">#All</td><td class=\"blue\">#PSL</td><td class=\"blue\">#PGL</td><td class=\"blue\">Max. Level</td><td class=\"blue\">Max. Index</td>";
   print "<td class=\"green\">#All</td><td class=\"green\">#PSL</td><td class=\"green\">#PGL</td><td class=\"green\">Max. Level</td><td class=\"green\">Max. Index</td>";
   print "<td class=\"blue\">#All</td><td class=\"blue\">#PSL</td><td class=\"blue\">#PGL</td><td class=\"blue\">Max. Level</td><td class=\"blue\">Max. Index</td>";
- 
+
   for genus := 0 to maxgenus do
      print "<tr>";
      genusfilename := "\"csg" cat IntegerToString(genus) cat ".html\"";
-     print "<th class=\"common\">" cat 
+     print "<th class=\"common\">" cat
            "<a href =",genusfilename,">" cat
            IntegerToString(genus) cat "</a></th>";
      genL := csg_list_by_genus(grps,genus);
@@ -470,22 +470,22 @@ print "</strong><br>&nbsp;<br>";
        c3 := number_of_fixed_points(grp`c3);
        pgl +:= 1;
        psl +:= grp`GLZConj;
-       if grp`level gt maxlev then maxlev :=  grp`level; end if; 
-       if grp`index gt maxind then maxind :=  grp`index; end if; 
+       if grp`level gt maxlev then maxlev :=  grp`level; end if;
+       if grp`index gt maxind then maxind :=  grp`index; end if;
        all +:= grp`GLZConj * grp`length;
        // is torsion free
        if c2 eq 0 and c3 eq 0 then
          tfpsl +:= grp`GLZConj;
-         if grp`level gt tfmaxlev then tfmaxlev :=  grp`level; end if; 
-         if grp`index gt tfmaxind then tfmaxind :=  grp`index; end if; 
+         if grp`level gt tfmaxlev then tfmaxlev :=  grp`level; end if;
+         if grp`index gt tfmaxind then tfmaxind :=  grp`index; end if;
          tfall +:= grp`GLZConj * grp`length;
          tfpgl +:= 1;
        end if;
        // is cycloidal
        if #grp`cusps eq 1 then
          cpsl +:= grp`GLZConj;
-         if grp`level gt cmaxlev then cmaxlev :=  grp`level; end if; 
-         if grp`index gt cmaxind then cmaxind :=  grp`index; end if; 
+         if grp`level gt cmaxlev then cmaxlev :=  grp`level; end if;
+         if grp`index gt cmaxind then cmaxind :=  grp`index; end if;
          call +:= grp`GLZConj * grp`length;
          cpgl +:= 1;
        end if;
@@ -493,7 +493,7 @@ print "</strong><br>&nbsp;<br>";
      end for;
 
 
-     amaxlev := Maximum(amaxlev,maxlev); 
+     amaxlev := Maximum(amaxlev,maxlev);
      amaxind := Maximum(amaxind,maxind);
      aall +:= all;
      apsl +:= psl;
@@ -508,7 +508,7 @@ print "</strong><br>&nbsp;<br>";
      acall +:= call;
      acpsl +:= cpsl;
      acpgl +:= cpgl;
- 
+
        print "<td>" cat IntegerToString(all) cat "</td>";
        print "<td>" cat IntegerToString(psl) cat "</td>";
        print "<td>" cat IntegerToString(pgl) cat "</td>";
@@ -530,10 +530,10 @@ print "</strong><br>&nbsp;<br>";
        print "</tr>";
 
    end for;
-        
+
        print "<tr>";
        print "<th class=\"common\"> All </th>";
- 
+
        print "<td class=\"br\">" cat IntegerToString(aall) cat "</td>";
        print "<td class=\"br\">" cat IntegerToString(apsl) cat "</td>";
        print "<td class=\"br\">" cat IntegerToString(apgl) cat "</td>";
@@ -555,7 +555,7 @@ print "</strong><br>&nbsp;<br>";
        print "</tr>";
 
    print "</table>";
-   print "<p>"; 
+   print "<p>";
    html_address();
    UnsetLogFile();
 

@@ -1,31 +1,28 @@
 
 //This a record for the families we will use. I think most entries are clear.
 FamilyRec := recformat<
-    calG_level, B_level, calG_index, B_index, genus, sl2level, level, k, prec, commutator_index :RngIntElt,                     
-    calG_gens, B_gens, subgroupsofH :SeqEnum,   
-    works: BoolElt,                                                              
-    calG,B,H, commutator_sub :GrpMat,   
-    onelementpossibly: BoolElt, 
-    M, AOfMF              
-    >;	 
-
-
+    calG_level, B_level, calG_index, B_index, genus, sl2level, level, k, prec, commutator_index :RngIntElt,
+    calG_gens, B_gens, subgroupsofH :SeqEnum,
+    works: BoolElt,
+    calG,B,H, commutator_sub :GrpMat,
+    onelementpossibly: BoolElt,
+    M, AOfMF
+    >;
 
 
 //Creates a family once we already have calG and B.
 
-function CreateFamilyRecSubgroup(calG, B  : compute_comm:=false, compute_calgmeetsl2:=false)   
+function CreateFamilyRecSubgroup(calG, B  : compute_comm:=false, compute_calgmeetsl2:=false)
  /*
     Input:
 	    calG    : an agreeable subgroup
 	    B       : an open subgroup of SL2(Zhat) such that [calG,calG] subseteq B subseteq SL2 meet calG
-    Output:  
-        A record of type "FamilyRec" with the following entries computed: 
+    Output:
+        A record of type "FamilyRec" with the following entries computed:
             calG, B, calG_level, B_level, calG_gens, B_gens
-            
  */
 
-    F := rec<FamilyRec | calG:= calG ,B:=B >;	 
+    F := rec<FamilyRec | calG:= calG ,B:=B >;
     calG_level:=gl2Level(calG);
     B_level:=sl2Level(B);
     //calG_index:=Index(GL(2,Integers(calG_level)),ChangeRing(calG,Integers(calG_level)));
@@ -48,11 +45,6 @@ function CreateFamilyRecSubgroup(calG, B  : compute_comm:=false, compute_calgmee
     F`calG_gens:=calG_gens;
     F`B_gens:=B_gens;
     F`AOfMF:=AssociativeArray();
-    
-          
-
-
-
 
     return F;
 end function;

@@ -1,5 +1,5 @@
 /*
-This is the code for finding all groups that contain the agreeable groups up to a certain genus. 
+This is the code for finding all groups that contain the agreeable groups up to a certain genus.
 */
 ChangeDirectory("/homes/ek693/Main/FindingFamilies/MainCode");
 load "../OpenImage/main/FindOpenImage.m";
@@ -62,7 +62,7 @@ end function;
 gl2Genus:=GL2Genus;
 
 
-//Given the Cummings-Pauli data, we compute all the possible calG's arising from the congruence subgroups in CP database. 
+//Given the Cummings-Pauli data, we compute all the possible calG's arising from the congruence subgroups in CP database.
 //L is the list from CP database. X empty array. What genus we will compute up to depends on what is loaded.
 X:=AssociativeArray();
 a:=1;
@@ -77,26 +77,19 @@ for k in Keys(L) do
         matgens:=L[k]`matgens;
         SL2:=SL(2,Integers(N0));
     end if;
-    
-    H:=sub<SL2|matgens>;
-  
-    N1:=2*LCM([12,N0]);
-    
 
-    R:=[ <k, gl2QImagesFromSL2eray(sl2Lift(H,N1))>]; 
+    H:=sub<SL2|matgens>;
+
+    N1:=2*LCM([12,N0]);
+
+    R:=[ <k, gl2QImagesFromSL2eray(sl2Lift(H,N1))>];
 
     X[k]:=<R[1][2],k>;// first thing is the list of groups, second coordinate is the key in CP.
     a:=a+1;
-    
 end for;
 
 
-
-
-
-//Then we put all these into one list. 
-
-
+//Then we put all these into one list.
 
 "Putting them all into a list...";
 CC:=AssociativeArray();
@@ -111,8 +104,6 @@ for k in Keys(X) do
     end if;
     print(k);
 end for;
-
-
 
 
 //Now finding the comm subgroups
@@ -137,19 +128,12 @@ I:=Open("../ConstructingFamilies/AggWithComm.dat", "w");
     end for;
 
 
-
-
-
-
-
 //From here on it has not been checked until the commented part.
 
 AggGroupsPlusComms:=AssociativeArray();
 for k in Keys(COMM) do
     AggGroupsPlusComms[k]:=<COMM[k][1],sub<SL(2,Integers(COMM[k][3]))|COMM[k][4]>,COMM[k][2]>;//First is the group we computed. Second is its commutator subgroup, third is the associated key in CP database
 end for;
-
-
 
 
 
@@ -161,7 +145,7 @@ for k in Keys(AggGroupsPlusComms) do
     // Note that the group X`Hc will be given modulo its level now.
     if Set(PrimeDivisors(level)) subset Set(PrimeDivisors(gl2Level(AggGroupsPlusComms[k][2]))) then continue k; end if;
 
-    //  Group is not agreeable and needs to be removed! 
+    //  Group is not agreeable and needs to be removed!
     Remove(~AggGroupsPlusComms,k);
 end for;
 
@@ -182,11 +166,7 @@ for k in Keys(AggGroupsPlusComms) do
     else
         R:=[ <k, gl2QImagesForFamiliiesEray(sub<SL(2,Integers(L[AggGroupsPlusComms[k][3]]`level))|L[AggGroupsPlusComms[k][3]]`matgens>,AggGroupsPlusComms[k][2])>];
     end if;
-       
-       
-           
-        FAM1[k]:=<R,AggGroupsPlusComms[k][1],AggGroupsPlusComms[k][3]>; //second coordinate is group and third coordinate is key. Frist coordinate are the list above.
-   
+    FAM1[k]:=<R,AggGroupsPlusComms[k][1],AggGroupsPlusComms[k][3]>; //second coordinate is group and third coordinate is key. Frist coordinate are the list above.
     print(Realtime()-time0);
 end for;
 
@@ -211,7 +191,7 @@ for k in Keys(FAM1) do
         for i in [1..#FAM1[k][1][1][2]] do
             g:=gl2Genus(FAM1[k][1][1][2][i]);
             if g gt 1 then continue; //change g gt x accordingly
-            else 
+            else
                 BS[a]:=CreateFamilyRecSubgroup(FAM1[k][2],FAM1[k][1][1][2][i]); //first coordinate is B, second is calG, third one is calG's key in CP
                 a:=a+1;
             end if;
@@ -224,15 +204,11 @@ end for;
 for k in Keys(BS) do
     if BS[k]`calG_level eq 1 or BS[k]`B_level eq 1 then continue; end if;
     time0:=Realtime();
-    BS[k]`calG:=ChangeRing(BS[k]`calG,Integers(BS[k]`calG_level));  
-    BS[k]`B:=ChangeRing(BS[k]`B,Integers(BS[k]`B_level));  
+    BS[k]`calG:=ChangeRing(BS[k]`calG,Integers(BS[k]`calG_level));
+    BS[k]`B:=ChangeRing(BS[k]`B,Integers(BS[k]`B_level));
     print(k);
     print(Realtime(time0));
-end for;    
-
-
-
-
+end for;
 
 
 I:=Open("../ConstructingFamilies/Families.dat", "w");
@@ -240,14 +216,6 @@ I:=Open("../ConstructingFamilies/Families.dat", "w");
         x:=BS[k];
         WriteObject(I, x);
     end for;
-
-
-
-
-
-
-
-
 
 /*
 
@@ -269,11 +237,9 @@ for k in Keys(COMM) do
     else
         R:=[ <k, gl2QImagesForFamiliiesEray(sub<SL(2,Integers(L[COMM[k][2]]`level))|L[COMM[k][2]]`matgens>,sub<SL(2,Integers(COMM[k][3]))|COMM[k][4]>)>];
     end if;
-       
-       
-           
+
         FAM1[k]:=<R,COMM[k][1],COMM[k][2]>; //second coordinate is group and third coordinate is key. Frist coordinate are the list above.
-   
+
     print(Realtime()-time0);
 end for;
 
@@ -305,7 +271,7 @@ for k in Keys(FAM1) do
         for i in [1..#FAM1[k][1][1][2]] do
             g:=gl2Genus(FAM1[k][1][1][2][i]);
             if g gt 4 then continue; //change g gt x accordingly
-            else 
+            else
                 BS[a]:=CreateFamilyRecSubgroup(FAM1[k][2],FAM1[k][1][1][2][i]); //first coordinate is B, second is calG, third one is calG's key in CP
                 a:=a+1;
             end if;
@@ -342,7 +308,7 @@ function RepresentativeFinderMaximal(B,calG)
 
     REP:=[];
     repeat
-        
+
         for a in ToDo do
             G:=a;
             ToDo:=ToDo diff {a};
@@ -367,7 +333,7 @@ function RepresentativeFinderMaximal(B,calG)
                 end for;
             end for;
         end for;
-        ToDo:=ToDo diff Done;  
+        ToDo:=ToDo diff Done;
     until ToDo eq {} or REP ne [];
     return REP;
 end function;

@@ -71,7 +71,7 @@ end function;
 
 csg_list_by_levels := function(grps, lev, num)
 ////////////////////////////////////////
-// returns a list of all groups G in the list grps 
+// returns a list of all groups G in the list grps
 // with lev le G`level lt lev+num
 ////////////////////////////////////////
   Lgrps := [ ];
@@ -101,7 +101,7 @@ end function;
 csg_list_identical_groups := function(grps)
 ///////////////////////////////////////////
 // grps must be sorted
-///////////////////////////////////////////  
+///////////////////////////////////////////
 
   L := [];
   for i:=1 to #grps-1 do
@@ -258,17 +258,17 @@ csg_list_sort := procedure(~grps)
 // the treesupergroup entry.
 ///////////////////////////////
 
-  repeat 
-  repeat 
+  repeat
+  repeat
     Sort(~grps, csg_compare2, ~perm2);
     permlist2 := ElementToSequence(perm2^-1);
 
     for g := 1 to #grps do
-      grps[g]`supergroups := [permlist2[i] : i in grps[g]`supergroups]; 
+      grps[g]`supergroups := [permlist2[i] : i in grps[g]`supergroups];
       grps[g]`direct_supergroups := [permlist2[i] : i in grps[g]`direct_supergroups];
       grps[g]`subgroups := [permlist2[i] : i in grps[g]`subgroups];
       grps[g]`direct_subgroups := [permlist2[i] : i in grps[g]`direct_subgroups];
-    end for; 
+    end for;
   print "sorted", perm2;
   until permlist2 eq [1..#grps];
 
@@ -276,11 +276,11 @@ csg_list_sort := procedure(~grps)
     permlist := ElementToSequence(perm^-1);
 
     for g := 1 to #grps do
-      grps[g]`supergroups := [permlist[i] : i in grps[g]`supergroups]; 
+      grps[g]`supergroups := [permlist[i] : i in grps[g]`supergroups];
       grps[g]`direct_supergroups := [permlist[i] : i in grps[g]`direct_supergroups];
       grps[g]`subgroups := [permlist[i] : i in grps[g]`subgroups];
       grps[g]`direct_subgroups := [permlist[i] : i in grps[g]`direct_subgroups];
-    end for; 
+    end for;
   print "sorted", perm;
   until permlist eq [1..#grps];
 
@@ -325,26 +325,26 @@ csg_list_label := procedure(~grps)
     elif grps[i]`level gt level then
       level := grps[i]`level;
       name_count := 1;
-    else 
+    else
       name_count +:= 1;
     end if;
     //////////////////////////////////
     // label the group
     //////////////////////////////////
     if name_count le 26 then
-      grps[i]`label := CodeToString(64+name_count); 
+      grps[i]`label := CodeToString(64+name_count);
     else
       a := name_count mod 26;
       b := (name_count-1) div 26;
       if a eq 0 then a := 26; end if;
         grps[i]`label := CodeToString(64+b) cat
                             CodeToString(64+a);
-    end if; 
-    grps[i]`name := IntegerToString(level) cat 
+    end if;
+    grps[i]`name := IntegerToString(level) cat
                           grps[i]`label cat
-                          IntegerToString(genus);  
+                          IntegerToString(genus);
     print i, ":", grps[i]`name, "supergroups",grps[i]`direct_supergroups;
-  end for; 
+  end for;
 end procedure;
 
 
@@ -377,7 +377,7 @@ end procedure;
 
 csg_list_special_names := procedure(~grps)
 //////////////////////////////////////////
-// add special names. 
+// add special names.
 //////////////////////////////////////////
 
   //set special names
@@ -464,7 +464,7 @@ end procedure;
 csg_list_write_by_genus := procedure(L)
 
   R := "ERROR";
- 
+
   maxgen := 0;
 
   for grp in L do
@@ -523,7 +523,7 @@ csg_list_write_by_level := procedure(L, step)
 
   print "MAXIMAL GENUS",maxgen;
   print "MAXIMAL LEVEL",maxlev;
- 
+
   for gen := 0 to maxgen do
     for lev := 0 to maxl do
       B := csg_list_by_genus(L,gen);
@@ -589,7 +589,7 @@ print "Labeling";
 save "temp5.mw";
 print "Computing subgroup structure";
   csg_list_tree_to_subgroups(~L);
-save "temp6.mw";            
+save "temp6.mw";
 
 */
 

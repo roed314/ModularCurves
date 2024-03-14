@@ -7,8 +7,8 @@
 //////////////////////////////////////////////
 // a format for congruence subgroups of sl2(Z)
 
-CongSubGrp := recformat<generators:SeqEnum, 
-                      level:Integers(), 
+CongSubGrp := recformat<generators:SeqEnum,
+                      level:Integers(),
                       genus:Integers(),
                       index:Integers(),
                       contains_minus_one:BoolElt,
@@ -78,7 +78,7 @@ sl2 := function(m)
   S := [ ];
   T := [ ];
   for fact in factL do
-    s,t := sl2_generators(fact[1],fact[2]); 
+    s,t := sl2_generators(fact[1],fact[2]);
     ss := [ u+M : u in s ];
     tt := [ u+M : u in t ];
     S cat:= ss;
@@ -91,7 +91,7 @@ sl2 := function(m)
   H:=sub<G | gens>;
   H:=DegreeReduction(H);
 
-  return(H);  
+  return(H);
 
 end function;
 
@@ -120,7 +120,7 @@ end function;
 
 fgrouptolist := function(G,S)
 ////////////////////////////
-// return a list containing the generators of the group in list form 
+// return a list containing the generators of the group in list form
 ////////////////////////////
 //  print "new grouptolist ---";
   free := FreeGroup(#Generators(G));
@@ -143,7 +143,7 @@ fgamma := function(G1,G2)
 // returns a G2 as a subgroup of G1
 // for example:  G1 = sl2(p^(k+1)), G2 = sl2(p^k)
 /////////////////////////
-  s := G2.1; 
+  s := G2.1;
   t := G2.2;
   phi := hom< G1-> G2 | [s, t] >;
   gamma := Kernel(phi);
@@ -219,7 +219,7 @@ flevel := function(G,S)
 // G: principal congruence group in permutation representation
 // S: a subgroup of G
 ///////////////////////
-  T := G.2; 
+  T := G.2;
 // print "level ---";
   c := CosetTable(G,S);
   p := CosetTableToRepresentation(G,c);
@@ -236,7 +236,7 @@ csg_short := function(grp)
 //////////////////////////
   if grp`index eq 1 then
     return grp;
-  else 
+  else
     permgrp := csg_perm_group(grp);
     grp`generators := fgrouptolist(sl2(grp`level),permgrp);
   end if;
@@ -265,26 +265,26 @@ csg_is_conjugate := function(grp1, grp2)
 //       grp2,gen2,lev2,ind2,
 //       Lgam;
 
-  if grp1`index eq 1 and grp2`index eq 1 then 
+  if grp1`index eq 1 and grp2`index eq 1 then
     return true;
-  elif grp1`genus ne grp2`genus then 
+  elif grp1`genus ne grp2`genus then
     return false;
-  elif grp1`level ne grp2`level then 
+  elif grp1`level ne grp2`level then
     return false;
-  elif grp1`index ne grp2`index then 
-    return false; 
-  elif grp1`generators eq grp2`generators then 
-    return true; 
+  elif grp1`index ne grp2`index then
+    return false;
+  elif grp1`generators eq grp2`generators then
+    return true;
   end if;
 
 // print "conjugate ?";
- 
-  lev := grp2`level; 
+
+  lev := grp2`level;
   G1 := csg_perm_group(grp1);
   G2 := csg_perm_group(grp2);
 
   isconjugate := IsConjugate(sl2(lev),G1,G2);
-// print "          ? ",isconjugate; 
+// print "          ? ",isconjugate;
   return isconjugate;
 end function;
 
@@ -296,7 +296,7 @@ csg_in_list := function(grp1, Lgrps)
     end if;
   end for;
   return false, -1;
- 
+
 end function;
 
 
@@ -398,7 +398,7 @@ print "searchsupergroups";
             if csg_is_GLZ_subgroup(g, grp) then
               Append(~grp`treesupergroups,g`treename[1]);
 //              knownsupergroups cat:= g`treesupergroups;
-print "supergroup",g`treename," added to group",grp`treename;    
+print "supergroup",g`treename," added to group",grp`treename;
             end if;
 //          end if;
         end if;
@@ -433,7 +433,7 @@ fsubs := function(G,S,maxgen,Streename)
   M := MaximalSubgroups(S);
 // print " -- #maxsubgroups ",#M;
   for m := 1 to #M do
-    if minusone in M[m]`subgroup then     
+    if minusone in M[m]`subgroup then
       ind := Index(G,M[m]`subgroup);
 // print "     -- ind ",ind;
       if ind lt (1+maxgen)*128 then
@@ -442,7 +442,7 @@ fsubs := function(G,S,maxgen,Streename)
         if gen le maxgen then
           if #Streename eq 1 then
             super := [[0]];
-          else 
+          else
             super := [Streename];
           end if;
           lev := flevel(G,M[m]`subgroup);
@@ -480,13 +480,13 @@ csg_p_subgroups_sub := procedure(p,k,maxgen,Sgen, ~Lgrps, Streename)
        grps := fsubs( sl2(p),  sl2(p),maxgen, Streename);
      end if;
    else
-      grps := fsubs( sl2(p^k), 
-                     sub<sl2(p^k) | 
-                         fgamma(sl2(p^k),sl2(p^(k-1))), 
+      grps := fsubs( sl2(p^k),
+                     sub<sl2(p^k) |
+                         fgamma(sl2(p^k),sl2(p^(k-1))),
                          flisttogroup( sl2(p^k),Sgen)>,
                      maxgen, Streename);
    end if;
-  
+
    for grp in grps do
 
      csg_list_add_conjugate(~Lgrps,grp,~added,false);
@@ -506,9 +506,9 @@ csg_p_to := function(p,maxgen,Streename)
 //////////////////////////////
 // returns all groups of level p^n up to genus maxgen
 //////////////////////////////
-    Lgrps := [ ]; 
+    Lgrps := [ ];
     csg_p_subgroups_sub(p,1,maxgen,[ ], ~Lgrps,Streename);
-  
+
   return Lgrps;
 end function;
 
@@ -520,15 +520,15 @@ csg_subgroups_to := procedure(grp, maxlevel, maxgenus, ~Lgrps)
 /////////////////////////////////////////////////////
 
  if maxlevel mod grp`level ne 0 then
-   Lgrps cat:= [ ];     
+   Lgrps cat:= [ ];
  elif (1+maxgenus)*64 lt grp`index then
    Lgrps cat:= [ ];
  else
    lev := grp`level;
 //   print "csg_subgroups_to:      input level:",lev,"  search level: ",maxlevel;
-   grps := fsubs( sl2(maxlevel), 
-                  sub<sl2(maxlevel) | 
-                         fgamma(sl2(maxlevel),sl2(lev)), 
+   grps := fsubs( sl2(maxlevel),
+                  sub<sl2(maxlevel) |
+                         fgamma(sl2(maxlevel),sl2(lev)),
                          flisttogroup( sl2(maxlevel),grp`generators)>,
                   maxgenus, grp`treename[1]);
 
@@ -541,10 +541,10 @@ csg_subgroups_to := procedure(grp, maxlevel, maxgenus, ~Lgrps)
        csg_subgroups_to(grp, maxlevel, maxgenus, ~Lgrps);
      end if;
    end for;
-end if;  
+end if;
 
 end procedure;
-                          
+
 
 csg_list_to := function(grps, maxlevel, maxgenus)
 /////////////////////////////////////////////////
@@ -563,7 +563,7 @@ end function;
 
 maximal_levels := function(genus)
 /////////////////////////////////
-// 
+//
 /////////////////////////////////
   prime_bound := 12*genus+13;
   levels := significant_levels(level_bound(genus), prime_bound);
@@ -577,7 +577,7 @@ end function;
 
 csg_to_level := function(maxgenus, level)
 //////////////////////
-// returns a list of all congruence subgroups of level up to level and 
+// returns a list of all congruence subgroups of level up to level and
 // genus up to maxgenus
 //////////////////////
 
@@ -588,7 +588,7 @@ csg_to_level := function(maxgenus, level)
     // in this case we do not get the complete supergroup structure
     baslevel := factL[#factL][1];
     basegrps := fsubs(sl2(baslevel),sl2(baslevel),maxgenus,[level]);
-    grps := basegrps cat csg_list_to(basegrps, level, maxgenus); 
+    grps := basegrps cat csg_list_to(basegrps, level, maxgenus);
   else
     basegrps := fsubs(sl2(level),sl2(level),maxgenus,[level]);
     grps := basegrps cat csg_list_to(basegrps, level, maxgenus);
@@ -628,7 +628,7 @@ csg_list_expand := procedure(~Lgrps, startlevel, maxgenus, onlycomposite)
                          >
              ];
   end if;
-  
+
   maxlevels := maximal_levels(maxgenus);
 
   for level in maxlevels do
@@ -643,14 +643,14 @@ print "LEVEL:",level;
       basegrps := fsubs(sl2(level),sl2(level),maxgenus,[level]);
       grps := basegrps cat csg_list_to(basegrps, level, maxgenus);
     end if;
- 
+
     for grp in grps do
       csg_list_add_conjugate(~Lgrps,grp,~added,false);
     end for;
-      
+
     //csg_list_clean_treesupergroups(~Lgrps);
-      
-  end if;   
+
+  end if;
   end for;
   for level in maxlevels do
   if level ge startlevel then
@@ -670,7 +670,7 @@ print "LEVEL:",level;
     //csg_list_clean_treesupergroups(~Lgrps);
   end if;
   end for;
- 
+
 end procedure;
 
 
@@ -709,7 +709,7 @@ print "LEVEL:",level;
       for grp in grps do
         csg_list_add_conjugate(~Lgrps,grp,~added,false);
       end for;
- 
+
     elif factL[#factL][1] le 5 then
 print "LEVEL:",level;
       basegrps := fsubs(sl2(level),sl2(level),maxgenus,[level]);
@@ -718,10 +718,10 @@ print "LEVEL:",level;
         csg_list_add_conjugate(~Lgrps,grp,~added,false);
       end for;
     end if;
- 
-     
+
+
     //csg_list_clean_treesupergroups(~Lgrps);
-      
+
   end for;
   for level in maxlevels do
     factL:= Factorization(level);
@@ -741,7 +741,7 @@ print "LEVEL:",level;
     //csg_list_clean_treesupergroups(~Lgrps);
   end for;
 
-//  csg_list_remove_conjugates(~Lgrps);  
+//  csg_list_remove_conjugates(~Lgrps);
   return Lgrps;
 
 end function;

@@ -121,7 +121,7 @@ gl2_extra_generators := function(m)
 
   U,phi:=UnitGroup(quo<Integers()|m>);
   if m ne 2 then
-   ugens:=[Integers()!phi(i) : i in Generators(U)]; 
+   ugens:=[Integers()!phi(i) : i in Generators(U)];
   else
    ugens:=[1];
   end if;
@@ -133,7 +133,7 @@ gl2_extra_generators := function(m)
    M := 0;
    D := [ ];
    for fact in factL do
-     d := gl2_prim(fact[1],fact[2],u); 
+     d := gl2_prim(fact[1],fact[2],u);
      dd := [ u+M : u in d ];
      D cat:= dd;
      M := M + #d;
@@ -141,7 +141,7 @@ gl2_extra_generators := function(m)
    Append(~gens,D);
   end for;
 
-  return(gens);  
+  return(gens);
 end function;
 
 ///////////////////////////////////////////////////////////////
@@ -184,7 +184,7 @@ nsl2 := function(m)
   T := [ ];
   for fact in factL do
 //    print M;
-    s,t := nsl2_generators(fact[1],fact[2]); 
+    s,t := nsl2_generators(fact[1],fact[2]);
     ss := [ u+M : u in s ];
     tt := [ u+M : u in t ];
     S cat:= ss;
@@ -195,7 +195,7 @@ nsl2 := function(m)
   G := Sym(M);
   gens:=[G|S,T];
   H:=sub<G | gens>;
-  return(H);  
+  return(H);
 
 end function;
 
