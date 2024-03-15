@@ -193,7 +193,7 @@ function get_maximal_borel_intersection(H)
     // Apply the generators of the automorphism group to each subspace.
     for i->x in nodes do
 	for g in gs do
-            _, new_pt, _ := rescale(x`pt * g, true, true);
+            _, new_pt, _ := rescale(x`pt * g, false, true);
 	    idx := rev_lookup[new_pt];
 	    union(~nodes, i, idx);
 	end for;
@@ -212,11 +212,16 @@ function get_maximal_borel_intersection(H)
     end for;
     
     min_elt := Minimum([<O[x], nodes[x]`pt> : x in Keys(O)]);
-    v1 := min_elt[2];
-    // could take any linearly independent vector
-    v2 := Basis(Kernel(Transpose(Matrix(v1))))[1];
-    t := GL(2,Integers(N))!Transpose(Matrix([v1,v2]));
-    return t; // H^t now has maximal Borel intersection
+    ts := [];
+    min_vs := [nodes[x]`pt : x in Keys(O) | O[x] eq min_elt[1]];
+    for v1 in min_vs do
+	// could take any linearly independent vector
+	v2 := Basis(Kernel(Transpose(Matrix(v1))))[1];
+	t := GL(2,Integers(N))!Transpose(Matrix([v1,v2]));
+	Append(~ts, t);
+    end for;
+    
+    return ts; // H^t now has maximal Borel intersection for every such t
 end function;
 
 // feed a Borel and see if we can find it after conjugation
@@ -253,4 +258,21 @@ function get_borel_level(H)
 	Append(~conjs, has_ev select t else prev_t);
     end for;
     return borel_level, conjs;
+end function;
+
+function TestFindConjugates(line)
+    data := Split(line, ":");
+    label := data[1];
+    level := StringToInteger(Split(label, ".")[1]);
+    gens := eval(data[3]);
+    conjugators := eval(data[7]);
+    ZN := Integers(level);
+    G := GL(2, ZN);
+    H := sub< G | gens>;
+    H_conjs := {H^(G!a) : a in conjugators};
+    start_time := Cputime();
+    ts := get_maximal_borel_intersection(H);
+    timing := Cputime(start_time);
+    assert {H^t : t in ts} eq H_conjs;
+    return timing;
 end function;
