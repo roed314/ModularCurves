@@ -318,7 +318,7 @@ procedure ProcessFileBorel(fname)
     for i in [2..#lines] do
 	line := lines[i];
 	label, t, timing := TimeFindConjugate(line, label_idx, gens_idx);
-	Write(output_fname, Sprintf("%o:%o:%o\n", label, t, timing));
+	Write(output_fname, Sprintf("%o:%o:%o", label, t, timing));
     end for;
     return;
 end procedure;
