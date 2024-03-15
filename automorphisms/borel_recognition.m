@@ -267,6 +267,9 @@ function TestFindConjugates(line)
     data := Split(line, ":");
     label := data[1];
     level := StringToInteger(Split(label, ".")[1]);
+    if (level eq 1) then
+	return 0;
+    end if;
     gens := eval(data[3]);
     conjugators := eval(data[7]);
     ZN := Integers(level);
