@@ -212,6 +212,7 @@ function get_maximal_borel_intersection(H)
     end for;
     
     min_elt := Minimum([<O[x], nodes[x]`pt> : x in Keys(O)]);
+    /*
     ts := [];
     min_vs := [nodes[x]`pt : x in Keys(O) | O[x] eq min_elt[1]];
     for v1 in min_vs do
@@ -227,6 +228,16 @@ function get_maximal_borel_intersection(H)
     end for;
     
     return ts; // H^t now has maximal Borel intersection for every such t
+    */
+    v1 := min_elt[2];
+    v2 := Basis(Kernel(Transpose(Matrix(v1))))[1];
+    mat := Transpose(Matrix([v1,v2]));
+    while not IsInvertible(mat) do
+	v2[2] +:= 1;
+	mat := Transpose(Matrix([v1,v2]));
+    end while;
+    t := GL(2,Integers(N))!mat;
+    return t;
 end function;
 
 // feed a Borel and see if we can find it after conjugation
@@ -265,22 +276,48 @@ function get_borel_level(H)
     return borel_level, conjs;
 end function;
 
-function TestFindConjugates(line)
+// function TestFindConjugates(line)
+function TimeFindConjugate(line, label_idx, gens_idx)
     data := Split(line, ":");
-    label := data[1];
+    label := data[label_idx];
     level := StringToInteger(Split(label, ".")[1]);
     if (level eq 1) then
-	return 0;
+	return label,[], 0;
     end if;
-    gens := eval(data[3]);
-    conjugators := eval(data[7]);
+    gens := eval(data[gens_idx]);
+//    conjugators := eval(data[7]);
     ZN := Integers(level);
     G := GL(2, ZN);
     H := sub< G | gens>;
-    H_conjs := {H^(G!a) : a in conjugators};
+//     H_conjs := {H^(G!a) : a in conjugators};
     start_time := Cputime();
-    ts := get_maximal_borel_intersection(H);
+    // ts := get_maximal_borel_intersection(H);
+    t := get_maximal_borel_intersection(H);
     timing := Cputime(start_time);
-    assert {H^t : t in ts} eq H_conjs;
-    return timing;
+    /*
+    U, psi := UnitGroup(ZN);
+    gens := [];
+    for t in Generators(U) do
+	Append(~gens, [1,0,0,psi(t)]);
+	Append(~gens, [psi(t),0,0,1]);
+    end for;
+    Append(~gens, [1,1,0,1]); 
+    B := sub<G | gens>;
+    assert &and[#(B meet H^t) eq #(B meet Hc) : Hc in H_conjs];
+   */
+    return label,Eltseq(t), timing;
 end function;
+
+procedure ProcessFileBorel(fname)
+    output_fname := fname cat ".out";
+    data := Read(fname);
+    lines := Split(data, "\n");
+    fields := Split(lines[1], ":");
+    label_idx := Index(fields, "label");
+    gens_idx := Index(fields, "gens");
+    for line in lines do
+	label, t, timing := TimeFindConjugate(line, label_idx, gens_idx);
+	Write(output_fname, Sprintf("%o:%o:%o\n", label, t, timing));
+    end for;
+    return;
+end procedure;
