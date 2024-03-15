@@ -291,9 +291,11 @@ function FindRelation(h,j,n)
     return (&+[v[i+n+2]*t^i : i in [0..n]])/(&+[v[i+1]*t^i : i in [0..n]]);
 end function;
 
-function H90(n,L,K,G,sigma,xi)
-// Input: xi: G=Gal(L/K)-> GL(n,L) 1-cocycle.
-// Output: matrix A in GL(n,L) such that xi_g = A^(-1) g(A) for all g in G.
+intrinsic H90(n::RngIntElt, L::FldNum, K::Any, G::GrpPerm, sigma::Map, xi::GrpHom) -> AlgMatElt
+{
+   Input: xi: G=Gal(L/K)-> GL(n,L) 1-cocycle.
+   Output: matrix A in GL(n,L) such that xi_g = A^(-1) g(A) for all g in G.
+}
 // Also contains a commented code to perform LLL on A obtained.
     V := VectorSpace(L,n);
     B1:=Basis(L);  // Warning: assuming K is base field of L
@@ -337,7 +339,7 @@ function H90(n,L,K,G,sigma,xi)
         assert A^(-1)*gA eq xi(g);
     end for;
     return A;
-end function;
+end intrinsic;
 
 function Act(g,A,f,h)
 /* Input : Matrix A and g, where g is a degree 1 function.

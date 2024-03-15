@@ -12,15 +12,15 @@ FamilyRec := recformat<
 
 //Creates a family once we already have calG and B.
 
-function CreateFamilyRecSubgroup(calG, B  : compute_comm:=false, compute_calgmeetsl2:=false)
- /*
+intrinsic CreateFamilyRecSubgroup(calG::GrpMat, B::GrpMat  : compute_comm:=false, compute_calgmeetsl2:=false) -> Rec
+{
     Input:
 	    calG    : an agreeable subgroup
 	    B       : an open subgroup of SL2(Zhat) such that [calG,calG] subseteq B subseteq SL2 meet calG
     Output:
         A record of type "FamilyRec" with the following entries computed:
             calG, B, calG_level, B_level, calG_gens, B_gens
- */
+ }
 
     F := rec<FamilyRec | calG:= calG ,B:=B >;
     calG_level:=gl2Level(calG);
@@ -47,4 +47,4 @@ function CreateFamilyRecSubgroup(calG, B  : compute_comm:=false, compute_calgmee
     F`AOfMF:=AssociativeArray();
 
     return F;
-end function;
+end intrinsic;

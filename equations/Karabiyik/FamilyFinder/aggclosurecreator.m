@@ -1,4 +1,4 @@
-
+// Code in this file contributed by Eray Karabiyik
 
 //Based on Andrew Sutherland's intrinsic (which is faster than what I was using).
 intrinsic FiniteLift(A::GrpMatElt, N::RngIntElt, M::RngIntElt) -> GrpMat
@@ -49,7 +49,7 @@ intrinsic FamilyFinderNew(G::GrpMat, T::GrpMat, FAM::Assoc) -> RngIntElt, Rec, G
     for k in Keys(FAM) do
 
        //time0:=Realtime();
-        if FAM[k]`B_level eq T_level and IsConjugate(GL(2,Integers(T_level)),T,FAM[k]`B) and g eq FAM[k]`genus and FAM[k]`calG_level eq calG_level then
+        if FAM[k]`B_level eq T_level and g eq FAM[k]`genus and FAM[k]`calG_level eq calG_level and IsConjugate(GL(2,Integers(T_level)),T,FAM[k]`B) then
 
             A,b:=IsConjugate(GL(2,Integers(calG_level)),calG,FAM[k]`calG);
             if A then
@@ -60,15 +60,20 @@ intrinsic FamilyFinderNew(G::GrpMat, T::GrpMat, FAM::Assoc) -> RngIntElt, Rec, G
         //print(Realtime(time0));
     end for;
 
-    o:=1;
+    o:=0;
     for t in Keys(Y) do
         b:=FiniteLift(Y[t][2],calG_level,N);
         Tcong:=Conjugate(sl2Lift(T,N),b);
         if ChangeRing(Tcong,Integers(T_level)) eq FAM[t]`B then;
+            if o ne 0 then
+                error, "Multiple families when only one expected";
+            end if;
             o:=t;
         end if;
-
     end for;
+    if o eq 0 then
+        error, "No family found";
+    end if;
 
     b:=FiniteLift(Y[o][2],calG_level,N);
     Gcong:=Conjugate(G,b);
@@ -79,8 +84,3 @@ intrinsic FamilyFinderNew(G::GrpMat, T::GrpMat, FAM::Assoc) -> RngIntElt, Rec, G
 
     return o,FAM[o],Gcong,gl2Lift(FAM[o]`calG,N),Tcong;
 end intrinsic;
-
-
-
-
-//This should be completely fine at this point.

@@ -1,6 +1,13 @@
+// Code in this file contributed by Eray Karabiyik
 
-function GroupToCocycle(calG,G,H,T,M,AOfMF)
-    /*
+function lift_hom(f, M)
+    R := BaseRing(Domain(f));
+    GM := gl2Lift(Domain(f), M);
+    return hom<GM -> Codomain(f) | [<GM.i, ChangeRing(GM.i, R) @ f> : i in [1..Ngens(GM)]] >;
+end function;
+
+intrinsic GroupToCocycle(calG::GrpMat, G::GrpMat, H::GrpMat, T::GrpMat, M::Rec, AOfMF::Assoc) -> HomGrp, FldNum, GrpPerm, Map
+{
         Input:  calG: This is an open subgroup of GL2(Zhat), containing negative identity with full determinant.
                 G: A representative in the family F(calG,G)=F(calG,B) for some B arising from our calculations. Check Zywina-Explicit Open Image-Chapter 14 for details.
                 H: A group in the family F(calG,G). This will be the group we are trying to compute the modular curve of.
@@ -9,7 +16,10 @@ function GroupToCocycle(calG,G,H,T,M,AOfMF)
                 Note that G and H are switched here, notationwise
         Output:
                 xi: Gal(K/Q)-> GL(#M`F0,K) 1-cocycle arising from the map H-> calG/G
-    */
+                K: a number field
+                GAL1: the Galois group of Gal(K/Q) as an automorphism group
+                sigma1: the map from GAL1 to the set of automorphisms of K
+}
     //Arranging the levels
     N1:=#BaseRing(calG);
     N2:=#BaseRing(G);
@@ -87,7 +97,6 @@ function GroupToCocycle(calG,G,H,T,M,AOfMF)
 
     return xi,Kfield,GAL1,sigma1;
 
-
-end function;
+end intrinsic;
 
 

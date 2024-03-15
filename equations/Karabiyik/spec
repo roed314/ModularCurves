@@ -1,4 +1,7 @@
 {
   FamilyFinder/aggclosurecreator.m
   RepresentativeFinder/special.m
+  TwistingCode/GroupToCocycle.m
+  TwistingCode/TwistingCode.m
+  main.m
 }

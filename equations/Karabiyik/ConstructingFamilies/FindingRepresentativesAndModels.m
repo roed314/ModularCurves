@@ -1,3 +1,6 @@
+// We will probably not be using this file
+
+
 load "../OpenImage/main/FindOpenImage.m";
 load "../OpenImage/SZ-data/RationalFunctions.m";
 load "../OpenImage/SZ-data/GL2Invariants.m";

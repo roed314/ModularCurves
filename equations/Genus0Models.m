@@ -1,5 +1,5 @@
 // load "Congruence Subgroups of genus 0.m";
-import "Genus0Common.m" : Act, SiegelExpansion, FindRelation, H90, CuspData;
+import "Genus0Common.m" : Act, SiegelExpansion, FindRelation, CuspData;
 import "Genus0CongSubs.m" : CPlist;
 
 function m2(A,K)

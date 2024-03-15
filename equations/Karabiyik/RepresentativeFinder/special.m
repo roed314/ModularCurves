@@ -1,20 +1,21 @@
 //Code by David Zywina
 intrinsic FindSpecialSubgroup(G::GrpMat, W::GrpMat) -> GrpMat
 {
-    /*  Input:
+        Input:
             - G an open subgroup of GL(2,Zhat), given as a group in GL(2,Z/NZ), that contains
                 all the scalar matrices.
             - W an open subgroup of SL(2,Zhat) that is contained in G and contains [G,G];
                 it is given as a subgroup of SL(2,Z/MZ)
 
         Output:
-            This function find an open subgroup B of G such that B intersected with SL(2,Zhat)
+            This function finds an open subgroup B of G such that B intersected with SL(2,Zhat)
             is W and such that the index [det(G):det(B)] is minimal.
 
             Let m be the lcm of N and M.
             When m is odd, B will be a group given modulo m.
             When m is odd, B will be a group given modulo m times some power of 2.
-    */
+
+        Note that if B does not have surjective determinant, then there will be no groups in this family for us.
 }
 
     N:=LCM(#BaseRing(G),#BaseRing(W));
