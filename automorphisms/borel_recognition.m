@@ -101,12 +101,13 @@ function find_common_evec(H)
     is_pp, p, e := IsPrimePower(N);
     Fp := Integers(p);
     gens_t := [Transpose(Matrix(h)) : h in Generators(H)];
-    espaces := [];
+    V := RSpace(ZN,2);
+    espaces := [PowerSet(V) | ];
     for h in gens_t do
 	f<x> := CharacteristicPolynomial(h);
 	lams := poly_roots_mod_prime_power(f);
 	evecs := &cat[Basis(Kernel(h - ScalarMatrix(2, ZN!lam))) : lam in lams];
-	Append(~espaces, Set(evecs));
+	Append(~espaces, {V!v : v in evecs});
     end for;
     // Could find the lift but this is faster
     // assert exists(ev){ev : ev in evecs | Vector(Fp, ev) eq v_p};
@@ -118,10 +119,11 @@ function find_common_evec(H)
 	return false, _;
     end if;
     common := [V : V in common];
-    assert exists(ev){v : v in common | GCD(Eltseq(v) cat [N]) eq 1};
+    assert exists(ev){v : v in common | 
+		      GCD([Integers()!x : x in Eltseq(v) cat [N]]) eq 1};
     v2 := Basis(Kernel(Transpose(Matrix(ev))))[1];
     t := GL(2,Integers(N))!Transpose(Matrix([ev,v2]));
-    return t; // H^t is now a Borel subgroup
+    return true, t; // H^t is now a Borel subgroup
 end function;
 
 function get_maximal_borel_intersection(H)
@@ -224,7 +226,31 @@ procedure test_find_common_evec(B : num_tests := 10)
     for i in [1..num_tests] do
 	a := Random(GL(2, ZN));
 	H := B^a;
-	t := find_common_evec(H);
-	assert H^t eq B;
+	has_common, t := find_common_evec(H);
+	assert (has_common) and (H^t eq B);
     end for;
 end procedure;
+
+function get_borel_level(H)
+    ZN := BaseRing(H);
+    N := Modulus(ZN);
+    fac := Factorization(N);
+    borel_level := 1;
+    conjs := [];
+    for pe in fac do
+	p, e := Explode(pe);
+	has_ev := false;
+	j := 1;
+	t := H!1;
+	repeat
+	    Zpj := Integers(p^j);
+	    Hpj := sub<GL(2, Zpj) | Generators(H)>;
+	    prev_t := t;
+	    has_ev, t := find_common_evec(Hpj);
+	    j +:= 1;
+	until (not has_ev) or (j gt e);
+	borel_level *:= p^(j-1);
+	Append(~conjs, has_ev select t else prev_t);
+    end for;
+    return borel_level, conjs;
+end function;
