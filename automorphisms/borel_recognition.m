@@ -217,6 +217,9 @@ function get_maximal_borel_intersection(H)
     for v1 in min_vs do
 	// could take any linearly independent vector
 	v2 := Basis(Kernel(Transpose(Matrix(v1))))[1];
+	if (N eq 2) then
+	    v2[2] := v2[2] + 1;
+	end if;
 	t := GL(2,Integers(N))!Transpose(Matrix([v1,v2]));
 	Append(~ts, t);
     end for;
