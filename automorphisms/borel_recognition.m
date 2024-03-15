@@ -236,7 +236,7 @@ function get_borel_level(H)
     N := Modulus(ZN);
     fac := Factorization(N);
     borel_level := 1;
-    conjs := [];
+    conjs := [* *];
     for pe in fac do
 	p, e := Explode(pe);
 	has_ev := false;
