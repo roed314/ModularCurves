@@ -1,0 +1,10 @@
+Loading "gl2data.m"
+Loading "magma_gl2zhat.txt"
+Loading "modcurve.m"
+Loading "GL2Operations.m"
+
+In file "finescript.m", line 122, column 12:
+>> str := Read(filename);
+              ^
+Runtime error in 'Read': Cannot open file "modfunc5.60.0.1.txt" (No such file or directory)
+
