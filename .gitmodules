@@ -4,3 +4,11 @@
 [submodule "equations/Gm-Reduce"]
 	path = equations/Gm-Reduce
 	url = git@github.com:SamSchiavone/Gm-Reduce.git
+[submodule "equations/twist"]
+	path = equations/twist
+	url = git@github.com:roed314/twist.git
+	branch = xd
+[submodule "equations/Modular"]
+	path = equations/Modular
+	url = git@github.com:roed314/Modular.git
+	branch = main
