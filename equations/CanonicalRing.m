@@ -1,10 +1,5 @@
-intrinsic CanonicalRing(M::Rec : Precision := 0) -> SeqEnum, SeqEnum
+intrinsic CanonicalRing(M::Rec) -> SeqEnum, SeqEnum
 {Return the curve, q-expansions (denominator of the power in q-expansions) for the model of the canonical ring.}
-    if (Precision eq 0) then
-	prec := 10;// !! TODO - figure out needed precision here
-    else
-	prec := Precision;
-    end if;
     level := M`N;
     g := M`genus;
     e := [2 : i in [1..M`v2]] cat [3 : i in [1..M`v3]];
@@ -45,7 +40,7 @@ intrinsic CanonicalRing(M::Rec : Precision := 0) -> SeqEnum, SeqEnum
 		[ [1,1,1] ],
 		[ [2,1] ],
 		[ [3] ],
-		[ [delta] ]  
+		[ [delta] ]
 		];
 	    rel_dims := [
 		[ [0,0,0,0,0,1] ],
@@ -63,7 +58,7 @@ intrinsic CanonicalRing(M::Rec : Precision := 0) -> SeqEnum, SeqEnum
 	    gen_degs := [0,1,1,1];
 	    rel_degs := [0,0,0,2];
 	end if;
-	idx := Minimum(delta, 4);	
+	idx := Minimum(delta, 4);
 	rel_dims := rel_dims[idx];
 	gen_dims := gen_dims[idx];
 	gen_deg := gen_degs[idx];
@@ -86,7 +81,7 @@ intrinsic CanonicalRing(M::Rec : Precision := 0) -> SeqEnum, SeqEnum
 	    end if;
 	else
 	    if delta eq 0 then
-		if r eq 3 then 
+		if r eq 3 then
 		    exceptional := [[2,3,7],[2,3,8],[2,3,9],[2,4,5],[2,5,5],[3,3,4],[3,3,5],
 				    [3,3,6],[3,4,4],[3,4,5],[4,4,4]];
 		    gen_degs := [21,15,9,10,6,12,9,6,8,5,4];
@@ -105,7 +100,7 @@ intrinsic CanonicalRing(M::Rec : Precision := 0) -> SeqEnum, SeqEnum
 		    gen_degs := [3];
 		    rel_degs := [6];
 		end if;
-		
+
 		if e in exceptional then
 		    idx := Index(exceptional, e);
 		    gen_deg := gen_degs[idx];
@@ -119,7 +114,7 @@ intrinsic CanonicalRing(M::Rec : Precision := 0) -> SeqEnum, SeqEnum
     end if;
     ring_gens := AssociativeArray();
     for d in [1..gen_deg] do
-	ring_gens[d] := FindModularForms(2*d, M, prec)`F;
+	ring_gens[d] := FindModularForms(2*d, M)`F;
     end for;
     qexps := &cat [ring_gens[d] : d in [1..gen_deg]];
     precs := [AbsolutePrecision(fs[1]) : fs in qexps];
@@ -128,11 +123,11 @@ intrinsic CanonicalRing(M::Rec : Precision := 0) -> SeqEnum, SeqEnum
     grading := &cat[[d : x in ring_gens[d]] : d in [1..gen_deg]];
     R<[x]> := PolynomialRing(Rationals(),grading);
     degmons := [MonomialsOfWeightedDegree(R, d) : d in [1..rel_deg]];
-    all_prods := [[[Evaluate(m, all_fs[i]) + O(q^precs[i]) 
+    all_prods := [[[Evaluate(m, all_fs[i]) + O(q^precs[i])
 		   : m in degmons[d]] : i in [1..#all_fs]] : d in [1..rel_deg]];
     // We should look for relations over QQ
-    all_mats := [[* Matrix([&cat[Eltseq(x) : x in AbsEltseq(f)] 
-			    : f in prods]) : prods in all_prods_d *] 
+    all_mats := [[* Matrix([&cat[Eltseq(x) : x in AbsEltseq(f)]
+			    : f in prods]) : prods in all_prods_d *]
 		 : all_prods_d in all_prods];
     kers := [* *];
     for mats in all_mats do
@@ -142,10 +137,10 @@ intrinsic CanonicalRing(M::Rec : Precision := 0) -> SeqEnum, SeqEnum
 	end for;
 	ker := Kernel(mat);
 	Append(~kers, ker);
-    end for; 
+    end for;
     // For the other cases we haven't implemented this sanity check
     if (r le 3) then
-	require [Dimension(k) : k in kers] in rel_dims : 
+	require [Dimension(k) : k in kers] in rel_dims :
 	  "Not sufficient precision!";
     end if;
     rels := [[&+[Eltseq(kers[d].i)[j]*degmons[d][j] : j in [1..#degmons[d]]] :

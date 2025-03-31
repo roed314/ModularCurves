@@ -11,7 +11,7 @@ gens := GetModularCurveGenerators("42.48.4.5");
 N := Characteristic(BaseRing(Parent(gens[1])));
 print "Creating modular curve record";
 rec := CreateModularCurveRec(N,gens);
-bool, polys, fs := FindCanonicalModel(rec,200);
+bool, polys, fs := FindCanonicalModel(rec);
 
 /*
   K<z> := BaseRing(Parent(fs[1][1]));
@@ -21,14 +21,13 @@ bool, polys, fs := FindCanonicalModel(rec,200);
   cs := [[Coefficient(el,7*i) : i in [1..47]] : el in mons_f];
 */
 
-rels := FindRelations(fs[1..3],5);
+rels := FindRelationsOverKG(rec,fs[1..3],5);
 f := rels[1];
 C := Curve(Proj(Parent(f)), f);
 Genus(C);
 
 //print "Computing model of X_H";
-//rec := FindModelOfXG(rec, 40);
-rec := FindModelOfXG(rec, 150);
+rec := FindModelOfXG(rec);
 //S := Parent(rec`psi[1]);
 //C := Curve(Proj(S),rec`psi);
 //printf "initial model: %o", C;

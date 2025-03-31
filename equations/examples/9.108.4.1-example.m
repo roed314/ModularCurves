@@ -11,8 +11,8 @@ QQ := Rationals();
 gens := GetModularCurveGenerators("9.108.4.1");
 N := Characteristic(BaseRing(Parent(gens[1])));
 rec := CreateModularCurveRec(N,gens);
-//bool, polys, fs := FindCanonicalModel(rec,20);
-rec := FindModelOfXG(rec, 50);
+//bool, polys, fs := FindCanonicalModel(rec:prec0:=20);
+rec := FindModelOfXG(rec);
 /*
   S := Parent(polys[1]);
   S := ChangeRing(S,QQ);

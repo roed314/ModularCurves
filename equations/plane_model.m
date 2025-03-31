@@ -298,16 +298,13 @@ File output:
     return best, bestkey, true, tval, tred;
 end intrinsic;
 
-intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:=0) -> BoolElt, Crv, SeqEnum
+intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt) -> BoolElt, Crv, SeqEnum
 {rec should be of type ModularCurveRec, genus larger than 3 and not hyperelliptic}
     assert reduction_prime gt rec`level;
     t0 := ReportStart(label, "PlaneModelFromQExpansions");
-    if prec eq 0 then
-        prec := rec`prec;
-    end if;
     if not assigned rec`F0 then
         if not assigned rec`F then
-            rec := FindModularForms(2,rec,prec);
+            rec := FindModularForms(2,rec);
         end if;
         rec := FindCuspForms(rec);
     end if;
@@ -334,13 +331,13 @@ intrinsic PlaneModelFromQExpansions(rec::Rec, Can::Crv, label::MonStgElt : prec:
         for m in [low..high] do
             //ttmp := ReportStart(label, Sprintf("plane relation"));
             ttmp := Cputime();
-            rels := FindRelations(MF, m);
+            rels := FindRelationsOverKG(M, MF, m : OverQ:=true);
             //ReportEnd(label, Sprintf("plane relation"), ttmp);
             trel +:= Cputime() - ttmp;
             if #rels gt 0 then
                 f := R!rels[1];
                 proj := [&+[M[i,j] * Rg.j : j in [1..g]] : i in [1..3]];
-                // Note that FindRelations is inexact: the modular forms may not actually satisfy the relations exactly, but instead only up to some precision which is lower than the precision of the forms themselves.  As a consequence, proj may not actually define a map from Can to the plane model.  This is checked in RecordPlaneModel.
+                // Note that FindRelationsOverKG is inexact: the modular forms may not actually satisfy the relations exactly, but instead only up to some precision which is lower than the precision of the forms themselves.  As a consequence, proj may not actually define a map from Can to the plane model.  This is checked in RecordPlaneModel.
                 best, bestkey, vld, tmpval, tmpred := RecordPlaneModel(<f, proj>, CanEqs, best, bestkey, "mf", label : warn_invalid:=false);
                 tval +:= tmpval; tred +:= tmpred;
                 if vld then

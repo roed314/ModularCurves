@@ -9,15 +9,12 @@
   Genus0Common.m
   Genus0Models.m
   Genus0CongSubs.m
-  OpenImage
+  OpenImageUtils.m
+  Modular
   {
-    +OpenImage.spec
+      +spec
   }
   Gm-Reduce
-  {
-    +spec
-  }
-  Karabiyik
   {
     +spec
   }

@@ -9,10 +9,10 @@ gens := GetModularCurveGenerators("30.60.5.1");
 N := Characteristic(BaseRing(Parent(gens[1])));
 print "Creating modular curve record";
 rec := CreateModularCurveRec(N,gens);
-//bool, polys, fs := FindCanonicalModel(rec,200);
+//bool, polys, fs := FindCanonicalModel(rec);
 PlaneModelFromQExpansions(rec : prec:=150);
 /*
-rec := FindModularForms(2,rec,prec);
+rec := FindModularForms(2,rec);
 rec := FindCuspForms(rec);
 fs := rec`F0;
 
@@ -20,7 +20,7 @@ found_bool := false;
 m := 3;
 while not found_bool do
   printf "trying m = %o\n", m;
-  rels := FindRelations(fs[1..3],m);
+  rels := FindRelationsOverKG(rec,fs[1..3],m);
   if #rels gt 0 then
     print "relation found!";
     found_bool := true;

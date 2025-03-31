@@ -192,12 +192,12 @@ intrinsic RelativeJMap(cover_label::MonStgElt, covered_label::MonStgElt, conjuga
     end for;
 
     t1 := ReportStart(cover_label, "ConvertModularFormExpansions");
-    F1 := [ConvertModularFormExpansions(M0, M, [1,0,0,1], f) : f in F];
+    F1 := ConvertModularFormExpansions(M0, M, F, [1,0,0,1]);
     // The entries in F1 are laurent series, but we need power series to fit with F
     R := Parent(F0[1][1]);
     F1 := [[R!qexp : qexp in f] : f in F1];
     // We need to express every entry in F1 in terms of F0
-    rels := FindRelations(F1 cat F0, 1);
+    rels := FindRelationsOverKG(M, F1 cat F0, 1 : OverQ:=true);
     mat := Matrix(Rationals(), #rels, g+g0, [[Coefficient(rels[i], j, 1) : j in [1..g + g0]] : i in [1..#rels]]);
     mat := EchelonForm(mat);
     ReportEnd(cover_label, "ConvertModularFormExpansions", t1);

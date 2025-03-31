@@ -332,11 +332,11 @@ function SimplifyGeometricHyperellipticCurve(foo)
 	return bar;
 end function;
 
-function HyperellipticModelFromLabel(label : i:=1, prec:=100)
+function HyperellipticModelFromLabel(label : i:=1, prec0:=0)
 	gens := GetModularCurveGenerators(label);
 	N := Characteristic(BaseRing(Parent(gens[1])));
 	rec := CreateModularCurveRec(N,gens);
-	bool, polys, fs := FindCanonicalModel(rec, prec);
+	bool, polys, fs := FindCanonicalModel(rec: prec0:=prec0);
 	if not bool then
 		B := [elt[i] : elt in fs];
 		C := HyperellipticModel(B);

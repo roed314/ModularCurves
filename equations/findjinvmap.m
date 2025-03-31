@@ -264,7 +264,7 @@ function FindJMapInv(M, maxprec, mind, maxd)
     if (not is_can) then
 	printf "Constructing a model embedded in projective space...\n";
 	invtime :=  Cputime();
-	X := FindModelOfXG(M, maxprec);
+	X := FindModelOfXG(M);
 	X_emb := Curve(ProjectiveSpace(Universe(X`psi)), X`psi);
 	// Here we use the fact that David is embedding X 
 	// using forms of weight X`k

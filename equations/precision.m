@@ -1,3 +1,5 @@
+// This function should be obviated by the new precision handling in the Modular repo (as opposed to OpenImage), but we still need to determine hyperellipticity and relation_degree (for relative j-maps)
+
 intrinsic RequiredPrecision(M::Rec, label::MonStgElt) -> RngIntElt, BoolElt, RngIntElt
 {
 Input:
@@ -31,11 +33,11 @@ Output:
 	  found := false;
 	  // for now, doing that naively
 	  while (not found) do
-	      M:=FindModularForms(2,M,prec);
+	      M:=FindModularForms(2,M);
 	      M:=FindCuspForms(M);
 	      F:=M`F0;
 	      assert #F eq g;
-	      I2:=FindRelations(F,2);
+	      I2:=FindRelationsOverKG(M, F, 2);
 	      I2:=[Pol!P: P in I2];
 	      found := #I2 in {(g-1)*(g-2) div 2,((g-2)*(g-3)) div 2};
 	      prec +:= prec_step;
@@ -60,7 +62,7 @@ Output:
 	  return prec, false, 2;
       end if;
       if g eq 3 then
-          I4:=FindRelations(F,4);
+          I4:=FindRelationsOverKG(M, F, 4);
           if #I4 eq 1 then
 	      return prec, false, 4;
 	  end if;
@@ -71,7 +73,7 @@ Output:
 	  W:=sub<V| [V![MonomialCoefficient(x[i]*f,m): m in mon3] : i in [1..g], f in I2]>;
 	  assert Dimension(W) eq ((g-3)*(g^2+6*g-10) div 6) - (g-3);
 
-	  I3:=FindRelations(F,3);
+	  I3:=FindRelationsOverKG(M, F, 3);
 	  I3:=[Pol!P: P in I3];
 
 	  Q0:=Scheme(PP,I2 cat I3);

@@ -291,7 +291,7 @@ function FindRelation(h,j,n)
     return (&+[v[i+n+2]*t^i : i in [0..n]])/(&+[v[i+1]*t^i : i in [0..n]]);
 end function;
 
-intrinsic H90(n::RngIntElt, L::FldNum, K::Any, G::GrpPerm, sigma::Map, xi::GrpHom) -> AlgMatElt
+intrinsic H90(n::RngIntElt, L::FldNum, K::Any, G::GrpPerm, sigma::Map, xi::GrpHom : do_LLL:=false) -> AlgMatElt
 {
    Input: xi: G=Gal(L/K)-> GL(n,L) 1-cocycle.
    Output: matrix A in GL(n,L) such that xi_g = A^(-1) g(A) for all g in G.
@@ -315,23 +315,25 @@ intrinsic H90(n::RngIntElt, L::FldNum, K::Any, G::GrpPerm, sigma::Map, xi::GrpHo
     end while;
     A0:=Transpose(Matrix([ ElementToSequence(v) : v in S ]));
     A:=A0^(-1);
-    // LLL of A to make the maps look nicer! If the user wants to use this feature, just uncomment the code.
-    /*AQ:=[];
-    for i in [1..n] do;
-    for j in [1..n] do;
-        AQ:= AQ cat Eltseq(A[i,j]);
-    end for;
-    end for;
-    AQ:=Matrix(K,n,n*Degree(L),AQ);
-    Latt:=LLL(AQ);
+    // LLL of A to make the maps look nicer!
+    if do_LLL then
+        AQ:=[];
+        for i in [1..n] do;
+            for j in [1..n] do;
+                AQ:= AQ cat Eltseq(A[i,j]);
+            end for;
+        end for;
+        AQ:=Matrix(K,n,n*Degree(L),AQ);
+        Latt:=LLL(AQ);
 
-    Ared:=[];
-    for i in [1..n] do;
-        for j in [1..n] do;
-        Ared:= Ared cat [L![Latt[i,k]: k in [(Degree(L)*(j-1)+1)..Degree(L)*j]]];
-    end for;
-    end for;
-    Ared:=Matrix(L,n,n,Ared);*/
+        Ared:=[];
+        for i in [1..n] do;
+            for j in [1..n] do;
+                Ared:= Ared cat [L![Latt[i,k]: k in [(Degree(L)*(j-1)+1)..Degree(L)*j]]];
+            end for;
+        end for;
+        A:=Matrix(L,n,n,Ared);
+    end if;
 
     // Check:
     for g in G do

@@ -35,14 +35,14 @@ Output:
     ttemp := ReportStart(label, "model and modular forms");
     vprint User1: "Starting model computation with low precision";
     N := M`N;
-    prec, ishyp, relation_degree := RequiredPrecision(M, label);
+    // prec, ishyp, relation_degree := RequiredPrecision(M, label);
     // For relative j-maps, we need to be able to find relations of degree 1 after rescaling the precision by 1/max_rel_index, and we have enough precision to find relations of degree relation_degree.
-    prec := Max(prec, Ceiling(prec * max_rel_index / relation_degree));
+    // prec := Max(prec, Ceiling(prec * max_rel_index / relation_degree));
     SetSeed(0);
-    M := FindModelOfXG(M, prec);
-    if (not assigned M`prec) then
-        M`prec := prec;
-    end if;
+    M := FindModelOfXG(M);
+    //if (not assigned M`prec) then
+    //    M`prec := prec;
+    //end if;
     if (M`genus eq 1) and (assigned M`has_point) and (M`has_point) then
         // I'm just taking a guess on the precision here.
         // Test cases: 6.6.1.1, 6.12.1.1, 11.55.1.1, 8.48.1.3, 9.54.1.1, 20.72.1.23, 8.96.1.109
